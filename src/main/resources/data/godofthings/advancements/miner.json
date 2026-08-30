@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": { "item": "godofthings:god_miner" },
+    "title": { "translate": "advancements.godofthings.miner.title" },
+    "description": { "translate": "advancements.godofthings.miner.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "has_god_miner": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [ { "items": [ "godofthings:god_miner" ] } ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 500
+  }
+}

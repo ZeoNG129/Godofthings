@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DD",
+    "DD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:obsidian" }
+  },
+  "result": { "item": "godofthings:void_teleporter" }
+}

@@ -1,0 +1,41 @@
+{
+  "display": {
+    "icon": { "item": "godofthings:god_chestplate" },
+    "title": { "translate": "advancements.godofthings.armor.title" },
+    "description": { "translate": "advancements.godofthings.armor.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "has_helmet": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [ { "items": [ "godofthings:god_helmet" ] } ]
+      }
+    },
+    "has_chestplate": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [ { "items": [ "godofthings:god_chestplate" ] } ]
+      }
+    },
+    "has_leggings": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [ { "items": [ "godofthings:god_leggings" ] } ]
+      }
+    },
+    "has_boots": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [ { "items": [ "godofthings:god_boots" ] } ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 500
+  }
+}

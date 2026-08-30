@@ -1,0 +1,10 @@
+{
+  "type": "godofthings:superflat",
+  "generator": {
+    "type": "godofthings:superflat_gen",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "godofthings:superflat_biome"
+    }
+  }
+}

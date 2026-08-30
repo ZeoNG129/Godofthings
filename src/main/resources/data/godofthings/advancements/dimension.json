@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": { "item": "godofthings:superflat_teleporter" },
+    "title": { "translate": "advancements.godofthings.dimension.title" },
+    "description": { "translate": "advancements.godofthings.dimension.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "enter_superflat": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "godofthings:superflat"
+      }
+    }
+  },
+  "rewards": {
+    "experience": 300
+  }
+}

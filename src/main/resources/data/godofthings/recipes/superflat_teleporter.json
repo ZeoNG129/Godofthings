@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DD",
+    "DD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:dirt" }
+  },
+  "result": { "item": "godofthings:superflat_teleporter" }
+}

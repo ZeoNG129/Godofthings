@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "values": [
+    "godofthings:superflat_teleporter",
+    "godofthings:void_teleporter",
+    "godofthings:dreadlamp",
+    "godofthings:god_furnace",
+    "godofthings:god_miner",
+    "godofthings:god_resource",
+    "godofthings:god_drop",
+    "godofthings:god_enchant",
+    "godofthings:god_heaven_enchant",
+    "godofthings:energy_generator",
+    "godofthings:energy_relay"
+  ]
+}

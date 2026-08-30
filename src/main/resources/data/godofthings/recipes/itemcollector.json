@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "justdirethings",
+  "key": {
+    "d": {
+      "item": "minecraft:diamond"
+    },
+    "e": {
+      "item": "minecraft:ender_pearl"
+    },
+    "f": {
+      "item": "minecraft:iron_ingot"
+    },
+    "h": {
+      "item": "minecraft:hopper"
+    }
+  },
+  "pattern": [
+    " d ",
+    "heh",
+    "fff"
+  ],
+  "result": {
+    "item": "godofthings:itemcollector"
+  },
+  "show_notification": true
+}

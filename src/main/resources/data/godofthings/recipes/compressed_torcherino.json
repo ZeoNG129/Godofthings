@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "TTT",
+    "TTT",
+    "TTT"
+  ],
+  "key": {
+    "T": {
+      "item": "godofthings:torcherino"
+    }
+  },
+  "result": {
+    "item": "godofthings:compressed_torcherino"
+  },
+  "group": "godofthings:compressed_torcherino"
+}

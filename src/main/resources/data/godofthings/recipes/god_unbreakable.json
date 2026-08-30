@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NN",
+    "NN"
+  ],
+  "key": {
+    "N": { "item": "minecraft:nether_star" }
+  },
+  "result": { "item": "godofthings:god_unbreakable" }
+}

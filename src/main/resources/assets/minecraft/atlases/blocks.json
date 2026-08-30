@@ -1,0 +1,5 @@
+{
+  "sources": [
+    {"type": "single", "resource": "godofthings:gui/empty_belt_slot_background" }
+  ]
+}

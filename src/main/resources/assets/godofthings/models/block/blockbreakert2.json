@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "godofthings:block/blockbreakert2_bottom",
+    "side": "godofthings:block/blockbreakert2_side",
+    "top": "godofthings:block/blockbreakert2_top"
+  }
+}

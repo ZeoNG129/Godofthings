@@ -1,0 +1,56 @@
+{
+  "variants": {
+    "active=false,facing=down": {
+      "model": "godofthings:block/blockbreakert1",
+      "x": 180
+    },
+    "active=false,facing=east": {
+      "model": "godofthings:block/blockbreakert1",
+      "x": 90,
+      "y": 90
+    },
+    "active=false,facing=north": {
+      "model": "godofthings:block/blockbreakert1",
+      "x": 90
+    },
+    "active=false,facing=south": {
+      "model": "godofthings:block/blockbreakert1",
+      "x": 90,
+      "y": 180
+    },
+    "active=false,facing=up": {
+      "model": "godofthings:block/blockbreakert1"
+    },
+    "active=false,facing=west": {
+      "model": "godofthings:block/blockbreakert1",
+      "x": 90,
+      "y": 270
+    },
+    "active=true,facing=down": {
+      "model": "godofthings:block/blockbreakert1_active",
+      "x": 180
+    },
+    "active=true,facing=east": {
+      "model": "godofthings:block/blockbreakert1_active",
+      "x": 90,
+      "y": 90
+    },
+    "active=true,facing=north": {
+      "model": "godofthings:block/blockbreakert1_active",
+      "x": 90
+    },
+    "active=true,facing=south": {
+      "model": "godofthings:block/blockbreakert1_active",
+      "x": 90,
+      "y": 180
+    },
+    "active=true,facing=up": {
+      "model": "godofthings:block/blockbreakert1_active"
+    },
+    "active=true,facing=west": {
+      "model": "godofthings:block/blockbreakert1_active",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

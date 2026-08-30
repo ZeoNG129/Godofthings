@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DDD",
+    "D D",
+    "DDD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:emerald" }
+  },
+  "result": { "item": "godofthings:god_resource" }
+}

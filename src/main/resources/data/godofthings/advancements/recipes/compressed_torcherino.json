@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "godofthings:compressed_torcherino"
+    ]
+  },
+  "criteria": {
+    "has_torcherino": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "godofthings:torcherino"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "godofthings:compressed_torcherino"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_torcherino",
+      "has_the_recipe"
+    ]
+  ]
+}

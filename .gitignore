@@ -1,0 +1,24 @@
+﻿# Build outputs
+build/
+out/
+mcmodsrepo/
+
+# Gradle
+.gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+eclipse/
+
+# Run directories (dev client data)
+run/
+run-data/
+
+# Logs
+*.log

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "godofthings:double_compressed_torcherino"
+    }
+  ],
+  "result": {
+    "item": "godofthings:compressed_torcherino",
+    "count": 9
+  },
+  "group": "godofthings:compressed_torcherino"
+}

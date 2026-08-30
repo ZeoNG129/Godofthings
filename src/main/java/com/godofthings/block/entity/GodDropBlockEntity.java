@@ -1,0 +1,478 @@
+package com.godofthings.block.entity;
+
+import com.godofthings.Godofthings;
+import com.godofthings.config.MachinesConfig;
+import com.godofthings.menu.GodDropMenu;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.HoeItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.ShovelItem;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.TieredItem;
+import net.minecraft.world.item.TridentItem;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * 神之掉落生物掉落物生产机方块实体。
+ * - 无需能源，每 20 tick 处理一次输入槽中的 1 个刷怪蛋
+ * - 放入刷怪蛋 → 按原版生物战利品表概率产出该生物的掉落物
+ * - 不消耗刷怪蛋（生产模板，按时间持续产出）
+ * - 向下自动输出，内置无限储存；打掉不掉落
+ */
+public class GodDropBlockEntity extends BlockEntity implements MenuProvider
+{
+    /** 工作间隔（tick），可经 godofthings-machines.toml 调整 */
+    public static final int WORK_INTERVAL = MachinesConfig.DROP_WORK_INTERVAL.get();
+
+    /**
+     * 刷怪蛋 -> 对应生物的代表性掉落物。
+     * 覆盖常见生物，避免原版战利品表给出预期之外的物品（如凋灵骷髅只掉煤炭、烈焰人掉烈焰粉）。
+     */
+    private static final Map<EntityType<?>, Item> EGG_DROPS = Map.ofEntries(
+            Map.entry(EntityType.BLAZE, Items.BLAZE_ROD),
+            Map.entry(EntityType.CREEPER, Items.GUNPOWDER),
+            Map.entry(EntityType.SKELETON, Items.BONE),
+            Map.entry(EntityType.WITHER_SKELETON, Items.WITHER_SKELETON_SKULL),
+            Map.entry(EntityType.ZOMBIE, Items.ROTTEN_FLESH),
+            Map.entry(EntityType.ZOMBIE_VILLAGER, Items.ROTTEN_FLESH),
+            Map.entry(EntityType.HUSK, Items.ROTTEN_FLESH),
+            Map.entry(EntityType.DROWNED, Items.ROTTEN_FLESH),
+            Map.entry(EntityType.SPIDER, Items.STRING),
+            Map.entry(EntityType.CAVE_SPIDER, Items.STRING),
+            Map.entry(EntityType.CHICKEN, Items.FEATHER),
+            Map.entry(EntityType.PIG, Items.PORKCHOP),
+            Map.entry(EntityType.COW, Items.BEEF),
+            Map.entry(EntityType.MOOSHROOM, Items.BEEF),
+            Map.entry(EntityType.SHEEP, Items.MUTTON),
+            Map.entry(EntityType.RABBIT, Items.RABBIT),
+            Map.entry(EntityType.GHAST, Items.GHAST_TEAR),
+            Map.entry(EntityType.MAGMA_CUBE, Items.MAGMA_CREAM),
+            Map.entry(EntityType.SLIME, Items.SLIME_BALL),
+            Map.entry(EntityType.ENDERMAN, Items.ENDER_PEARL),
+            Map.entry(EntityType.PHANTOM, Items.PHANTOM_MEMBRANE),
+            Map.entry(EntityType.SHULKER, Items.SHULKER_SHELL),
+            Map.entry(EntityType.WITCH, Items.GLOWSTONE_DUST),
+            Map.entry(EntityType.HOGLIN, Items.PORKCHOP),
+            Map.entry(EntityType.PIGLIN, Items.GOLD_NUGGET),
+            Map.entry(EntityType.PIGLIN_BRUTE, Items.GOLD_NUGGET),
+            Map.entry(EntityType.ZOMBIFIED_PIGLIN, Items.ROTTEN_FLESH),
+            Map.entry(EntityType.STRIDER, Items.STRING),
+            Map.entry(EntityType.BEE, Items.HONEYCOMB),
+            Map.entry(EntityType.SILVERFISH, Items.AIR),
+            Map.entry(EntityType.ENDERMITE, Items.AIR),
+            Map.entry(EntityType.BAT, Items.AIR),
+            Map.entry(EntityType.VEX, Items.AIR),
+            Map.entry(EntityType.ALLAY, Items.AIR),
+            Map.entry(EntityType.SQUID, Items.INK_SAC),
+            Map.entry(EntityType.GLOW_SQUID, Items.GLOW_INK_SAC),
+            Map.entry(EntityType.TURTLE, Items.SCUTE),
+            Map.entry(EntityType.PUFFERFISH, Items.PUFFERFISH),
+            Map.entry(EntityType.COD, Items.COD),
+            Map.entry(EntityType.SALMON, Items.SALMON),
+            Map.entry(EntityType.TROPICAL_FISH, Items.TROPICAL_FISH),
+            Map.entry(EntityType.DOLPHIN, Items.COD),
+            Map.entry(EntityType.GUARDIAN, Items.PRISMARINE_SHARD),
+            Map.entry(EntityType.ELDER_GUARDIAN, Items.PRISMARINE_SHARD),
+            Map.entry(EntityType.SNOW_GOLEM, Items.SNOWBALL),
+            Map.entry(EntityType.IRON_GOLEM, Items.IRON_INGOT),
+            Map.entry(EntityType.WARDEN, Items.SCULK_CATALYST),
+            Map.entry(EntityType.CAMEL, Items.AIR),
+            Map.entry(EntityType.SNIFFER, Items.AIR),
+            Map.entry(EntityType.FROG, Items.AIR),
+            Map.entry(EntityType.TADPOLE, Items.AIR),
+            Map.entry(EntityType.AXOLOTL, Items.AIR),
+            Map.entry(EntityType.GOAT, Items.AIR),
+            Map.entry(EntityType.WOLF, Items.AIR),
+            Map.entry(EntityType.CAT, Items.AIR),
+            Map.entry(EntityType.OCELOT, Items.AIR),
+            Map.entry(EntityType.PARROT, Items.FEATHER),
+            Map.entry(EntityType.LLAMA, Items.LEATHER),
+            Map.entry(EntityType.TRADER_LLAMA, Items.LEATHER),
+            Map.entry(EntityType.HORSE, Items.LEATHER),
+            Map.entry(EntityType.DONKEY, Items.LEATHER),
+            Map.entry(EntityType.MULE, Items.LEATHER),
+            Map.entry(EntityType.SKELETON_HORSE, Items.BONE),
+            Map.entry(EntityType.ZOMBIE_HORSE, Items.ROTTEN_FLESH),
+            Map.entry(EntityType.POLAR_BEAR, Items.COD),
+            Map.entry(EntityType.PANDA, Items.BAMBOO),
+            Map.entry(EntityType.FOX, Items.SWEET_BERRIES),
+            Map.entry(EntityType.RAVAGER, Items.SADDLE),
+            Map.entry(EntityType.EVOKER, Items.TOTEM_OF_UNDYING),
+            Map.entry(EntityType.PILLAGER, Items.AIR),
+            Map.entry(EntityType.VINDICATOR, Items.AIR),
+            Map.entry(EntityType.WANDERING_TRADER, Items.AIR),
+            Map.entry(EntityType.VILLAGER, Items.AIR),
+            Map.entry(EntityType.PLAYER, Items.AIR)
+    );
+
+    /** 明确不允许产出的物品标签（装备/武器/工具/盔甲类） */
+    private static final Set<Class<?>> BANNED_ITEM_CLASSES = Set.of(
+            SwordItem.class,
+            AxeItem.class,
+            PickaxeItem.class,
+            ShovelItem.class,
+            HoeItem.class,
+            BowItem.class,
+            CrossbowItem.class,
+            TridentItem.class,
+            ArmorItem.class,
+            net.minecraft.world.item.ShieldItem.class
+    );
+
+    private final ItemStackHandler inputSlot = new ItemStackHandler(1)
+    {
+        @Override
+        protected void onContentsChanged(int slot)
+        {
+            setChanged();
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack)
+        {
+            return stack.getItem() instanceof SpawnEggItem;
+        }
+    };
+    private final InfiniteItemHandler itemHandler = new InfiniteItemHandler();
+    private final LazyOptional<IItemHandler> storageCap = LazyOptional.of(() -> itemHandler);
+
+    private int tickCounter = 0;
+
+    public GodDropBlockEntity(BlockPos pos, BlockState state)
+    {
+        super(Godofthings.GOD_DROP_BE.get(), pos, state);
+        itemHandler.setOnChange(this::setChanged);
+    }
+
+    public ItemStackHandler getInputSlot()
+    {
+        return inputSlot;
+    }
+
+    public InfiniteItemHandler getItemHandler()
+    {
+        return itemHandler;
+    }
+
+    public int getStorageCount()
+    {
+        return itemHandler.getStacks().size();
+    }
+
+    // ---- 每 tick 逻辑 ----
+
+    public static void tick(Level level, BlockPos pos, BlockState state, GodDropBlockEntity be)
+    {
+        if (level.isClientSide)
+        {
+            return;
+        }
+        be.tickServer();
+    }
+
+    private void tickServer()
+    {
+        tickCounter++;
+        if (tickCounter >= WORK_INTERVAL)
+        {
+            tickCounter = 0;
+            process();
+        }
+        pushDown();
+    }
+
+    private void process()
+    {
+        ItemStack input = inputSlot.getStackInSlot(0);
+        if (input.isEmpty())
+        {
+            return;
+        }
+        List<ItemStack> outputs = produce(input);
+        if (outputs.isEmpty())
+        {
+            return;
+        }
+        // 不消耗刷怪蛋：生产模板，按时间持续产出
+        for (ItemStack out : outputs)
+        {
+            if (!out.isEmpty())
+            {
+                ItemStack leftover = itemHandler.insertItem(-1, out, false);
+                if (!leftover.isEmpty())
+                {
+                    InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
+                }
+            }
+        }
+    }
+
+    /** 根据刷怪蛋，按本模组设定产出对应掉落物（每周期 64 个）。 */
+    private List<ItemStack> produce(ItemStack input)
+    {
+        if (!(input.getItem() instanceof SpawnEggItem egg) || !(level instanceof ServerLevel))
+        {
+            return List.of();
+        }
+        EntityType<?> type = egg.getType(input.getTag());
+        if (type == null)
+        {
+            return List.of();
+        }
+        return produceByMapping(type);
+    }
+
+    /** 优先使用手动映射；未映射的生物回退到安全 loot-table 解析。 */
+    private List<ItemStack> produceByMapping(EntityType<?> type)
+    {
+        Item mapped = EGG_DROPS.get(type);
+        if (mapped == Items.AIR)
+        {
+            return List.of();
+        }
+        if (mapped != null)
+        {
+            return List.of(new ItemStack(mapped, 64));
+        }
+        return produceFromLootTable(type);
+    }
+
+    /**
+     * 对未在 EGG_DROPS 中显式映射的生物，从原版战利品表取掉落物。
+     * 过滤掉装备/武器/工具/盔甲，并优先返回第一个非空、非禁止掉落物；若全被过滤则空。
+     */
+    private List<ItemStack> produceFromLootTable(EntityType<?> type)
+    {
+        if (!(level instanceof ServerLevel serverLevel) || level.getServer() == null)
+        {
+            return List.of();
+        }
+        try
+        {
+            Entity entity = type.create(level);
+            if (!(entity instanceof LivingEntity living))
+            {
+                return List.of();
+            }
+            living.moveTo(worldPosition.getX() + 0.5, worldPosition.getY(), worldPosition.getZ() + 0.5, 0.0F, 0.0F);
+
+            ResourceLocation lootId = living.getLootTable();
+            LootTable lootTable = serverLevel.getServer().getLootData().getLootTable(lootId);
+            if (lootTable == LootTable.EMPTY)
+            {
+                return List.of();
+            }
+
+            Player nearest = nearestPlayer();
+            DamageSource damageSource = nearest != null
+                    ? serverLevel.damageSources().playerAttack(nearest)
+                    : serverLevel.damageSources().generic();
+            LootParams.Builder builder = new LootParams.Builder(serverLevel)
+                    .withParameter(LootContextParams.THIS_ENTITY, living)
+                    .withParameter(LootContextParams.DAMAGE_SOURCE, damageSource)
+                    .withParameter(LootContextParams.ORIGIN, worldPosition.getCenter());
+            if (nearest != null)
+            {
+                builder.withParameter(LootContextParams.LAST_DAMAGE_PLAYER, nearest);
+            }
+            LootParams params = builder.withLuck(0).create(LootContextParamSets.ENTITY);
+            List<ItemStack> drops = lootTable.getRandomItems(params);
+            if (drops == null || drops.isEmpty())
+            {
+                return List.of();
+            }
+            ItemStack chosen = drops.stream()
+                    .filter(stack -> !stack.isEmpty() && !isBannedDrop(stack))
+                    .findFirst()
+                    .orElse(ItemStack.EMPTY);
+            if (chosen.isEmpty())
+            {
+                return List.of();
+            }
+            return List.of(new ItemStack(chosen.getItem(), 64));
+        }
+        catch (Exception e)
+        {
+            return List.of();
+        }
+    }
+
+    private Player nearestPlayer()
+    {
+        Player nearest = null;
+        double best = 64.0 * 64.0;
+        for (Player p : level.players())
+        {
+            double d = p.distanceToSqr(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5);
+            if (d < best)
+            {
+                best = d;
+                nearest = p;
+            }
+        }
+        return nearest;
+    }
+
+    /** 判断物品是否属于禁止产出的装备/武器/工具/盔甲类。 */
+    private static boolean isBannedDrop(ItemStack stack)
+    {
+        if (stack.isEmpty())
+        {
+            return true;
+        }
+        Item item = stack.getItem();
+        for (Class<?> banned : BANNED_ITEM_CLASSES)
+        {
+            if (banned.isAssignableFrom(item.getClass()))
+            {
+                return true;
+            }
+        }
+        return item instanceof TieredItem;
+    }
+
+    /** 向下自动输出到下方容器 */
+    private void pushDown()
+    {
+        BlockPos below = worldPosition.below();
+        if (!level.isLoaded(below))
+        {
+            return;
+        }
+        BlockEntity neighbor = level.getBlockEntity(below);
+        if (neighbor == null)
+        {
+            return;
+        }
+        neighbor.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).ifPresent(handler ->
+        {
+            while (true)
+            {
+                ItemStack stack = itemHandler.getStackInSlot(0);
+                if (stack.isEmpty())
+                {
+                    break;
+                }
+                ItemStack toPush = stack.copy();
+                boolean anyMoved = false;
+                for (int s = 0; s < handler.getSlots(); s++)
+                {
+                    ItemStack leftover = handler.insertItem(s, toPush, false);
+                    int moved = toPush.getCount() - leftover.getCount();
+                    if (moved > 0)
+                    {
+                        itemHandler.extractItem(0, moved, false);
+                        anyMoved = true;
+                    }
+                    toPush = leftover;
+                    if (toPush.isEmpty())
+                    {
+                        break;
+                    }
+                }
+                if (!anyMoved)
+                {
+                    break;
+                }
+            }
+        });
+    }
+
+    // ---- capability：任意面都能取走产物 ----
+
+    @Override
+    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side)
+    {
+        if (cap == ForgeCapabilities.ITEM_HANDLER)
+        {
+            return storageCap.cast();
+        }
+        return super.getCapability(cap, side);
+    }
+
+    @Override
+    public void invalidateCaps()
+    {
+        super.invalidateCaps();
+        storageCap.invalidate();
+    }
+
+    // ---- NBT ----
+
+    @Override
+    protected void saveAdditional(CompoundTag tag)
+    {
+        super.saveAdditional(tag);
+        tag.put("InputSlot", inputSlot.serializeNBT());
+        tag.put("Inventory", itemHandler.serializeNBT());
+        tag.putInt("TickCounter", tickCounter);
+    }
+
+    @Override
+    public void load(CompoundTag tag)
+    {
+        super.load(tag);
+        if (tag.contains("InputSlot"))
+        {
+            inputSlot.deserializeNBT(tag.getCompound("InputSlot"));
+        }
+        if (tag.contains("Inventory"))
+        {
+            itemHandler.deserializeNBT(tag.getCompound("Inventory"));
+        }
+        tickCounter = tag.getInt("TickCounter");
+    }
+
+    // ---- MenuProvider ----
+
+    @Override
+    public Component getDisplayName()
+    {
+        return Component.translatable("block.godofthings.god_drop");
+    }
+
+    @Nullable
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player)
+    {
+        return new GodDropMenu(containerId, inventory, this);
+    }
+}

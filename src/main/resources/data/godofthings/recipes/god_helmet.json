@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NNN",
+    "N N"
+  ],
+  "key": {
+    "N": { "item": "minecraft:nether_star" }
+  },
+  "result": { "item": "godofthings:god_helmet" }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PPP",
+    "_A_",
+    "_S_"
+  ],
+  "key": {
+    "P": { "item": "minecraft:netherite_pickaxe" },
+    "A": { "item": "minecraft:netherite_axe" },
+    "S": { "item": "minecraft:netherite_shovel" }
+  },
+  "result": { "item": "godofthings:god_favor_wand" }
+}

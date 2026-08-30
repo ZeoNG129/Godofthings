@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "godofthings:block/blockplacert2_bottom",
+    "side": "godofthings:block/blockplacert2_side",
+    "top": "godofthings:block/blockplacert2_top"
+  }
+}

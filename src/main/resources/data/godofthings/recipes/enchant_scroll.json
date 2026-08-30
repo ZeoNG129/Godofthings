@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "enchant_scroll",
+  "key": {
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "L": {
+      "item": "minecraft:lapis_lazuli"
+    },
+    "B": {
+      "item": "minecraft:book"
+    }
+  },
+  "pattern": [
+    "P P",
+    " L ",
+    "PBP"
+  ],
+  "result": {
+    "item": "godofthings:enchant_scroll",
+    "count": 1
+  }
+}
