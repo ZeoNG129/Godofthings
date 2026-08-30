@@ -15,13 +15,9 @@ import com.godofthings.block.entity.GodFurnaceBlockEntity;
 import com.godofthings.block.entity.GodMinerBlockEntity;
 import com.godofthings.block.entity.GodResourceBlockEntity;
 import com.godofthings.dimension.GodFlatDimension;
-import com.godofthings.generator.EnergyGeneratorBlock;
-import com.godofthings.generator.EnergyGeneratorEntity;
-import com.godofthings.generator.EnergyGeneratorItem;
-import com.godofthings.generator.EnergyGeneratorMenu;
-import com.godofthings.generator.EnergyRelayBlock;
-import com.godofthings.generator.EnergyRelayEntity;
-import com.godofthings.generator.EnergyRelayMenu;
+import com.godofthings.energy.CreativeEnergyCubeBlock;
+import com.godofthings.energy.CreativeEnergyCubeEntity;
+import com.godofthings.energy.CreativeEnergyCubeMenu;
 import com.godofthings.handler.AdAstraCompat;
 import com.godofthings.handler.GodFavorWandAe2Helper;
 import com.godofthings.item.GodArmorItem;
@@ -209,39 +205,22 @@ public class Godofthings
     public static final RegistryObject<Item> VOID_TELEPORTER_ITEM = ITEMS.register("void_teleporter",
             () -> new BlockItem(VOID_TELEPORTER.get(), new Item.Properties()));
 
-    // ---- 能量发电机（移植自 auto-resource）----
-    public static final RegistryObject<Block> ENERGY_GENERATOR = BLOCKS.register("energy_generator",
-            () -> new EnergyGeneratorBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.METAL)
+    // ---- 创造能量立方（无限 FE 输出 + 物品充能）----
+    public static final RegistryObject<Block> CREATIVE_ENERGY_CUBE = BLOCKS.register("creative_energy_cube",
+            () -> new CreativeEnergyCubeBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_PURPLE)
                     .pushReaction(PushReaction.DESTROY)
-                    .strength(0.5F, 3.0F)
-                    .lightLevel(state -> 7)
-                    .sound(SoundType.METAL)
+                    .strength(5.0F, 1200.0F)
+                    .lightLevel(state -> 15)
+                    .sound(SoundType.AMETHYST)
             ));
-    public static final RegistryObject<Item> ENERGY_GENERATOR_ITEM = ITEMS.register("energy_generator",
-            () -> new EnergyGeneratorItem(ENERGY_GENERATOR.get()));
-    public static final RegistryObject<BlockEntityType<EnergyGeneratorEntity>> ENERGY_GENERATOR_BE =
-            BLOCK_ENTITIES.register("energy_generator",
-                    () -> BlockEntityType.Builder.of(EnergyGeneratorEntity::new, ENERGY_GENERATOR.get()).build(null));
-    public static final RegistryObject<MenuType<EnergyGeneratorMenu>> ENERGY_GENERATOR_MENU =
-            MENUS.register("energy_generator", () -> IForgeMenuType.create((id, inv, buf) -> new EnergyGeneratorMenu(id, inv, buf.readBlockPos())));
-
-    // ---- 能量传输器（无线 FE 中继/电池）----
-    public static final RegistryObject<Block> ENERGY_RELAY = BLOCKS.register("energy_relay",
-            () -> new EnergyRelayBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.METAL)
-                    .pushReaction(PushReaction.DESTROY)
-                    .strength(5.0F, 6.0F)
-                    .lightLevel(state -> 7)
-                    .sound(SoundType.METAL)
-            ));
-    public static final RegistryObject<Item> ENERGY_RELAY_ITEM = ITEMS.register("energy_relay",
-            () -> new BlockItem(ENERGY_RELAY.get(), new Item.Properties()));
-    public static final RegistryObject<BlockEntityType<EnergyRelayEntity>> ENERGY_RELAY_BE =
-            BLOCK_ENTITIES.register("energy_relay",
-                    () -> BlockEntityType.Builder.of(EnergyRelayEntity::new, ENERGY_RELAY.get()).build(null));
-    public static final RegistryObject<MenuType<EnergyRelayMenu>> ENERGY_RELAY_MENU =
-            MENUS.register("energy_relay", () -> IForgeMenuType.create((id, inv, buf) -> new EnergyRelayMenu(id, inv, buf.readBlockPos())));
+    public static final RegistryObject<Item> CREATIVE_ENERGY_CUBE_ITEM = ITEMS.register("creative_energy_cube",
+            () -> new BlockItem(CREATIVE_ENERGY_CUBE.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<CreativeEnergyCubeEntity>> CREATIVE_ENERGY_CUBE_BE =
+            BLOCK_ENTITIES.register("creative_energy_cube",
+                    () -> BlockEntityType.Builder.of(CreativeEnergyCubeEntity::new, CREATIVE_ENERGY_CUBE.get()).build(null));
+    public static final RegistryObject<MenuType<CreativeEnergyCubeMenu>> CREATIVE_ENERGY_CUBE_MENU =
+            MENUS.register("creative_energy_cube", () -> IForgeMenuType.create((id, inv, buf) -> new CreativeEnergyCubeMenu(id, inv, buf.readBlockPos())));
 
     // ---- 神之更改 ----
     public static final RegistryObject<Item> GOD_CHANGE = ITEMS.register("god_change",
@@ -324,8 +303,7 @@ public class Godofthings
                         output.accept(GOD_CRAFT_ITEM.get());
                         output.accept(SUPERFLAT_TELEPORTER_ITEM.get());
                         output.accept(VOID_TELEPORTER_ITEM.get());
-                        output.accept(ENERGY_GENERATOR_ITEM.get());
-                        output.accept(ENERGY_RELAY_ITEM.get());
+                        output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
                     })
                     .build());
 

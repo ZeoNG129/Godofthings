@@ -2,8 +2,7 @@ package com.godofthings.client;
 
 import com.godofthings.Godofthings;
 import com.godofthings.client.screen.GodFurnaceConfigScreen;
-import com.godofthings.client.screen.EnergyGeneratorScreen;
-import com.godofthings.client.screen.EnergyRelayScreen;
+import com.godofthings.energy.CreativeEnergyCubeScreen;
 import com.godofthings.client.screen.GodFurnaceScreen;
 import com.godofthings.client.screen.GodChangeScreen;
 import com.godofthings.client.screen.GodCraftScreen;
@@ -38,8 +37,7 @@ public class ClientModEvents
             MenuScreens.register(Godofthings.GOD_CRAFT_MENU.get(), GodCraftScreen::new);
             MenuScreens.register(Godofthings.GOD_CRAFT_CONFIG_MENU.get(), GodCraftConfigScreen::new);
             MenuScreens.register(Godofthings.GOD_CRAFT_TEMPLATE_MENU.get(), GodCraftTemplateScreen::new);
-            MenuScreens.register(Godofthings.ENERGY_GENERATOR_MENU.get(), EnergyGeneratorScreen::new);
-            MenuScreens.register(Godofthings.ENERGY_RELAY_MENU.get(), EnergyRelayScreen::new);
+            MenuScreens.register(Godofthings.CREATIVE_ENERGY_CUBE_MENU.get(), CreativeEnergyCubeScreen::new);
         });
     }
 

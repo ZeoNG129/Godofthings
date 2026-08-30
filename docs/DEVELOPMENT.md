@@ -87,6 +87,13 @@ $zh = (gc src\main\resources\assets\godofthings\lang\zh_cn.json -Raw | ConvertFr
   已整体移除，连同其资源、配方、语言键与 9 个跨模组联动依赖（Botania/Curios/L2/Tom's Storage/
   Refined Storage/Beyond Dimensions/ProjectE）一并清理。相关方块/物品不复存在，
   存档中已放置的旧方块会显示为虚空方块（贴图缺失），属预期行为。
+- **能量系统重构（继 1.3.0 之后）**：删除 `generator/` 包（能量发电机 EnergyGenerator +
+  能量中继 EnergyRelay，12 个类）及其全部资源/配方/语言键，替换为 `energy/` 包的
+  **创造能量立方**（`CreativeEnergyCubeBlock/Entity/Menu/Screen`）：
+  - 六面 FE 能量源，`extractEnergy` 无条件满足（创造行为），输出恒为最大速率；
+  - 每 tick 向相邻接收端推送 `Integer.MAX_VALUE` FE/面，并为 GUI 内 4 个充能格物品充满电；
+  - 无合成配方（创造物品栏获取），`MachinesConfig` 无能量配置项；
+  - 注意：`AdAstraCompat` 是氧气事件兼容，与能量系统无关，未受影响。
 - 构建网络故障排查：本机代理未启动时 `gradlew` 会因 `C:\Users\<user>\.gradle\gradle.properties`
   里的 `systemProp.http(s).proxyHost=127.0.0.1:7890` 全部连接失败；此时加
   `-I fix.init.gradle`（腾讯公共镜像直连）即可完成解析，详见 README。
