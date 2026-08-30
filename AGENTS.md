@@ -24,7 +24,7 @@
   3. 或用仓库内 `fix.init.gradle` 注入腾讯镜像：`gradlew build -I fix.init.gradle`
 
 ## 项目约定
-- **只保留原创内容**：5 个 vendored 子模块（ConstructionWand/Torcherino/Torchmaster/ToolBelt/JustDireThings）已于 v1.3.0 去除，勿再引入
+- **只保留原创内容**：5 个 vendored 子模块（ConstructionWand/Torcherino/Torchmaster/ToolBelt/JustDireThings）已于 v2.0.0 去除，勿再引入
 - 语言文件：`zh_cn.json` 与 `en_us.json` 键集必须双向一致（校验命令见 docs/DEVELOPMENT.md）
 - 新方块/物品走 DeferredRegister + 标准 assets/data 结构；能量类内容在 `com.godofthings.energy`（当前为创造能量立方：六面无限 FE 输出 + 4 充能格 GUI）
 - git 已启用（此前无版本控制）；改动请保持 worktree 干净、提交信息用中文一句话

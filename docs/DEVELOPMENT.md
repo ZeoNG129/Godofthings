@@ -89,12 +89,12 @@ $zh = (gc src\main\resources\assets\godofthings\lang\zh_cn.json -Raw | ConvertFr
 
 ## 8. 历史注记
 
-- **v1.3.0 起本模组为纯原创内容**：曾临时内置的 5 个第三方模组移植包
-  （ConstructionWand / Torcherino / Torchmaster / ToolBelt / Just Dire Things，共 239 个类）
-  已整体移除，连同其资源、配方、语言键与 9 个跨模组联动依赖（Botania/Curios/L2/Tom's Storage/
-  Refined Storage/Beyond Dimensions/ProjectE）一并清理。相关方块/物品不复存在，
-  存档中已放置的旧方块会显示为虚空方块（贴图缺失），属预期行为。
-- **能量系统重构（继 1.3.0 之后）**：删除 `generator/` 包（能量发电机 EnergyGenerator +
+- **v2.0.0 起本模组为纯原创内容**（版本号按 §1 规则因系统性大改升为 2.0.0）：曾临时内置的
+  5 个第三方模组移植包（ConstructionWand / Torcherino / Torchmaster / ToolBelt / Just Dire Things，
+  共 239 个类）已整体移除，连同其资源、配方、语言键与 9 个跨模组联动依赖
+  （Botania/Curios/L2/Tom's Storage/Refined Storage/Beyond Dimensions/ProjectE）一并清理。
+  相关方块/物品不复存在，v1.3.0 及更早存档中已放置的旧方块会显示为虚空方块（贴图缺失），属预期行为。
+- **能量系统重构（随 2.0.0 发布）**：删除 `generator/` 包（能量发电机 EnergyGenerator +
   能量中继 EnergyRelay，12 个类）及其全部资源/配方/语言键，替换为 `energy/` 包的
   **创造能量立方**（`CreativeEnergyCubeBlock/Entity/Menu/Screen`）：
   - 六面 FE 能量源，`extractEnergy` 无条件满足（创造行为），输出恒为最大速率；
