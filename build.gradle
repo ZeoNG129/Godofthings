@@ -120,34 +120,14 @@ repositories {
     flatDir {
         dir 'libs'
     }
-    // Jade (Waila) —— 用于显示神之储存的真实数量
-    maven {
-        name = "Modrinth"
-        url = "https://api.modrinth.com/maven"
-    }
-    // 无尽手杖（Construction Wand）跨模组联动：Botania / Curios / L2 / Tom's / RS / Beyond Dimensions / ProjectE
-    maven {
-        url = "https://maven.blamejared.com"
-    }
-    maven {
-        name = "Illusive Soulworks maven"
-        url = "https://maven.theillusivec4.top/"
-    }
-    maven {
-        url = 'https://cursemaven.com'
-    }
 }
 
 dependencies {
     // Specify the version of Minecraft to use.
     // Any artifact can be supplied so long as it has a "userdev" classifier artifact and is a compatible patcher artifact.
-    // The "userdev" classifier will be requested and setup by ForgeGradle.
     // If the group id is "net.minecraft" and the artifact id is one of ["client", "server", "joined"],
     // then special handling is done to allow a setup of a vanilla dependency without the use of an external repository.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-
-    // Jade (Waila) —— 编译期可选依赖，用于显示神之储存的真实数量
-    compileOnly "maven.modrinth:jade:11.3.0"
 
     // EMI (配方查看器) —— 编译期可选依赖，让神之熔炉在 EMI 里显示可熔炼配方
     // 从本地 ./libs 读取 EMI jar（与整合包版本一致，1.1.24），避免联网下载
@@ -160,24 +140,6 @@ dependencies {
     // AE2 (应用能源2) —— 编译期可选依赖，用于造化垂青之杖的"AE存储优先"模式（掉落优先存入ME网络）
     // 从本地 ./libs 读取 official 映射的 deobf jar（与整合包 appliedenergistics2-forge-15.4.10 一致），避免联网下载
     compileOnly files('libs/ae2-1.20.1.jar')
-
-    // ==== 无尽手杖（Construction Wand）跨模组联动（均 compileOnly，不打包进 jar，运行时按 ModList 判断）====
-    // Botania（花仓/方块供应）
-    compileOnly fg.deobf("vazkii.botania:Botania:1.20.1-441-FORGE-SNAPSHOT:api")
-    // Curios（饰品栏背包）
-    compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:5.14.1+1.20.1:api")
-    // L2 Backpack + L2 Library
-    compileOnly fg.deobf("curse.maven:l2-backpack-620229:7034933")
-    compileOnly fg.deobf("curse.maven:l2library-620203:6806000")
-    // Tom's Simple Storage
-    compileOnly fg.deobf("curse.maven:toms-storage-378609:6418133")
-    // Refined Storage + Addons
-    compileOnly fg.deobf("curse.maven:refined-storage-243076:4844585")
-    compileOnly fg.deobf("curse.maven:refined-storage-addons-272302:4626171")
-    // Beyond Dimensions
-    compileOnly fg.deobf("curse.maven:beyond-dimensions-1222890:7719949")
-    // ProjectE（等价交换）
-    compileOnly fg.deobf("curse.maven:projecte-226410:4901949")
 
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

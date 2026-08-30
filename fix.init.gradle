@@ -1,0 +1,6 @@
+// One-off build fix: add Tencent public mirror (direct, bypasses dead proxy via nonProxyHosts)
+allprojects {
+    repositories {
+        maven { url 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+    }
+}

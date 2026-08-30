@@ -1,6 +1,0 @@
-{
-  "parent": "item/handheld",
-  "textures": {
-    "layer0": "godofthings:item/god_favor_wand_fortune"
-  }
-}

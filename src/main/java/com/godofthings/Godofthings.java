@@ -8,8 +8,6 @@ import com.godofthings.block.GodFurnaceBlock;
 import com.godofthings.block.GodHeavenEnchantBlock;
 import com.godofthings.block.GodMinerBlock;
 import com.godofthings.block.GodResourceBlock;
-import com.direwolf20.justdirethings.JustDireThings;
-import com.direwolf20.justdirethings.setup.Registration;
 import com.godofthings.block.entity.GodDropBlockEntity;
 import com.godofthings.block.entity.GodCraftBlockEntity;
 import com.godofthings.block.entity.GodEnchantBlockEntity;
@@ -40,13 +38,6 @@ import com.godofthings.menu.GodCraftConfigMenu;
 import com.godofthings.menu.GodCraftTemplateMenu;
 import com.godofthings.menu.GodEnchantMenu;
 import com.godofthings.recipe.GodUnbreakableRecipe;
-import com.godofthings.torcherino.Torcherino;
-import com.godofthings.torcherino.config.TorcherinoConfig;
-import com.godofthings.torcherino.network.TorcherinoNetwork;
-import com.godofthings.toolbelt.ToolBelt;
-import com.godofthings.torchmaster.Torchmaster;
-import com.godofthings.wand.ConstructionWand;
-import com.godofthings.wand.items.ModItems;
 import com.godofthings.menu.GodFurnaceConfigMenu;
 import com.godofthings.menu.GodFurnaceMenu;
 import com.godofthings.menu.GodMinerMenu;
@@ -335,27 +326,6 @@ public class Godofthings
                         output.accept(VOID_TELEPORTER_ITEM.get());
                         output.accept(ENERGY_GENERATOR_ITEM.get());
                         output.accept(ENERGY_RELAY_ITEM.get());
-                        output.accept(ToolBelt.BELT.get());
-                        output.accept(ModItems.WAND_INFINITY.get());
-                        output.accept(ModItems.CORE_ANGEL.get());
-                        output.accept(ModItems.CORE_DESTRUCTION.get());
-                        output.accept(Registration.ItemCollector_ITEM.get());
-                        output.accept(Registration.BlockBreakerT1_ITEM.get());
-                        output.accept(Registration.BlockBreakerT2_ITEM.get());
-                        output.accept(Registration.BlockPlacerT1_ITEM.get());
-                        output.accept(Registration.BlockPlacerT2_ITEM.get());
-                        output.accept(Registration.ClickerT1_ITEM.get());
-                        output.accept(Registration.ClickerT2_ITEM.get());
-                        output.accept(Registration.BlockSwapperT1_ITEM.get());
-                        output.accept(Registration.BlockSwapperT2_ITEM.get());
-                        for (net.minecraftforge.registries.RegistryObject<Item> torchItem : Torcherino.getItems())
-                        {
-                            output.accept(torchItem.get());
-                        }
-                        for (net.minecraftforge.registries.RegistryObject<Item> torchmasterItem : Torchmaster.getItems())
-                        {
-                            output.accept(torchmasterItem.get());
-                        }
                     })
                     .build());
 
@@ -371,30 +341,9 @@ public class Godofthings
         RECIPE_SERIALIZERS.register(modEventBus);
         GodFlatDimension.CHUNK_GENERATORS.register(modEventBus);
 
-        // 无尽手杖（Construction Wand）子模块：物品/配置/网络通道
-        ConstructionWand.instance = new ConstructionWand();
-        ConstructionWand.instance.register(context);
-
-        // 加速火把（Torcherino）子模块：配置/物品/方块/粒子/方块实体
-        TorcherinoConfig.initialize();
-        Torcherino.register(modEventBus);
-
-        // 火把大师（Torchmaster）子模块：巨型火把 + 恐惧之灯（阻止实体自然生成）
-        Torchmaster.register(modEventBus);
-
         // 神之机器参数配置（矿机/资源机/掉落机，godofthings-machines.toml）
-        // 注意：必须显式指定文件名，否则默认 godofthings-server.toml 会与 wand 子模块的
-        // ConfigServer（ConstructionWand.java 已注册 godofthings-server.toml）冲突。
+        // 显式指定文件名，避免依赖默认命名规则（默认 godofthings-server.toml）。
         context.registerConfig(ModConfig.Type.SERVER, com.godofthings.config.MachinesConfig.SPEC, "godofthings-machines.toml");
-
-        // 火把大师配置（巨型火把/恐惧之灯半径等，godofthings-torchmaster.toml）
-        context.registerConfig(ModConfig.Type.COMMON, com.godofthings.torchmaster.TorchmasterConfig.spec, "godofthings-torchmaster.toml");
-
-        // 工具皮带（Tool Belt）子模块：物品/菜单/能力/网络
-        ToolBelt.register(modEventBus);
-
-        // Just Dire Things 机器移植（物品拾取器/方块破坏器/放置器/点击器/替换器）
-        JustDireThings.init(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
 
@@ -405,10 +354,7 @@ public class Godofthings
     private void commonSetup(final FMLCommonSetupEvent event)
     {
         event.enqueueWork(WandMessages::register);
-        event.enqueueWork(TorcherinoNetwork::register);
-        event.enqueueWork(ToolBelt::commonSetup);
         event.enqueueWork(this::registerGridLinkables);
-        Torcherino.blacklistStuff();
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         LOGGER.info("Godofthings loaded");
     }

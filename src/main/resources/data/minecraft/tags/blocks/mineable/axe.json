@@ -1,7 +1,6 @@
 {
   "replace": false,
   "values": [
-    "godofthings:god_craft",
-    "godofthings:megatorch"
+    "godofthings:god_craft"
   ]
 }
