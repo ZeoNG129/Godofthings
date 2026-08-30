@@ -216,3 +216,50 @@ publishing {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
+
+// ===== 构建产物自动部署 =====
+// `gradlew build` 成功后，自动把重混淆 jar 同步到本机测试 mods 目录（约定见 AGENTS.md 与 docs/DEVELOPMENT.md）。
+// 目标目录不存在时跳过并警告（如移动盘未挂载），不会阻断构建。
+def deployTargets = [
+        'E:/MC/modpacks/PCL/versions/1.20.1测试/mods', // PCL 测试实例
+        'E:/MC/ALL/mods/自制/1.20.1',                  // ALL 模组仓库
+]
+
+tasks.register('deployJars') {
+    group = 'build'
+    description = '把 build/libs 下的重混淆 jar 同步到本机测试 mods 目录。'
+    dependsOn tasks.named('reobfJar')
+    doLast {
+        def jarFile = layout.buildDirectory.file("libs/${mod_id}-${mod_version}.jar").get().asFile
+        if (!jarFile.isFile()) {
+            throw new GradleException("deployJars: 找不到构建产物 ${jarFile}")
+        }
+        def anyDeployed = false
+        deployTargets.each { target ->
+            def dir = file(target)
+            if (dir.isDirectory()) {
+                // 先清理旧版本号的 jar，避免版本变更后新旧两个 godofthings jar 同时装导致重复模组崩溃
+                project.fileTree(dir: dir, include: "${mod_id}-*.jar").each { old ->
+                    if (old.name != jarFile.name) {
+                        old.delete()
+                        logger.lifecycle("deployJars: 清理旧版 {}", old)
+                    }
+                }
+                java.nio.file.Files.copy(jarFile.toPath(), new File(dir, jarFile.name).toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                logger.lifecycle("deployJars: {} -> {}", jarFile.name, dir)
+                anyDeployed = true
+            } else {
+                logger.warn("deployJars: 目标目录不存在，已跳过: {}", target)
+            }
+        }
+        if (!anyDeployed) {
+            logger.warn("deployJars: 没有任何目标目录存在，jar 仅保留在 {}", jarFile)
+        }
+    }
+}
+
+// build 编译失败时 deployJars 不会执行（依赖链保证），成功后自动部署
+tasks.named('build').configure {
+    dependsOn 'deployJars'
+}

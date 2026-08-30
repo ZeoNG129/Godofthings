@@ -37,6 +37,10 @@ $env:JAVA_HOME = 'E:\MC\java\java17'
 # 产物：build\libs\godofthings-1.3.0.jar
 ```
 
+**构建成功后自动同步**：`build` 完成后 `deployJars` 任务会把 jar 自动复制到两个本机测试目录
+（`E:\MC\modpacks\PCL\versions\1.20.1测试\mods` 与 `E:\MC\ALL\mods\自制\1.20.1`），
+并清理旧版本 jar——改完代码 `gradlew build` 即可开游戏测试，无需手动拷贝。
+
 开发运行：
 
 ```powershell
@@ -73,7 +77,7 @@ src/main/java/com/godofthings/
   ├─ modes/                  # 造化垂青之杖模式系统
   ├─ network/                # 网络包（模式转盘 / 造化垂青之杖）
   ├─ recipe/ config/         # 配方（神之不毁等）与机器参数配置
-  ├─ dimension/ generator/   # 超平坦 / 虚空维度与地形
+  ├─ dimension/ energy/      # 超平坦 / 虚空维度与地形、创造能量立方
   ├─ handler/ emi/ jei/      # 集成（Ad Astra / EMI / JEI / AE2）
   └─ utils/
 src/main/resources/
@@ -85,4 +89,4 @@ src/main/resources/
 
 **All Rights Reserved**（见 `src/main/resources/META-INF/mods.toml`）。
 
-开发约定与架构细节见 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
+开发约定与架构细节见 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)；AI agent / 新维护者快速上手见 [AGENTS.md](AGENTS.md)。

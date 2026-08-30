@@ -98,12 +98,26 @@ $zh = (gc src\main\resources\assets\godofthings\lang\zh_cn.json -Raw | ConvertFr
   里的 `systemProp.http(s).proxyHost=127.0.0.1:7890` 全部连接失败；此时加
   `-I fix.init.gradle`（腾讯公共镜像直连）即可完成解析，详见 README。
 
-## 9. 常用命令
+## 9. 常用命令与自动部署
 
 ```powershell
 $env:JAVA_HOME = 'E:\MC\java\java17'
 .\gradlew compileJava        # 快速编译检查
-.\gradlew build              # 完整构建（含 reobfJar）
+.\gradlew build              # 完整构建（含 reobfJar + deployJars 自动同步）
 .\gradlew runClient          # 开发客户端
 .\gradlew runData            # 数据生成
 ```
+
+**构建产物自动同步（deployJars）**：`build` 成功后自动把 `build/libs/godofthings-<版本>.jar`
+复制到两个本机测试 mods 目录，改完代码无需手动拷 jar：
+
+| 目标目录 | 用途 |
+|----------|------|
+| `E:\MC\modpacks\PCL\versions\1.20.1测试\mods` | PCL 测试实例 |
+| `E:\MC\ALL\mods\自制\1.20.1` | ALL 模组仓库 |
+
+- 实现位置：`build.gradle` 末尾的 `deployJars` 任务，`build` 依赖它——**编译失败不会部署**；
+- 部署前自动清理目标目录中旧版本号的 `godofthings-*.jar`（防止版本变更后双 jar 重复模组崩溃）；
+- 目标目录不存在时跳过并 WARN，不阻断构建；
+- 增删部署目标只改 `build.gradle` 顶部的 `deployTargets` 列表；
+- 跨 agent 约定入口：仓库根 `AGENTS.md`（新 agent 先读它）。
