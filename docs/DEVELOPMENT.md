@@ -47,6 +47,14 @@
 - **GUI 贴图画布一律 256×256**，内容画在左上角（如 176×166 区域）：`GuiGraphics.blit(tex, x, y, u, v, w, h)`
   的 6 参重载**硬编码按 256×256 归一化 UV**——贴图文件实际尺寸若是 176×166，游戏只会采样其左上角
   约 121×108 区域并拉伸铺满整个 GUI（表现为"槽位偏右下、整体错位"）。新 GUI 贴图必须开 256×256 画布；
+- **GUI 贴图几何规范（与 `creative_energy_cube_gui.png` 一致，2.0.4 起全部机器统一）**：
+  ① 面板 `#C6C6C6`，2px 白倒角（上/左）+ 2px `#555555`（下/右）；
+  ② 槽位格框 18×18 画在 **(sx-1, sy-1)**（sx/sy 为 Menu 槽位坐标）：2px `#373737` 上/左 +
+     2px `#FFFFFF` 下/右 + 14×14 `#8B8B8B` 内芯——旧贴图 1px 边框/17×17 格导致物品压边、格子观感粘连；
+  ③ 「物品栏」标签 y = 物品格网格顶行 y − 12（原版标准），标题与标签颜色 `0x404040`（原版深灰，勿用白色）；
+  ④ 物品格网格顶行 → 快捷栏标准间距 **+58**（如 84→142）；面板高 = 快捷栏格底 +2px 倒角 + 间隙；
+  ⑤ 生成/校验脚本：`tools/gui/ui-regen-gui.ps1`（重生成 7 张机器贴图）、`tools/gui/ui-assert-gui.ps1`
+     （像素级断言：画布/边界/每个槽位内芯位置）、`tools/gui/ui-scan-gui.ps1`（扫描诊断）。
 - 伤害类型等自定义注册用数据包：`data/godofthings/damage_type/beef_tool.json`（造化垂青之杖伤害，配套 `WandDamageTypes.BEEF_TOOL`）。
 
 ## 4. 版本号与 mods.toml
@@ -118,6 +126,15 @@ $zh = (gc src\main\resources\assets\godofthings\lang\zh_cn.json -Raw | ConvertFr
   `god_change.png`（176×120→256×256 内容原样搬运）；③ 能量立方布局按用户选择改为**方案C 极简**
   （无"充能格"标签，仅居中槽位 + 下方输出行），删除失效 lang 键 `gui.godofthings.creative_energy_cube.charge`。
   经验：**文件尺寸 ≠ 画布尺寸**，任何新 GUI 贴图先开 256×256 画布（见 §3）。
+- **2.0.4 机器 GUI 全面标准化**：用户反馈 5 项问题（整体偏下、熔炉/矿机"物品栏"标签与首行重叠、
+  资源/掉落间距过大、附魔物品栏格子粘连）。根因：旧机器贴图槽位格是 1px 边框/17×17 且画在 (sx,sy)，
+  与物品渲染几何不符，也与 2.0.3 立方贴图的 2px/18×18/(sx-1,sy-1) 标准不一致。修复：
+  ① 7 张机器贴图（furnace/furnace_config/miner/resource/drop/enchant/change）按立方几何重生成
+  （脚本 `tools/gui/`，断言全 PASS）；② 标签统一 `inv_y-12` + `0x404040`（熔炉 78→72、矿机 150→144）；
+  ③ 资源/掉落物品栏 118/176→标准 84/142（高度 196→166）；④ 附魔重排：LEVEL_Y 144→142、
+  行2按钮 162→158、快捷栏 232→236、高度 250→**256**（260 会超出 256 画布——教训：
+  **面板高度 ≤256 必须先于布局确定**，FillRectangle 越界会被静默裁掉）；⑤ 矿机快捷栏 210→214、
+  高度 230→234（网格与快捷栏原来仅差 2px 相贴）。
 - 构建网络故障排查：本机代理未启动时 `gradlew` 会因 `C:\Users\<user>\.gradle\gradle.properties`
   里的 `systemProp.http(s).proxyHost=127.0.0.1:7890` 全部连接失败；此时加
   `-I fix.init.gradle`（腾讯公共镜像直连）即可完成解析，详见 README。

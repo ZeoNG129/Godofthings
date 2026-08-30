@@ -58,8 +58,8 @@ public class GodFurnaceConfigScreen extends AbstractContainerScreen<GodFurnaceCo
         gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
         // 标题与提示（本地化）
-        gui.drawString(this.font, Component.translatable("gui.godofthings.face_config"), x + 8, y + 6, 0xFFFFFF);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.face_config.hint"), x + 8, y + 96, 0x9AA0A8);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.face_config"), x + 8, y + 6, 0x404040);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.face_config.hint"), x + 8, y + 96, 0x555555);
 
         // 方向磁贴
         for (int d = 0; d < 6; d++)

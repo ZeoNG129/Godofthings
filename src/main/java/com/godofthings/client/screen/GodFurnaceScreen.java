@@ -77,8 +77,8 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
         // 高对比度文字（面板被 renderBackground 遮罩压暗后仍清晰）
-        gui.drawString(this.font, this.title, 8, 6, 0xFFFFFF, false);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8, this.imageHeight - 94, 0xFFFFFF, false);
+        gui.drawString(this.font, this.title, 8, 6, 0x404040, false);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8, 72, 0x404040, false); // 物品格子顶行 84 - 12（原版标准）
     }
 
     @Override

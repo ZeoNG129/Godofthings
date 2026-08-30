@@ -108,7 +108,7 @@ public class GodChangeScreen extends AbstractContainerScreen<GodChangeMenu>
     @Override
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
-        gui.drawString(this.font, this.title, 8, 6, 0xFFFFFF, false);
+        gui.drawString(this.font, this.title, 8, 6, 0x404040, false);
     }
 
     @Override

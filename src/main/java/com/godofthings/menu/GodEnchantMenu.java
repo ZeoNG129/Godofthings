@@ -59,7 +59,7 @@ public class GodEnchantMenu extends AbstractContainerMenu
         }
         for (int col = 0; col < 9; col++)
         {
-            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 232));
+            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 236));
         }
 
         this.addDataSlot(new DataSlot()

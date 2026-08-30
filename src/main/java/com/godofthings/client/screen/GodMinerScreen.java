@@ -41,7 +41,7 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
     {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 230;
+        this.imageHeight = 234;
     }
 
     @Override
@@ -88,8 +88,8 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
         // 高对比度文字
-        gui.drawString(this.font, this.title, 8, 6, 0xFFFFFF, false);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8, 150, 0xFFFFFF, false);
+        gui.drawString(this.font, this.title, 8, 6, 0x404040, false);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8, 144, 0x404040, false); // 物品格子顶行 156 - 12（原版标准）
     }
 
     @Override

@@ -30,23 +30,23 @@ public class GodEnchantScreen extends AbstractContainerScreen<GodEnchantMenu>
 
     private static final int LEVEL_MINUS_X = 70;
     private static final int LEVEL_PLUS_X = 96;
-    private static final int LEVEL_Y = 144;
+    private static final int LEVEL_Y = 142;
     private static final int BTN_W = 24;
     private static final int BTN_H = 14;
 
-    // 行2（y=162）：清除（左）+ 附魔 + 批量附魔（右，等比缩小并排）
+    // 行2（y=158）：清除（左）+ 附魔 + 批量附魔（右，等比缩小并排）
     private static final int CLEAR_X = 8;
-    private static final int CLEAR_Y = 162;
+    private static final int CLEAR_Y = 158;
     private static final int CLEAR_W = 48;
     private static final int CLEAR_H = 16;
 
     private static final int APPLY_X = 112;
-    private static final int APPLY_Y = 162;
+    private static final int APPLY_Y = 158;
     private static final int APPLY_W = 27;
     private static final int APPLY_H = 16;
 
     private static final int BATCH_X = 141;
-    private static final int BATCH_Y = 162;
+    private static final int BATCH_Y = 158;
     private static final int BATCH_W = 27;
     private static final int BATCH_H = 16;
 
@@ -56,7 +56,7 @@ public class GodEnchantScreen extends AbstractContainerScreen<GodEnchantMenu>
     {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 250;
+        this.imageHeight = 256;
     }
 
     @Override
@@ -136,8 +136,8 @@ public class GodEnchantScreen extends AbstractContainerScreen<GodEnchantMenu>
     @Override
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
-        // 高对比度文字（不绘制物品栏标签：按钮区与物品栏之间无空隙，绘制会重叠）
-        gui.drawString(this.font, this.title, 8, 6, 0xFFFFFF, false);
+        // 高对比度文字（不绘制物品栏标签：按钮区与物品栏之间仅 4px，放不下标签）
+        gui.drawString(this.font, this.title, 8, 6, 0x404040, false);
     }
 
     @Override

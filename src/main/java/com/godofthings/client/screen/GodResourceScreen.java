@@ -22,7 +22,7 @@ public class GodResourceScreen extends AbstractContainerScreen<GodResourceMenu>
     {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 196;
+        this.imageHeight = 166;
     }
 
     @Override
@@ -38,8 +38,8 @@ public class GodResourceScreen extends AbstractContainerScreen<GodResourceMenu>
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
         // 高对比度文字（面板被遮罩压暗后仍清晰）
-        gui.drawString(this.font, this.title, 8, 6, 0xFFFFFF, false);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8, 102, 0xFFFFFF, false);
+        gui.drawString(this.font, this.title, 8, 6, 0x404040, false);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8, 72, 0x404040, false); // 物品格子顶行 84 - 12（原版标准）
     }
 
     @Override

@@ -38,7 +38,7 @@ public class GodMinerMenu extends AbstractContainerMenu
         }
         for (int col = 0; col < 9; col++)
         {
-            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 210));
+            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 214));
         }
 
         // 运行 / 半径 / 当前深度 / 效率 / 液体量 / 内置储存堆数
