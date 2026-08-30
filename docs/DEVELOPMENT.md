@@ -44,6 +44,9 @@
 
 - 所有资源位于 `assets/godofthings/` 与 `data/godofthings/`，**命名空间一律 `godofthings`**；
 - `pack.mcmeta` 的 `pack_format=15`（MC 1.20.1）由 processResources 展开，勿手改版本号字段；
+- **GUI 贴图画布一律 256×256**，内容画在左上角（如 176×166 区域）：`GuiGraphics.blit(tex, x, y, u, v, w, h)`
+  的 6 参重载**硬编码按 256×256 归一化 UV**——贴图文件实际尺寸若是 176×166，游戏只会采样其左上角
+  约 121×108 区域并拉伸铺满整个 GUI（表现为"槽位偏右下、整体错位"）。新 GUI 贴图必须开 256×256 画布；
 - 伤害类型等自定义注册用数据包：`data/godofthings/damage_type/beef_tool.json`（造化垂青之杖伤害，配套 `WandDamageTypes.BEEF_TOOL`）。
 
 ## 4. 版本号与 mods.toml
@@ -109,6 +112,12 @@ $zh = (gc src\main\resources\assets\godofthings\lang\zh_cn.json -Raw | ConvertFr
   贴图按标准 176x166 槽位网格重制（充能格 (78,29)、背包 (7,83)、快捷栏 (7,141)，槽位=格心-1px）。
 - **2.0.2 能量立方标签布局修正**：充能格/输出标签改为紧贴居中单槽的上/下沿居中排布
   （`renderLabels` 用 `font.width` 计算居中 x），修复标签堆在左侧与居中槽位脱节的观感问题。
+- **2.0.3 GUI 错位根因修复（重要教训）**：用户截图实测证实，错位真因是**贴图画布非 256×256**——
+  `blit` 6 参重载按 256 归一化 UV，176×166 的贴图被"采样左上 121×108 再拉伸"。修复：
+  ① `creative_energy_cube_gui.png` 以 256×256 画布重生成；② 顺带修复原作者遗留同款 bug
+  `god_change.png`（176×120→256×256 内容原样搬运）；③ 能量立方布局按用户选择改为**方案C 极简**
+  （无"充能格"标签，仅居中槽位 + 下方输出行），删除失效 lang 键 `gui.godofthings.creative_energy_cube.charge`。
+  经验：**文件尺寸 ≠ 画布尺寸**，任何新 GUI 贴图先开 256×256 画布（见 §3）。
 - 构建网络故障排查：本机代理未启动时 `gradlew` 会因 `C:\Users\<user>\.gradle\gradle.properties`
   里的 `systemProp.http(s).proxyHost=127.0.0.1:7890` 全部连接失败；此时加
   `-I fix.init.gradle`（腾讯公共镜像直连）即可完成解析，详见 README。

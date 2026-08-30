@@ -138,6 +138,5 @@
   "gui.godofthings.enchant.batch_done": "已为 %s 个物品附加附魔",
   "block.godofthings.creative_energy_cube": "创造能量立方",
   "container.godofthings.creative_energy_cube": "创造能量立方",
-  "gui.godofthings.creative_energy_cube.charge": "充能格",
   "gui.godofthings.creative_energy_cube.output": "输出：∞ FE/t（最大）"
 }

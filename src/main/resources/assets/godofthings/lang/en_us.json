@@ -138,6 +138,5 @@
   "gui.godofthings.enchant.batch_done": "Enchanted %s items",
   "block.godofthings.creative_energy_cube": "Creative Energy Cube",
   "container.godofthings.creative_energy_cube": "Creative Energy Cube",
-  "gui.godofthings.creative_energy_cube.charge": "Charging",
   "gui.godofthings.creative_energy_cube.output": "Output: ∞ FE/t (max)"
 }
