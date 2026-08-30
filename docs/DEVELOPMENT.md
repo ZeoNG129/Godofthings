@@ -13,7 +13,13 @@
 | Gradle | 8.8（wrapper） |
 | ForgeGradle | [6.0,6.2) |
 
-版本命名规范（见 `gradle.properties` 注释）：**小版本 1.0.x、中版本 1.x.0、大版本 x.0.0**。
+版本号更替规范（`x.x.x`，唯一来源 `gradle.properties` 的 `mod_version`）：
+
+| 变更类型 | 版本动作 | 示例 |
+|----------|----------|------|
+| 修复 / 优化 | 末位 +1，**到 10 自动进位到第二位**（末位归零） | 1.3.0 → 1.3.1 … 1.3.9 → 1.4.0 |
+| 新增小物品 | 第二位 +1，末位归零 | 1.3.0 → 1.4.0 |
+| 系统性新增（新能量系统、新维度等大系统/大改） | 首位大版本 +1，后两位归零 | 1.x.x → 2.0.0 |
 
 ## 2. 注册模式
 
@@ -45,7 +51,8 @@
 - `src/main/resources/META-INF/mods.toml` 的 `version` 字段写 **`${mod_version}` 占位符**，
   由 `build.gradle` 的 `processResources`（`filesMatching(['META-INF/mods.toml','pack.mcmeta'])`）从
   `gradle.properties` 的 `mod_version` 展开成实际版本；
-- **升级版本只改 `gradle.properties` 一处**，不要把硬编码版本写回 mods.toml。
+- **升级版本只改 `gradle.properties` 一处**，不要把硬编码版本写回 mods.toml；
+- 何时升哪一位：按 §1「版本号更替规范」——修复/优化末位 +1（到 10 进位）、新增小物品第二位 +1、系统性新增首位 +1。
 
 ## 5. 语言文件（双语强制对齐）
 

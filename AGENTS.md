@@ -7,6 +7,7 @@
 - MC 1.20.1 + Forge 47.4.20，Java 17（本机 `E:\MC\java\java17`，**不要下载 JDK**）
 - 工作目录 `E:\MC\Mod\1.20.1\Godofthings`；jar 产物在 `build\libs\godofthings-<版本>.jar`
 - 版本号唯一来源：`gradle.properties` 的 `mod_version`；`mods.toml` 用 `${mod_version}` 占位符（由 processResources 展开）
+- **版本号更替规范（x.x.x）**：修复/优化 → 末位 +1，到 10 自动进位（1.3.9 → 1.4.0）；新增小物品 → 第二位 +1（末位归零）；系统性新增 → 首位 +1（→ 2.0.0）
 
 ## 构建 → 自动部署（重要约定）
 - **`gradlew build` 成功后自动同步 jar 到两个本机测试目录**（由 build.gradle 的 `deployJars` 任务实现，build 依赖它，编译失败不会部署）：
