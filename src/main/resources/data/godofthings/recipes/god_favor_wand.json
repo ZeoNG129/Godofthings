@@ -1,14 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "PPP",
-    "_A_",
-    "_S_"
+    " N ",
+    " B ",
+    " I "
   ],
   "key": {
-    "P": { "item": "minecraft:netherite_pickaxe" },
-    "A": { "item": "minecraft:netherite_axe" },
-    "S": { "item": "minecraft:netherite_shovel" }
+    "N": { "item": "minecraft:nether_star" },
+    "B": { "item": "minecraft:blaze_rod" },
+    "I": { "item": "minecraft:netherite_ingot" }
   },
-  "result": { "item": "godofthings:god_favor_wand" }
+  "result": {
+    "item": "godofthings:god_favor_wand"
+  }
 }

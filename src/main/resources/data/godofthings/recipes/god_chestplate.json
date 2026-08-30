@@ -1,12 +1,11 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "N N",
-    "NNN",
-    "NNN"
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "minecraft:netherite_chestplate" },
+    { "item": "minecraft:nether_star" },
+    { "item": "minecraft:diamond_block" }
   ],
-  "key": {
-    "N": { "item": "minecraft:nether_star" }
-  },
-  "result": { "item": "godofthings:god_chestplate" }
+  "result": {
+    "item": "godofthings:god_chestplate"
+  }
 }

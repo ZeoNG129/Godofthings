@@ -16,12 +16,12 @@ import net.minecraftforge.items.SlotItemHandler;
 import javax.annotation.Nullable;
 
 /**
- * 创造能量立方 GUI：4 个充能格（只收带 FE 能力的物品）+ 玩家背包。
+ * 创造能量立方 GUI：1 个充能格（只收带 FE 能力的物品）+ 玩家背包。
  * 无能量条数据——能量无限，输出速率恒为最大。
  */
 public class CreativeEnergyCubeMenu extends AbstractContainerMenu
 {
-    private static final int SLOT_X_START = 52;
+    private static final int SLOT_X_START = 79; // 单充能格，水平居中（79+9=88 正中）
     private static final int SLOT_Y = 30;
     private static final int INVENTORY_X = 8;
     private static final int INVENTORY_Y = 84;

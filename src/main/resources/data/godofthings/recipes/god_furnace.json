@@ -2,11 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "DDD",
-    "D D",
+    "DFD",
     "DDD"
   ],
   "key": {
-    "D": { "item": "minecraft:diamond" }
+    "D": { "item": "minecraft:diamond" },
+    "F": { "item": "minecraft:furnace" }
   },
-  "result": { "item": "godofthings:god_furnace" }
+  "result": {
+    "item": "godofthings:god_furnace"
+  }
 }

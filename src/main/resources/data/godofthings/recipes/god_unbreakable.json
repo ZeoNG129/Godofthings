@@ -1,11 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "NN",
-    "NN"
+    " O ",
+    "OSO",
+    " O "
   ],
   "key": {
-    "N": { "item": "minecraft:nether_star" }
+    "O": { "item": "minecraft:obsidian" },
+    "S": { "item": "minecraft:nether_star" }
   },
-  "result": { "item": "godofthings:god_unbreakable" }
+  "result": {
+    "item": "godofthings:god_unbreakable"
+  }
 }

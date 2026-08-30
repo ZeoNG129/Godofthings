@@ -1,14 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " N ",
-    "N#N",
-    "OOO"
+    "NDN",
+    "DED",
+    "NDN"
   ],
   "key": {
     "N": { "item": "minecraft:nether_star" },
-    "#": { "item": "minecraft:book" },
-    "O": { "item": "minecraft:obsidian" }
+    "D": { "item": "minecraft:diamond_block" },
+    "E": { "item": "minecraft:enchanting_table" }
   },
-  "result": { "item": "godofthings:god_enchant" }
+  "result": {
+    "item": "godofthings:god_enchant"
+  }
 }

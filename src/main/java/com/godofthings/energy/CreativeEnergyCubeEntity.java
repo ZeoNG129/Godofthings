@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
  */
 public class CreativeEnergyCubeEntity extends BlockEntity implements ICapabilityProvider, MenuProvider
 {
-    public static final int CHARGE_SLOTS = 4;
+    public static final int CHARGE_SLOTS = 1;
 
     private final ItemStackHandler items = new ItemStackHandler(CHARGE_SLOTS)
     {

@@ -1,12 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "DDD",
-    "D D",
-    "DDD"
+    "EEE",
+    "ENE",
+    "EEE"
   ],
   "key": {
-    "D": { "item": "minecraft:emerald" }
+    "E": { "item": "minecraft:emerald_block" },
+    "N": { "item": "minecraft:nether_star" }
   },
-  "result": { "item": "godofthings:god_resource" }
+  "result": {
+    "item": "godofthings:god_resource"
+  }
 }

@@ -1,11 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "DD",
-    "DD"
+    " O ",
+    "OEO",
+    " O "
   ],
   "key": {
-    "D": { "item": "minecraft:obsidian" }
+    "O": { "item": "minecraft:obsidian" },
+    "E": { "item": "minecraft:ender_eye" }
   },
-  "result": { "item": "godofthings:void_teleporter" }
+  "result": {
+    "item": "godofthings:void_teleporter"
+  }
 }

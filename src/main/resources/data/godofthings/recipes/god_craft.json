@@ -1,13 +1,14 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "CCC",
-    "CDC",
-    "CCC"
+    "GIG",
+    "ITI",
+    "GIG"
   ],
   "key": {
-    "C": { "item": "minecraft:crafting_table" },
-    "D": { "item": "minecraft:diamond" }
+    "G": { "item": "minecraft:gold_ingot" },
+    "I": { "item": "minecraft:diamond" },
+    "T": { "item": "minecraft:crafting_table" }
   },
   "result": {
     "item": "godofthings:god_craft"

@@ -2,11 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "DDD",
-    "D D",
+    "DND",
     "DDD"
   ],
   "key": {
-    "D": { "item": "minecraft:diamond_block" }
+    "D": { "item": "minecraft:diamond_block" },
+    "N": { "item": "minecraft:nether_star" }
   },
-  "result": { "item": "godofthings:god_miner" }
+  "result": {
+    "item": "godofthings:god_miner"
+  }
 }
