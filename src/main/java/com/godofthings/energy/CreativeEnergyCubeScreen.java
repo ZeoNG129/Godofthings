@@ -37,8 +37,11 @@ public class CreativeEnergyCubeScreen extends AbstractContainerScreen<CreativeEn
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
         gui.drawString(this.font, this.title, 8, 6, 0x404040, false);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.creative_energy_cube.charge"), 8, 34, 0x404040, false);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.creative_energy_cube.output"), 8, 58, 0x1B5E20, false);
+        // 单充能格居中（x=79..97，中轴 88）：标签紧贴槽位上/下沿居中排布，避免与槽位脱节
+        Component charge = Component.translatable("gui.godofthings.creative_energy_cube.charge");
+        gui.drawString(this.font, charge, (this.imageWidth - this.font.width(charge)) / 2, 20, 0x404040, false);
+        Component output = Component.translatable("gui.godofthings.creative_energy_cube.output");
+        gui.drawString(this.font, output, (this.imageWidth - this.font.width(output)) / 2, 50, 0x1B5E20, false);
         gui.drawString(this.font, this.playerInventoryTitle, 8, this.imageHeight - 94, 0x404040, false);
     }
 }

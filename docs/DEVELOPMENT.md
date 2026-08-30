@@ -107,6 +107,8 @@ $zh = (gc src\main\resources\assets\godofthings\lang\zh_cn.json -Raw | ConvertFr
   护甲从 24 个下界之星改为 下界合金件+星+钻石块；造化垂青之杖改为 星/烈焰棒/合金锭 竖排；
   神之不毁降为 星+4 黑曜石（消耗型催化剂）；创造能量立方 GUI 收敛为单充能格（水平居中 x=79），
   贴图按标准 176x166 槽位网格重制（充能格 (78,29)、背包 (7,83)、快捷栏 (7,141)，槽位=格心-1px）。
+- **2.0.2 能量立方标签布局修正**：充能格/输出标签改为紧贴居中单槽的上/下沿居中排布
+  （`renderLabels` 用 `font.width` 计算居中 x），修复标签堆在左侧与居中槽位脱节的观感问题。
 - 构建网络故障排查：本机代理未启动时 `gradlew` 会因 `C:\Users\<user>\.gradle\gradle.properties`
   里的 `systemProp.http(s).proxyHost=127.0.0.1:7890` 全部连接失败；此时加
   `-I fix.init.gradle`（腾讯公共镜像直连）即可完成解析，详见 README。

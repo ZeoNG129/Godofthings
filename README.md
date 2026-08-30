@@ -34,7 +34,7 @@
 # 设置 JDK 17 后构建
 $env:JAVA_HOME = 'E:\MC\java\java17'
 .\gradlew build
-# 产物：build\libs\godofthings-2.0.0.jar
+# 产物：build\libs\godofthings-<mod_version>.jar（版本见 gradle.properties）
 ```
 
 **构建成功后自动同步**：`build` 完成后 `deployJars` 任务会把 jar 自动复制到两个本机测试目录
