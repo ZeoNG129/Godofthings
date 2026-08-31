@@ -135,6 +135,15 @@ $zh = (gc src\main\resources\assets\godofthings\lang\zh_cn.json -Raw | ConvertFr
   行2按钮 162→158、快捷栏 232→236、高度 250→**256**（260 会超出 256 画布——教训：
   **面板高度 ≤256 必须先于布局确定**，FillRectangle 越界会被静默裁掉）；⑤ 矿机快捷栏 210→214、
   高度 230→234（网格与快捷栏原来仅差 2px 相贴）。
+- **2.0.5 物品/方块贴图全面重绘（AI 生成管线）**：按 `docs/TEXTURE_PROMPTS.md` 提示词包由图像模型
+  生成 28 张 1024px 原图（12 物品 + 16 方块），`tools/tex/convert-downloads.ps1` 完成
+  背景移除（边框泛洪 + 容差 30）→ alpha 感知盒式降采样 1024→16 → 阈值清理（a<10 归零）→
+  替换资产；预览拼图 `ui-preview/textures-2.0.5.png`。顺带修复**时运权杖紫黑棋盘格**：
+  `god_favor_wand_fortune.json` 模型早已存在但其贴图在去 vendored 时被清理，本版补齐
+  `textures/item/god_favor_wand_fortune.png`。★教训：图像模型输出的 PNG 常是
+  **Format24bppRgb（无 alpha 通道）**——GDI+ 对这种位图 `LockBits(Format32bppArgb)` 的写回会丢失，
+  必须先 `Clone` 成 32bppArgb 再做像素操作；另 PS 5.1 读**无 BOM UTF-8 脚本按 ANSI**，
+  脚本里写中文路径会乱码，用 `[char]0x4E0B` 码点拼接。
 - 构建网络故障排查：本机代理未启动时 `gradlew` 会因 `C:\Users\<user>\.gradle\gradle.properties`
   里的 `systemProp.http(s).proxyHost=127.0.0.1:7890` 全部连接失败；此时加
   `-I fix.init.gradle`（腾讯公共镜像直连）即可完成解析，详见 README。

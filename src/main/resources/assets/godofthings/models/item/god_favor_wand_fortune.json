@@ -1,0 +1,18 @@
+{
+  "parent": "godofthings:item/god_favor_wand",
+  "textures": {
+    "layer0": "godofthings:item/god_favor_wand_fortune"
+  },
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [ 0, -60, 45 ],
+      "translation": [ 2, 2, 0 ],
+      "scale": [ 1.2, 1.2, 1.2 ]
+    },
+    "firstperson_righthand": {
+      "rotation": [ 0, -90, 25 ],
+      "translation": [ 2.6, 2, 0 ],
+      "scale": [ 1.2, 1.2, 1.2 ]
+    }
+  }
+}
