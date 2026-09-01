@@ -11,6 +11,7 @@ import com.godofthings.client.screen.GodCraftTemplateScreen;
 import com.godofthings.client.screen.GodDropScreen;
 import com.godofthings.client.screen.GodEnchantScreen;
 import com.godofthings.client.screen.GodMinerScreen;
+import com.godofthings.client.screen.GodRecordScreen;
 import com.godofthings.client.screen.GodResourceScreen;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -36,6 +37,7 @@ public class ClientModEvents
         event.register(Godofthings.GOD_CRAFT_CONFIG_MENU.get(), GodCraftConfigScreen::new);
         event.register(Godofthings.GOD_CRAFT_TEMPLATE_MENU.get(), GodCraftTemplateScreen::new);
         event.register(Godofthings.CREATIVE_ENERGY_CUBE_MENU.get(), CreativeEnergyCubeScreen::new);
+        event.register(Godofthings.GOD_RECORD_MENU.get(), GodRecordScreen::new);
     }
 
     @SubscribeEvent

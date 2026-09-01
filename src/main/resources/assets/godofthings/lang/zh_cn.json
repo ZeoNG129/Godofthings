@@ -141,5 +141,12 @@
   "container.godofthings.creative_energy_cube": "创造能量立方",
   "gui.godofthings.creative_energy_cube.output": "输出：∞ FE/t（最大）",
   "block.godofthings.space_time_eternity": "时空永恒",
-  "block.godofthings.creature_annihilation": "生物覆灭"
+  "block.godofthings.creature_annihilation": "生物覆灭",
+  "block.godofthings.god_record": "神之记录",
+  "gui.godofthings.waypoint.empty": "暂无传送点，使用 /setpoint 设置",
+  "gui.godofthings.waypoint.tp": "传送",
+  "gui.godofthings.waypoint.pin": "置顶",
+  "gui.godofthings.waypoint.del": "删除",
+  "gui.godofthings.waypoint.prev": "上一页",
+  "gui.godofthings.waypoint.next": "下一页"
 }

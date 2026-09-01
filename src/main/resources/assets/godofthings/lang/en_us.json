@@ -141,5 +141,12 @@
   "container.godofthings.creative_energy_cube": "Creative Energy Cube",
   "gui.godofthings.creative_energy_cube.output": "Output: ∞ FE/t (max)",
   "block.godofthings.space_time_eternity": "Space-Time Eternity",
-  "block.godofthings.creature_annihilation": "Creature Annihilation"
+  "block.godofthings.creature_annihilation": "Creature Annihilation",
+  "block.godofthings.god_record": "God Record",
+  "gui.godofthings.waypoint.empty": "No waypoints yet, use /setpoint",
+  "gui.godofthings.waypoint.tp": "TP",
+  "gui.godofthings.waypoint.pin": "Pin",
+  "gui.godofthings.waypoint.del": "Del",
+  "gui.godofthings.waypoint.prev": "Prev",
+  "gui.godofthings.waypoint.next": "Next"
 }

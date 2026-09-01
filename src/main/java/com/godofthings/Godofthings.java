@@ -8,6 +8,7 @@ import com.godofthings.block.GodEnchantBlock;
 import com.godofthings.block.GodFurnaceBlock;
 import com.godofthings.block.GodHeavenEnchantBlock;
 import com.godofthings.block.GodMinerBlock;
+import com.godofthings.block.GodRecordBlock;
 import com.godofthings.block.GodResourceBlock;
 import com.godofthings.block.SpaceTimeEternityBlock;
 import com.godofthings.block.entity.CreatureAnnihilationBlockEntity;
@@ -16,6 +17,7 @@ import com.godofthings.block.entity.GodDropBlockEntity;
 import com.godofthings.block.entity.GodEnchantBlockEntity;
 import com.godofthings.block.entity.GodFurnaceBlockEntity;
 import com.godofthings.block.entity.GodMinerBlockEntity;
+import com.godofthings.block.entity.GodRecordBlockEntity;
 import com.godofthings.block.entity.GodResourceBlockEntity;
 import com.godofthings.block.entity.SpaceTimeEternityBlockEntity;
 import com.godofthings.config.MachinesConfig;
@@ -42,6 +44,7 @@ import com.godofthings.menu.GodEnchantMenu;
 import com.godofthings.menu.GodFurnaceConfigMenu;
 import com.godofthings.menu.GodFurnaceMenu;
 import com.godofthings.menu.GodMinerMenu;
+import com.godofthings.menu.GodRecordMenu;
 import com.godofthings.menu.GodResourceMenu;
 import com.godofthings.recipe.GodUnbreakableRecipe;
 import com.mojang.logging.LogUtils;
@@ -297,6 +300,21 @@ public class Godofthings
             BLOCK_ENTITIES.register("creature_annihilation",
                     () -> BlockEntityType.Builder.of(CreatureAnnihilationBlockEntity::new, CREATURE_ANNIHILATION.get()).build(null));
 
+    // ---- 神之记录（传送点管理 UI）----
+    public static final DeferredBlock<GodRecordBlock> GOD_RECORD =
+            BLOCKS.registerBlock("god_record", GodRecordBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_BROWN)
+                            .strength(3.0F, 6.0F)
+                            .sound(SoundType.WOOD));
+    public static final DeferredItem<BlockItem> GOD_RECORD_ITEM =
+            ITEMS.registerSimpleBlockItem(GOD_RECORD, new Item.Properties());
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodRecordBlockEntity>> GOD_RECORD_BE =
+            BLOCK_ENTITIES.register("god_record",
+                    () -> BlockEntityType.Builder.of(GodRecordBlockEntity::new, GOD_RECORD.get()).build(null));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodRecordMenu>> GOD_RECORD_MENU =
+            MENUS.register("god_record", () -> IMenuTypeExtension.create(GodRecordMenu::new));
+
     // ---- 方块实体 ----
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodFurnaceBlockEntity>> GOD_FURNACE_BE =
             BLOCK_ENTITIES.register("god_furnace",
@@ -364,6 +382,7 @@ public class Godofthings
                         output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
                         output.accept(SPACE_TIME_ETERNITY_ITEM.get());
                         output.accept(CREATURE_ANNIHILATION_ITEM.get());
+                        output.accept(GOD_RECORD_ITEM.get());
                     })
                     .build());
 

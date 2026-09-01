@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EPE",
+    "PBP",
+    "EPE"
+  ],
+  "key": {
+    "E": { "item": "minecraft:ender_pearl" },
+    "P": { "item": "minecraft:paper" },
+    "B": { "item": "minecraft:book" }
+  },
+  "result": {
+    "id": "godofthings:god_record"
+  }
+}
