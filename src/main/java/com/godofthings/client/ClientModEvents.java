@@ -1,0 +1,46 @@
+package com.godofthings.client;
+
+import com.godofthings.Godofthings;
+import com.godofthings.client.screen.GodFurnaceConfigScreen;
+import com.godofthings.energy.CreativeEnergyCubeScreen;
+import com.godofthings.client.screen.GodFurnaceScreen;
+import com.godofthings.client.screen.GodChangeScreen;
+import com.godofthings.client.screen.GodCraftScreen;
+import com.godofthings.client.screen.GodCraftConfigScreen;
+import com.godofthings.client.screen.GodCraftTemplateScreen;
+import com.godofthings.client.screen.GodDropScreen;
+import com.godofthings.client.screen.GodEnchantScreen;
+import com.godofthings.client.screen.GodMinerScreen;
+import com.godofthings.client.screen.GodResourceScreen;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+
+@EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+public class ClientModEvents
+{
+    // 1.20.1 为 FMLClientSetupEvent + MenuScreens.register，1.21.1 改为 MOD 总线 RegisterMenuScreensEvent
+    @SubscribeEvent
+    public static void onClientSetup(RegisterMenuScreensEvent event)
+    {
+        event.register(Godofthings.GOD_FURNACE_MENU.get(), GodFurnaceScreen::new);
+        event.register(Godofthings.GOD_FURNACE_CONFIG_MENU.get(), GodFurnaceConfigScreen::new);
+        event.register(Godofthings.GOD_MINER_MENU.get(), GodMinerScreen::new);
+        event.register(Godofthings.GOD_RESOURCE_MENU.get(), GodResourceScreen::new);
+        event.register(Godofthings.GOD_DROP_MENU.get(), GodDropScreen::new);
+        event.register(Godofthings.GOD_ENCHANT_MENU.get(), GodEnchantScreen::new);
+        event.register(Godofthings.GOD_CHANGE_MENU.get(), GodChangeScreen::new);
+        event.register(Godofthings.GOD_CRAFT_MENU.get(), GodCraftScreen::new);
+        event.register(Godofthings.GOD_CRAFT_CONFIG_MENU.get(), GodCraftConfigScreen::new);
+        event.register(Godofthings.GOD_CRAFT_TEMPLATE_MENU.get(), GodCraftTemplateScreen::new);
+        event.register(Godofthings.CREATIVE_ENERGY_CUBE_MENU.get(), CreativeEnergyCubeScreen::new);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event)
+    {
+        WandKeyBindings.register(event);
+    }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "godofthings:void",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "godofthings:void_biome",
+      "layers": [
+        { "block": "minecraft:air", "height": 1 }
+      ],
+      "structure_overrides": [],
+      "lakes": false,
+      "features": false
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NIN",
+    "IEI",
+    "NIN"
+  ],
+  "key": {
+    "N": { "item": "minecraft:nether_star" },
+    "I": { "item": "minecraft:netherite_ingot" },
+    "E": { "item": "godofthings:god_enchant" }
+  },
+  "result": {
+    "id": "godofthings:god_heaven_enchant"
+  }
+}

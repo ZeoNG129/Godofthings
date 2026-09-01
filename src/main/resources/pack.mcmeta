@@ -1,0 +1,9 @@
+{
+  "pack": {
+    "description": {
+      "text": "${mod_id} resources"
+    },
+    "pack_format": 48,
+    "neoforge:resource_pack_format": 34
+  }
+}

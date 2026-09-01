@@ -1,0 +1,25 @@
+{
+  "display": {
+    "icon": { "item": "godofthings:god_furnace" },
+    "title": { "translate": "advancements.godofthings.root.title" },
+    "description": { "translate": "advancements.godofthings.root.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false,
+    "background": "godofthings:textures/block/god_furnace_side.png"
+  },
+  "criteria": {
+    "has_god_furnace": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          { "items": [ "godofthings:god_furnace" ] }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 100
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GIG",
+    "ITI",
+    "GIG"
+  ],
+  "key": {
+    "G": { "item": "minecraft:gold_ingot" },
+    "I": { "item": "minecraft:diamond" },
+    "T": { "item": "minecraft:crafting_table" }
+  },
+  "result": {
+    "id": "godofthings:god_craft"
+  }
+}

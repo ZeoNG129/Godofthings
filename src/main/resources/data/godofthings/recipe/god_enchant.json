@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NDN",
+    "DED",
+    "NDN"
+  ],
+  "key": {
+    "N": { "item": "minecraft:nether_star" },
+    "D": { "item": "minecraft:diamond_block" },
+    "E": { "item": "minecraft:enchanting_table" }
+  },
+  "result": {
+    "id": "godofthings:god_enchant"
+  }
+}
