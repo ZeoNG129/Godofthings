@@ -22,12 +22,13 @@ public class DevourerButtonHandler
     {
         if (event.getScreen() instanceof InventoryScreen inv)
         {
-            int x = inv.getGuiLeft() - 44;
+            // 按钮放在背包界面内部左上角（避免 GUI 缩放较大时 getGuiLeft()-44 出屏不可见）
+            int x = inv.getGuiLeft() + 2;
             int y = inv.getGuiTop() + 2;
             Button button = Button.builder(
-                            Component.literal("吞噬"),
+                            Component.literal("吞"),
                             b -> DevourerMessages.sendOpen())
-                    .bounds(x, y, 40, 20)
+                    .bounds(x, y, 20, 20)
                     .tooltip(Tooltip.create(Component.translatable("block.godofthings.god_devourer")))
                     .build();
             event.addListener(button);

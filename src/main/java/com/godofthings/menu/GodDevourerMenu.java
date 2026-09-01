@@ -40,6 +40,10 @@ public class GodDevourerMenu extends AbstractContainerMenu
         this.itemHandler = be.getItemHandler();
         this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
         addSlots(playerInv);
+        if (!playerInv.player.level().isClientSide)
+        {
+            be.onMenuOpened();
+        }
     }
 
     // 服务端构造（便携版：背包按钮打开，无方块）
@@ -84,6 +88,24 @@ public class GodDevourerMenu extends AbstractContainerMenu
             return true; // 便携版
         }
         return stillValid(this.access, player, Godofthings.GOD_DEVOURER.get());
+    }
+
+    @Override
+    public void removed(Player player)
+    {
+        super.removed(player);
+        if (!player.level().isClientSide)
+        {
+            if (be != null)
+            {
+                be.onMenuClosed();
+            }
+            else
+            {
+                // 便携版：关闭界面销毁暂存物品
+                itemHandler.clear();
+            }
+        }
     }
 
     @Override
