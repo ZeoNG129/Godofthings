@@ -151,5 +151,12 @@
   "gui.godofthings.waypoint.prev": "上一页",
   "gui.godofthings.waypoint.next": "下一页",
   "gui.godofthings.waypoint.title": "传送点",
-  "key.godofthings.open_waypoint": "打开传送点界面"
+  "key.godofthings.open_waypoint": "打开传送点界面",
+  "key.godofthings.sword_mode": "神之剑功能面板",
+  "gui.godofthings.sword_mode": "神之剑功能",
+  "gui.godofthings.sword_behead": "斩首",
+  "gui.godofthings.sword_capture": "捕捉",
+  "gui.godofthings.sword_looting": "抢劫",
+  "gui.godofthings.sword_enabled": "开",
+  "gui.godofthings.sword_disabled": "关"
 }

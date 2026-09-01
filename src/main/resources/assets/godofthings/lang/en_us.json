@@ -151,5 +151,12 @@
   "gui.godofthings.waypoint.prev": "Prev",
   "gui.godofthings.waypoint.next": "Next",
   "gui.godofthings.waypoint.title": "Waypoints",
-  "key.godofthings.open_waypoint": "Open Waypoint Menu"
+  "key.godofthings.open_waypoint": "Open Waypoint Menu",
+  "key.godofthings.sword_mode": "Sword Mode Panel",
+  "gui.godofthings.sword_mode": "Sword Functions",
+  "gui.godofthings.sword_behead": "Beheading",
+  "gui.godofthings.sword_capture": "Capture",
+  "gui.godofthings.sword_looting": "Looting",
+  "gui.godofthings.sword_enabled": "ON",
+  "gui.godofthings.sword_disabled": "OFF"
 }

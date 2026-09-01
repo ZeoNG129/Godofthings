@@ -110,6 +110,14 @@ public class WandKeyBindings
             GLFW.GLFW_KEY_U,
             CATEGORY
     ));
+    /** 神之剑功能面板（J） */
+    public static final Lazy<KeyMapping> SWORD_MODE_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.sword_mode",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_J,
+            CATEGORY
+    ));
 
     /** 跟踪连锁挖掘按键的按下状态。 */
     public static boolean SWITCH_CHAIN_MINING_KEY_WAS_DOWN = false;
@@ -130,5 +138,6 @@ public class WandKeyBindings
         event.register(TOGGLE_CAPTURE_KEY.get());
         event.register(TOGGLE_INVULNERABILITY_KEY.get());
         event.register(OPEN_WAYPOINT_KEY.get());
+        event.register(SWORD_MODE_KEY.get());
     }
 }
