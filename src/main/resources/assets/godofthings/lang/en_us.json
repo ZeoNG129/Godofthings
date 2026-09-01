@@ -134,6 +134,8 @@
   "item.godofthings.god_sword": "God Sword",
   "item.godofthings.god_cannon": "God Cannon",
   "item.godofthings.god_invite": "Invoke God",
+  "message.godofthings.god_invite.apply": "Invoked God: %s",
+  "message.godofthings.god_invite.remove": "Revoked God: %s",
   "message.godofthings.cannon.charge_1": "Charge: Tier 1",
   "message.godofthings.cannon.charge_2": "Charge: Tier 2",
   "message.godofthings.cannon.charge_3": "Charge: Tier 3 (max)",

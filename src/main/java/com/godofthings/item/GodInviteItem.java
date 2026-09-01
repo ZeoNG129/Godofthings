@@ -1,6 +1,7 @@
 package com.godofthings.item;
 
 import com.godofthings.Godofthings;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -37,9 +38,21 @@ public class GodInviteItem extends Item
         {
             return InteractionResult.SUCCESS;
         }
-        // 打上请神标记并立即回满血
-        target.getPersistentData().putBoolean(MARKER_KEY, true);
-        target.setHealth(target.getMaxHealth());
+        boolean invited = isInvited(target);
+        if (invited)
+        {
+            // 再次右键：取消请神，恢复可被杀死的正常状态
+            target.getPersistentData().remove(MARKER_KEY);
+            target.setHealth(target.getMaxHealth());
+            player.displayClientMessage(Component.translatable("message.godofthings.god_invite.remove", target.getDisplayName()), true);
+        }
+        else
+        {
+            // 请神：打上标记并立即回满血
+            target.getPersistentData().putBoolean(MARKER_KEY, true);
+            target.setHealth(target.getMaxHealth());
+            player.displayClientMessage(Component.translatable("message.godofthings.god_invite.apply", target.getDisplayName()), true);
+        }
         return InteractionResult.SUCCESS;
     }
 
