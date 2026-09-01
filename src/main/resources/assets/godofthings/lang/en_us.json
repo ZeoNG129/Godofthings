@@ -133,6 +133,7 @@
   "tooltip.godofthings.miner_accelerator": "A full stack (64) mines a full column in 1 tick",
   "item.godofthings.god_sword": "God Sword",
   "item.godofthings.god_cannon": "God Cannon",
+  "item.godofthings.god_invite": "Invoke God",
   "message.godofthings.cannon.charge_1": "Charge: Tier 1",
   "message.godofthings.cannon.charge_2": "Charge: Tier 2",
   "message.godofthings.cannon.charge_3": "Charge: Tier 3 (max)",

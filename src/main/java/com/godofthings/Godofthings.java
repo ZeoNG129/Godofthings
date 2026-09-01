@@ -32,6 +32,7 @@ import com.godofthings.item.GodArmorItem;
 import com.godofthings.item.GodCannonItem;
 import com.godofthings.item.GodChangeItem;
 import com.godofthings.item.GodFavorWandItem;
+import com.godofthings.item.GodInviteItem;
 import com.godofthings.item.GodMinerItem;
 import com.godofthings.item.GodSwordItem;
 import com.godofthings.item.GodUnbreakableItem;
@@ -191,6 +192,10 @@ public class Godofthings
     // ---- 神之炮（电磁炮：左键贯穿光束 / 右键三层蓄力范围炮）----
     public static final DeferredItem<GodCannonItem> GOD_CANNON =
             ITEMS.registerItem("god_cannon", GodCannonItem::new);
+
+    // ---- 请神（对生物右键使用，使其无限血量）----
+    public static final DeferredItem<GodInviteItem> GOD_INVITE =
+            ITEMS.registerItem("god_invite", GodInviteItem::new);
 
     // ---- 神之工具 ----
     public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND =
@@ -378,6 +383,7 @@ public class Godofthings
                         output.accept(GOD_ACCELERATOR.get());
                         output.accept(GOD_SWORD.get());
                         output.accept(GOD_CANNON.get());
+                        output.accept(GOD_INVITE.get());
                         output.accept(GOD_CHANGE.get());
                         output.accept(GOD_CRAFT_ITEM.get());
                         output.accept(SUPERFLAT_TELEPORTER_ITEM.get());

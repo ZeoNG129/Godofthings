@@ -133,6 +133,7 @@
   "tooltip.godofthings.miner_accelerator": "放满 64 个后，挖一整列仅需 1 tick",
   "item.godofthings.god_sword": "神之剑",
   "item.godofthings.god_cannon": "神之炮",
+  "item.godofthings.god_invite": "请神",
   "message.godofthings.cannon.charge_1": "蓄力：一层",
   "message.godofthings.cannon.charge_2": "蓄力：二层",
   "message.godofthings.cannon.charge_3": "蓄力：三层（最大）",
