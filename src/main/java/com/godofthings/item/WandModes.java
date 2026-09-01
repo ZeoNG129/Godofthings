@@ -8,7 +8,7 @@ import net.minecraft.world.item.component.CustomData;
 import java.util.function.Consumer;
 
 /**
- * 造化垂青之杖的模式标记存储。
+ * 神之工具的模式标记存储。
  * 1.21.1 无物品级 NBT，改用 DataComponents.CUSTOM_DATA（vanilla CustomData）承载，键名与 1.20.1 完全一致。
  * 对应 useless_mod 的 UComponents 中各组件。
  */

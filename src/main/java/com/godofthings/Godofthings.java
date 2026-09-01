@@ -184,7 +184,7 @@ public class Godofthings
     public static final DeferredItem<GodCannonItem> GOD_CANNON =
             ITEMS.registerItem("god_cannon", GodCannonItem::new);
 
-    // ---- 造化垂青之杖 ----
+    // ---- 神之工具 ----
     public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND =
             ITEMS.registerItem("god_favor_wand", GodFavorWandItem::new);
     // GT 扳手模式子类（通过模式轮盘切换，不直接出现在创造标签）
@@ -357,7 +357,7 @@ public class Godofthings
         LOGGER.info("Godofthings loaded");
     }
 
-    /** 注册造化垂青之杖到 AE2 无线访问点链接（AE2 未安装时跳过）。 */
+    /** 注册神之工具到 AE2 无线访问点链接（AE2 未安装时跳过）。 */
     private void registerGridLinkables()
     {
         if (!ModList.get().isLoaded("ae2"))

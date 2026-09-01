@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 造化垂青之杖的静态配置（沿用 useless_mod 的默认值）。
+ * 神之工具的静态配置（沿用 useless_mod 的默认值）。
  * 后续如需可配置化，可将这些常量替换为配置文件读取。
  */
 public final class WandConfig

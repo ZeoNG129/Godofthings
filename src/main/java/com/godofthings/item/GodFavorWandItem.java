@@ -80,7 +80,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * 造化垂青之杖：移植自 useless_mod 的 endless_beaf_item。
+ * 神之工具：移植自 useless_mod 的 endless_beaf_item。
  * - 下界合金级、无法破坏的万能工具（剑/镐/锹/斧/锄），对所有方块神速挖掘并收集掉落
  * - 强制击杀（一击必杀任意生物，含末影龙/凋灵）
  * - 考古刷子 + 战利品自动回收

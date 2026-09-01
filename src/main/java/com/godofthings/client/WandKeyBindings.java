@@ -8,7 +8,7 @@ import net.neoforged.neoforge.common.util.Lazy;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * 造化垂青之杖的按键绑定（客户端）。
+ * 神之工具的按键绑定（客户端）。
  */
 public class WandKeyBindings
 {

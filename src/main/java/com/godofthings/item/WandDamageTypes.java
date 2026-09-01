@@ -11,7 +11,7 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.player.Player;
 
 /**
- * 造化垂青之杖的伤害类型（对应 useless_mod 的 ModDamageTypes.beefTool）。
+ * 神之工具的伤害类型（对应 useless_mod 的 ModDamageTypes.beefTool）。
  * 伤害类型本身由数据包 JSON 注册：data/godofthings/damage_type/beef_tool.json
  */
 public final class WandDamageTypes

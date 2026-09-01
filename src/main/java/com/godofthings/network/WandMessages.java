@@ -21,7 +21,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /**
- * 造化垂青之杖的网络通道（NeoForge 1.21.1：CustomPacketPayload + PayloadRegistrar）。
+ * 神之工具的网络通道（NeoForge 1.21.1：CustomPacketPayload + PayloadRegistrar）。
  */
 @EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class WandMessages

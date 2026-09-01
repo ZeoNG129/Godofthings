@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 造化垂青之杖的工具方法（对应 useless_mod 的 UselessItemUtils 中与本物品相关的部分）。
+ * 神之工具的工具方法（对应 useless_mod 的 UselessItemUtils 中与本物品相关的部分）。
  * 1.21.1：附魔走 ItemEnchantments 组件，纹理切换走 CUSTOM_MODEL_DATA 组件。
  */
 public final class WandItemUtils
@@ -31,7 +31,7 @@ public final class WandItemUtils
 
     private WandItemUtils() {}
 
-    /** 玩家背包中存在造化垂青之杖时，持续施加配置的药水效果。 */
+    /** 玩家背包中存在神之工具时，持续施加配置的药水效果。 */
     public static void applyWandEffects(Player player)
     {
         if (player == null)

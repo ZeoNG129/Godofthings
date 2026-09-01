@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import com.godofthings.item.WandModes;
 
 /**
- * 造化垂青之杖的 AE2 集成（AE2 19.x API）。
+ * 神之工具的 AE2 集成（AE2 19.x API）。
  * - 通过 IGridLinkableHandler 支持 AE2 记忆卡的连接/断开
  * - "AE 存储优先" 模式下掉落物直接存入 ME 网络
  * 本类仅在 ModList 检测到 ae2 时才会被加载。

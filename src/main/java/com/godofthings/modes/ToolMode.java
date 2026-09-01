@@ -3,7 +3,7 @@ package com.godofthings.modes;
 import net.minecraft.network.chat.Component;
 
 /**
- * 造化垂青之杖的工具模式枚举。
+ * 神之工具的工具模式枚举。
  * 移植自 useless_mod 的 ToolMode（1.20.1），tooltip 键改为 godofthings 前缀。
  */
 public enum ToolMode

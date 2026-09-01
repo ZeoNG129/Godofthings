@@ -10,7 +10,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.InputEvent;
 
 /**
- * 造化垂青之杖的按键处理（客户端）。
+ * 神之工具的按键处理（客户端）。
  */
 @EventBusSubscriber(modid = Godofthings.MODID, value = Dist.CLIENT)
 public class WandKeyInputHandler

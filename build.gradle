@@ -64,7 +64,7 @@ dependencies {
     // EMI (配方查看器) —— 神之熔炉在 EMI 里显示可熔炼配方
     compileOnly files('libs/emi-1.1.24+1.21.1+neoforge.jar')
 
-    // AE2 (应用能源2) —— 造化垂青之杖的“AE存储优先”模式（掉落优先存入ME网络）
+    // AE2 (应用能源2) —— 神之工具的“AE存储优先”模式（掉落优先存入ME网络）
     compileOnly files('libs/ae2-1.21.1-neoforge.jar')
 }
 

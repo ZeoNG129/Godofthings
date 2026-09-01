@@ -15,7 +15,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 /**
- * 造化垂青之杖的客户端钩子。
+ * 神之工具的客户端钩子。
  * 独立类：仅在客户端 dist 判定为 true 时才会被类加载，专用服务器安全。
  */
 public final class WandClientHooks

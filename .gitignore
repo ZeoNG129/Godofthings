@@ -25,3 +25,6 @@ run-data/
 
 # Reference sources (decompiled NeoForge/Minecraft, not part of the mod)
 .ref/
+
+# Windows literal dir accidentally created during build
+%SystemDrive%/
