@@ -90,17 +90,18 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
             return super.insertItem(slot, stack, simulate);
         }
 
-        // 神之加速：输入/输出槽容量随并行倍率提升，突破单堆 64 上限
+        // 神之加速：输入/输出槽容量随并行倍率提升，但单堆上限 99
+        // （ItemStack 的 count 序列化硬上限是 99，ExtraCodecs.intRange(1,99)，超 99 存档/掉落时崩溃）
         @Override
         public int getSlotLimit(int slot)
         {
-            return 64 * getParallelMultiplier();
+            return Math.min(99, 64 * getParallelMultiplier());
         }
 
         @Override
         protected int getStackLimit(int slot, ItemStack stack)
         {
-            // 不乘物品 maxStackSize，允许单堆超过 64（神之加速并行突破）
+            // 单堆上限 99（同上），神之加速提升并行吞吐，而非无限单堆容量
             return getSlotLimit(slot);
         }
     };

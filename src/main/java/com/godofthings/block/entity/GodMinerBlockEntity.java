@@ -2,6 +2,7 @@ package com.godofthings.block.entity;
 
 import com.godofthings.Godofthings;
 import com.godofthings.config.MachinesConfig;
+import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodMinerMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,6 +34,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.BitSet;
@@ -57,6 +59,22 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
 
     private final InfiniteItemHandler itemHandler = new InfiniteItemHandler();
     private final FluidTank tank = new FluidTank(Integer.MAX_VALUE);
+
+    /** 神之加速槽：放入神之加速（放满 64 个）后，挖一整列基础 tick 降至 1 */
+    private final ItemStackHandler accelSlot = new ItemStackHandler(1)
+    {
+        @Override
+        protected void onContentsChanged(int slot)
+        {
+            setChanged();
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack)
+        {
+            return stack.getItem() instanceof GodAcceleratorItem;
+        }
+    };
 
     private boolean running = false;
     private int radius = 16;
@@ -88,6 +106,12 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
     public FluidTank getTank()
     {
         return tank;
+    }
+
+    /** 神之加速槽（只接受神之加速，最多 64 个） */
+    public ItemStackHandler getAccelSlot()
+    {
+        return accelSlot;
     }
 
     public boolean isRunning()
@@ -183,9 +207,14 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
-    /** 挖 1 整列所需的 tick：默认 20，效率每级 -4，最低 1（效率 V = 1 tick/列） */
+    /** 挖 1 整列所需的 tick：默认 20，效率每级 -4，最低 1（效率 V = 1 tick/列）；
+     *  神之加速槽放满 64 个后，挖一整列基础 tick 直接降为 1。 */
     public int getTicksPerColumn()
     {
+        if (accelSlot.getStackInSlot(0).getCount() >= 64)
+        {
+            return 1;
+        }
         return Math.max(1, MachinesConfig.MINER_TICKS_PER_COLUMN_BASE.get() - 4 * efficiencyLevel);
     }
 
@@ -617,6 +646,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         tag.putInt("ColumnIndex", columnIndex);
         tag.putInt("TickCounter", tickCounter);
         tag.put("Inventory", itemHandler.serializeNBT(provider));
+        tag.put("AccelSlot", accelSlot.serializeNBT(provider));
         tag.put("Tank", tank.writeToNBT(provider, new CompoundTag()));
         tag.putInt("Efficiency", efficiencyLevel);
         tag.putInt("Fortune", fortuneLevel);
@@ -636,6 +666,10 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         if (tag.contains("Inventory"))
         {
             itemHandler.deserializeNBT(provider, tag.getCompound("Inventory"));
+        }
+        if (tag.contains("AccelSlot"))
+        {
+            accelSlot.deserializeNBT(provider, tag.getCompound("AccelSlot"));
         }
         if (tag.contains("Tank"))
         {

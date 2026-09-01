@@ -98,23 +98,19 @@ public class InfiniteItemHandler implements IItemHandlerModifiable
             return ItemStack.EMPTY;
         }
         ItemStack toInsert = stack.copy();
-        // 1) 全局合并同类堆叠（无限存储：同类合并成单堆，数量可超过物品默认堆叠上限 64）
+        // 1) 全局合并同类堆叠。单堆上限 99：ItemStack 的 count 序列化硬上限是 99
+        //    （ItemStack.MAP_CODEC 用 ExtraCodecs.intRange(1, 99)，超 99 会在存档/掉落序列化时抛异常崩溃），
+        //    因此每堆最多 99，超出部分拆成新堆，绝不允许单堆 > 99。
         for (int i = 0; i < stacks.size() && !toInsert.isEmpty(); i++)
         {
             ItemStack target = stacks.get(i);
             // 1.21.1：isSameItemSameTags 已删，改用 isSameItemSameComponents（数据组件等价判定）
             if (ItemStack.isSameItemSameComponents(target, toInsert))
             {
-                int add = toInsert.getCount();
-                if (add > 0)
+                int room = 99 - target.getCount();
+                if (room > 0)
                 {
-                    // 防止单堆数量 int 溢出（长时间挂机 count 超 Integer.MAX_VALUE 会翻负）
-                    int room = Integer.MAX_VALUE - target.getCount();
-                    if (room <= 0)
-                    {
-                        continue; // 该堆已到 int 上限，尝试其他同类堆或新建堆叠
-                    }
-                    int actual = Math.min(add, room);
+                    int actual = Math.min(toInsert.getCount(), room);
                     if (!simulate)
                     {
                         target.grow(actual);
@@ -124,21 +120,20 @@ public class InfiniteItemHandler implements IItemHandlerModifiable
                 }
             }
         }
-        // 2) 仍有剩余：新建堆叠（受堆叠数上限保护，超出部分返回给调用方掉落处理）
-        if (!toInsert.isEmpty())
+        // 2) 仍有剩余：拆成 ≤99 的新堆叠（受堆叠数上限保护，超出部分返回给调用方掉落处理）
+        while (!toInsert.isEmpty() && stacks.size() < MAX_STACKS)
         {
-            if (stacks.size() < MAX_STACKS)
+            int chunk = Math.min(toInsert.getCount(), 99);
+            ItemStack piece = toInsert.copy();
+            piece.setCount(chunk);
+            if (!simulate)
             {
-                if (!simulate)
-                {
-                    stacks.add(toInsert);
-                    onChange.run();
-                }
-                return ItemStack.EMPTY;
+                stacks.add(piece);
+                onChange.run();
             }
-            return toInsert;
+            toInsert.shrink(chunk);
         }
-        return ItemStack.EMPTY;
+        return toInsert.isEmpty() ? ItemStack.EMPTY : toInsert;
     }
 
     @Override

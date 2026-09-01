@@ -130,6 +130,7 @@
   "item.godofthings.god_accelerator": "神之加速",
   "tooltip.godofthings.god_accelerator": "放入神之系列机器的加速槽，每个提升 16 倍并行，最多一组（64 个）= 1024 倍",
   "tooltip.godofthings.parallel": "当前并行：×%s",
+  "tooltip.godofthings.miner_accelerator": "放满 64 个后，挖一整列仅需 1 tick",
   "item.godofthings.god_sword": "神之剑",
   "item.godofthings.god_cannon": "神之炮",
   "message.godofthings.cannon.charge_1": "蓄力：一层",

@@ -130,6 +130,7 @@
   "item.godofthings.god_accelerator": "God Accelerator",
   "tooltip.godofthings.god_accelerator": "Place in a God machine's accelerator slot; each grants 16x parallelism, up to 64 (a full stack) = 1024x",
   "tooltip.godofthings.parallel": "Parallelism: ×%s",
+  "tooltip.godofthings.miner_accelerator": "A full stack (64) mines a full column in 1 tick",
   "item.godofthings.god_sword": "God Sword",
   "item.godofthings.god_cannon": "God Cannon",
   "message.godofthings.cannon.charge_1": "Charge: Tier 1",

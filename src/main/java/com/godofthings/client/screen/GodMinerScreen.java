@@ -24,6 +24,8 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
     private static final ResourceLocation TEXTURE =
             ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/god_miner.png");
 
+    private static final ResourceLocation SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot");
+
     private static final String[] RADIUS_LABELS = { "-100", "-10", "-1", "+1", "+10", "+100" };
     private static final int[] RADIUS_DELTAS = { -100, -10, -1, 1, 10, 100 };
 
@@ -51,6 +53,10 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         int y = (this.height - this.imageHeight) / 2;
 
         gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+
+        // 神之加速槽框（标准物品槽背景）+ 标签
+        gui.blitSprite(SLOT_SPRITE, x + 148, y + 30, 18, 18);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.accelerator"), x + 140, y + 18, 0xFFFFFF);
 
         GodMinerBlockEntity be = this.menu.getBlockEntity();
 
@@ -136,6 +142,11 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         // 子类不再手动调 renderBackground。
         super.render(gui, mouseX, mouseY, partialTick);
         this.renderTooltip(gui, mouseX, mouseY);
+        // 神之加速槽 hover：显示挖列加速说明（槽内有物品时让位给物品 tooltip，避免覆盖）
+        if (isHovering(148, 30, 18, 18, mouseX, mouseY) && (this.hoveredSlot == null || !this.hoveredSlot.hasItem()))
+        {
+            gui.renderTooltip(this.font, Component.translatable("tooltip.godofthings.miner_accelerator"), mouseX, mouseY);
+        }
     }
 
     @Override

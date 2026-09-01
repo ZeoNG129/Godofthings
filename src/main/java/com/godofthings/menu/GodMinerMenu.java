@@ -10,6 +10,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class GodMinerMenu extends AbstractContainerMenu
 {
@@ -27,6 +28,9 @@ public class GodMinerMenu extends AbstractContainerMenu
         super(Godofthings.GOD_MINER_MENU.get(), containerId);
         this.be = be;
         this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
+
+        // 神之加速槽（只接受神之加速，最多 64 个），位于界面右上角
+        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 148, 30));
 
         // 无储存槽：挖掘产物直接进入内置无限储存，仅显示玩家物品栏
         for (int row = 0; row < 3; row++)
@@ -133,10 +137,46 @@ public class GodMinerMenu extends AbstractContainerMenu
         return stillValid(this.access, player, Godofthings.GOD_MINER.get());
     }
 
-    // 无储存槽，快速移动无操作
+    // 只有神之加速槽 + 玩家物品栏，快速移动只处理加速槽
     @Override
     public ItemStack quickMoveStack(Player player, int index)
     {
-        return ItemStack.EMPTY;
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem())
+        {
+            ItemStack stack = slot.getItem();
+            itemstack = stack.copy();
+            if (index == 0)
+            {
+                // 加速槽 → 玩家物品栏（槽 1..36）
+                if (!this.moveItemStackTo(stack, 1, this.slots.size(), true))
+                {
+                    return ItemStack.EMPTY;
+                }
+            }
+            else
+            {
+                // 玩家物品栏 → 加速槽（只收神之加速，isItemValid 会拒绝其他物品）
+                if (!this.moveItemStackTo(stack, 0, 1, false))
+                {
+                    return ItemStack.EMPTY;
+                }
+            }
+            if (stack.isEmpty())
+            {
+                slot.setByPlayer(ItemStack.EMPTY);
+            }
+            else
+            {
+                slot.setChanged();
+            }
+            if (stack.getCount() == itemstack.getCount())
+            {
+                return ItemStack.EMPTY;
+            }
+            slot.onTake(player, stack);
+        }
+        return itemstack;
     }
 }
