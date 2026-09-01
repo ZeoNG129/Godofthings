@@ -22,12 +22,19 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.BrushItem;
 import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.ElytraItem;
+import net.minecraft.world.item.FishingRodItem;
+import net.minecraft.world.item.FlintAndSteelItem;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.MaceItem;
 import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.ShearsItem;
+import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.ShovelItem;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.SwordItem;
@@ -149,7 +156,8 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider
             Map.entry(EntityType.PLAYER, Items.AIR)
     );
 
-    /** 明确不允许产出的物品标签（装备/武器/工具/盔甲类） */
+    /** 明确不允许产出的物品类别（武器/工具/装备/盔甲）。
+     *  TieredItem 已兜底剑斧镐铲锄；以下额外覆盖不继承 TieredItem 的武器与装备。 */
     private static final Set<Class<?>> BANNED_ITEM_CLASSES = Set.of(
             SwordItem.class,
             AxeItem.class,
@@ -159,8 +167,14 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider
             BowItem.class,
             CrossbowItem.class,
             TridentItem.class,
-            ArmorItem.class,
-            net.minecraft.world.item.ShieldItem.class
+            MaceItem.class,        // 1.21 重锤（武器）
+            ArmorItem.class,       // 含 AnimalArmorItem（马铠）等所有盔甲
+            ElytraItem.class,      // 鞘翅（装备）
+            ShieldItem.class,      // 盾（装备）
+            FishingRodItem.class,  // 钓鱼竿（工具）
+            ShearsItem.class,      // 剪刀（工具）
+            FlintAndSteelItem.class, // 打火石（工具）
+            BrushItem.class        // 考古刷子（工具）
     );
 
     /** 可放置输入槽：3×3 共 9 个（最多同时放置 9 种刷怪蛋并行生产） */
@@ -324,7 +338,9 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider
         }
         if (mapped != null)
         {
-            return List.of(new ItemStack(mapped, 64));
+            ItemStack stack = new ItemStack(mapped, 64);
+            // 双保险：即便未来映射表误加工具/装备，也在此拦截，杜绝产出
+            return isBannedDrop(stack) ? List.of() : List.of(stack);
         }
         return produceFromLootTable(type);
     }
