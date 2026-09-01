@@ -100,18 +100,6 @@ $zh = (gc src\main\resources\assets\godofthings\lang\zh_cn.json -Raw | ConvertFr
 
 ## 8. 历史注记
 
-- **v2.0.0 起本模组为纯原创内容**（版本号按 §1 规则因系统性大改升为 2.0.0）：曾临时内置的
-  5 个第三方模组移植包（ConstructionWand / Torcherino / Torchmaster / ToolBelt / Just Dire Things，
-  共 239 个类）已整体移除，连同其资源、配方、语言键与 9 个跨模组联动依赖
-  （Botania/Curios/L2/Tom's Storage/Refined Storage/Beyond Dimensions/ProjectE）一并清理。
-  相关方块/物品不复存在，v1.3.0 及更早存档中已放置的旧方块会显示为虚空方块（贴图缺失），属预期行为。
-- **能量系统重构（随 2.0.0 发布）**：删除 `generator/` 包（能量发电机 EnergyGenerator +
-  能量中继 EnergyRelay，12 个类）及其全部资源/配方/语言键，替换为 `energy/` 包的
-  **创造能量立方**（`CreativeEnergyCubeBlock/Entity/Menu/Screen`）：
-  - 六面 FE 能量源，`extractEnergy` 无条件满足（创造行为），输出恒为最大速率；
-  - 每 tick 向相邻接收端推送 `Integer.MAX_VALUE` FE/面，并为 GUI 内 4 个充能格物品充满电；
-  - 无合成配方（创造物品栏获取），`MachinesConfig` 无能量配置项；
-  - 注意：`AdAstraCompat` 是氧气事件兼容，与能量系统无关，未受影响。
 - **2.0.1 配方重平衡 + 能量立方 GUI 重制**：全部合成配方按进度阶梯重排
   （入门：神之合成/熔炉 → 物流：掉落机/传送门 → 生产：矿机/资源机 → 附魔线：附魔台→天神附魔台 →
   神装/神器：护甲/不毁/造化垂青之杖）。修复强弱倒挂（资源复制机原 8 绿宝石、掉落机原 72 绿宝石）；
