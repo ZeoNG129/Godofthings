@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DCD",
+    "CSC",
+    "DCD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:netherite_ingot" },
+    "C": { "item": "minecraft:clock" },
+    "S": { "item": "minecraft:nether_star" }
+  },
+  "result": {
+    "id": "godofthings:space_time_eternity"
+  }
+}

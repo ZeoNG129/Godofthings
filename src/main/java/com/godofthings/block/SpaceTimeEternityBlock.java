@@ -1,0 +1,53 @@
+package com.godofthings.block;
+
+import com.godofthings.Godofthings;
+import com.godofthings.block.entity.SpaceTimeEternityBlockEntity;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * 时空永恒：放下后世界时间与天气永久锁定在放置时刻的状态。
+ */
+public class SpaceTimeEternityBlock extends BaseEntityBlock
+{
+    public static final MapCodec<SpaceTimeEternityBlock> CODEC = simpleCodec(SpaceTimeEternityBlock::new);
+
+    public SpaceTimeEternityBlock(Properties properties)
+    {
+        super(properties);
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec()
+    {
+        return CODEC;
+    }
+
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new SpaceTimeEternityBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
+    {
+        return level.isClientSide ? null
+                : createTickerHelper(type, Godofthings.SPACE_TIME_ETERNITY_BE.get(), SpaceTimeEternityBlockEntity::tick);
+    }
+
+    @Override
+    protected RenderShape getRenderShape(BlockState state)
+    {
+        return RenderShape.MODEL;
+    }
+}

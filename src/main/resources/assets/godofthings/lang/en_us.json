@@ -139,5 +139,7 @@
   "gui.godofthings.enchant.batch_done": "Enchanted %s items",
   "block.godofthings.creative_energy_cube": "Creative Energy Cube",
   "container.godofthings.creative_energy_cube": "Creative Energy Cube",
-  "gui.godofthings.creative_energy_cube.output": "Output: ∞ FE/t (max)"
+  "gui.godofthings.creative_energy_cube.output": "Output: ∞ FE/t (max)",
+  "block.godofthings.space_time_eternity": "Space-Time Eternity",
+  "block.godofthings.creature_annihilation": "Creature Annihilation"
 }

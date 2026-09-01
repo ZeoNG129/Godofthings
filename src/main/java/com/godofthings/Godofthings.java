@@ -1,5 +1,6 @@
 package com.godofthings;
 
+import com.godofthings.block.CreatureAnnihilationBlock;
 import com.godofthings.block.DimensionTeleporterBlock;
 import com.godofthings.block.GodCraftBlock;
 import com.godofthings.block.GodDropBlock;
@@ -8,12 +9,15 @@ import com.godofthings.block.GodFurnaceBlock;
 import com.godofthings.block.GodHeavenEnchantBlock;
 import com.godofthings.block.GodMinerBlock;
 import com.godofthings.block.GodResourceBlock;
+import com.godofthings.block.SpaceTimeEternityBlock;
+import com.godofthings.block.entity.CreatureAnnihilationBlockEntity;
 import com.godofthings.block.entity.GodCraftBlockEntity;
 import com.godofthings.block.entity.GodDropBlockEntity;
 import com.godofthings.block.entity.GodEnchantBlockEntity;
 import com.godofthings.block.entity.GodFurnaceBlockEntity;
 import com.godofthings.block.entity.GodMinerBlockEntity;
 import com.godofthings.block.entity.GodResourceBlockEntity;
+import com.godofthings.block.entity.SpaceTimeEternityBlockEntity;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.dimension.GodFlatDimension;
 import com.godofthings.energy.CreativeEnergyCubeBlock;
@@ -263,6 +267,36 @@ public class Godofthings
     public static final DeferredHolder<MenuType<?>, MenuType<GodCraftTemplateMenu>> GOD_CRAFT_TEMPLATE_MENU =
             MENUS.register("god_craft_templates", () -> IMenuTypeExtension.create(GodCraftTemplateMenu::new));
 
+    // ---- 时空永恒（放下后世界时间与天气永久锁定当前状态）----
+    public static final DeferredBlock<SpaceTimeEternityBlock> SPACE_TIME_ETERNITY =
+            BLOCKS.registerBlock("space_time_eternity", SpaceTimeEternityBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_CYAN)
+                            .pushReaction(PushReaction.DESTROY)
+                            .strength(5.0F, 1200.0F)
+                            .lightLevel(state -> 15)
+                            .sound(SoundType.AMETHYST));
+    public static final DeferredItem<BlockItem> SPACE_TIME_ETERNITY_ITEM =
+            ITEMS.registerSimpleBlockItem(SPACE_TIME_ETERNITY, new Item.Properties());
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SpaceTimeEternityBlockEntity>> SPACE_TIME_ETERNITY_BE =
+            BLOCK_ENTITIES.register("space_time_eternity",
+                    () -> BlockEntityType.Builder.of(SpaceTimeEternityBlockEntity::new, SPACE_TIME_ETERNITY.get()).build(null));
+
+    // ---- 生物覆灭（放下后半径 512 格内无生物自然生成）----
+    public static final DeferredBlock<CreatureAnnihilationBlock> CREATURE_ANNIHILATION =
+            BLOCKS.registerBlock("creature_annihilation", CreatureAnnihilationBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_RED)
+                            .pushReaction(PushReaction.DESTROY)
+                            .strength(5.0F, 1200.0F)
+                            .lightLevel(state -> 15)
+                            .sound(SoundType.METAL));
+    public static final DeferredItem<BlockItem> CREATURE_ANNIHILATION_ITEM =
+            ITEMS.registerSimpleBlockItem(CREATURE_ANNIHILATION, new Item.Properties());
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CreatureAnnihilationBlockEntity>> CREATURE_ANNIHILATION_BE =
+            BLOCK_ENTITIES.register("creature_annihilation",
+                    () -> BlockEntityType.Builder.of(CreatureAnnihilationBlockEntity::new, CREATURE_ANNIHILATION.get()).build(null));
+
     // ---- 方块实体 ----
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodFurnaceBlockEntity>> GOD_FURNACE_BE =
             BLOCK_ENTITIES.register("god_furnace",
@@ -328,6 +362,8 @@ public class Godofthings
                         output.accept(SUPERFLAT_TELEPORTER_ITEM.get());
                         output.accept(VOID_TELEPORTER_ITEM.get());
                         output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
+                        output.accept(SPACE_TIME_ETERNITY_ITEM.get());
+                        output.accept(CREATURE_ANNIHILATION_ITEM.get());
                     })
                     .build());
 

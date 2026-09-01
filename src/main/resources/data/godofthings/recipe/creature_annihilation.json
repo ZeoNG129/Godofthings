@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DSD",
+    "SAS",
+    "DSD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:netherite_ingot" },
+    "S": { "item": "minecraft:wither_skeleton_skull" },
+    "A": { "item": "minecraft:nether_star" }
+  },
+  "result": {
+    "id": "godofthings:creature_annihilation"
+  }
+}
