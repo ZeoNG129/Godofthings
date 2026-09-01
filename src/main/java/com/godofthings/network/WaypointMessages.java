@@ -31,6 +31,7 @@ public class WaypointMessages
     public static final byte ACTION_TELEPORT = 0;
     public static final byte ACTION_DELETE = 1;
     public static final byte ACTION_PIN = 2;
+    public static final byte ACTION_REQUEST = 3;
 
     @SubscribeEvent
     private static void onRegisterPayloads(RegisterPayloadHandlersEvent event)
@@ -48,6 +49,12 @@ public class WaypointMessages
     public static void sendAction(byte action, String name)
     {
         PacketDistributor.sendToServer(new WaypointActionPayload(action, name));
+    }
+
+    /** 客户端请求服务端下发当前点位列表 */
+    public static void requestList()
+    {
+        sendAction(ACTION_REQUEST, "");
     }
 
     public record WaypointListPayload(List<Waypoint> waypoints) implements CustomPacketPayload
@@ -132,6 +139,7 @@ public class WaypointMessages
                         case ACTION_TELEPORT -> WaypointData.teleport(serverPlayer, data.get(msg.name()));
                         case ACTION_DELETE -> data.remove(msg.name());
                         case ACTION_PIN -> data.togglePin(msg.name());
+                        case ACTION_REQUEST -> { }
                         default -> { return; }
                     }
                     // 操作后回发最新列表刷新 UI

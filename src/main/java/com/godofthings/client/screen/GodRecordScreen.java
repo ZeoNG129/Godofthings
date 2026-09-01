@@ -40,6 +40,8 @@ public class GodRecordScreen extends AbstractContainerScreen<GodRecordMenu>
         super(menu, playerInventory, title);
         this.imageWidth = 280;
         this.imageHeight = 236;
+        // 屏幕打开后主动请求点位列表（规避 openScreen 包与列表包时序颠倒）
+        WaypointMessages.requestList();
     }
 
     private List<Waypoint> list()

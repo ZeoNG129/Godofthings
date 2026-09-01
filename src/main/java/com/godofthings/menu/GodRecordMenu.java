@@ -1,12 +1,9 @@
 package com.godofthings.menu;
 
 import com.godofthings.Godofthings;
-import com.godofthings.network.WaypointMessages;
 import com.godofthings.waypoint.Waypoint;
-import com.godofthings.waypoint.WaypointData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -17,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 神之记录菜单：无物品槽，仅承载传送点列表（服务端构造时下发，之后由网络包刷新）。
+ * 神之记录菜单：无物品槽，仅承载传送点列表。
+ * 列表由客户端屏幕打开后经 WaypointMessages.requestList() 主动请求下发，
+ * 避免 openScreen 包与列表包到达时序颠倒导致首次不同步。
  */
 public class GodRecordMenu extends AbstractContainerMenu
 {
@@ -36,11 +35,6 @@ public class GodRecordMenu extends AbstractContainerMenu
         super(Godofthings.GOD_RECORD_MENU.get(), containerId);
         this.pos = pos;
         this.access = ContainerLevelAccess.create(playerInv.player.level(), pos);
-        // 服务端构造：把当前点位列表下发给打开者
-        if (playerInv.player instanceof ServerPlayer serverPlayer)
-        {
-            WaypointMessages.sendListTo(serverPlayer, WaypointData.get(serverPlayer.server).list());
-        }
     }
 
     public void setWaypoints(List<Waypoint> list)

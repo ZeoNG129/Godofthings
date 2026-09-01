@@ -89,6 +89,12 @@ public class WaypointData extends SavedData
         return result;
     }
 
+    /** 所有点位名（用于指令 tab 补全） */
+    public List<String> names()
+    {
+        return new ArrayList<>(waypoints.keySet());
+    }
+
     /** 跨维度传送（含恢复面对方向），失败返回 false */
     public static boolean teleport(ServerPlayer player, Waypoint wp)
     {
