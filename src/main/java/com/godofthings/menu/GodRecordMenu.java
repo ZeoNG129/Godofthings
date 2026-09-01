@@ -18,7 +18,7 @@ import java.util.List;
  * 列表由客户端屏幕打开后经 WaypointMessages.requestList() 主动请求下发，
  * 避免 openScreen 包与列表包到达时序颠倒导致首次不同步。
  */
-public class GodRecordMenu extends AbstractContainerMenu
+public class GodRecordMenu extends AbstractContainerMenu implements WaypointListMenu
 {
     private final BlockPos pos;
     private final ContainerLevelAccess access;

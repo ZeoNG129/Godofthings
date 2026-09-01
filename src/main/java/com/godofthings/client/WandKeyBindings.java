@@ -102,6 +102,14 @@ public class WandKeyBindings
             GLFW.GLFW_KEY_I,
             CATEGORY
     ));
+    /** 打开传送点界面（U） */
+    public static final Lazy<KeyMapping> OPEN_WAYPOINT_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.open_waypoint",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_U,
+            CATEGORY
+    ));
 
     /** 跟踪连锁挖掘按键的按下状态。 */
     public static boolean SWITCH_CHAIN_MINING_KEY_WAS_DOWN = false;
@@ -121,5 +129,6 @@ public class WandKeyBindings
         event.register(TOGGLE_FORCE_KILL_KEY.get());
         event.register(TOGGLE_CAPTURE_KEY.get());
         event.register(TOGGLE_INVULNERABILITY_KEY.get());
+        event.register(OPEN_WAYPOINT_KEY.get());
     }
 }

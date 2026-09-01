@@ -46,6 +46,7 @@ import com.godofthings.menu.GodFurnaceMenu;
 import com.godofthings.menu.GodMinerMenu;
 import com.godofthings.menu.GodRecordMenu;
 import com.godofthings.menu.GodResourceMenu;
+import com.godofthings.menu.WaypointMenu;
 import com.godofthings.recipe.GodUnbreakableRecipe;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.Registries;
@@ -314,6 +315,8 @@ public class Godofthings
                     () -> BlockEntityType.Builder.of(GodRecordBlockEntity::new, GOD_RECORD.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodRecordMenu>> GOD_RECORD_MENU =
             MENUS.register("god_record", () -> IMenuTypeExtension.create(GodRecordMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<WaypointMenu>> WAYPOINT_MENU =
+            MENUS.register("waypoint", () -> IMenuTypeExtension.create(WaypointMenu::new));
 
     // ---- 方块实体 ----
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodFurnaceBlockEntity>> GOD_FURNACE_BE =

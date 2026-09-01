@@ -1,15 +1,19 @@
 package com.godofthings.network;
 
 import com.godofthings.Godofthings;
-import com.godofthings.menu.GodRecordMenu;
+import com.godofthings.menu.WaypointListMenu;
+import com.godofthings.menu.WaypointMenu;
 import com.godofthings.waypoint.Waypoint;
 import com.godofthings.waypoint.WaypointData;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleMenuProvider;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -39,6 +43,7 @@ public class WaypointMessages
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToClient(WaypointListPayload.TYPE, WaypointListPayload.STREAM_CODEC, WaypointListPayload::handle);
         registrar.playToServer(WaypointActionPayload.TYPE, WaypointActionPayload.STREAM_CODEC, WaypointActionPayload::handle);
+        registrar.playToServer(WaypointOpenPayload.TYPE, WaypointOpenPayload.STREAM_CODEC, WaypointOpenPayload::handle);
     }
 
     public static void sendListTo(ServerPlayer player, List<Waypoint> list)
@@ -55,6 +60,12 @@ public class WaypointMessages
     public static void requestList()
     {
         sendAction(ACTION_REQUEST, "");
+    }
+
+    /** 客户端请求打开传送点界面（U 键） */
+    public static void sendOpen()
+    {
+        PacketDistributor.sendToServer(new WaypointOpenPayload());
     }
 
     public record WaypointListPayload(List<Waypoint> waypoints) implements CustomPacketPayload
@@ -95,7 +106,7 @@ public class WaypointMessages
             ctx.enqueueWork(() ->
             {
                 Minecraft mc = Minecraft.getInstance();
-                if (mc.player != null && mc.player.containerMenu instanceof GodRecordMenu menu)
+                if (mc.player != null && mc.player.containerMenu instanceof WaypointListMenu menu)
                 {
                     menu.setWaypoints(msg.waypoints());
                 }
@@ -144,6 +155,33 @@ public class WaypointMessages
                     }
                     // 操作后回发最新列表刷新 UI
                     sendListTo(serverPlayer, data.list());
+                }
+            });
+        }
+    }
+
+    public record WaypointOpenPayload() implements CustomPacketPayload
+    {
+        public static final Type<WaypointOpenPayload> TYPE =
+                new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "waypoint_open"));
+        public static final StreamCodec<ByteBuf, WaypointOpenPayload> STREAM_CODEC =
+                StreamCodec.<ByteBuf, WaypointOpenPayload>unit(new WaypointOpenPayload());
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return TYPE;
+        }
+
+        public static void handle(WaypointOpenPayload msg, IPayloadContext ctx)
+        {
+            ctx.enqueueWork(() ->
+            {
+                if (ctx.player() instanceof ServerPlayer serverPlayer)
+                {
+                    serverPlayer.openMenu(new SimpleMenuProvider(
+                            (id, inv, player) -> new WaypointMenu(id, inv),
+                            Component.translatable("gui.godofthings.waypoint.title")));
                 }
             });
         }

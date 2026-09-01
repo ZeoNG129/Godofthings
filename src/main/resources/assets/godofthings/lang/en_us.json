@@ -148,5 +148,7 @@
   "gui.godofthings.waypoint.pin": "Pin",
   "gui.godofthings.waypoint.del": "Del",
   "gui.godofthings.waypoint.prev": "Prev",
-  "gui.godofthings.waypoint.next": "Next"
+  "gui.godofthings.waypoint.next": "Next",
+  "gui.godofthings.waypoint.title": "Waypoints",
+  "key.godofthings.open_waypoint": "Open Waypoint Menu"
 }

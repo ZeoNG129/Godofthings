@@ -148,5 +148,7 @@
   "gui.godofthings.waypoint.pin": "置顶",
   "gui.godofthings.waypoint.del": "删除",
   "gui.godofthings.waypoint.prev": "上一页",
-  "gui.godofthings.waypoint.next": "下一页"
+  "gui.godofthings.waypoint.next": "下一页",
+  "gui.godofthings.waypoint.title": "传送点",
+  "key.godofthings.open_waypoint": "打开传送点界面"
 }
