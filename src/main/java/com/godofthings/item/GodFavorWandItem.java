@@ -497,6 +497,8 @@ public class GodFavorWandItem extends DiggerItem
         if (!tag.contains("SilkTouchMode"))
         {
             switchEnchantmentMode(stack, false, level.registryAccess());
+            // 新合成物品默认连锁挖掘关闭（显式写入，避免任何残留标记导致默认连锁）
+            WandModes.setChainMiningEnabled(stack, false);
         }
         else
         {

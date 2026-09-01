@@ -33,7 +33,9 @@ public class SwordMessages
     {
         BEHEAD,
         CAPTURE,
-        LOOTING
+        LOOTING,
+        STAR_ABSORB,
+        SOUL_ABSORB
     }
 
     public static void send(SwordMode mode)
@@ -78,6 +80,8 @@ public class SwordMessages
                         SwordModes.setLootingEnabled(sword, enabled);
                         GodSwordItem.applyLooting(sword, sender.serverLevel(), enabled);
                     }
+                    case STAR_ABSORB -> SwordModes.setStarAbsorbEnabled(sword, !SwordModes.isStarAbsorbEnabled(sword));
+                    case SOUL_ABSORB -> SwordModes.setSoulAbsorbEnabled(sword, !SwordModes.isSoulAbsorbEnabled(sword));
                 }
             });
         }

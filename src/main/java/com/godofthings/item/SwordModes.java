@@ -9,8 +9,8 @@ import java.util.function.Consumer;
 
 /**
  * 神之剑的功能开关存储。
- * 与 {@link WandModes} 同构：用 DataComponents.CUSTOM_DATA 承载三个独立布尔开关，
- * 斩首 / 捕捉 / 抢劫可单独或同时生效。
+ * 与 {@link WandModes} 同构：用 DataComponents.CUSTOM_DATA 承载独立布尔开关，
+ * 斩首 / 捕捉 / 抢劫 / 吸星 / 吸魂可单独或同时生效。
  */
 public final class SwordModes
 {
@@ -20,6 +20,10 @@ public final class SwordModes
     public static final String CAPTURE = "SwordCapture";
     /** 抢劫：顶级抢夺 255 */
     public static final String LOOTING = "SwordLooting";
+    /** 吸星：手持神之剑吸收附近掉落物与经验 */
+    public static final String STAR_ABSORB = "SwordStarAbsorb";
+    /** 吸魂：手持神之剑把附近生物吸到玩家面前 */
+    public static final String SOUL_ABSORB = "SwordSoulAbsorb";
 
     private SwordModes() {}
 
@@ -72,5 +76,25 @@ public final class SwordModes
     public static void setLootingEnabled(ItemStack stack, boolean enabled)
     {
         setBoolean(stack, LOOTING, enabled);
+    }
+
+    public static boolean isStarAbsorbEnabled(ItemStack stack)
+    {
+        return getBoolean(stack, STAR_ABSORB);
+    }
+
+    public static void setStarAbsorbEnabled(ItemStack stack, boolean enabled)
+    {
+        setBoolean(stack, STAR_ABSORB, enabled);
+    }
+
+    public static boolean isSoulAbsorbEnabled(ItemStack stack)
+    {
+        return getBoolean(stack, SOUL_ABSORB);
+    }
+
+    public static void setSoulAbsorbEnabled(ItemStack stack, boolean enabled)
+    {
+        setBoolean(stack, SOUL_ABSORB, enabled);
     }
 }

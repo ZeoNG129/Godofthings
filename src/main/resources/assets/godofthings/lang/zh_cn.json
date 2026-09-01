@@ -157,6 +157,8 @@
   "gui.godofthings.sword_behead": "斩首",
   "gui.godofthings.sword_capture": "捕捉",
   "gui.godofthings.sword_looting": "抢劫",
+  "gui.godofthings.sword_star_absorb": "吸星",
+  "gui.godofthings.sword_soul_absorb": "吸魂",
   "gui.godofthings.sword_enabled": "开",
   "gui.godofthings.sword_disabled": "关"
 }

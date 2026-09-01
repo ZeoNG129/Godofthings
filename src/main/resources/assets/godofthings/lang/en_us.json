@@ -157,6 +157,8 @@
   "gui.godofthings.sword_behead": "Beheading",
   "gui.godofthings.sword_capture": "Capture",
   "gui.godofthings.sword_looting": "Looting",
+  "gui.godofthings.sword_star_absorb": "Star Absorb",
+  "gui.godofthings.sword_soul_absorb": "Soul Absorb",
   "gui.godofthings.sword_enabled": "ON",
   "gui.godofthings.sword_disabled": "OFF"
 }

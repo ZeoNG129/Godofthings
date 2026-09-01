@@ -9,7 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 神之剑功能切换面板：三个开关（斩首 / 捕捉 / 抢劫）可单独或同时启用。
+ * 神之剑功能切换面板：五个开关（斩首 / 捕捉 / 抢劫 / 吸星 / 吸魂）可单独或同时启用。
  * 纯 Screen（非容器界面），按 J 键打开，点击行切换，Esc 关闭。
  */
 public class SwordModeScreen extends Screen
@@ -17,7 +17,7 @@ public class SwordModeScreen extends Screen
     private final ItemStack sword;
 
     private static final int PANEL_W = 176;
-    private static final int PANEL_H = 108;
+    private static final int PANEL_H = 156;
     private static final int ROW_X = 8;
     private static final int ROW_W = PANEL_W - 16;
     private static final int ROW_H = 18;
@@ -47,6 +47,10 @@ public class SwordModeScreen extends Screen
                 Component.translatable("gui.godofthings.sword_capture"), SwordModes.isCaptureEnabled(sword));
         drawRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 2, mouseX, mouseY,
                 Component.translatable("gui.godofthings.sword_looting"), SwordModes.isLootingEnabled(sword));
+        drawRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 3, mouseX, mouseY,
+                Component.translatable("gui.godofthings.sword_star_absorb"), SwordModes.isStarAbsorbEnabled(sword));
+        drawRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 4, mouseX, mouseY,
+                Component.translatable("gui.godofthings.sword_soul_absorb"), SwordModes.isSoulAbsorbEnabled(sword));
     }
 
     private void drawRow(GuiGraphics graphics, int x0, int y, int mouseX, int mouseY, Component name, boolean enabled)
@@ -93,6 +97,16 @@ public class SwordModeScreen extends Screen
                 toggle(SwordMessages.SwordMode.LOOTING);
                 return true;
             }
+            if (isHovering(rowX, y0 + ROW_Y_0 + ROW_GAP * 3, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
+            {
+                toggle(SwordMessages.SwordMode.STAR_ABSORB);
+                return true;
+            }
+            if (isHovering(rowX, y0 + ROW_Y_0 + ROW_GAP * 4, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
+            {
+                toggle(SwordMessages.SwordMode.SOUL_ABSORB);
+                return true;
+            }
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -105,6 +119,8 @@ public class SwordModeScreen extends Screen
             case BEHEAD -> SwordModes.setBeheadEnabled(sword, !SwordModes.isBeheadEnabled(sword));
             case CAPTURE -> SwordModes.setCaptureEnabled(sword, !SwordModes.isCaptureEnabled(sword));
             case LOOTING -> SwordModes.setLootingEnabled(sword, !SwordModes.isLootingEnabled(sword));
+            case STAR_ABSORB -> SwordModes.setStarAbsorbEnabled(sword, !SwordModes.isStarAbsorbEnabled(sword));
+            case SOUL_ABSORB -> SwordModes.setSoulAbsorbEnabled(sword, !SwordModes.isSoulAbsorbEnabled(sword));
         }
         SwordMessages.send(mode);
     }

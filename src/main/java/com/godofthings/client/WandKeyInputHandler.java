@@ -18,15 +18,13 @@ public class WandKeyInputHandler
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event)
     {
-        if (Minecraft.getInstance().screen != null)
-        {
-            return;
-        }
-
         int key = event.getKey();
         int action = event.getAction();
 
-        // Tab 键：按住连锁挖掘（按下/松开都处理）
+        // Tab 键：按住连锁挖掘（按下/松开都处理）。
+        // 必须在 screen != null 检查之前处理，否则打开界面（物品栏等）时 Tab 的 RELEASE
+        // 事件被吞掉，SWITCH_CHAIN_MINING_KEY_WAS_DOWN 与服务端 isTabPressed 卡在 true，
+        // 连锁挖掘就再也关不掉了。
         if (key == WandKeyBindings.SWITCH_CHAIN_MINING_KEY.get().getKey().getValue())
         {
             boolean isDown = action == InputConstants.PRESS || action == InputConstants.REPEAT;
@@ -35,6 +33,11 @@ public class WandKeyInputHandler
                 WandKeyBindings.SWITCH_CHAIN_MINING_KEY_WAS_DOWN = isDown;
                 WandMessages.sendMiningControl(WandMessages.MiningControl.TAB_PRESSED, isDown);
             }
+            return;
+        }
+
+        if (Minecraft.getInstance().screen != null)
+        {
             return;
         }
 
