@@ -28,9 +28,15 @@ $tag = "v$Version"
 $jar = Join-Path $repo "build\libs\godofthings-$Version.jar"
 if (-not (Test-Path $jar)) { throw "jar not found: $jar - run 'gradlew build' first" }
 
-# 3. route through local proxy (skip if unreachable; git/curl will fall back to direct)
-$env:HTTPS_PROXY = 'http://127.0.0.1:7890'
-$env:HTTP_PROXY = 'http://127.0.0.1:7890'
+# 3. route through local proxy if reachable; otherwise fall back to direct
+$proxyUp = (Test-NetConnection -ComputerName 127.0.0.1 -Port 7890 -WarningAction SilentlyContinue).TcpTestSucceeded
+if ($proxyUp) {
+    $env:HTTPS_PROXY = 'http://127.0.0.1:7890'
+    $env:HTTP_PROXY = 'http://127.0.0.1:7890'
+} else {
+    Remove-Item Env:HTTPS_PROXY -ErrorAction SilentlyContinue
+    Remove-Item Env:HTTP_PROXY -ErrorAction SilentlyContinue
+}
 
 # 4. reuse GitHub token already stored in Git Credential Manager
 $cred = "protocol=https`nhost=github.com`n`n" | git credential fill 2>$null
@@ -43,7 +49,11 @@ if (git -C $repo tag -l $tag) {
 } else {
     git -C $repo tag -a $tag -m "God of Things $Version"
 }
-git -C $repo push origin $tag
+if ($proxyUp) {
+    git -C $repo push origin $tag
+} else {
+    git -C $repo -c http.proxy= -c https.proxy= push origin $tag
+}
 Write-Host "tag pushed: $tag"
 
 # 6. create release (JSON body must go through a file to survive PowerShell quoting)
