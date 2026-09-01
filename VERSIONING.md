@@ -20,7 +20,8 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 3. 提交代码并同步 GitHub：
    `git add -A && git commit -m "版本说明" && git push origin 1.21.1`
 4. 发布 Release（打 tag + 创建 GitHub Release + 上传 jar）：
-   `.\release.ps1 -Notes "更新说明"`（版本号缺省读 `gradle.properties`）
+   `powershell -ExecutionPolicy Bypass -File .\release.ps1 -Notes "更新说明"`
+   （版本号缺省读 `gradle.properties`；本机 PowerShell 默认禁止运行脚本，故加 `-ExecutionPolicy Bypass`）
 
 ## 版本历史
 
