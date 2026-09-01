@@ -136,6 +136,8 @@
   "item.godofthings.god_invite": "Invoke God",
   "message.godofthings.god_invite.apply": "Invoked God: %s",
   "message.godofthings.god_invite.remove": "Revoked God: %s",
+  "block.godofthings.god_devourer": "God Devourer",
+  "gui.godofthings.devourer.title": "God Devourer",
   "message.godofthings.cannon.charge_1": "Charge: Tier 1",
   "message.godofthings.cannon.charge_2": "Charge: Tier 2",
   "message.godofthings.cannon.charge_3": "Charge: Tier 3 (max)",

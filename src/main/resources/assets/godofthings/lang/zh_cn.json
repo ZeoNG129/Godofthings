@@ -136,6 +136,8 @@
   "item.godofthings.god_invite": "请神",
   "message.godofthings.god_invite.apply": "已请神：%s",
   "message.godofthings.god_invite.remove": "已取消请神：%s",
+  "block.godofthings.god_devourer": "神之吞噬",
+  "gui.godofthings.devourer.title": "神之吞噬",
   "message.godofthings.cannon.charge_1": "蓄力：一层",
   "message.godofthings.cannon.charge_2": "蓄力：二层",
   "message.godofthings.cannon.charge_3": "蓄力：三层（最大）",

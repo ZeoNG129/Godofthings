@@ -8,6 +8,7 @@ import com.godofthings.client.screen.GodChangeScreen;
 import com.godofthings.client.screen.GodCraftScreen;
 import com.godofthings.client.screen.GodCraftConfigScreen;
 import com.godofthings.client.screen.GodCraftTemplateScreen;
+import com.godofthings.client.screen.GodDevourerScreen;
 import com.godofthings.client.screen.GodDropScreen;
 import com.godofthings.client.screen.GodEnchantScreen;
 import com.godofthings.client.screen.GodMinerScreen;
@@ -31,6 +32,8 @@ public class ClientModEvents
         event.register(Godofthings.GOD_FURNACE_CONFIG_MENU.get(), GodFurnaceConfigScreen::new);
         event.register(Godofthings.GOD_MINER_MENU.get(), GodMinerScreen::new);
         event.register(Godofthings.GOD_RESOURCE_MENU.get(), GodResourceScreen::new);
+        event.register(Godofthings.GOD_DEVOURER_MENU.get(), GodDevourerScreen::new);
+        event.register(Godofthings.PORTABLE_DEVOURER_MENU.get(), GodDevourerScreen::new);
         event.register(Godofthings.GOD_DROP_MENU.get(), GodDropScreen::new);
         event.register(Godofthings.GOD_ENCHANT_MENU.get(), GodEnchantScreen::new);
         event.register(Godofthings.GOD_CHANGE_MENU.get(), GodChangeScreen::new);
