@@ -34,16 +34,16 @@ public class PointCommands
     {
         event.getDispatcher().register(
                 Commands.literal("setpoint")
-                        .then(Commands.argument("name", StringArgumentType.word())
+                        .then(Commands.argument("name", StringArgumentType.greedyString())
                                 .executes(ctx -> setPoint(ctx.getSource(), StringArgumentType.getString(ctx, "name")))));
         event.getDispatcher().register(
                 Commands.literal("point")
-                        .then(Commands.argument("name", StringArgumentType.word())
+                        .then(Commands.argument("name", StringArgumentType.greedyString())
                                 .suggests(PointCommands::suggestNames)
                                 .executes(ctx -> teleport(ctx.getSource(), StringArgumentType.getString(ctx, "name")))));
         event.getDispatcher().register(
                 Commands.literal("delpoint")
-                        .then(Commands.argument("name", StringArgumentType.word())
+                        .then(Commands.argument("name", StringArgumentType.greedyString())
                                 .suggests(PointCommands::suggestNames)
                                 .executes(ctx -> delete(ctx.getSource(), StringArgumentType.getString(ctx, "name")))));
     }
@@ -61,7 +61,7 @@ public class PointCommands
     {
         ServerPlayer player = source.getPlayerOrException();
         Waypoint wp = new Waypoint();
-        wp.name = name;
+        wp.name = name.trim();
         wp.dimension = player.level().dimension().location().toString();
         wp.x = player.getX();
         wp.y = player.getY();
@@ -76,7 +76,7 @@ public class PointCommands
     private static int teleport(CommandSourceStack source, String name) throws CommandSyntaxException
     {
         ServerPlayer player = source.getPlayerOrException();
-        Waypoint wp = WaypointData.get(source.getServer()).get(name);
+        Waypoint wp = WaypointData.get(source.getServer()).get(name.trim());
         if (wp == null)
         {
             source.sendFailure(Component.literal("传送点不存在：" + name));
@@ -94,12 +94,12 @@ public class PointCommands
     private static int delete(CommandSourceStack source, String name)
     {
         WaypointData data = WaypointData.get(source.getServer());
-        if (data.get(name) == null)
+        if (data.get(name.trim()) == null)
         {
             source.sendFailure(Component.literal("传送点不存在：" + name));
             return 0;
         }
-        data.remove(name);
+        data.remove(name.trim());
         source.sendSuccess(() -> Component.literal("已删除传送点 " + name).withStyle(ChatFormatting.GREEN), false);
         return 1;
     }
