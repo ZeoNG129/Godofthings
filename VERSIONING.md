@@ -15,10 +15,12 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 
 1. 按上表确定新版本号，修改 `gradle.properties` 中的 `mod_version`。
 2. `gradlew build` 会生成 `build/libs/godofthings-<版本>.jar` 并自动部署到
-   `E:/MC/modpacks/PCL/versions/1.21.1测试/mods` 与 `E:/MC/ALL/mods/自制/1.21.1`。
-3. 部署时旧版本号 jar 的清理由 `build.gradle` 的 `deployJars` 任务控制：
-   默认每次部署自动清理旧版本号 jar；测试期间可把 `keepOldVersions` 设为 `true`
-   以保留旧版（便于回退），用户确认新版本稳定后再改回 `false`。
+   `E:/MC/modpacks/PCL/versions/1.21.1测试/mods` 与 `E:/MC/ALL/mods/自制/1.21.1`
+   （`deployJars` 任务自动清理旧版本号 jar，`keepOldVersions=false`）。
+3. 提交代码并同步 GitHub：
+   `git add -A && git commit -m "版本说明" && git push origin 1.21.1`
+4. 发布 Release（打 tag + 创建 GitHub Release + 上传 jar）：
+   `.\release.ps1 -Notes "更新说明"`（版本号缺省读 `gradle.properties`）
 
 ## 版本历史
 
