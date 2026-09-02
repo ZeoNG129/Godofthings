@@ -100,11 +100,7 @@ public class GodTransmitterMenu extends AbstractContainerMenu
             @Override public void set(int value) { cachedPlayerUnlimited = value; }
         });
 
-        // 服务端：打开菜单时发送在线玩家 + 已绑定玩家 + 已绑定机器列表
-        if (playerInv.player instanceof ServerPlayer sp && !sp.level().isClientSide)
-        {
-            TransmitterMessages.sendList(sp, be);
-        }
+        // 在线玩家 / 绑定列表由客户端屏幕打开后经 TransmitterMessages.sendRequestList() 主动请求
     }
 
     public GodTransmitterBlockEntity getBlockEntity()

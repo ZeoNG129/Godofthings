@@ -65,6 +65,19 @@ public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitter
         this.playerEdit.setFilter(DIGITS);
         this.playerEdit.setMaxLength(7);
         this.playerEdit.setValue(String.valueOf(this.menu.getPlayerRate()));
+
+        // 注册进 widget 列表，让 Screen 自动管理渲染 / 焦点 / 键盘输入
+        this.addRenderableWidget(this.machineEdit);
+        this.addRenderableWidget(this.playerEdit);
+
+        // 客户端主动请求在线玩家 / 绑定列表（解决 openScreen 时序：服务端构造器 sendList 先于 openScreen 包到达被丢弃）
+        TransmitterMessages.sendRequestList();
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
+    {
+        // 无物品栏，不画默认的「物品栏」标题
     }
 
     @Override
@@ -217,16 +230,10 @@ public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitter
     @Override
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick)
     {
-        super.render(gui, mouseX, mouseY, partialTick);
         int tab = this.menu.getCurrentTab();
-        if (tab == GodTransmitterMenu.TAB_WIRELESS)
-        {
-            this.machineEdit.render(gui, mouseX, mouseY, partialTick);
-        }
-        else if (tab == GodTransmitterMenu.TAB_PLAYER)
-        {
-            this.playerEdit.render(gui, mouseX, mouseY, partialTick);
-        }
+        this.machineEdit.visible = (tab == GodTransmitterMenu.TAB_WIRELESS);
+        this.playerEdit.visible = (tab == GodTransmitterMenu.TAB_PLAYER);
+        super.render(gui, mouseX, mouseY, partialTick);
         this.renderTooltip(gui, mouseX, mouseY);
     }
 
@@ -334,15 +341,7 @@ public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitter
             }
         }
 
-        // EditBox 点击
-        if (tab == GodTransmitterMenu.TAB_WIRELESS && this.machineEdit.mouseClicked(mouseX, mouseY, button))
-        {
-            return true;
-        }
-        if (tab == GodTransmitterMenu.TAB_PLAYER && this.playerEdit.mouseClicked(mouseX, mouseY, button))
-        {
-            return true;
-        }
+        // 未命中自定义按钮 → 交给 Screen 分发到 EditBox 等 widget（自动设置焦点）
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -386,29 +385,7 @@ public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitter
             commitRate(this.playerEdit, MODE_PLAYER);
             return true;
         }
-        if (this.machineEdit.keyPressed(keyCode, scanCode, modifiers))
-        {
-            return true;
-        }
-        if (this.playerEdit.keyPressed(keyCode, scanCode, modifiers))
-        {
-            return true;
-        }
         return super.keyPressed(keyCode, scanCode, modifiers);
-    }
-
-    @Override
-    public boolean charTyped(char codePoint, int modifiers)
-    {
-        if (this.machineEdit.isFocused() && this.machineEdit.charTyped(codePoint, modifiers))
-        {
-            return true;
-        }
-        if (this.playerEdit.isFocused() && this.playerEdit.charTyped(codePoint, modifiers))
-        {
-            return true;
-        }
-        return super.charTyped(codePoint, modifiers);
     }
 
     private void commitRate(EditBox box, int mode)

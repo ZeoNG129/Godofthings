@@ -47,7 +47,6 @@ import java.util.WeakHashMap;
 public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvider
 {
     public static final int RANGE = 64;
-    public static final int TICKS_PER_SCAN = 10;
     public static final int MIN_RATE = 1;
     public static final int MAX_RATE = 9999999;
     /** 机器速率滑块预设档位。 */
@@ -62,7 +61,6 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     private boolean machineUnlimited = false;
     private boolean machineCrossDimension = false;
     private final Map<ResourceKey<Level>, Set<BlockPos>> boundMachines = new HashMap<>();
-    private final Map<ResourceKey<Level>, Set<BlockPos>> excludedMachines = new HashMap<>();
 
     // ---- 玩家充能 ----
     private boolean playerEnabled = true;
@@ -70,8 +68,6 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     private int playerRate = 100;
     private boolean playerUnlimited = true;
     private final Set<UUID> boundPlayers = new HashSet<>();
-
-    private int scanTimer = 0;
 
     public GodTransmitterBlockEntity(BlockPos pos, BlockState state)
     {
@@ -203,7 +199,6 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     public void clearAllBindings()
     {
         boundMachines.clear();
-        excludedMachines.clear();
         setChanged();
     }
 
@@ -213,19 +208,14 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         return set != null && set.contains(pos);
     }
 
-    /** 手动绑定机器（加入绑定集合，移除排除）。 */
+    /** 手动绑定机器（加入绑定集合）。 */
     public void bindMachine(ResourceKey<Level> dim, BlockPos pos)
     {
         boundMachines.computeIfAbsent(dim, k -> new HashSet<>()).add(pos);
-        Set<BlockPos> ex = excludedMachines.get(dim);
-        if (ex != null)
-        {
-            ex.remove(pos);
-        }
         setChanged();
     }
 
-    /** 取消绑定（移出绑定集合，加入排除，阻止范围扫描重新自动绑定）。 */
+    /** 取消绑定（移出绑定集合）。 */
     public void unbindMachine(ResourceKey<Level> dim, BlockPos pos)
     {
         Set<BlockPos> set = boundMachines.get(dim);
@@ -233,7 +223,6 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         {
             set.remove(pos);
         }
-        excludedMachines.computeIfAbsent(dim, k -> new HashSet<>()).add(pos);
         setChanged();
     }
 
@@ -302,12 +291,6 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
             be.chargePlayers(level);
         }
         be.chargeBoundMachines(level);
-        be.scanTimer++;
-        if (be.scanTimer >= TICKS_PER_SCAN)
-        {
-            be.scanTimer = 0;
-            be.scanMachines(level, pos);
-        }
     }
 
     /** 给绑定的玩家充能。 */
@@ -391,47 +374,6 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         }
     }
 
-    /** 扫描范围内 FE 机器，自动加入绑定集合（排除集合里的跳过）。 */
-    private void scanMachines(Level level, BlockPos pos)
-    {
-        if (level.isClientSide)
-        {
-            return;
-        }
-        ResourceKey<Level> dim = level.dimension();
-        for (int dx = -RANGE; dx <= RANGE; dx++)
-        {
-            for (int dz = -RANGE; dz <= RANGE; dz++)
-            {
-                for (int dy = -2; dy <= 2; dy++)
-                {
-                    BlockPos target = pos.offset(dx, dy, dz);
-                    if (target.equals(pos))
-                    {
-                        continue;
-                    }
-                    if (isBound(dim, target))
-                    {
-                        continue;
-                    }
-                    Set<BlockPos> ex = excludedMachines.get(dim);
-                    if (ex != null && ex.contains(target))
-                    {
-                        continue;
-                    }
-                    if (!level.getBlockState(target).hasBlockEntity())
-                    {
-                        continue;
-                    }
-                    if (hasEnergyStorage(level, target))
-                    {
-                        boundMachines.computeIfAbsent(dim, k -> new HashSet<>()).add(target);
-                    }
-                }
-            }
-        }
-    }
-
     private static void chargeMachineAt(Level level, BlockPos target, int amount)
     {
         IEnergyStorage storage = level.getCapability(Capabilities.EnergyStorage.BLOCK, target, null);
@@ -485,10 +427,6 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         {
             deserializeBound(boundMachines, tag.getList("BoundMachines", 10));
         }
-        if (tag.contains("ExcludedMachines"))
-        {
-            deserializeBound(excludedMachines, tag.getList("ExcludedMachines", 10));
-        }
         if (tag.contains("BoundPlayers"))
         {
             boundPlayers.clear();
@@ -516,7 +454,6 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         tag.putInt("PlayerRate", this.playerRate);
         tag.putBoolean("PlayerUnlimited", this.playerUnlimited);
         tag.put("BoundMachines", serializeBound(boundMachines));
-        tag.put("ExcludedMachines", serializeBound(excludedMachines));
         ListTag players = new ListTag();
         for (UUID uuid : boundPlayers)
         {

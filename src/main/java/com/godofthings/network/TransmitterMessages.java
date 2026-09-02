@@ -39,12 +39,20 @@ public class TransmitterMessages
                 TransmitterRatePayload::handle);
         registrar.playToServer(TransmitterBindPlayerPayload.TYPE, TransmitterBindPlayerPayload.STREAM_CODEC,
                 TransmitterBindPlayerPayload::handle);
+        registrar.playToServer(TransmitterRequestListPayload.TYPE, TransmitterRequestListPayload.STREAM_CODEC,
+                TransmitterRequestListPayload::handle);
         // TransmitterListPayload（S2C）在客户端侧 ClientTransmitterHandler 注册 handler
     }
 
     public static void sendRate(int rate, int mode)
     {
         PacketDistributor.sendToServer(new TransmitterRatePayload(rate, mode));
+    }
+
+    /** 客户端屏幕打开后主动请求在线玩家 / 绑定列表。 */
+    public static void sendRequestList()
+    {
+        PacketDistributor.sendToServer(new TransmitterRequestListPayload());
     }
 
     public static void sendBindPlayer(String name, boolean bind)
@@ -154,6 +162,33 @@ public class TransmitterMessages
                     be.unbindPlayer(target.getUUID());
                 }
                 sendList(sender, be);
+            });
+        }
+    }
+
+    public record TransmitterRequestListPayload() implements CustomPacketPayload
+    {
+        public static final Type<TransmitterRequestListPayload> TYPE =
+                new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "transmitter_request_list"));
+        public static final StreamCodec<ByteBuf, TransmitterRequestListPayload> STREAM_CODEC =
+                StreamCodec.unit(new TransmitterRequestListPayload());
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return TYPE;
+        }
+
+        public static void handle(TransmitterRequestListPayload msg, IPayloadContext ctx)
+        {
+            ctx.enqueueWork(() ->
+            {
+                if (!(ctx.player() instanceof ServerPlayer sender)
+                        || !(sender.containerMenu instanceof GodTransmitterMenu menu))
+                {
+                    return;
+                }
+                sendList(sender, menu.getBlockEntity());
             });
         }
     }
