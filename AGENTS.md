@@ -18,15 +18,17 @@
 
 ## 网络 / 代理（重要约定）
 - **代理软件统一用 `D:\AAA\NBVPN`（主程序 `牛逼.exe`，mihomo 内核 VPN 客户端，XBoard 面板）**。需要代理时（如 `git push` / GitHub release 连不上）先启动它，**不要再改用 Clash Verge**。
-- 启动后探测实际代理端口（mihomo 常见 mixed-port 7890 / 7897，NBVPN 可能不同）：
+- **启动 ≠ 连接**：只启动 NBVPN 时监听 `127.0.0.1:9589`（非代理，不能用来 push）。必须在 NBVPN 界面里**点击「连接」按钮**，连接成功后才会监听 **`127.0.0.1:7890`（mihomo mixed-port 代理端口，实测已确认）**。AI 启动 NBVPN 后若发现 7890 未监听，应提示用户点击连接按钮（无法自动化点击 GUI）。
+- 判断是否已连接（7890 是否监听）：
   ```powershell
-  Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -in 7890,7891,7897,7898,1080,1081,9090 } | Select-Object LocalAddress, LocalPort, OwningProcess
+  (Test-NetConnection 127.0.0.1 -Port 7890 -WarningAction SilentlyContinue).TcpTestSucceeded
   ```
-- `release.ps1` 已自动探测 `@(7890, 7897)`；若 NBVPN 实际端口不在其中，把端口补进 release.ps1 第 3 步的端口列表。
-- git 全局代理历史值是 `http://127.0.0.1:7890`（旧 Clash 端口）。NBVPN 端口不同时，用命令级覆盖：
+- push 走 7890 代理：
   ```powershell
-  git -c http.proxy=http://127.0.0.1:<端口> -c https.proxy=http://127.0.0.1:<端口> push origin 1.21.1
+  git -c http.proxy=http://127.0.0.1:7890 -c https.proxy=http://127.0.0.1:7890 push origin 1.21.1
   ```
+- `release.ps1` 已自动探测 `@(7890, 7897)`（7890 命中 NBVPN 连接后端口）。
+- git 全局代理历史值是 `http://127.0.0.1:7890`（与 NBVPN 连接后端口一致）。
 
 ## 发版标准流程（4 步）
 1. 改 `gradle.properties` 的 `mod_version` + 在 `VERSIONING.md` 加历史
