@@ -509,7 +509,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         return drops;
     }
 
-    /** 存入内置无限储存（堆叠数达到上限时剩余物掉落到矿机旁，不吞物品） */
+    /** 存入内置无限储存（同类恒单堆、数量无上限；仅当不同物品类型数超上限时剩余物掉落到矿机旁，不吞物品） */
     private void insertDrop(ItemStack stack)
     {
         ItemStack leftover = itemHandler.insertItem(-1, stack, false);

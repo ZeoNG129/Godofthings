@@ -34,6 +34,9 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 神之合成：自动合成工作台。
  * - 3×3 合成格 + 1 输出槽
@@ -430,38 +433,79 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
+    /** 自动输入：把邻居容器里的物品「均分到每一格」。
+     *  <p>
+     *  旧逻辑每次只填第一个可用槽（顺序填满，一格满了才轮到下一格）；
+     *  现改为按可用槽位数量平均分配，所有可用格同步均匀补充。
+     *  锁定模式只往锁定模板非空且匹配的槽位均分。 */
     private void pullInput(IItemHandler neighbor)
     {
         for (int s = 0; s < neighbor.getSlots(); s++)
         {
             ItemStack src = neighbor.getStackInSlot(s);
             if (src.isEmpty()) continue;
+
+            // 1) 收集本物品可放入的槽位，并模拟探测每格还能收多少
+            List<Integer> slots = new ArrayList<>();
+            int[] room = new int[INPUT_SLOTS];
             for (int i = 0; i < INPUT_SLOTS; i++)
             {
                 // 锁定后：只往锁定模板非空且匹配的槽位补充，空模板槽位不塞任何物品
                 if (locked)
                 {
                     ItemStack tpl = lockedItems[i];
-                    if (tpl.isEmpty())
+                    if (tpl.isEmpty() || !ItemStack.isSameItem(tpl, src))
                     {
-                        continue; // 锁定模板该槽为空 → 不放入
-                    }
-                    if (!ItemStack.isSameItem(tpl, src))
-                    {
-                        continue; // 不是锁定物品 → 不放入
+                        continue; // 模板该槽为空 / 不是锁定物品 → 不放入
                     }
                 }
                 ItemStack cur = inputSlots.getStackInSlot(i);
                 if (cur.isEmpty() || ItemStack.isSameItem(cur, src))
                 {
-                    ItemStack leftover = inputSlots.insertItem(i, src, true);
+                    ItemStack leftover = inputSlots.insertItem(i, src.copy(), true);
                     int can = src.getCount() - leftover.getCount();
                     if (can > 0)
                     {
-                        inputSlots.insertItem(i, neighbor.extractItem(s, can, false), false);
-                        return;
+                        room[i] = can;
+                        slots.add(i);
                     }
                 }
+            }
+            if (slots.isEmpty()) continue;
+
+            // 2) 一次性抽取所有可用槽位能吸收的总量
+            int totalRoom = 0;
+            for (int i : slots)
+            {
+                totalRoom += room[i];
+            }
+            ItemStack pulled = neighbor.extractItem(s, Math.min(src.getCount(), totalRoom), false);
+            if (pulled.isEmpty()) continue;
+
+            // 3) 均分到每一格：每格先拿 总量/格数，放不下的部分顺延给还有空间的格子
+            int remaining = pulled.getCount();
+            while (remaining > 0 && !slots.isEmpty())
+            {
+                int share = Math.max(1, remaining / slots.size());
+                List<Integer> full = new ArrayList<>();
+                for (int i : slots)
+                {
+                    if (remaining <= 0) break;
+                    int give = Math.min(share, Math.min(room[i], remaining));
+                    if (give > 0)
+                    {
+                        ItemStack piece = pulled.copy();
+                        piece.setCount(give);
+                        inputSlots.insertItem(i, piece, false);
+                        room[i] -= give;
+                        remaining -= give;
+                    }
+                    if (room[i] <= 0)
+                    {
+                        full.add(i);
+                    }
+                }
+                slots.removeAll(full);
             }
         }
     }
