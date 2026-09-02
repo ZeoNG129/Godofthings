@@ -210,6 +210,34 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
+    /** 切换时运 3（与时运 0 互斥；与精准采集互斥——开启时运关闭精准）。 */
+    public void toggleFortune()
+    {
+        if (fortuneLevel == 3)
+        {
+            fortuneLevel = 0;
+        }
+        else
+        {
+            fortuneLevel = 3;
+            silkTouch = false;
+        }
+        cachedTool = ItemStack.EMPTY;
+        setChanged();
+    }
+
+    /** 切换精准采集（与开启时运互斥——开启精准关闭时运）。 */
+    public void toggleSilkTouch()
+    {
+        silkTouch = !silkTouch;
+        if (silkTouch)
+        {
+            fortuneLevel = 0;
+        }
+        cachedTool = ItemStack.EMPTY;
+        setChanged();
+    }
+
     /** 挖 1 整列所需的 tick：默认 20，效率每级 -4，最低 1（效率 V = 1 tick/列）；
      *  神之加速槽放满 64 个后，挖一整列基础 tick 直接降为 1。 */
     public int getTicksPerColumn()

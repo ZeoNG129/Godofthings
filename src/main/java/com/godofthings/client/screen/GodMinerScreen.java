@@ -39,6 +39,13 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
     private static final int RADIUS_BTN_W = 26;
     private static final int RADIUS_BTN_H = 16;
 
+    // 时运3 / 精准采集切换按钮（位于标题下方空白）
+    private static final int FORTUNE_X = 8;
+    private static final int SILK_X = 36;
+    private static final int ENCHANT_BTN_Y = 20;
+    private static final int ENCHANT_BTN_W = 24;
+    private static final int ENCHANT_BTN_H = 16;
+
     public GodMinerScreen(GodMinerMenu menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
@@ -59,6 +66,23 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         gui.drawString(this.font, Component.translatable("gui.godofthings.accelerator"), x + 140, y + 18, 0xFFFFFF);
 
         GodMinerBlockEntity be = this.menu.getBlockEntity();
+
+        // 时运3 / 精准采集切换按钮（标题下方，写「运」「精」）
+        boolean fortune = be.getFortuneLevel() == 3;
+        boolean silk = be.isSilkTouch();
+        int fx = x + FORTUNE_X;
+        int fy = y + ENCHANT_BTN_Y;
+        gui.fill(fx, fy, fx + ENCHANT_BTN_W, fy + ENCHANT_BTN_H, 0xFF16181D);
+        gui.fill(fx + 1, fy + 1, fx + ENCHANT_BTN_W - 1, fy + ENCHANT_BTN_H - 1, fortune ? 0xFF2E7D32 : 0xFF4A4A4A);
+        Component fortuneLabel = Component.translatable("gui.godofthings.miner.fortune");
+        gui.drawString(this.font, fortuneLabel, fx + (ENCHANT_BTN_W - this.font.width(fortuneLabel)) / 2, fy + 4, 0xFFFFFF);
+
+        int sx = x + SILK_X;
+        int sy = y + ENCHANT_BTN_Y;
+        gui.fill(sx, sy, sx + ENCHANT_BTN_W, sy + ENCHANT_BTN_H, 0xFF16181D);
+        gui.fill(sx + 1, sy + 1, sx + ENCHANT_BTN_W - 1, sy + ENCHANT_BTN_H - 1, silk ? 0xFF2E7D32 : 0xFF4A4A4A);
+        Component silkLabel = Component.translatable("gui.godofthings.miner.silk_touch");
+        gui.drawString(this.font, silkLabel, sx + (ENCHANT_BTN_W - this.font.width(silkLabel)) / 2, sy + 4, 0xFFFFFF);
 
         // 开始/停止按钮
         int bx = x + START_X;
@@ -109,6 +133,19 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         {
             be.setRunning(!be.isRunning()); // 乐观更新，按钮立即反馈
             sendButton(0);
+            return true;
+        }
+
+        if (relX >= FORTUNE_X && relX < FORTUNE_X + ENCHANT_BTN_W && relY >= ENCHANT_BTN_Y && relY < ENCHANT_BTN_Y + ENCHANT_BTN_H)
+        {
+            be.toggleFortune(); // 乐观更新
+            sendButton(7);
+            return true;
+        }
+        if (relX >= SILK_X && relX < SILK_X + ENCHANT_BTN_W && relY >= ENCHANT_BTN_Y && relY < ENCHANT_BTN_Y + ENCHANT_BTN_H)
+        {
+            be.toggleSilkTouch(); // 乐观更新
+            sendButton(8);
             return true;
         }
 

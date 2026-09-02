@@ -285,6 +285,29 @@ public final class BlackBoxData
         return ItemStack.EMPTY;
     }
 
+    /** 找任意一个神之黑盒（不要求开启）：手持优先，其次物品栏，其次副手。用于滚轮切换开关。 */
+    public static ItemStack findAnyBox(Player player)
+    {
+        ItemStack main = player.getMainHandItem();
+        if (main.getItem() instanceof GodBlackBoxItem)
+        {
+            return main;
+        }
+        ItemStack off = player.getOffhandItem();
+        if (off.getItem() instanceof GodBlackBoxItem)
+        {
+            return off;
+        }
+        for (ItemStack s : player.getInventory().items)
+        {
+            if (s.getItem() instanceof GodBlackBoxItem)
+            {
+                return s;
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
     // ---- 转移（蹲下右键容器） ----
 
     /** 获取黑盒所有存储物品（过滤槽 + 隐藏存储），每个 ItemStack 带真实数量（count 可超 99）。 */
@@ -307,6 +330,16 @@ public final class BlackBoxData
             }
         }
         return result;
+    }
+
+    /** 清空黑盒所有存储（过滤槽 + 隐藏存储）。用于卸货到神之吞噬等销毁型方块（物品直接销毁）。 */
+    public static void clearAll(ItemStack box)
+    {
+        CustomData.update(DataComponents.CUSTOM_DATA, box, tag ->
+        {
+            tag.remove(KEY_FILTER);
+            tag.remove(KEY_STORAGE);
+        });
     }
 
     /**

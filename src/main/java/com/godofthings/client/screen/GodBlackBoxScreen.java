@@ -1,6 +1,8 @@
 package com.godofthings.client.screen;
 
+import com.godofthings.item.BlackBoxData;
 import com.godofthings.menu.GodBlackBoxMenu;
+import com.godofthings.util.NumberText;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -9,6 +11,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * 神之黑盒配置屏幕：复用原版投掷器（dispenser）贴图的 3×3 槽位区 + 左侧开关按钮。
@@ -34,6 +38,28 @@ public class GodBlackBoxScreen extends AbstractContainerScreen<GodBlackBoxMenu>
         this.imageWidth = 176;
         this.imageHeight = 166;
         this.inventoryLabelY = this.imageHeight - 94;
+    }
+
+    /** 黑盒过滤槽（白名单模式兼作存储）数量无上限，超过 1000 用 K/M/G 等单位紧凑显示。 */
+    @Override
+    protected void renderSlot(GuiGraphics gui, Slot slot)
+    {
+        if (slot.index < BlackBoxData.FILTER_SLOTS)
+        {
+            ItemStack stack = slot.getItem();
+            if (!stack.isEmpty() && stack.getCount() > 999)
+            {
+                int x = slot.x;
+                int y = slot.y;
+                gui.pose().pushPose();
+                gui.pose().translate(0.0F, 0.0F, 100.0F);
+                gui.renderItem(stack, x, y, x + y * this.imageWidth);
+                gui.renderItemDecorations(this.font, stack, x, y, NumberText.format(stack.getCount()));
+                gui.pose().popPose();
+                return;
+            }
+        }
+        super.renderSlot(gui, slot);
     }
 
     @Override

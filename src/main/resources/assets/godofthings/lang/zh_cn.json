@@ -53,6 +53,8 @@
   "gui.godofthings.miner.stop": "停止",
   "gui.godofthings.miner.radius": "半径：%s",
   "gui.godofthings.miner.depth": "深度：Y=%s",
+  "gui.godofthings.miner.fortune": "运",
+  "gui.godofthings.miner.silk_touch": "精",
   "gui.godofthings.furnace.input": "输入",
   "gui.godofthings.furnace.output": "输出",
   "gui.godofthings.enchant.level": "等级：%s/%s",

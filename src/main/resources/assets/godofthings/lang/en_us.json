@@ -53,6 +53,8 @@
   "gui.godofthings.miner.stop": "Stop",
   "gui.godofthings.miner.radius": "Radius: %s",
   "gui.godofthings.miner.depth": "Depth: Y=%s",
+  "gui.godofthings.miner.fortune": "F3",
+  "gui.godofthings.miner.silk_touch": "ST",
   "gui.godofthings.furnace.input": "Input",
   "gui.godofthings.furnace.output": "Output",
   "gui.godofthings.enchant.level": "Level: %s/%s",

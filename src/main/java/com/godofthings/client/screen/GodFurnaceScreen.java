@@ -41,8 +41,9 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
         gui.drawString(this.font, Component.translatable("gui.godofthings.furnace.output"), x + 122, y + 58, 0xFFFFFF);
 
         // 神之加速槽框（复用输入槽框贴图 UV 8,17，画在 x=116,y=35）+ 标签
+        // 加速文字位于加速槽左边、输入槽(y=17)与输出槽(y=53)中间，避免与右上「输入」文字重合
         gui.blit(TEXTURE, x + 116, y + 35, 8, 17, 18, 18);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.accelerator"), x + 108, y + 24, 0xFFFFFF);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.accelerator"), x + 86, y + 40, 0xFFFFFF);
 
         // 齿轮图标按钮（点击打开面配置界面）
         int bx = x + GEAR_X;

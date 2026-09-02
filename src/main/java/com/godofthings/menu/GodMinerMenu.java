@@ -128,6 +128,19 @@ public class GodMinerMenu extends AbstractContainerMenu
             this.broadcastChanges();
             return true;
         }
+        // 7=切换时运3；8=切换精准采集（两者互斥）
+        if (buttonId == 7)
+        {
+            be.toggleFortune();
+            this.broadcastChanges();
+            return true;
+        }
+        if (buttonId == 8)
+        {
+            be.toggleSilkTouch();
+            this.broadcastChanges();
+            return true;
+        }
         return false;
     }
 

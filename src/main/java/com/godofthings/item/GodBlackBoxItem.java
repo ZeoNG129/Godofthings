@@ -1,5 +1,6 @@
 package com.godofthings.item;
 
+import com.godofthings.block.GodDevourerBlock;
 import com.godofthings.menu.GodBlackBoxMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -55,6 +56,17 @@ public class GodBlackBoxItem extends Item
         // 蹲下右键可存储容器：把黑盒内物品转移到目标容器（直到装满，剩余保留在黑盒）
         if (player.isShiftKeyDown())
         {
+            // 神之吞噬（垃圾桶）：直接销毁黑盒物品，避免依赖吞噬 ItemHandler 的暂存+每 tick 清空时序
+            if (level.getBlockState(context.getClickedPos()).getBlock() instanceof GodDevourerBlock)
+            {
+                ItemStack box = context.getItemInHand();
+                if (!BlackBoxData.getAllStored(box, level.registryAccess()).isEmpty())
+                {
+                    BlackBoxData.clearAll(box);
+                    return InteractionResult.SUCCESS;
+                }
+                return InteractionResult.PASS;
+            }
             IItemHandler handler = level.getCapability(
                     Capabilities.ItemHandler.BLOCK, context.getClickedPos(), context.getClickedFace());
             if (handler != null)
