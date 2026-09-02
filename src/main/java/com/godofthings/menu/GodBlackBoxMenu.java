@@ -7,6 +7,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -226,6 +227,39 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
             }
         }
         BlackBoxData.setFilter(box, filter, playerInv.player.level().registryAccess());
+    }
+
+    /**
+     * 拦截界面里按 Q 丢出物品栏物品：直接按白名单/黑名单规则入盒或销毁，而非丢出到世界。
+     * 界面场景丢出走 safeTake→player.drop→ItemTossEvent，但过滤槽 safeTake 会先触发
+     * writeFilterToBox 改写 KEY_FILTER，导致后续 shouldKeep 时序误判，故在此直接处理。
+     */
+    @Override
+    public void clicked(int slotId, int button, ClickType action, Player player)
+    {
+        if (action == ClickType.THROW && this.getCarried().isEmpty()
+                && slotId >= BlackBoxData.FILTER_SLOTS && slotId < this.slots.size())
+        {
+            ItemStack box = BlackBoxData.findEnabledBox(player);
+            if (!box.isEmpty())
+            {
+                Slot slot = this.slots.get(slotId);
+                ItemStack stack = slot.getItem();
+                if (!stack.isEmpty())
+                {
+                    boolean keep = BlackBoxData.shouldKeep(box, stack, player.level().registryAccess());
+                    int count = button == 0 ? 1 : stack.getCount();
+                    ItemStack taken = slot.safeTake(count, Integer.MAX_VALUE, player);
+                    if (keep)
+                    {
+                        BlackBoxData.addToBox(box, taken, player.level().registryAccess());
+                    }
+                    this.broadcastChanges();
+                    return;
+                }
+            }
+        }
+        super.clicked(slotId, button, action, player);
     }
 
     @Override

@@ -189,5 +189,13 @@
   "gui.godofthings.black_box.mode_whitelist": "白名单",
   "gui.godofthings.black_box.mode_blacklist": "黑名单",
   "message.godofthings.black_box.on": "神之黑盒：已开启",
-  "message.godofthings.black_box.off": "神之黑盒：已关闭"
+  "message.godofthings.black_box.off": "神之黑盒：已关闭",
+  "block.godofthings.god_transmitter": "神之传输",
+  "item.godofthings.god_binder": "神之绑定器",
+  "container.godofthings.god_transmitter": "神之传输",
+  "message.godofthings.binder.bound": "已绑定玩家：%s",
+  "gui.godofthings.transmitter.cross_dimension": "跨维度",
+  "gui.godofthings.transmitter.player": "玩家充能",
+  "gui.godofthings.transmitter.machine": "机器充能",
+  "gui.godofthings.transmitter.range": "范围：%s 格"
 }

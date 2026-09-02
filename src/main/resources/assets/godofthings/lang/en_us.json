@@ -189,5 +189,13 @@
   "gui.godofthings.black_box.mode_whitelist": "Whitelist",
   "gui.godofthings.black_box.mode_blacklist": "Blacklist",
   "message.godofthings.black_box.on": "God Black Box: Enabled",
-  "message.godofthings.black_box.off": "God Black Box: Disabled"
+  "message.godofthings.black_box.off": "God Black Box: Disabled",
+  "block.godofthings.god_transmitter": "God Transmitter",
+  "item.godofthings.god_binder": "God Binder",
+  "container.godofthings.god_transmitter": "God Transmitter",
+  "message.godofthings.binder.bound": "Bound to: %s",
+  "gui.godofthings.transmitter.cross_dimension": "Cross-Dimension",
+  "gui.godofthings.transmitter.player": "Player",
+  "gui.godofthings.transmitter.machine": "Machine",
+  "gui.godofthings.transmitter.range": "Range: %s"
 }

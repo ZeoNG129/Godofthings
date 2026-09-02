@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IRI",
+    "RNR",
+    "IRI"
+  ],
+  "key": {
+    "I": { "item": "minecraft:iron_block" },
+    "R": { "item": "minecraft:redstone_block" },
+    "N": { "item": "minecraft:nether_star" }
+  },
+  "result": {
+    "id": "godofthings:god_transmitter"
+  }
+}

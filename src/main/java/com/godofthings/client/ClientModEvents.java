@@ -15,6 +15,7 @@ import com.godofthings.client.screen.GodEnchantScreen;
 import com.godofthings.client.screen.GodMinerScreen;
 import com.godofthings.client.screen.GodRecordScreen;
 import com.godofthings.client.screen.GodResourceScreen;
+import com.godofthings.client.screen.GodTransmitterScreen;
 import com.godofthings.client.screen.WaypointScreen;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -45,6 +46,7 @@ public class ClientModEvents
         event.register(Godofthings.GOD_RECORD_MENU.get(), GodRecordScreen::new);
         event.register(Godofthings.WAYPOINT_MENU.get(), WaypointScreen::new);
         event.register(Godofthings.GOD_BLACK_BOX_MENU.get(), GodBlackBoxScreen::new);
+        event.register(Godofthings.GOD_TRANSMITTER_MENU.get(), GodTransmitterScreen::new);
     }
 
     @SubscribeEvent

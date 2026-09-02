@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "G G",
+    " E ",
+    "GNG"
+  ],
+  "key": {
+    "G": { "item": "minecraft:gold_ingot" },
+    "E": { "item": "minecraft:ender_pearl" },
+    "N": { "item": "minecraft:nether_star" }
+  },
+  "result": {
+    "id": "godofthings:god_binder"
+  }
+}

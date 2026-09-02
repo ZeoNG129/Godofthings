@@ -11,6 +11,7 @@ import com.godofthings.block.GodHeavenEnchantBlock;
 import com.godofthings.block.GodMinerBlock;
 import com.godofthings.block.GodRecordBlock;
 import com.godofthings.block.GodResourceBlock;
+import com.godofthings.block.GodTransmitterBlock;
 import com.godofthings.block.SpaceTimeEternityBlock;
 import com.godofthings.block.entity.CreatureAnnihilationBlockEntity;
 import com.godofthings.block.entity.GodCraftBlockEntity;
@@ -21,6 +22,7 @@ import com.godofthings.block.entity.GodFurnaceBlockEntity;
 import com.godofthings.block.entity.GodMinerBlockEntity;
 import com.godofthings.block.entity.GodRecordBlockEntity;
 import com.godofthings.block.entity.GodResourceBlockEntity;
+import com.godofthings.block.entity.GodTransmitterBlockEntity;
 import com.godofthings.block.entity.SpaceTimeEternityBlockEntity;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.dimension.GodFlatDimension;
@@ -31,6 +33,7 @@ import com.godofthings.handler.AdAstraCompat;
 import com.godofthings.handler.GodFavorWandAe2Helper;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.item.GodArmorItem;
+import com.godofthings.item.GodBinderItem;
 import com.godofthings.item.GodBlackBoxItem;
 import com.godofthings.item.GodCannonItem;
 import com.godofthings.item.GodChangeItem;
@@ -52,6 +55,7 @@ import com.godofthings.menu.GodFurnaceMenu;
 import com.godofthings.menu.GodMinerMenu;
 import com.godofthings.menu.GodRecordMenu;
 import com.godofthings.menu.GodResourceMenu;
+import com.godofthings.menu.GodTransmitterMenu;
 import com.godofthings.menu.WaypointMenu;
 import com.godofthings.recipe.GodUnbreakableRecipe;
 import com.mojang.logging.LogUtils;
@@ -205,6 +209,8 @@ public class Godofthings
     // ---- 神之黑盒（拾取过滤/无限储存）----
     public static final DeferredItem<GodBlackBoxItem> GOD_BLACK_BOX =
             ITEMS.registerItem("god_black_box", GodBlackBoxItem::new);
+    public static final DeferredItem<GodBinderItem> GOD_BINDER =
+            ITEMS.registerItem("god_binder", GodBinderItem::new);
 
     // ---- 神之工具 ----
     public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND =
@@ -261,6 +267,24 @@ public class Godofthings
     public static final DeferredHolder<MenuType<?>, MenuType<CreativeEnergyCubeMenu>> CREATIVE_ENERGY_CUBE_MENU =
             MENUS.register("creative_energy_cube",
                     () -> IMenuTypeExtension.create((id, inv, buf) -> new CreativeEnergyCubeMenu(id, inv, buf.readBlockPos())));
+
+    // ---- 神之传输（能量传输器：范围内玩家/机器 FE 供能）----
+    public static final DeferredBlock<GodTransmitterBlock> GOD_TRANSMITTER =
+            BLOCKS.registerBlock("god_transmitter", GodTransmitterBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_BLUE)
+                            .pushReaction(PushReaction.DESTROY)
+                            .strength(5.0F, 1200.0F)
+                            .lightLevel(state -> 15)
+                            .sound(SoundType.METAL));
+    public static final DeferredItem<BlockItem> GOD_TRANSMITTER_ITEM =
+            ITEMS.registerSimpleBlockItem(GOD_TRANSMITTER, new Item.Properties());
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodTransmitterBlockEntity>> GOD_TRANSMITTER_BE =
+            BLOCK_ENTITIES.register("god_transmitter",
+                    () -> BlockEntityType.Builder.of(GodTransmitterBlockEntity::new, GOD_TRANSMITTER.get()).build(null));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodTransmitterMenu>> GOD_TRANSMITTER_MENU =
+            MENUS.register("god_transmitter",
+                    () -> IMenuTypeExtension.create(GodTransmitterMenu::new));
 
     // ---- 神之更改 ----
     public static final DeferredItem<GodChangeItem> GOD_CHANGE =
@@ -423,6 +447,8 @@ public class Godofthings
                         output.accept(GOD_DEVOURER_ITEM.get());
                         output.accept(GOD_RECORD_ITEM.get());
                         output.accept(GOD_BLACK_BOX.get());
+                        output.accept(GOD_BINDER.get());
+                        output.accept(GOD_TRANSMITTER_ITEM.get());
                     })
                     .build());
 
