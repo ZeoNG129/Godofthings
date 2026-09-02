@@ -1,6 +1,7 @@
 package com.godofthings.client;
 
 import com.godofthings.Godofthings;
+import com.godofthings.client.screen.GodBlackBoxScreen;
 import com.godofthings.client.screen.GodFurnaceConfigScreen;
 import com.godofthings.energy.CreativeEnergyCubeScreen;
 import com.godofthings.client.screen.GodFurnaceScreen;
@@ -43,6 +44,7 @@ public class ClientModEvents
         event.register(Godofthings.CREATIVE_ENERGY_CUBE_MENU.get(), CreativeEnergyCubeScreen::new);
         event.register(Godofthings.GOD_RECORD_MENU.get(), GodRecordScreen::new);
         event.register(Godofthings.WAYPOINT_MENU.get(), WaypointScreen::new);
+        event.register(Godofthings.GOD_BLACK_BOX_MENU.get(), GodBlackBoxScreen::new);
     }
 
     @SubscribeEvent

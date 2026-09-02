@@ -31,6 +31,7 @@ import com.godofthings.handler.AdAstraCompat;
 import com.godofthings.handler.GodFavorWandAe2Helper;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.item.GodArmorItem;
+import com.godofthings.item.GodBlackBoxItem;
 import com.godofthings.item.GodCannonItem;
 import com.godofthings.item.GodChangeItem;
 import com.godofthings.item.GodFavorWandItem;
@@ -38,6 +39,7 @@ import com.godofthings.item.GodInviteItem;
 import com.godofthings.item.GodMinerItem;
 import com.godofthings.item.GodSwordItem;
 import com.godofthings.item.GodUnbreakableItem;
+import com.godofthings.menu.GodBlackBoxMenu;
 import com.godofthings.menu.GodChangeMenu;
 import com.godofthings.menu.GodCraftConfigMenu;
 import com.godofthings.menu.GodCraftMenu;
@@ -200,6 +202,10 @@ public class Godofthings
     public static final DeferredItem<GodInviteItem> GOD_INVITE =
             ITEMS.registerItem("god_invite", GodInviteItem::new);
 
+    // ---- 神之黑盒（拾取过滤/无限储存）----
+    public static final DeferredItem<GodBlackBoxItem> GOD_BLACK_BOX =
+            ITEMS.registerItem("god_black_box", GodBlackBoxItem::new);
+
     // ---- 神之工具 ----
     public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND =
             ITEMS.registerItem("god_favor_wand", GodFavorWandItem::new);
@@ -343,6 +349,8 @@ public class Godofthings
             MENUS.register("god_record", () -> IMenuTypeExtension.create(GodRecordMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<WaypointMenu>> WAYPOINT_MENU =
             MENUS.register("waypoint", () -> IMenuTypeExtension.create(WaypointMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodBlackBoxMenu>> GOD_BLACK_BOX_MENU =
+            MENUS.register("god_black_box", () -> IMenuTypeExtension.create(GodBlackBoxMenu::new));
 
     // ---- 方块实体 ----
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodFurnaceBlockEntity>> GOD_FURNACE_BE =
@@ -414,6 +422,7 @@ public class Godofthings
                         output.accept(CREATURE_ANNIHILATION_ITEM.get());
                         output.accept(GOD_DEVOURER_ITEM.get());
                         output.accept(GOD_RECORD_ITEM.get());
+                        output.accept(GOD_BLACK_BOX.get());
                     })
                     .build());
 

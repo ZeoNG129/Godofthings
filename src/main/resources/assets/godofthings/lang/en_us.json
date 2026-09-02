@@ -175,5 +175,9 @@
   "gui.godofthings.sword_star_absorb": "Star Absorb",
   "gui.godofthings.sword_soul_absorb": "Soul Absorb",
   "gui.godofthings.sword_enabled": "ON",
-  "gui.godofthings.sword_disabled": "OFF"
+  "gui.godofthings.sword_disabled": "OFF",
+  "item.godofthings.god_black_box": "God Black Box",
+  "gui.godofthings.black_box.title": "God Black Box",
+  "gui.godofthings.black_box.enabled": "Enabled",
+  "gui.godofthings.black_box.disabled": "Disabled"
 }

@@ -175,5 +175,9 @@
   "gui.godofthings.sword_star_absorb": "吸星",
   "gui.godofthings.sword_soul_absorb": "吸魂",
   "gui.godofthings.sword_enabled": "开",
-  "gui.godofthings.sword_disabled": "关"
+  "gui.godofthings.sword_disabled": "关",
+  "item.godofthings.god_black_box": "神之黑盒",
+  "gui.godofthings.black_box.title": "神之黑盒",
+  "gui.godofthings.black_box.enabled": "开启",
+  "gui.godofthings.black_box.disabled": "关闭"
 }
