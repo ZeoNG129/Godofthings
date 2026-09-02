@@ -29,10 +29,18 @@ $jar = Join-Path $repo "build\libs\godofthings-$Version.jar"
 if (-not (Test-Path $jar)) { throw "jar not found: $jar - run 'gradlew build' first" }
 
 # 3. route through local proxy if reachable; otherwise fall back to direct
-$proxyUp = (Test-NetConnection -ComputerName 127.0.0.1 -Port 7890 -WarningAction SilentlyContinue).TcpTestSucceeded
+#    (Clash Verge 端口可能为 7890 或 7897，自动探测第一个可用的)
+$proxyPort = 0
+foreach ($p in @(7890, 7897)) {
+    if ((Test-NetConnection -ComputerName 127.0.0.1 -Port $p -WarningAction SilentlyContinue).TcpTestSucceeded) {
+        $proxyPort = $p
+        break
+    }
+}
+$proxyUp = $proxyPort -gt 0
 if ($proxyUp) {
-    $env:HTTPS_PROXY = 'http://127.0.0.1:7890'
-    $env:HTTP_PROXY = 'http://127.0.0.1:7890'
+    $env:HTTPS_PROXY = "http://127.0.0.1:$proxyPort"
+    $env:HTTP_PROXY = "http://127.0.0.1:$proxyPort"
 } else {
     Remove-Item Env:HTTPS_PROXY -ErrorAction SilentlyContinue
     Remove-Item Env:HTTP_PROXY -ErrorAction SilentlyContinue
