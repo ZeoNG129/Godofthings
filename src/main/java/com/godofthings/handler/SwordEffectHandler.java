@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -59,6 +60,10 @@ public class SwordEffectHandler
             if (SwordModes.isSoulAbsorbEnabled(sword))
             {
                 absorbEntities(player, sword);
+            }
+            if (SwordModes.isAuraEnabled(sword))
+            {
+                killAura(player, sword);
             }
         }
     }
@@ -147,6 +152,39 @@ public class SwordEffectHandler
             }
             mob.teleportTo(targetX, targetY, targetZ);
         }
+    }
+
+    /** 杀戮光环：自动杀戮范围内选定目标类型（敌对/友好/全部）的生物，复用 GodSwordItem.killEntity 兼容斩首/捕捉/抢劫。 */
+    private static void killAura(ServerPlayer player, ItemStack sword)
+    {
+        double range = SwordModes.getAuraRange(sword);
+        AABB aabb = player.getBoundingBox().inflate(range);
+        int targetType = SwordModes.getAuraTarget(sword);
+
+        for (LivingEntity mob : player.level().getEntitiesOfClass(LivingEntity.class, aabb))
+        {
+            if (mob instanceof Player || mob.isRemoved() || mob.isDeadOrDying())
+            {
+                continue; // 不杀玩家（含自己）
+            }
+            if (!matchesAuraTarget(mob, targetType))
+            {
+                continue;
+            }
+            GodSwordItem.killEntity(sword, mob, player);
+        }
+    }
+
+    /** 判断生物是否匹配杀戮光环目标类型：敌对 = Enemy 接口标记，友好 = 非敌对，全部 = 恒真。 */
+    private static boolean matchesAuraTarget(LivingEntity mob, int targetType)
+    {
+        boolean hostile = mob instanceof Enemy;
+        return switch (targetType)
+        {
+            case SwordModes.AURA_TARGET_HOSTILE -> hostile;
+            case SwordModes.AURA_TARGET_FRIENDLY -> !hostile;
+            default -> true; // AURA_TARGET_ALL
+        };
     }
 
     private static ItemStack findSword(ServerPlayer player)

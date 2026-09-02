@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -282,5 +283,113 @@ public final class BlackBoxData
             }
         }
         return ItemStack.EMPTY;
+    }
+
+    // ---- 转移（蹲下右键容器） ----
+
+    /** 获取黑盒所有存储物品（过滤槽 + 隐藏存储），每个 ItemStack 带真实数量（count 可超 99）。 */
+    public static List<ItemStack> getAllStored(ItemStack box, HolderLookup.Provider provider)
+    {
+        List<ItemStack> result = new ArrayList<>(getFilter(box, provider));
+        CompoundTag tag = data(box).copyTag();
+        if (tag.contains(KEY_STORAGE, Tag.TAG_LIST))
+        {
+            ListTag list = tag.getList(KEY_STORAGE, Tag.TAG_COMPOUND);
+            for (int i = 0; i < list.size(); i++)
+            {
+                CompoundTag entry = list.getCompound(i);
+                ItemStack s = ItemStack.parseOptional(provider, entry.getCompound("Item"));
+                if (!s.isEmpty())
+                {
+                    s.setCount(entry.getInt("Count"));
+                    result.add(s);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 把黑盒内所有存储物品转移到目标容器（直到容器装满，剩余保留在黑盒内）。
+     * 返回是否转移了任何物品。
+     */
+    public static boolean transferTo(ItemStack box, IItemHandler handler, HolderLookup.Provider provider)
+    {
+        boolean moved = false;
+        List<ItemStack> stored = getAllStored(box, provider);
+        for (ItemStack stack : stored)
+        {
+            ItemStack unit = stack.copy();
+            unit.setCount(1);
+            int remaining = stack.getCount();
+            for (int slot = 0; slot < handler.getSlots() && remaining > 0; slot++)
+            {
+                ItemStack toInsert = unit.copy();
+                toInsert.setCount(remaining);
+                ItemStack leftover = handler.insertItem(slot, toInsert, false);
+                remaining = leftover.getCount();
+            }
+            int inserted = stack.getCount() - remaining;
+            if (inserted > 0)
+            {
+                removeStored(box, unit, inserted, provider);
+                moved = true;
+            }
+        }
+        return moved;
+    }
+
+    /** 从黑盒移除指定物品类型的数量（先过滤槽、后隐藏存储）。 */
+    private static void removeStored(ItemStack box, ItemStack type, int amount, HolderLookup.Provider provider)
+    {
+        int removed = removeFromList(box, KEY_FILTER, type, amount, provider);
+        if (removed < amount)
+        {
+            removeFromList(box, KEY_STORAGE, type, amount - removed, provider);
+        }
+    }
+
+    /** 从指定 ListTag 键里移除指定物品类型的数量（就地更新黑盒 CUSTOM_DATA），返回实际移除数量。 */
+    private static int removeFromList(ItemStack box, String key, ItemStack type, int amount, HolderLookup.Provider provider)
+    {
+        final int[] removed = {0};
+        CustomData.update(DataComponents.CUSTOM_DATA, box, tag ->
+        {
+            if (!tag.contains(key, Tag.TAG_LIST))
+            {
+                return;
+            }
+            ListTag list = tag.getList(key, Tag.TAG_COMPOUND);
+            for (int i = list.size() - 1; i >= 0 && removed[0] < amount; i--)
+            {
+                CompoundTag entry = list.getCompound(i);
+                ItemStack existing = parseFilterEntry(entry, provider);
+                if (ItemStack.isSameItem(existing, type))
+                {
+                    int have = existing.getCount();
+                    int take = Math.min(have, amount - removed[0]);
+                    int left = have - take;
+                    removed[0] += take;
+                    if (left <= 0)
+                    {
+                        list.remove(i);
+                    }
+                    else
+                    {
+                        CompoundTag newEntry = new CompoundTag();
+                        ItemStack u = existing.copy();
+                        u.setCount(1);
+                        newEntry.put("Item", u.save(provider));
+                        newEntry.putInt("Count", left);
+                        list.set(i, newEntry);
+                    }
+                }
+            }
+            if (list.isEmpty())
+            {
+                tag.remove(key);
+            }
+        });
+        return removed[0];
     }
 }

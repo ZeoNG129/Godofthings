@@ -45,35 +45,59 @@ public class GodSwordItem extends SwordItem
         {
             return true;
         }
-        ServerLevel level = (ServerLevel) attacker.level();
+        if (attacker instanceof Player player)
+        {
+            killEntity(stack, target, player);
+        }
+        else
+        {
+            ServerLevel level = (ServerLevel) attacker.level();
+            if (target.isAlive())
+            {
+                target.hurt(level.damageSources().generic(), Float.MAX_VALUE);
+            }
+            if (target.isDeadOrDying())
+            {
+                if (SwordModes.isBeheadEnabled(stack))
+                {
+                    dropHead(target);
+                }
+                if (SwordModes.isCaptureEnabled(stack))
+                {
+                    dropEgg(target);
+                }
+            }
+        }
+        return true;
+    }
 
-        // 击杀：用带玩家攻击者的伤害源（而非 kill() 的 genericKill，后者无 entity）。
-        // 掉落表 dropFromLootTable 的 ATTACKING_ENTITY 取自 damageSource.getEntity()，
-        // looting 条件（LootItemRandomChanceWithEnchantedBonusCondition）读的正是该攻击者的抢夺附魔，
-        // 因此必须用 playerAttack 才能让「抢劫」生效。
-        // Float.MAX_VALUE 即使经过无敌帧差值计算也足以秒杀任何目标。
+    /**
+     * 杀戮：用带玩家攻击者的伤害源秒杀目标（而非 kill() 的 genericKill，后者无 entity）。
+     * 掉落表 dropFromLootTable 的 ATTACKING_ENTITY 取自 damageSource.getEntity()，
+     * looting 条件读的正是该攻击者的抢夺附魔，因此必须用 playerAttack 才能让「抢劫」生效。
+     * 杀戮光环（范围杀）复用此方法，故斩首 / 捕捉 / 抢劫均兼容。
+     */
+    public static void killEntity(ItemStack sword, LivingEntity target, Player player)
+    {
+        if (!(player.level() instanceof ServerLevel level) || target.isRemoved())
+        {
+            return;
+        }
         if (target.isAlive())
         {
-            DamageSource source = attacker instanceof Player player
-                    ? level.damageSources().playerAttack(player)
-                    : level.damageSources().generic();
-            target.hurt(source, Float.MAX_VALUE);
+            target.hurt(level.damageSources().playerAttack(player), Float.MAX_VALUE);
         }
-
-        // 目标死亡后执行斩首 / 捕捉（开关存在神之剑 CUSTOM_DATA，见 SwordModes）
         if (target.isDeadOrDying())
         {
-            if (SwordModes.isBeheadEnabled(stack))
+            if (SwordModes.isBeheadEnabled(sword))
             {
                 dropHead(target);
             }
-            if (SwordModes.isCaptureEnabled(stack))
+            if (SwordModes.isCaptureEnabled(sword))
             {
                 dropEgg(target);
             }
         }
-
-        return true;
     }
 
     /** 斩首：击杀带头颅的生物时必掉对应头颅。 */
@@ -126,15 +150,30 @@ public class GodSwordItem extends SwordItem
         }
     }
 
-    /** 抢劫开关：开启时给神之剑附加 255 级抢夺，关闭时移除。由切换面板经网络在服务端调用。 */
-    public static void applyLooting(ItemStack stack, ServerLevel level, boolean enabled)
+    /** 抢劫强度 → 掠夺附魔等级（指数增长：每 +30 翻倍，0 关闭，≥240 封顶 255）。 */
+    public static int lootingLevel(int power)
+    {
+        if (power <= 0)
+        {
+            return 0;
+        }
+        if (power >= 240)
+        {
+            return 255;
+        }
+        return (int) Math.pow(2, power / 30.0);
+    }
+
+    /** 抢劫开关：按强度 power（0~300）指数映射到掠夺附魔等级，power=0 时移除附魔。由切换面板经网络在服务端调用。 */
+    public static void applyLooting(ItemStack stack, ServerLevel level, int power)
     {
         Holder<Enchantment> looting = level.registryAccess()
                 .registryOrThrow(Registries.ENCHANTMENT)
                 .getHolderOrThrow(Enchantments.LOOTING);
-        if (enabled)
+        int lvl = lootingLevel(power);
+        if (lvl > 0)
         {
-            stack.enchant(looting, 255);
+            stack.enchant(looting, lvl);
         }
         else
         {

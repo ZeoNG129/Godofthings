@@ -28,6 +28,7 @@ public class SwordMessages
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToServer(SwordModePayload.TYPE, SwordModePayload.STREAM_CODEC, SwordModePayload::handle);
         registrar.playToServer(SwordRangePayload.TYPE, SwordRangePayload.STREAM_CODEC, SwordRangePayload::handle);
+        registrar.playToServer(SwordAuraTargetPayload.TYPE, SwordAuraTargetPayload.STREAM_CODEC, SwordAuraTargetPayload::handle);
     }
 
     public enum SwordMode
@@ -36,7 +37,8 @@ public class SwordMessages
         CAPTURE,
         LOOTING,
         STAR_ABSORB,
-        SOUL_ABSORB
+        SOUL_ABSORB,
+        AURA
     }
 
     public static void send(SwordMode mode)
@@ -47,6 +49,11 @@ public class SwordMessages
     public static void sendRange(SwordMode mode, int delta)
     {
         PacketDistributor.sendToServer(new SwordRangePayload(mode, delta));
+    }
+
+    public static void sendAuraTarget()
+    {
+        PacketDistributor.sendToServer(new SwordAuraTargetPayload());
     }
 
     public record SwordModePayload(SwordMode mode) implements CustomPacketPayload
@@ -84,10 +91,11 @@ public class SwordMessages
                     {
                         boolean enabled = !SwordModes.isLootingEnabled(sword);
                         SwordModes.setLootingEnabled(sword, enabled);
-                        GodSwordItem.applyLooting(sword, sender.serverLevel(), enabled);
+                        GodSwordItem.applyLooting(sword, sender.serverLevel(), enabled ? SwordModes.getLootingPower(sword) : 0);
                     }
                     case STAR_ABSORB -> SwordModes.setStarAbsorbEnabled(sword, !SwordModes.isStarAbsorbEnabled(sword));
                     case SOUL_ABSORB -> SwordModes.setSoulAbsorbEnabled(sword, !SwordModes.isSoulAbsorbEnabled(sword));
+                    case AURA -> SwordModes.setAuraEnabled(sword, !SwordModes.isAuraEnabled(sword));
                 }
             });
         }
@@ -126,7 +134,55 @@ public class SwordMessages
                 {
                     case STAR_ABSORB -> SwordModes.setStarRange(sword, SwordModes.getStarRange(sword) + msg.delta());
                     case SOUL_ABSORB -> SwordModes.setSoulRange(sword, SwordModes.getSoulRange(sword) + msg.delta());
+                    case AURA -> SwordModes.setAuraRange(sword, SwordModes.getAuraRange(sword) + msg.delta());
+                    case LOOTING ->
+                    {
+                        int power = SwordModes.getLootingPower(sword) + msg.delta();
+                        SwordModes.setLootingPower(sword, power);
+                        if (SwordModes.isLootingEnabled(sword))
+                        {
+                            GodSwordItem.applyLooting(sword, sender.serverLevel(), power);
+                        }
+                    }
+                    default -> { }
                 }
+            });
+        }
+    }
+
+    /** 杀戮光环目标类型切换（C2S）：服务端循环切换 敌对→友好→全部→敌对。 */
+    public record SwordAuraTargetPayload() implements CustomPacketPayload
+    {
+        public static final Type<SwordAuraTargetPayload> TYPE =
+                new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "sword_aura_target"));
+        public static final StreamCodec<ByteBuf, SwordAuraTargetPayload> STREAM_CODEC =
+                StreamCodec.unit(new SwordAuraTargetPayload());
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return TYPE;
+        }
+
+        public static void handle(SwordAuraTargetPayload msg, net.neoforged.neoforge.network.handling.IPayloadContext ctx)
+        {
+            ctx.enqueueWork(() ->
+            {
+                if (!(ctx.player() instanceof ServerPlayer sender))
+                {
+                    return;
+                }
+                ItemStack sword = findSword(sender);
+                if (sword == null)
+                {
+                    return;
+                }
+                int next = SwordModes.getAuraTarget(sword) + 1;
+                if (next > SwordModes.AURA_TARGET_ALL)
+                {
+                    next = SwordModes.AURA_TARGET_HOSTILE;
+                }
+                SwordModes.setAuraTarget(sword, next);
             });
         }
     }

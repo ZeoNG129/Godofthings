@@ -31,6 +31,27 @@ public final class SwordModes
     public static final int MAX_RANGE = 300;
     public static final int DEFAULT_RANGE = 16;
 
+    /** 杀戮光环：开启后自动杀戮范围内选定目标类型的生物。 */
+    public static final String AURA = "SwordAura";
+    /** 杀戮光环目标类型：0=敌对 / 1=友好 / 2=全部。 */
+    public static final String AURA_TARGET = "SwordAuraTarget";
+    /** 杀戮光环生效半径（格），可调 0~300（0 表示仅贴身）。 */
+    public static final String AURA_RANGE = "SwordAuraRange";
+    /** 抢劫强度（0~300，指数映射到掠夺附魔等级 0~255）。 */
+    public static final String LOOTING_POWER = "SwordLootingPower";
+
+    /** 杀戮光环目标类型常量。 */
+    public static final int AURA_TARGET_HOSTILE = 0;
+    public static final int AURA_TARGET_FRIENDLY = 1;
+    public static final int AURA_TARGET_ALL = 2;
+    /** 杀戮光环半径下限（0）/默认（8）。 */
+    public static final int AURA_MIN_RANGE = 0;
+    public static final int AURA_DEFAULT_RANGE = 8;
+    /** 抢劫强度下限（0）/上限（300）/默认（255，保持向后兼容）。 */
+    public static final int LOOTING_MIN_POWER = 0;
+    public static final int LOOTING_MAX_POWER = 300;
+    public static final int LOOTING_DEFAULT_POWER = 255;
+
     private SwordModes() {}
 
     public static CompoundTag getData(ItemStack stack)
@@ -129,5 +150,56 @@ public final class SwordModes
     public static void setSoulRange(ItemStack stack, int value)
     {
         update(stack, tag -> tag.putInt(SOUL_RANGE, Math.max(MIN_RANGE, Math.min(MAX_RANGE, value))));
+    }
+
+    public static boolean isAuraEnabled(ItemStack stack)
+    {
+        return getBoolean(stack, AURA);
+    }
+
+    public static void setAuraEnabled(ItemStack stack, boolean enabled)
+    {
+        setBoolean(stack, AURA, enabled);
+    }
+
+    public static int getAuraTarget(ItemStack stack)
+    {
+        int t = getInt(stack, AURA_TARGET);
+        return (t >= AURA_TARGET_HOSTILE && t <= AURA_TARGET_ALL) ? t : AURA_TARGET_HOSTILE;
+    }
+
+    public static void setAuraTarget(ItemStack stack, int target)
+    {
+        update(stack, tag -> tag.putInt(AURA_TARGET, Math.max(AURA_TARGET_HOSTILE, Math.min(AURA_TARGET_ALL, target))));
+    }
+
+    public static int getAuraRange(ItemStack stack)
+    {
+        CompoundTag data = getData(stack);
+        if (!data.contains(AURA_RANGE))
+        {
+            return AURA_DEFAULT_RANGE;
+        }
+        return Math.max(AURA_MIN_RANGE, Math.min(MAX_RANGE, data.getInt(AURA_RANGE)));
+    }
+
+    public static void setAuraRange(ItemStack stack, int value)
+    {
+        update(stack, tag -> tag.putInt(AURA_RANGE, Math.max(AURA_MIN_RANGE, Math.min(MAX_RANGE, value))));
+    }
+
+    public static int getLootingPower(ItemStack stack)
+    {
+        CompoundTag data = getData(stack);
+        if (!data.contains(LOOTING_POWER))
+        {
+            return LOOTING_DEFAULT_POWER;
+        }
+        return Math.max(LOOTING_MIN_POWER, Math.min(LOOTING_MAX_POWER, data.getInt(LOOTING_POWER)));
+    }
+
+    public static void setLootingPower(ItemStack stack, int value)
+    {
+        update(stack, tag -> tag.putInt(LOOTING_POWER, Math.max(LOOTING_MIN_POWER, Math.min(LOOTING_MAX_POWER, value))));
     }
 }

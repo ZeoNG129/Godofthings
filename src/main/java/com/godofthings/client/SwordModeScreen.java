@@ -17,7 +17,7 @@ public class SwordModeScreen extends Screen
     private final ItemStack sword;
 
     private static final int PANEL_W = 176;
-    private static final int PANEL_H = 156;
+    private static final int PANEL_H = 176;
     private static final int ROW_X = 8;
     private static final int ROW_W = PANEL_W - 16;
     private static final int ROW_H = 18;
@@ -45,14 +45,18 @@ public class SwordModeScreen extends Screen
                 Component.translatable("gui.godofthings.sword_behead"), SwordModes.isBeheadEnabled(sword));
         drawRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP, mouseX, mouseY,
                 Component.translatable("gui.godofthings.sword_capture"), SwordModes.isCaptureEnabled(sword));
-        drawRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 2, mouseX, mouseY,
-                Component.translatable("gui.godofthings.sword_looting"), SwordModes.isLootingEnabled(sword));
+        drawRangeRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 2, mouseX, mouseY,
+                Component.translatable("gui.godofthings.sword_looting"),
+                SwordModes.isLootingEnabled(sword), SwordModes.getLootingPower(sword));
         drawRangeRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 3, mouseX, mouseY,
                 Component.translatable("gui.godofthings.sword_star_absorb"),
                 SwordModes.isStarAbsorbEnabled(sword), SwordModes.getStarRange(sword));
         drawRangeRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 4, mouseX, mouseY,
                 Component.translatable("gui.godofthings.sword_soul_absorb"),
                 SwordModes.isSoulAbsorbEnabled(sword), SwordModes.getSoulRange(sword));
+        drawAuraRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 5, mouseX, mouseY,
+                Component.translatable("gui.godofthings.sword_aura"),
+                SwordModes.isAuraEnabled(sword), SwordModes.getAuraTarget(sword), SwordModes.getAuraRange(sword));
     }
 
     private void drawRow(GuiGraphics graphics, int x0, int y, int mouseX, int mouseY, Component name, boolean enabled)
@@ -102,6 +106,50 @@ public class SwordModeScreen extends Screen
         return mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
     }
 
+    /** 杀戮光环行：名字在左，右侧是目标类型按钮 + [-] 范围 [+]。 */
+    private void drawAuraRow(GuiGraphics graphics, int x0, int y, int mouseX, int mouseY,
+                             Component name, boolean enabled, int target, int range)
+    {
+        int rowX = x0 + ROW_X;
+        boolean hover = isHovering(rowX, y, ROW_W, ROW_H, mouseX, mouseY);
+        int bg = enabled ? (hover ? 0xFF2E7D32 : 0xFF388E3C) : (hover ? 0xFF616161 : 0xFF424242);
+        graphics.fill(rowX, y, rowX + ROW_W, y + ROW_H, bg);
+
+        graphics.drawString(this.font, name, rowX + 6, y + 5, 0xFFFFFF, false);
+
+        int btnW = 12, btnH = 12, btnY = y + 3;
+        int targetW = 28;
+        int targetX = rowX + ROW_W - 6 - targetW;
+        int plusX = targetX - 4 - btnW;
+        String rangeText = String.valueOf(range);
+        int rangeW = this.font.width(rangeText);
+        int minusX = plusX - 4 - rangeW - 4 - btnW;
+
+        // 目标类型按钮（敌对/友好/全部）
+        boolean hoverTarget = isHovering(targetX, btnY, targetW, btnH, mouseX, mouseY);
+        graphics.fill(targetX, btnY, targetX + targetW, btnY + btnH, hoverTarget ? 0xFFAAAAAA : 0xFF555555);
+        graphics.drawCenteredString(this.font, auraTargetLabel(target), targetX + targetW / 2, btnY + 1, 0xFFFFFF);
+
+        // 范围 [-] 值 [+]
+        boolean hoverMinus = isHovering(minusX, btnY, btnW, btnH, mouseX, mouseY);
+        boolean hoverPlus = isHovering(plusX, btnY, btnW, btnH, mouseX, mouseY);
+        graphics.fill(minusX, btnY, minusX + btnW, btnY + btnH, hoverMinus ? 0xFFAAAAAA : 0xFF666666);
+        graphics.fill(plusX, btnY, plusX + btnW, btnY + btnH, hoverPlus ? 0xFFAAAAAA : 0xFF666666);
+        graphics.drawCenteredString(this.font, "-", minusX + btnW / 2, btnY + 1, 0xFFFFFF);
+        graphics.drawCenteredString(this.font, "+", plusX + btnW / 2, btnY + 1, 0xFFFFFF);
+        graphics.drawCenteredString(this.font, rangeText, (minusX + btnW + plusX) / 2, btnY + 1, 0xFFFFFF);
+    }
+
+    private static Component auraTargetLabel(int target)
+    {
+        return Component.translatable(switch (target)
+        {
+            case SwordModes.AURA_TARGET_FRIENDLY -> "gui.godofthings.sword_aura_target_friendly";
+            case SwordModes.AURA_TARGET_ALL -> "gui.godofthings.sword_aura_target_all";
+            default -> "gui.godofthings.sword_aura_target_hostile";
+        });
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button)
     {
@@ -121,9 +169,18 @@ public class SwordModeScreen extends Screen
                 toggle(SwordMessages.SwordMode.CAPTURE);
                 return true;
             }
-            if (isHovering(rowX, y0 + ROW_Y_0 + ROW_GAP * 2, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
+            int lootingY = y0 + ROW_Y_0 + ROW_GAP * 2;
+            if (isHovering(rowX, lootingY, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
             {
-                toggle(SwordMessages.SwordMode.LOOTING);
+                int d = rangeDelta(x0, lootingY, SwordModes.getLootingPower(sword), (int) mouseX, (int) mouseY);
+                if (d != 0)
+                {
+                    adjustRange(SwordMessages.SwordMode.LOOTING, d);
+                }
+                else
+                {
+                    toggle(SwordMessages.SwordMode.LOOTING);
+                }
                 return true;
             }
             int starY = y0 + ROW_Y_0 + ROW_GAP * 3;
@@ -154,6 +211,24 @@ public class SwordModeScreen extends Screen
                 }
                 return true;
             }
+            int auraY = y0 + ROW_Y_0 + ROW_GAP * 5;
+            if (isHovering(rowX, auraY, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
+            {
+                int d = auraRangeDelta(x0, auraY, SwordModes.getAuraRange(sword), (int) mouseX, (int) mouseY);
+                if (d != 0)
+                {
+                    adjustRange(SwordMessages.SwordMode.AURA, d);
+                }
+                else if (isHoveringAuraTarget(x0, auraY, (int) mouseX, (int) mouseY))
+                {
+                    toggleAuraTarget();
+                }
+                else
+                {
+                    toggle(SwordMessages.SwordMode.AURA);
+                }
+                return true;
+            }
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -168,6 +243,7 @@ public class SwordModeScreen extends Screen
             case LOOTING -> SwordModes.setLootingEnabled(sword, !SwordModes.isLootingEnabled(sword));
             case STAR_ABSORB -> SwordModes.setStarAbsorbEnabled(sword, !SwordModes.isStarAbsorbEnabled(sword));
             case SOUL_ABSORB -> SwordModes.setSoulAbsorbEnabled(sword, !SwordModes.isSoulAbsorbEnabled(sword));
+            case AURA -> SwordModes.setAuraEnabled(sword, !SwordModes.isAuraEnabled(sword));
         }
         SwordMessages.send(mode);
     }
@@ -200,9 +276,50 @@ public class SwordModeScreen extends Screen
         {
             case STAR_ABSORB -> SwordModes.setStarRange(sword, SwordModes.getStarRange(sword) + delta);
             case SOUL_ABSORB -> SwordModes.setSoulRange(sword, SwordModes.getSoulRange(sword) + delta);
+            case AURA -> SwordModes.setAuraRange(sword, SwordModes.getAuraRange(sword) + delta);
+            case LOOTING -> SwordModes.setLootingPower(sword, SwordModes.getLootingPower(sword) + delta);
             default -> { return; }
         }
         SwordMessages.sendRange(mode, delta);
+    }
+
+    /** 光环行的 [-] / [+] 按钮命中判定（目标类型按钮挤占右侧，坐标与 rangeDelta 不同）。 */
+    private int auraRangeDelta(int x0, int y, int range, int mouseX, int mouseY)
+    {
+        int rowX = x0 + ROW_X;
+        int btnW = 12, btnH = 12, btnY = y + 3;
+        int targetW = 28;
+        int plusX = rowX + ROW_W - 6 - targetW - 4 - btnW;
+        int rangeW = this.font.width(String.valueOf(range));
+        int minusX = plusX - 4 - rangeW - 4 - btnW;
+        if (isHovering(minusX, btnY, btnW, btnH, mouseX, mouseY))
+        {
+            return -1;
+        }
+        if (isHovering(plusX, btnY, btnW, btnH, mouseX, mouseY))
+        {
+            return 1;
+        }
+        return 0;
+    }
+
+    private boolean isHoveringAuraTarget(int x0, int y, int mouseX, int mouseY)
+    {
+        int rowX = x0 + ROW_X;
+        int targetW = 28, btnH = 12, btnY = y + 3;
+        int targetX = rowX + ROW_W - 6 - targetW;
+        return isHovering(targetX, btnY, targetW, btnH, mouseX, mouseY);
+    }
+
+    private void toggleAuraTarget()
+    {
+        int next = SwordModes.getAuraTarget(sword) + 1;
+        if (next > SwordModes.AURA_TARGET_ALL)
+        {
+            next = SwordModes.AURA_TARGET_HOSTILE;
+        }
+        SwordModes.setAuraTarget(sword, next);
+        SwordMessages.sendAuraTarget();
     }
 
     @Override
