@@ -81,6 +81,31 @@ public class WaypointData extends SavedData
         }
     }
 
+    /**
+     * 编辑点位：改名字与坐标（维度 / 面对方向保持不变）。
+     * 新名字若与其它点位重名则失败；返回是否成功。
+     */
+    public boolean edit(String oldName, String newName, double x, double y, double z)
+    {
+        Waypoint wp = waypoints.get(oldName);
+        if (wp == null)
+        {
+            return false;
+        }
+        if (!newName.equals(oldName) && waypoints.containsKey(newName))
+        {
+            return false; // 新名字已被占用
+        }
+        waypoints.remove(oldName);
+        wp.name = newName;
+        wp.x = x;
+        wp.y = y;
+        wp.z = z;
+        waypoints.put(newName, wp);
+        setDirty();
+        return true;
+    }
+
     /** 置顶优先，其余保持插入顺序 */
     public List<Waypoint> list()
     {

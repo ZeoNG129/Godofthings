@@ -4,6 +4,7 @@ import com.godofthings.menu.WaypointListMenu;
 import com.godofthings.network.WaypointMessages;
 import com.godofthings.waypoint.Waypoint;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -21,12 +22,14 @@ public abstract class AbstractWaypointScreen<T extends AbstractContainerMenu & W
     private static final int LIST_Y = 18;
 
     private static final int BTN_H = 16;
-    private static final int BTN_TP_X = 204;
-    private static final int BTN_PIN_X = 230;
-    private static final int BTN_DEL_X = 256;
-    private static final int BTN_TP_W = 24;
-    private static final int BTN_PIN_W = 24;
-    private static final int BTN_DEL_W = 20;
+    private static final int BTN_EDIT_X = 172;
+    private static final int BTN_TP_X = 200;
+    private static final int BTN_PIN_X = 228;
+    private static final int BTN_DEL_X = 252;
+    private static final int BTN_EDIT_W = 26;
+    private static final int BTN_TP_W = 26;
+    private static final int BTN_PIN_W = 22;
+    private static final int BTN_DEL_W = 24;
 
     private static final int PAGE_Y = 218;
     private static final int PAGE_H = 16;
@@ -105,14 +108,15 @@ public abstract class AbstractWaypointScreen<T extends AbstractContainerMenu & W
     private void drawRow(GuiGraphics gui, int x, int rowY, Waypoint wp)
     {
         String label = wp.pinned ? "[顶] " + wp.name : wp.name;
-        label = this.font.plainSubstrByWidth(label, 92);
+        label = this.font.plainSubstrByWidth(label, 72);
         gui.drawString(this.font, label, x + 8, rowY + 5, wp.pinned ? 0xFFE0B030 : 0xFFFFFF);
 
         String coord = Math.round(wp.x) + " " + Math.round(wp.y) + " " + Math.round(wp.z);
-        coord = this.font.plainSubstrByWidth(coord, 96);
-        gui.drawString(this.font, coord, x + 102, rowY + 5, 0xAAAAAA);
+        coord = this.font.plainSubstrByWidth(coord, 82);
+        gui.drawString(this.font, coord, x + 86, rowY + 5, 0xAAAAAA);
 
         int by = rowY + 3;
+        drawButton(gui, x + BTN_EDIT_X, by, BTN_EDIT_W, "gui.godofthings.waypoint.edit");
         drawButton(gui, x + BTN_TP_X, by, BTN_TP_W, "gui.godofthings.waypoint.tp");
         drawButton(gui, x + BTN_PIN_X, by, BTN_PIN_W, "gui.godofthings.waypoint.pin");
         drawButton(gui, x + BTN_DEL_X, by, BTN_DEL_W, "gui.godofthings.waypoint.del");
@@ -175,14 +179,37 @@ public abstract class AbstractWaypointScreen<T extends AbstractContainerMenu & W
                     WaypointMessages.sendAction(WaypointMessages.ACTION_PIN, wp.name);
                     return true;
                 }
+                if (in(relX, BTN_EDIT_X, BTN_EDIT_W))
+                {
+                    this.minecraft.setScreen(new WaypointEditScreen(this, wp));
+                    return true;
+                }
                 if (in(relX, BTN_DEL_X, BTN_DEL_W))
                 {
-                    WaypointMessages.sendAction(WaypointMessages.ACTION_DELETE, wp.name);
+                    confirmDelete(wp.name);
                     return true;
                 }
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    /** 删除点位二次确认 */
+    private void confirmDelete(String name)
+    {
+        this.minecraft.setScreen(new ConfirmScreen(
+                confirmed ->
+                {
+                    if (confirmed)
+                    {
+                        WaypointMessages.sendAction(WaypointMessages.ACTION_DELETE, name);
+                    }
+                    this.minecraft.setScreen(this);
+                },
+                Component.translatable("gui.godofthings.waypoint.del_confirm_title"),
+                Component.translatable("gui.godofthings.waypoint.del_confirm_msg", name),
+                Component.translatable("gui.godofthings.waypoint.del_confirm_yes"),
+                Component.translatable("gui.godofthings.waypoint.cancel")));
     }
 
     @Override

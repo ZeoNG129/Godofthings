@@ -44,6 +44,7 @@ public class WaypointMessages
         registrar.playToClient(WaypointListPayload.TYPE, WaypointListPayload.STREAM_CODEC, WaypointListPayload::handle);
         registrar.playToServer(WaypointActionPayload.TYPE, WaypointActionPayload.STREAM_CODEC, WaypointActionPayload::handle);
         registrar.playToServer(WaypointOpenPayload.TYPE, WaypointOpenPayload.STREAM_CODEC, WaypointOpenPayload::handle);
+        registrar.playToServer(WaypointEditPayload.TYPE, WaypointEditPayload.STREAM_CODEC, WaypointEditPayload::handle);
     }
 
     public static void sendListTo(ServerPlayer player, List<Waypoint> list)
@@ -66,6 +67,12 @@ public class WaypointMessages
     public static void sendOpen()
     {
         PacketDistributor.sendToServer(new WaypointOpenPayload());
+    }
+
+    /** 客户端请求编辑点位（改名字与坐标） */
+    public static void sendEdit(String oldName, String newName, double x, double y, double z)
+    {
+        PacketDistributor.sendToServer(new WaypointEditPayload(oldName, newName, x, y, z));
     }
 
     public record WaypointListPayload(List<Waypoint> waypoints) implements CustomPacketPayload
@@ -182,6 +189,47 @@ public class WaypointMessages
                     serverPlayer.openMenu(new SimpleMenuProvider(
                             (id, inv, player) -> new WaypointMenu(id, inv),
                             Component.translatable("gui.godofthings.waypoint.title")));
+                }
+            });
+        }
+    }
+
+    public record WaypointEditPayload(String oldName, String newName, double x, double y, double z) implements CustomPacketPayload
+    {
+        public static final Type<WaypointEditPayload> TYPE =
+                new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "waypoint_edit"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, WaypointEditPayload> STREAM_CODEC =
+                StreamCodec.of(WaypointEditPayload::write, WaypointEditPayload::read);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return TYPE;
+        }
+
+        private static void write(RegistryFriendlyByteBuf buf, WaypointEditPayload msg)
+        {
+            buf.writeUtf(msg.oldName);
+            buf.writeUtf(msg.newName);
+            buf.writeDouble(msg.x);
+            buf.writeDouble(msg.y);
+            buf.writeDouble(msg.z);
+        }
+
+        private static WaypointEditPayload read(RegistryFriendlyByteBuf buf)
+        {
+            return new WaypointEditPayload(buf.readUtf(), buf.readUtf(), buf.readDouble(), buf.readDouble(), buf.readDouble());
+        }
+
+        public static void handle(WaypointEditPayload msg, IPayloadContext ctx)
+        {
+            ctx.enqueueWork(() ->
+            {
+                if (ctx.player() instanceof ServerPlayer serverPlayer)
+                {
+                    WaypointData data = WaypointData.get(serverPlayer.server);
+                    data.edit(msg.oldName(), msg.newName(), msg.x(), msg.y(), msg.z());
+                    sendListTo(serverPlayer, data.list());
                 }
             });
         }
