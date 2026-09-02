@@ -11,45 +11,28 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * 神之传输配置屏幕：三分区（无线连接 / 玩家充能 / 权限），无玩家物品栏。
- * 速率滑块 5 档 + 手动输入 FE/T + 速率限制/无上限模式 + 跨维度开关 + 绑定设备数/清除绑定。
+ * 神之传输配置屏幕：四标签页（无线连接 / 玩家充能 / 权限 / 已绑定机器），顶部按钮切换。
  */
 public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitterMenu>
 {
-    private static final ResourceLocation SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot");
-
     private static final Predicate<String> DIGITS = s -> s.isEmpty() || s.matches("\\d*");
 
     private static final int MODE_MACHINE = 0;
     private static final int MODE_PLAYER = 1;
 
-    // 无线连接分区
-    private static final int WIRELESS_TITLE_Y = 14;
-    private static final int M_RATE_LABEL_Y = 30;
-    private static final int M_SLIDER_Y = 44;
-    private static final int M_EDIT_Y = 62;
-    private static final int M_MODE_Y = 80;
-    private static final int M_BOUND_Y = 100;
-    private static final int M_CLEAR_Y = 112;
+    // 顶部标签页按钮
+    private static final int[] TAB_X = { 8, 70, 132, 194 };
+    private static final int TAB_W = 58;
+    private static final int TAB_H = 16;
+    private static final int TAB_Y = 8;
 
-    // 玩家充能分区
-    private static final int PLAYER_TITLE_Y = 130;
-    private static final int P_TOGGLE_Y = 144;
-    private static final int P_RATE_LABEL_Y = 164;
-    private static final int P_SLIDER_Y = 178;
-    private static final int P_EDIT_Y = 196;
-    private static final int P_MODE_Y = 214;
-
-    // 权限分区
-    private static final int PERM_TITLE_Y = 232;
-    private static final int SLOT_Y = 248;
-
+    // 滑块
     private static final int[] SLIDER_X = { 10, 58, 106, 154, 202 };
     private static final int SLIDER_W = 46;
     private static final int SLIDER_H = 14;
@@ -57,11 +40,14 @@ public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitter
     private EditBox machineEdit;
     private EditBox playerEdit;
 
+    private int permScroll = 0;
+    private int boundScroll = 0;
+
     public GodTransmitterScreen(GodTransmitterMenu menu, Inventory playerInv, Component title)
     {
         super(menu, playerInv, title);
         this.imageWidth = 256;
-        this.imageHeight = 268;
+        this.imageHeight = 200;
     }
 
     @Override
@@ -70,12 +56,12 @@ public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitter
         super.init();
         int x = this.leftPos;
         int y = this.topPos;
-        this.machineEdit = new EditBox(this.font, x + 10, y + M_EDIT_Y, 90, 14, Component.literal(""));
+        this.machineEdit = new EditBox(this.font, x + 10, y + 66, 90, 14, Component.literal(""));
         this.machineEdit.setFilter(DIGITS);
         this.machineEdit.setMaxLength(7);
         this.machineEdit.setValue(String.valueOf(this.menu.getMachineRate()));
 
-        this.playerEdit = new EditBox(this.font, x + 10, y + P_EDIT_Y, 90, 14, Component.literal(""));
+        this.playerEdit = new EditBox(this.font, x + 10, y + 94, 90, 14, Component.literal(""));
         this.playerEdit.setFilter(DIGITS);
         this.playerEdit.setMaxLength(7);
         this.playerEdit.setValue(String.valueOf(this.menu.getPlayerRate()));
@@ -87,66 +73,129 @@ public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitter
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
 
-        // 面板背景
         gui.fill(x, y, x + this.imageWidth, y + this.imageHeight, 0xFF1E1E22);
 
-        // ---- 无线连接分区 ----
-        gui.fill(x + 4, y + WIRELESS_TITLE_Y - 4, x + this.imageWidth - 4, y + PLAYER_TITLE_Y - 6, 0xFF2A2A30);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.transmitter.wireless"), x + 10, y + WIRELESS_TITLE_Y, 0x55FFFF);
+        // 顶部标签页按钮
+        String[] tabKeys = {
+                "gui.godofthings.transmitter.tab_wireless",
+                "gui.godofthings.transmitter.tab_player",
+                "gui.godofthings.transmitter.tab_permission",
+                "gui.godofthings.transmitter.tab_bound"
+        };
+        for (int i = 0; i < 4; i++)
+        {
+            boolean active = this.menu.getCurrentTab() == i;
+            drawButton(gui, x + TAB_X[i], y + TAB_Y, TAB_W, TAB_H,
+                    Component.translatable(tabKeys[i]), active);
+        }
+
+        int tab = this.menu.getCurrentTab();
+        if (tab == GodTransmitterMenu.TAB_WIRELESS)
+        {
+            renderWireless(gui, x, y);
+        }
+        else if (tab == GodTransmitterMenu.TAB_PLAYER)
+        {
+            renderPlayer(gui, x, y);
+        }
+        else if (tab == GodTransmitterMenu.TAB_PERMISSION)
+        {
+            renderPermission(gui, x, y);
+        }
+        else
+        {
+            renderBound(gui, x, y);
+        }
+    }
+
+    private void renderWireless(GuiGraphics gui, int x, int y)
+    {
         gui.drawString(this.font, Component.translatable("gui.godofthings.transmitter.rate",
-                NumberText.format(this.menu.getMachineRate())), x + 10, y + M_RATE_LABEL_Y, 0xFFFFFF);
-        drawSlider(gui, x, y + M_SLIDER_Y, this.menu.getMachineRate());
-        // 模式按钮（速率限制 / 无上限）
-        drawButton(gui, x + 10, y + M_MODE_Y, 118, 16,
+                NumberText.format(this.menu.getMachineRate())), x + 10, y + 34, 0xFFFFFF);
+        drawSlider(gui, x, y + 48, this.menu.getMachineRate());
+        drawButton(gui, x + 10, y + 84, 118, 16,
                 this.menu.isMachineUnlimited()
                         ? Component.translatable("gui.godofthings.transmitter.unlimited")
                         : Component.translatable("gui.godofthings.transmitter.rate_limit"),
                 this.menu.isMachineUnlimited());
-        // 跨维度按钮
-        drawButton(gui, x + 132, y + M_MODE_Y, 114, 16,
+        drawButton(gui, x + 132, y + 84, 114, 16,
                 this.menu.isMachineCrossDimension()
                         ? Component.translatable("gui.godofthings.transmitter.cross_on")
                         : Component.translatable("gui.godofthings.transmitter.cross_off"),
                 this.menu.isMachineCrossDimension());
-        // 绑定设备数
         gui.drawString(this.font, Component.translatable("gui.godofthings.transmitter.bound_count",
-                this.menu.getBoundCount()), x + 10, y + M_BOUND_Y, 0xCCCCCC);
-        // 清除绑定按钮
-        drawButton(gui, x + 150, y + M_CLEAR_Y, 96, 16,
+                this.menu.getBoundCount()), x + 10, y + 106, 0xCCCCCC);
+        drawButton(gui, x + 150, y + 120, 96, 16,
                 Component.translatable("gui.godofthings.transmitter.clear_bindings"), false);
+    }
 
-        // ---- 玩家充能分区 ----
-        gui.fill(x + 4, y + PLAYER_TITLE_Y - 4, x + this.imageWidth - 4, y + PERM_TITLE_Y - 6, 0xFF2A2A30);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.transmitter.player_charge"), x + 10, y + PLAYER_TITLE_Y, 0xFFFF55);
-        drawButton(gui, x + 10, y + P_TOGGLE_Y, 110, 16,
+    private void renderPlayer(GuiGraphics gui, int x, int y)
+    {
+        drawButton(gui, x + 10, y + 40, 110, 16,
                 this.menu.isPlayerEnabled()
                         ? Component.translatable("gui.godofthings.transmitter.player_on")
                         : Component.translatable("gui.godofthings.transmitter.player_off"),
                 this.menu.isPlayerEnabled());
-        drawButton(gui, x + 124, y + P_TOGGLE_Y, 122, 16,
+        drawButton(gui, x + 124, y + 40, 122, 16,
                 this.menu.isPlayerCrossDimension()
                         ? Component.translatable("gui.godofthings.transmitter.player_cross_on")
                         : Component.translatable("gui.godofthings.transmitter.player_cross_off"),
                 this.menu.isPlayerCrossDimension());
         gui.drawString(this.font, Component.translatable("gui.godofthings.transmitter.rate",
-                NumberText.format(this.menu.getPlayerRate())), x + 10, y + P_RATE_LABEL_Y, 0xFFFFFF);
-        drawSlider(gui, x, y + P_SLIDER_Y, this.menu.getPlayerRate());
-        drawButton(gui, x + 10, y + P_MODE_Y, 118, 16,
+                NumberText.format(this.menu.getPlayerRate())), x + 10, y + 62, 0xFFFFFF);
+        drawSlider(gui, x, y + 76, this.menu.getPlayerRate());
+        drawButton(gui, x + 10, y + 112, 118, 16,
                 this.menu.isPlayerUnlimited()
                         ? Component.translatable("gui.godofthings.transmitter.unlimited")
                         : Component.translatable("gui.godofthings.transmitter.rate_limit"),
                 this.menu.isPlayerUnlimited());
-
-        // ---- 权限分区 ----
-        gui.fill(x + 4, y + PERM_TITLE_Y - 4, x + this.imageWidth - 4, y + this.imageHeight - 4, 0xFF2A2A30);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.transmitter.permission"), x + 10, y + PERM_TITLE_Y, 0xCCCCCC);
-        gui.blitSprite(SLOT_SPRITE, x + 10, y + SLOT_Y, 18, 18);
-        gui.blitSprite(SLOT_SPRITE, x + 40, y + SLOT_Y, 18, 18);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.transmitter.binder"), x + 32, y + SLOT_Y + 5, 0xCCCCCC);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.transmitter.accel"), x + 62, y + SLOT_Y + 5, 0xCCCCCC);
     }
 
-    /** 画 5 档速率滑块按钮（当前档高亮）。 */
+    private void renderPermission(GuiGraphics gui, int x, int y)
+    {
+        gui.drawString(this.font, Component.translatable("gui.godofthings.transmitter.online_players"),
+                x + 10, y + 32, 0xFFFF55);
+        List<String> online = this.menu.getOnline();
+        List<String> bound = this.menu.getBoundPlayers();
+        int listTop = y + 46;
+        int maxRows = (this.imageHeight - 50) / 14;
+        for (int i = 0; i < online.size(); i++)
+        {
+            int row = i - permScroll;
+            if (row < 0 || row >= maxRows)
+            {
+                continue;
+            }
+            int ry = listTop + row * 14;
+            String name = online.get(i);
+            boolean isBound = bound.contains(name);
+            gui.drawString(this.font, Component.literal(name), x + 10, ry, isBound ? 0x55FF55 : 0xCCCCCC);
+            drawButton(gui, x + 150, ry - 1, 96, 12,
+                    isBound ? Component.translatable("gui.godofthings.transmitter.unbind")
+                            : Component.translatable("gui.godofthings.transmitter.bind"),
+                    isBound);
+        }
+    }
+
+    private void renderBound(GuiGraphics gui, int x, int y)
+    {
+        gui.drawString(this.font, Component.translatable("gui.godofthings.transmitter.bound_machines"),
+                x + 10, y + 32, 0x55FFFF);
+        List<String> machines = this.menu.getBoundMachines();
+        int listTop = y + 46;
+        int maxRows = (this.imageHeight - 50) / 12;
+        for (int i = 0; i < machines.size(); i++)
+        {
+            int row = i - boundScroll;
+            if (row < 0 || row >= maxRows)
+            {
+                continue;
+            }
+            int ry = listTop + row * 12;
+            gui.drawString(this.font, Component.literal(machines.get(i)), x + 10, ry, 0xCCCCCC);
+        }
+    }
+
     private void drawSlider(GuiGraphics gui, int panelX, int panelY, int currentRate)
     {
         for (int i = 0; i < GodTransmitterBlockEntity.RATE_PRESETS.length; i++)
@@ -169,15 +218,16 @@ public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitter
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick)
     {
         super.render(gui, mouseX, mouseY, partialTick);
-        this.machineEdit.render(gui, mouseX, mouseY, partialTick);
-        this.playerEdit.render(gui, mouseX, mouseY, partialTick);
-        this.renderTooltip(gui, mouseX, mouseY);
-        // 加速槽 hover 提示
-        if (isHovering(40, SLOT_Y, 18, 18, mouseX, mouseY)
-                && (this.hoveredSlot == null || !this.hoveredSlot.hasItem()))
+        int tab = this.menu.getCurrentTab();
+        if (tab == GodTransmitterMenu.TAB_WIRELESS)
         {
-            gui.renderTooltip(this.font, Component.translatable("tooltip.godofthings.accelerator"), mouseX, mouseY);
+            this.machineEdit.render(gui, mouseX, mouseY, partialTick);
         }
+        else if (tab == GodTransmitterMenu.TAB_PLAYER)
+        {
+            this.playerEdit.render(gui, mouseX, mouseY, partialTick);
+        }
+        this.renderTooltip(gui, mouseX, mouseY);
     }
 
     @Override
@@ -185,79 +235,111 @@ public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitter
     {
         int relX = (int) mouseX - this.leftPos;
         int relY = (int) mouseY - this.topPos;
+        int tab = this.menu.getCurrentTab();
 
-        // 机器滑块
-        for (int i = 0; i < GodTransmitterBlockEntity.RATE_PRESETS.length; i++)
+        // 顶部标签页
+        for (int i = 0; i < 4; i++)
         {
-            if (inRect(relX, relY, SLIDER_X[i], M_SLIDER_Y, SLIDER_W, SLIDER_H))
+            if (inRect(relX, relY, TAB_X[i], TAB_Y, TAB_W, TAB_H))
             {
-                int rate = GodTransmitterBlockEntity.RATE_PRESETS[i];
-                this.menu.setMachineRateLocal(rate);
-                this.machineEdit.setValue(String.valueOf(rate));
-                TransmitterMessages.sendRate(rate, MODE_MACHINE);
+                this.menu.setCurrentTab(i);
                 return true;
             }
         }
-        // 玩家滑块
-        for (int i = 0; i < GodTransmitterBlockEntity.RATE_PRESETS.length; i++)
+
+        if (tab == GodTransmitterMenu.TAB_WIRELESS)
         {
-            if (inRect(relX, relY, SLIDER_X[i], P_SLIDER_Y, SLIDER_W, SLIDER_H))
+            for (int i = 0; i < GodTransmitterBlockEntity.RATE_PRESETS.length; i++)
             {
-                int rate = GodTransmitterBlockEntity.RATE_PRESETS[i];
-                this.menu.setPlayerRateLocal(rate);
-                this.playerEdit.setValue(String.valueOf(rate));
-                TransmitterMessages.sendRate(rate, MODE_PLAYER);
+                if (inRect(relX, relY, SLIDER_X[i], 48, SLIDER_W, SLIDER_H))
+                {
+                    int rate = GodTransmitterBlockEntity.RATE_PRESETS[i];
+                    this.menu.setMachineRateLocal(rate);
+                    this.machineEdit.setValue(String.valueOf(rate));
+                    TransmitterMessages.sendRate(rate, MODE_MACHINE);
+                    return true;
+                }
+            }
+            if (inRect(relX, relY, 10, 84, 118, 16))
+            {
+                this.menu.toggleMachineUnlimitedLocal();
+                sendButton(0);
+                return true;
+            }
+            if (inRect(relX, relY, 132, 84, 114, 16))
+            {
+                this.menu.toggleMachineCrossDimensionLocal();
+                sendButton(1);
+                return true;
+            }
+            if (inRect(relX, relY, 150, 120, 96, 16))
+            {
+                sendButton(2);
                 return true;
             }
         }
-        // 机器模式按钮
-        if (inRect(relX, relY, 10, M_MODE_Y, 118, 16))
+        else if (tab == GodTransmitterMenu.TAB_PLAYER)
         {
-            this.menu.toggleMachineUnlimitedLocal();
-            sendButton(0);
-            return true;
+            for (int i = 0; i < GodTransmitterBlockEntity.RATE_PRESETS.length; i++)
+            {
+                if (inRect(relX, relY, SLIDER_X[i], 76, SLIDER_W, SLIDER_H))
+                {
+                    int rate = GodTransmitterBlockEntity.RATE_PRESETS[i];
+                    this.menu.setPlayerRateLocal(rate);
+                    this.playerEdit.setValue(String.valueOf(rate));
+                    TransmitterMessages.sendRate(rate, MODE_PLAYER);
+                    return true;
+                }
+            }
+            if (inRect(relX, relY, 10, 40, 110, 16))
+            {
+                this.menu.togglePlayerEnabledLocal();
+                sendButton(3);
+                return true;
+            }
+            if (inRect(relX, relY, 124, 40, 122, 16))
+            {
+                this.menu.togglePlayerCrossDimensionLocal();
+                sendButton(4);
+                return true;
+            }
+            if (inRect(relX, relY, 10, 112, 118, 16))
+            {
+                this.menu.togglePlayerUnlimitedLocal();
+                sendButton(5);
+                return true;
+            }
         }
-        // 机器跨维度按钮
-        if (inRect(relX, relY, 132, M_MODE_Y, 114, 16))
+        else if (tab == GodTransmitterMenu.TAB_PERMISSION)
         {
-            this.menu.toggleMachineCrossDimensionLocal();
-            sendButton(1);
-            return true;
-        }
-        // 清除绑定按钮
-        if (inRect(relX, relY, 150, M_CLEAR_Y, 96, 16))
-        {
-            sendButton(2);
-            return true;
-        }
-        // 玩家开关
-        if (inRect(relX, relY, 10, P_TOGGLE_Y, 110, 16))
-        {
-            this.menu.togglePlayerEnabledLocal();
-            sendButton(3);
-            return true;
-        }
-        // 玩家跨维度
-        if (inRect(relX, relY, 124, P_TOGGLE_Y, 122, 16))
-        {
-            this.menu.togglePlayerCrossDimensionLocal();
-            sendButton(4);
-            return true;
-        }
-        // 玩家模式按钮
-        if (inRect(relX, relY, 10, P_MODE_Y, 118, 16))
-        {
-            this.menu.togglePlayerUnlimitedLocal();
-            sendButton(5);
-            return true;
+            List<String> online = this.menu.getOnline();
+            List<String> bound = this.menu.getBoundPlayers();
+            int listTop = 46;
+            int maxRows = (this.imageHeight - 50) / 14;
+            for (int i = 0; i < online.size(); i++)
+            {
+                int row = i - permScroll;
+                if (row < 0 || row >= maxRows)
+                {
+                    continue;
+                }
+                int ry = listTop + row * 14;
+                if (inRect(relX, relY, 150, ry - 1, 96, 12))
+                {
+                    String name = online.get(i);
+                    boolean isBound = bound.contains(name);
+                    TransmitterMessages.sendBindPlayer(name, !isBound);
+                    return true;
+                }
+            }
         }
 
         // EditBox 点击
-        if (this.machineEdit.mouseClicked(mouseX, mouseY, button))
+        if (tab == GodTransmitterMenu.TAB_WIRELESS && this.machineEdit.mouseClicked(mouseX, mouseY, button))
         {
             return true;
         }
-        if (this.playerEdit.mouseClicked(mouseX, mouseY, button))
+        if (tab == GodTransmitterMenu.TAB_PLAYER && this.playerEdit.mouseClicked(mouseX, mouseY, button))
         {
             return true;
         }
@@ -265,14 +347,41 @@ public class GodTransmitterScreen extends AbstractContainerScreen<GodTransmitter
     }
 
     @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
+    {
+        int tab = this.menu.getCurrentTab();
+        if (tab == GodTransmitterMenu.TAB_PERMISSION)
+        {
+            this.permScroll = clampScroll(this.permScroll - (int) scrollY,
+                    Math.max(0, this.menu.getOnline().size() - (this.imageHeight - 50) / 14));
+            return true;
+        }
+        if (tab == GodTransmitterMenu.TAB_BOUND)
+        {
+            this.boundScroll = clampScroll(this.boundScroll - (int) scrollY,
+                    Math.max(0, this.menu.getBoundMachines().size() - (this.imageHeight - 50) / 12));
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    private static int clampScroll(int value, int max)
+    {
+        return Math.max(0, Math.min(max, value));
+    }
+
+    @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers)
     {
-        if (this.machineEdit.isFocused() && (keyCode == 257 || keyCode == 335))
+        int tab = this.menu.getCurrentTab();
+        if (tab == GodTransmitterMenu.TAB_WIRELESS && this.machineEdit.isFocused()
+                && (keyCode == 257 || keyCode == 335))
         {
             commitRate(this.machineEdit, MODE_MACHINE);
             return true;
         }
-        if (this.playerEdit.isFocused() && (keyCode == 257 || keyCode == 335))
+        if (tab == GodTransmitterMenu.TAB_PLAYER && this.playerEdit.isFocused()
+                && (keyCode == 257 || keyCode == 335))
         {
             commitRate(this.playerEdit, MODE_PLAYER);
             return true;

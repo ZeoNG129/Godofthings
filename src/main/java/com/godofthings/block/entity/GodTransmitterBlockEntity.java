@@ -1,13 +1,11 @@
 package com.godofthings.block.entity;
 
 import com.godofthings.Godofthings;
-import com.godofthings.item.GodAcceleratorItem;
-import com.godofthings.item.GodBinderItem;
+import com.godofthings.menu.GodTransmitterMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -19,19 +17,19 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -42,15 +40,13 @@ import java.util.WeakHashMap;
  * <ul>
  *   <li>无线连接（机器充能）：维护按维度分组的绑定设备集合，范围内 FE 机器自动绑定，
  *       绑定器也可手动绑定 / 取消绑定；按机器速率（或无上限）逐设备充能。</li>
- *   <li>玩家充能：绑定器放入后给绑定玩家物品栏可充能物品充能（速率 / 无上限）。</li>
+ *   <li>玩家充能：权限界面选择绑定的玩家，按其速率（或无上限）给物品栏可充能物品充能。</li>
  *   <li>跨维度开关独立（机器 / 玩家），开启后无视距离（跨维度）充能。</li>
  * </ul>
  */
 public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvider
 {
-    public static final int BASE_RANGE = 64;
-    public static final int MAX_RANGE = 160;
-    public static final int MAX_ACCEL = 64;
+    public static final int RANGE = 64;
     public static final int TICKS_PER_SCAN = 10;
     public static final int MIN_RATE = 1;
     public static final int MAX_RATE = 9999999;
@@ -60,36 +56,6 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     /** 已加载的神之传输注册表（供绑定器查找最近传输器）。 */
     private static final Set<GodTransmitterBlockEntity> LOADED =
             Collections.newSetFromMap(new WeakHashMap<>());
-
-    private final ItemStackHandler binderSlot = new ItemStackHandler(1)
-    {
-        @Override
-        public boolean isItemValid(int slot, @NotNull ItemStack stack)
-        {
-            return stack.getItem() instanceof GodBinderItem;
-        }
-
-        @Override
-        protected void onContentsChanged(int slot)
-        {
-            setChanged();
-        }
-    };
-
-    private final ItemStackHandler accelSlot = new ItemStackHandler(1)
-    {
-        @Override
-        public boolean isItemValid(int slot, @NotNull ItemStack stack)
-        {
-            return stack.getItem() instanceof GodAcceleratorItem;
-        }
-
-        @Override
-        protected void onContentsChanged(int slot)
-        {
-            setChanged();
-        }
-    };
 
     // ---- 无线连接（机器充能）----
     private int machineRate = 100;
@@ -103,22 +69,13 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     private boolean playerCrossDimension = false;
     private int playerRate = 100;
     private boolean playerUnlimited = true;
+    private final Set<UUID> boundPlayers = new HashSet<>();
 
     private int scanTimer = 0;
 
     public GodTransmitterBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.GOD_TRANSMITTER_BE.get(), pos, state);
-    }
-
-    public ItemStackHandler getBinderSlot()
-    {
-        return binderSlot;
-    }
-
-    public ItemStackHandler getAccelSlot()
-    {
-        return accelSlot;
     }
 
     // ---- 机器充能访问 ----
@@ -202,7 +159,36 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         setChanged();
     }
 
-    // ---- 绑定 ----
+    // ---- 玩家绑定 ----
+
+    public boolean isPlayerBound(UUID uuid)
+    {
+        return boundPlayers.contains(uuid);
+    }
+
+    public void bindPlayer(UUID uuid)
+    {
+        boundPlayers.add(uuid);
+        setChanged();
+    }
+
+    public void unbindPlayer(UUID uuid)
+    {
+        boundPlayers.remove(uuid);
+        setChanged();
+    }
+
+    public Set<UUID> getBoundPlayers()
+    {
+        return boundPlayers;
+    }
+
+    public int getBoundPlayerCount()
+    {
+        return boundPlayers.size();
+    }
+
+    // ---- 机器绑定 ----
 
     public int getBoundCount()
     {
@@ -251,17 +237,19 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         setChanged();
     }
 
-    // ---- 范围 ----
-
-    public int getAccelCount()
+    /** 已绑定机器坐标文本列表（供 UI 显示），格式 "维度 x y z"。 */
+    public List<String> getBoundMachineTexts()
     {
-        return accelSlot.getStackInSlot(0).getCount();
-    }
-
-    public int getRange()
-    {
-        int accel = Math.min(MAX_ACCEL, getAccelCount());
-        return BASE_RANGE + accel * (MAX_RANGE - BASE_RANGE) / MAX_ACCEL;
+        List<String> list = new ArrayList<>();
+        for (Map.Entry<ResourceKey<Level>, Set<BlockPos>> entry : boundMachines.entrySet())
+        {
+            String dim = entry.getKey().location().toString();
+            for (BlockPos p : entry.getValue())
+            {
+                list.add(dim + " " + p.getX() + " " + p.getY() + " " + p.getZ());
+            }
+        }
+        return list;
     }
 
     // ---- 注册表 ----
@@ -311,7 +299,7 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     {
         if (be.playerEnabled)
         {
-            be.chargePlayer(level);
+            be.chargePlayers(level);
         }
         be.chargeBoundMachines(level);
         be.scanTimer++;
@@ -322,39 +310,39 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         }
     }
 
-    /** 给绑定玩家充能。 */
-    private void chargePlayer(Level level)
+    /** 给绑定的玩家充能。 */
+    private void chargePlayers(Level level)
     {
-        ItemStack binder = binderSlot.getStackInSlot(0);
-        if (binder.isEmpty() || level.isClientSide || level.getServer() == null)
+        if (level.isClientSide || level.getServer() == null || boundPlayers.isEmpty())
         {
             return;
         }
-        UUID owner = getBoundUUID(binder);
-        if (owner == null)
-        {
-            return;
-        }
-        ServerPlayer player = level.getServer().getPlayerList().getPlayer(owner);
-        if (player == null)
-        {
-            return;
-        }
-        if (!playerCrossDimension)
-        {
-            if (player.level().dimension() != level.dimension())
-            {
-                return;
-            }
-            int range = getRange();
-            if (player.distanceToSqr(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5)
-                    > (double) range * range)
-            {
-                return;
-            }
-        }
-
         int amount = playerUnlimited ? Integer.MAX_VALUE : playerRate;
+        for (UUID uuid : boundPlayers)
+        {
+            ServerPlayer player = level.getServer().getPlayerList().getPlayer(uuid);
+            if (player == null)
+            {
+                continue;
+            }
+            if (!playerCrossDimension)
+            {
+                if (player.level().dimension() != level.dimension())
+                {
+                    continue;
+                }
+                if (player.distanceToSqr(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5,
+                        worldPosition.getZ() + 0.5) > (double) RANGE * RANGE)
+                {
+                    continue;
+                }
+            }
+            chargePlayerInventory(player, amount);
+        }
+    }
+
+    private static void chargePlayerInventory(ServerPlayer player, int amount)
+    {
         Inventory inv = player.getInventory();
         for (int i = 0; i < inv.getContainerSize(); i++)
         {
@@ -394,7 +382,7 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
             }
             for (BlockPos target : entry.getValue())
             {
-                if (!machineCrossDimension && target.distSqr(worldPosition) > (long) getRange() * getRange())
+                if (!machineCrossDimension && target.distSqr(worldPosition) > (long) RANGE * RANGE)
                 {
                     continue;
                 }
@@ -411,10 +399,9 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
             return;
         }
         ResourceKey<Level> dim = level.dimension();
-        int range = getRange();
-        for (int dx = -range; dx <= range; dx++)
+        for (int dx = -RANGE; dx <= RANGE; dx++)
         {
-            for (int dz = -range; dz <= range; dz++)
+            for (int dz = -RANGE; dz <= RANGE; dz++)
             {
                 for (int dy = -2; dy <= 2; dy++)
                 {
@@ -481,31 +468,12 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         return false;
     }
 
-    @Nullable
-    private static UUID getBoundUUID(ItemStack binder)
-    {
-        CompoundTag tag = binder.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        if (tag.hasUUID(GodBinderItem.KEY_OWNER))
-        {
-            return tag.getUUID(GodBinderItem.KEY_OWNER);
-        }
-        return null;
-    }
-
     // ------------------------------------------------------------------ NBT
 
     @Override
     protected void loadAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries)
     {
         super.loadAdditional(tag, registries);
-        if (tag.contains("BinderSlot"))
-        {
-            binderSlot.deserializeNBT(registries, tag.getCompound("BinderSlot"));
-        }
-        if (tag.contains("AccelSlot"))
-        {
-            accelSlot.deserializeNBT(registries, tag.getCompound("AccelSlot"));
-        }
         this.machineRate = tag.contains("MachineRate") ? tag.getInt("MachineRate") : 100;
         this.machineUnlimited = tag.getBoolean("MachineUnlimited");
         this.machineCrossDimension = tag.getBoolean("MachineCrossDimension");
@@ -521,14 +489,25 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         {
             deserializeBound(excludedMachines, tag.getList("ExcludedMachines", 10));
         }
+        if (tag.contains("BoundPlayers"))
+        {
+            boundPlayers.clear();
+            ListTag list = tag.getList("BoundPlayers", 10);
+            for (int i = 0; i < list.size(); i++)
+            {
+                CompoundTag t = list.getCompound(i);
+                if (t.hasUUID("U"))
+                {
+                    boundPlayers.add(t.getUUID("U"));
+                }
+            }
+        }
     }
 
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries)
     {
         super.saveAdditional(tag, registries);
-        tag.put("BinderSlot", binderSlot.serializeNBT(registries));
-        tag.put("AccelSlot", accelSlot.serializeNBT(registries));
         tag.putInt("MachineRate", this.machineRate);
         tag.putBoolean("MachineUnlimited", this.machineUnlimited);
         tag.putBoolean("MachineCrossDimension", this.machineCrossDimension);
@@ -538,6 +517,14 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         tag.putBoolean("PlayerUnlimited", this.playerUnlimited);
         tag.put("BoundMachines", serializeBound(boundMachines));
         tag.put("ExcludedMachines", serializeBound(excludedMachines));
+        ListTag players = new ListTag();
+        for (UUID uuid : boundPlayers)
+        {
+            CompoundTag t = new CompoundTag();
+            t.putUUID("U", uuid);
+            players.add(t);
+        }
+        tag.put("BoundPlayers", players);
     }
 
     private static ListTag serializeBound(Map<ResourceKey<Level>, Set<BlockPos>> map)
@@ -585,6 +572,6 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     @Override
     public AbstractContainerMenu createMenu(int id, @NotNull Inventory playerInventory, @NotNull Player player)
     {
-        return new com.godofthings.menu.GodTransmitterMenu(id, playerInventory, this);
+        return new GodTransmitterMenu(id, playerInventory, this);
     }
 }
