@@ -17,6 +17,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 神之剑「吸星 / 吸魂」的服务端逐 tick 处理。
  * <ul>
@@ -74,6 +77,9 @@ public class SwordEffectHandler
         double range = SwordModes.getStarRange(sword);
         AABB aabb = player.getBoundingBox().inflate(range);
         ItemStack box = BlackBoxData.findEnabledBox(player);
+        // 批量优化：过滤列表只读一次（避免每个掉落物都 copyTag），命中物品收集后一次性入库（一次深拷贝）
+        List<ItemStack> filter = box.isEmpty() ? List.of() : BlackBoxData.getFilter(box, player.level().registryAccess());
+        List<ItemStack> toBox = new ArrayList<>();
 
         for (ItemEntity itemEntity : player.level().getEntitiesOfClass(ItemEntity.class, aabb))
         {
@@ -103,13 +109,18 @@ public class SwordEffectHandler
             else
             {
                 // 有开启的黑盒：按白名单/黑名单判定，命中入黑盒（无堆叠上限）、未命中销毁
-                if (BlackBoxData.shouldKeep(box, stack, player.level().registryAccess()))
+                if (BlackBoxData.shouldKeep(box, stack, filter, player.level().registryAccess()))
                 {
-                    BlackBoxData.addToBox(box, stack, player.level().registryAccess());
+                    toBox.add(stack.copy());
                 }
                 stack.setCount(0);
                 itemEntity.discard();
             }
+        }
+
+        if (!toBox.isEmpty())
+        {
+            BlackBoxData.addToBoxBatch(box, toBox, player.level().registryAccess());
         }
 
         for (ExperienceOrb orb : player.level().getEntitiesOfClass(ExperienceOrb.class, aabb))

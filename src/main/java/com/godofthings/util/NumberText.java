@@ -1,10 +1,8 @@
 package com.godofthings.util;
 
-import java.util.Locale;
-
 /**
- * 大数字显示格式化：超过 1000 用 K、M、G、T、P 等单位后缀。
- * 例：999 → "999"、1500 → "1.5K"、1000000 → "1M"、1234567890 → "1.2G"。
+ * 大数字显示格式化：超过 1000 用 K、M、G、T、P、E 等单位后缀，且去掉小数点、四舍五入到整数，
+ * 让文本尽量短（不超过单个物品槽位宽）。例：999 → "999"、1500 → "2K"、999999 → "1M"、1234567890 → "1G"。
  */
 public final class NumberText
 {
@@ -14,7 +12,7 @@ public final class NumberText
     {
     }
 
-    /** 把非负整数格式化为带后缀的紧凑文本（1000 以下原样返回）。 */
+    /** 把非负整数格式化为带后缀的紧凑整数文本（1000 以下原样返回）。 */
     public static String format(long value)
     {
         if (value < 1000)
@@ -28,11 +26,14 @@ public final class NumberText
             v /= 1000.0;
             unit++;
         }
-        String s = String.format(Locale.ROOT, "%.1f", v);
-        if (s.endsWith(".0"))
+        long n = Math.round(v);
+        // 四舍五入到 1000（如 999.6K）时进位到下一个单位，避免出现 "1000K" 这种超长文本
+        if (n >= 1000 && unit < UNITS.length - 1)
         {
-            s = s.substring(0, s.length() - 2);
+            v /= 1000.0;
+            unit++;
+            n = Math.round(v);
         }
-        return s + UNITS[unit];
+        return n + UNITS[unit];
     }
 }

@@ -123,10 +123,12 @@ public final class BlackBoxData
     /** 白名单模式：把吸收的物品堆叠进过滤槽对应类型（数量无上限、可见）。 */
     public static void addToFilter(ItemStack box, ItemStack toAdd, HolderLookup.Provider provider)
     {
-        if (toAdd.isEmpty())
-        {
-            return;
-        }
+        addToFilterBatch(box, List.of(toAdd), provider);
+    }
+
+    /** 白名单模式批量入库：一次深拷贝处理多个吸收物，避免大量掉落物时逐条 copyTag 造成卡顿。 */
+    private static void addToFilterBatch(ItemStack box, List<ItemStack> toAdd, HolderLookup.Provider provider)
+    {
         CustomData.update(DataComponents.CUSTOM_DATA, box, tag ->
         {
             ListTag list = tag.contains(KEY_FILTER, Tag.TAG_LIST)
@@ -137,28 +139,40 @@ public final class BlackBoxData
                 tag.put(KEY_FILTER, list);
             }
 
-            ItemStack unit = toAdd.copy();
-            unit.setCount(1);
-            for (int i = 0; i < list.size(); i++)
+            for (ItemStack toAddItem : toAdd)
             {
-                CompoundTag entry = list.getCompound(i);
-                ItemStack existing = parseFilterEntry(entry, provider);
-                if (ItemStack.isSameItem(existing, unit))
+                if (toAddItem.isEmpty())
                 {
-                    long total = (long) existing.getCount() + toAdd.getCount();
-                    CompoundTag newEntry = new CompoundTag();
-                    ItemStack u = existing.copy();
-                    u.setCount(1);
-                    newEntry.put("Item", u.save(provider));
-                    newEntry.putInt("Count", (int) Math.min(Integer.MAX_VALUE, total));
-                    list.set(i, newEntry);
-                    return;
+                    continue;
+                }
+                ItemStack unit = toAddItem.copy();
+                unit.setCount(1);
+                boolean merged = false;
+                for (int i = 0; i < list.size(); i++)
+                {
+                    CompoundTag entry = list.getCompound(i);
+                    ItemStack existing = parseFilterEntry(entry, provider);
+                    if (ItemStack.isSameItem(existing, unit))
+                    {
+                        long total = (long) existing.getCount() + toAddItem.getCount();
+                        CompoundTag newEntry = new CompoundTag();
+                        ItemStack u = existing.copy();
+                        u.setCount(1);
+                        newEntry.put("Item", u.save(provider));
+                        newEntry.putInt("Count", (int) Math.min(Integer.MAX_VALUE, total));
+                        list.set(i, newEntry);
+                        merged = true;
+                        break;
+                    }
+                }
+                if (!merged)
+                {
+                    CompoundTag entry = new CompoundTag();
+                    entry.put("Item", unit.save(provider));
+                    entry.putInt("Count", toAddItem.getCount());
+                    list.add(entry);
                 }
             }
-            CompoundTag entry = new CompoundTag();
-            entry.put("Item", unit.save(provider));
-            entry.putInt("Count", toAdd.getCount());
-            list.add(entry);
         });
     }
 
@@ -179,13 +193,32 @@ public final class BlackBoxData
         }
     }
 
-    // ---- 无限储存（同类恒单堆、数量无上限）----
-    public static void addToStorage(ItemStack box, ItemStack toAdd, HolderLookup.Provider provider)
+    /** 吸收物品入盒（批量）：一次深拷贝处理多个物品，白名单模式堆叠进过滤槽，黑名单模式进隐藏存储。 */
+    public static void addToBoxBatch(ItemStack box, List<ItemStack> toAdd, HolderLookup.Provider provider)
     {
         if (toAdd.isEmpty())
         {
             return;
         }
+        if (isWhitelistMode(box))
+        {
+            addToFilterBatch(box, toAdd, provider);
+        }
+        else
+        {
+            addToStorageBatch(box, toAdd, provider);
+        }
+    }
+
+    // ---- 无限储存（同类恒单堆、数量无上限）----
+    public static void addToStorage(ItemStack box, ItemStack toAdd, HolderLookup.Provider provider)
+    {
+        addToStorageBatch(box, List.of(toAdd), provider);
+    }
+
+    /** 黑名单模式批量入库：一次深拷贝处理多个物品。 */
+    private static void addToStorageBatch(ItemStack box, List<ItemStack> toAdd, HolderLookup.Provider provider)
+    {
         CustomData.update(DataComponents.CUSTOM_DATA, box, tag ->
         {
             ListTag list = tag.contains(KEY_STORAGE, Tag.TAG_LIST)
@@ -196,28 +229,35 @@ public final class BlackBoxData
                 tag.put(KEY_STORAGE, list);
             }
 
-            ItemStack unit = toAdd.copy();
-            unit.setCount(1);
-            boolean merged = false;
-            for (int i = 0; i < list.size(); i++)
+            for (ItemStack toAddItem : toAdd)
             {
-                CompoundTag entry = list.getCompound(i);
-                ItemStack existing = ItemStack.parseOptional(provider, entry.getCompound("Item"));
-                // 按物品类型合并（同类恒单堆、数量无上限），避免 components 差异导致同类无法累加
-                if (ItemStack.isSameItem(existing, unit))
+                if (toAddItem.isEmpty())
                 {
-                    long total = (long) entry.getInt("Count") + toAdd.getCount();
-                    entry.putInt("Count", (int) Math.min(Integer.MAX_VALUE, total));
-                    merged = true;
-                    break;
+                    continue;
                 }
-            }
-            if (!merged)
-            {
-                CompoundTag entry = new CompoundTag();
-                entry.put("Item", unit.save(provider));
-                entry.putInt("Count", toAdd.getCount());
-                list.add(entry);
+                ItemStack unit = toAddItem.copy();
+                unit.setCount(1);
+                boolean merged = false;
+                for (int i = 0; i < list.size(); i++)
+                {
+                    CompoundTag entry = list.getCompound(i);
+                    ItemStack existing = ItemStack.parseOptional(provider, entry.getCompound("Item"));
+                    // 按物品类型合并（同类恒单堆、数量无上限），避免 components 差异导致同类无法累加
+                    if (ItemStack.isSameItem(existing, unit))
+                    {
+                        long total = (long) entry.getInt("Count") + toAddItem.getCount();
+                        entry.putInt("Count", (int) Math.min(Integer.MAX_VALUE, total));
+                        merged = true;
+                        break;
+                    }
+                }
+                if (!merged)
+                {
+                    CompoundTag entry = new CompoundTag();
+                    entry.put("Item", unit.save(provider));
+                    entry.putInt("Count", toAddItem.getCount());
+                    list.add(entry);
+                }
             }
         });
     }
@@ -247,7 +287,12 @@ public final class BlackBoxData
      */
     public static boolean shouldKeep(ItemStack box, ItemStack stack, HolderLookup.Provider provider)
     {
-        List<ItemStack> filter = getFilter(box, provider);
+        return shouldKeep(box, stack, getFilter(box, provider), provider);
+    }
+
+    /** 同 {@link #shouldKeep(ItemStack, ItemStack, HolderLookup.Provider)}，但复用已读出的过滤列表（批量判定时避免逐条 copyTag）。 */
+    public static boolean shouldKeep(ItemStack box, ItemStack stack, List<ItemStack> filter, HolderLookup.Provider provider)
+    {
         if (filter.isEmpty())
         {
             return true;
@@ -285,8 +330,8 @@ public final class BlackBoxData
         return ItemStack.EMPTY;
     }
 
-    /** 找任意一个神之黑盒（不要求开启）：手持优先，其次物品栏，其次副手。用于滚轮切换开关。 */
-    public static ItemStack findAnyBox(Player player)
+    /** 找手持（主手或副手）的神之黑盒（不要求开启），没有则返回 EMPTY。用于滚轮切换开关（仅支持手持）。 */
+    public static ItemStack findHeldBox(Player player)
     {
         ItemStack main = player.getMainHandItem();
         if (main.getItem() instanceof GodBlackBoxItem)
@@ -297,13 +342,6 @@ public final class BlackBoxData
         if (off.getItem() instanceof GodBlackBoxItem)
         {
             return off;
-        }
-        for (ItemStack s : player.getInventory().items)
-        {
-            if (s.getItem() instanceof GodBlackBoxItem)
-            {
-                return s;
-            }
         }
         return ItemStack.EMPTY;
     }

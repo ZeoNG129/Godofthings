@@ -8,11 +8,13 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 
 /**
  * 神之黑盒拾取拦截：玩家物品栏/背包中有开启的黑盒时，
  * 拾取物先入黑盒（白名单外销毁、白名单内无堆叠上限保留），不再进入普通物品栏。
+ * 同时拦截玩家主动丢出（Q 键）的物品，使其按同样规则入盒或销毁，而不是落地后消失。
  */
 @EventBusSubscriber(modid = Godofthings.MODID)
 public class BlackBoxPickupHandler
@@ -49,5 +51,35 @@ public class BlackBoxPickupHandler
         event.setCanPickup(TriState.FALSE);
         picked.setCount(0);
         itemEntity.discard();
+    }
+
+    /** 玩家丢出（Q 键）物品时：有开启的黑盒则按白名单/黑名单规则直接入盒或销毁，取消掉落物落地。 */
+    @SubscribeEvent
+    public static void onItemToss(ItemTossEvent event)
+    {
+        Player player = event.getPlayer();
+        if (player.level().isClientSide)
+        {
+            return;
+        }
+
+        ItemStack box = BlackBoxData.findEnabledBox(player);
+        if (box.isEmpty())
+        {
+            return;
+        }
+
+        ItemStack tossed = event.getEntity().getItem();
+        if (tossed.isEmpty())
+        {
+            return;
+        }
+
+        if (BlackBoxData.shouldKeep(box, tossed, player.level().registryAccess()))
+        {
+            BlackBoxData.addToBox(box, tossed, player.level().registryAccess());
+        }
+        // 取消掉落：物品不进入世界（已入库或销毁）
+        event.setCanceled(true);
     }
 }

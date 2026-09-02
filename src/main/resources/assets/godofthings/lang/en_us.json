@@ -187,5 +187,7 @@
   "gui.godofthings.black_box.enabled": "Enabled",
   "gui.godofthings.black_box.disabled": "Disabled",
   "gui.godofthings.black_box.mode_whitelist": "Whitelist",
-  "gui.godofthings.black_box.mode_blacklist": "Blacklist"
+  "gui.godofthings.black_box.mode_blacklist": "Blacklist",
+  "message.godofthings.black_box.on": "God Black Box: Enabled",
+  "message.godofthings.black_box.off": "God Black Box: Disabled"
 }

@@ -187,5 +187,7 @@
   "gui.godofthings.black_box.enabled": "开启",
   "gui.godofthings.black_box.disabled": "关闭",
   "gui.godofthings.black_box.mode_whitelist": "白名单",
-  "gui.godofthings.black_box.mode_blacklist": "黑名单"
+  "gui.godofthings.black_box.mode_blacklist": "黑名单",
+  "message.godofthings.black_box.on": "神之黑盒：已开启",
+  "message.godofthings.black_box.off": "神之黑盒：已关闭"
 }

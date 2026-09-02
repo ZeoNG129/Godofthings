@@ -53,7 +53,8 @@ public class BlackBoxMessages
             {
                 if (ctx.player() instanceof ServerPlayer serverPlayer)
                 {
-                    ItemStack box = BlackBoxData.findAnyBox(serverPlayer);
+                    // 快捷开关仅支持手持黑盒（主手或副手）
+                    ItemStack box = BlackBoxData.findHeldBox(serverPlayer);
                     if (!box.isEmpty())
                     {
                         BlackBoxData.setEnabled(box, !BlackBoxData.isEnabled(box));
