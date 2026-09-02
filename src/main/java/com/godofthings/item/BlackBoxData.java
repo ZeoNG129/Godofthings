@@ -5,6 +5,8 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
@@ -180,5 +182,26 @@ public final class BlackBoxData
             }
         }
         return isWhitelistMode(box) ? inFilter : !inFilter;
+    }
+
+    /** 在玩家物品栏（含副手）里找第一个已开启的神之黑盒，没有则返回 EMPTY。 */
+    public static ItemStack findEnabledBox(Player player)
+    {
+        Inventory inv = player.getInventory();
+        for (ItemStack s : inv.items)
+        {
+            if (s.getItem() instanceof GodBlackBoxItem && isEnabled(s))
+            {
+                return s;
+            }
+        }
+        for (ItemStack s : inv.offhand)
+        {
+            if (s.getItem() instanceof GodBlackBoxItem && isEnabled(s))
+            {
+                return s;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 }

@@ -24,6 +24,12 @@ public final class SwordModes
     public static final String STAR_ABSORB = "SwordStarAbsorb";
     /** 吸魂：手持神之剑把附近生物吸到玩家面前 */
     public static final String SOUL_ABSORB = "SwordSoulAbsorb";
+    /** 吸星/吸魂的生效半径（格），可调 3~300。 */
+    public static final String STAR_RANGE = "SwordStarRange";
+    public static final String SOUL_RANGE = "SwordSoulRange";
+    public static final int MIN_RANGE = 3;
+    public static final int MAX_RANGE = 300;
+    public static final int DEFAULT_RANGE = 16;
 
     private SwordModes() {}
 
@@ -36,6 +42,11 @@ public final class SwordModes
     public static boolean getBoolean(ItemStack stack, String key)
     {
         return getData(stack).getBoolean(key);
+    }
+
+    public static int getInt(ItemStack stack, String key)
+    {
+        return getData(stack).getInt(key);
     }
 
     public static void update(ItemStack stack, Consumer<CompoundTag> consumer)
@@ -96,5 +107,27 @@ public final class SwordModes
     public static void setSoulAbsorbEnabled(ItemStack stack, boolean enabled)
     {
         setBoolean(stack, SOUL_ABSORB, enabled);
+    }
+
+    public static int getStarRange(ItemStack stack)
+    {
+        int r = getInt(stack, STAR_RANGE);
+        return r < MIN_RANGE ? DEFAULT_RANGE : r;
+    }
+
+    public static void setStarRange(ItemStack stack, int value)
+    {
+        update(stack, tag -> tag.putInt(STAR_RANGE, Math.max(MIN_RANGE, Math.min(MAX_RANGE, value))));
+    }
+
+    public static int getSoulRange(ItemStack stack)
+    {
+        int r = getInt(stack, SOUL_RANGE);
+        return r < MIN_RANGE ? DEFAULT_RANGE : r;
+    }
+
+    public static void setSoulRange(ItemStack stack, int value)
+    {
+        update(stack, tag -> tag.putInt(SOUL_RANGE, Math.max(MIN_RANGE, Math.min(MAX_RANGE, value))));
     }
 }

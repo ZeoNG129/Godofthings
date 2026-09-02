@@ -1,6 +1,7 @@
 package com.godofthings.handler;
 
 import com.godofthings.Godofthings;
+import com.godofthings.item.BlackBoxData;
 import com.godofthings.item.GodSwordItem;
 import com.godofthings.item.SwordModes;
 import net.minecraft.server.MinecraftServer;
@@ -18,17 +19,16 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 /**
  * 神之剑「吸星 / 吸魂」的服务端逐 tick 处理。
  * <ul>
- *   <li>吸星：手持神之剑时，把附近 16 格内的掉落物直接吸入背包（背包满则拉到脚下），并吸收经验。</li>
- *   <li>吸魂：手持神之剑时，把附近 16 格内的非玩家生物吸到玩家面前一格。</li>
+ *   <li>吸星：手持神之剑时，把附近（可调半径）掉落物吸收；若玩家同时携带已开启的神之黑盒，
+ *       掉落物按黑盒白名单/黑名单判定（命中入黑盒、未命中销毁），否则直接进背包（满则拉到脚下）；并吸收经验。</li>
+ *   <li>吸魂：手持神之剑时，把附近（可调半径）非玩家生物吸到玩家面前一格。</li>
  * </ul>
- * 两者独立开关（见 {@link SwordModes}），由神之剑功能面板（J 键）经网络在服务端切换。
+ * 两者独立开关、独立半径（3~300），见 {@link SwordModes}，由神之剑功能面板（J 键）经网络在服务端切换。
  */
 @EventBusSubscriber(modid = Godofthings.MODID)
 public class SwordEffectHandler
 {
-    /** 吸收半径（格）。 */
-    private static final double ABSORB_RANGE = 16.0;
-    /** 扫描间隔（tick）：16 格全量扫描三类实体较贵，每 5 tick 扫一次（4 次/秒）即可，避免每 tick 掉 TPS。 */
+    /** 扫描间隔（tick）：大范围全量扫描三类实体较贵，每 5 tick 扫一次（4 次/秒）即可，避免每 tick 掉 TPS。 */
     private static final int SCAN_INTERVAL = 5;
     /** 吸魂：目标已在玩家面前 1.5 格内时不再传送，避免每 tick 重复 teleportTo 造成生物抖动与海量移动事件。 */
     private static final double SOUL_TELEPORT_SQ = 1.5 * 1.5;
@@ -54,19 +54,21 @@ public class SwordEffectHandler
             }
             if (SwordModes.isStarAbsorbEnabled(sword))
             {
-                absorbDropsAndXp(player);
+                absorbDropsAndXp(player, sword);
             }
             if (SwordModes.isSoulAbsorbEnabled(sword))
             {
-                absorbEntities(player);
+                absorbEntities(player, sword);
             }
         }
     }
 
-    /** 吸星：掉落物直接进背包 + 吸收经验。 */
-    private static void absorbDropsAndXp(ServerPlayer player)
+    /** 吸星：掉落物吸收（有黑盒走黑盒判定）+ 吸收经验。 */
+    private static void absorbDropsAndXp(ServerPlayer player, ItemStack sword)
     {
-        AABB aabb = player.getBoundingBox().inflate(ABSORB_RANGE);
+        double range = SwordModes.getStarRange(sword);
+        AABB aabb = player.getBoundingBox().inflate(range);
+        ItemStack box = BlackBoxData.findEnabledBox(player);
 
         for (ItemEntity itemEntity : player.level().getEntitiesOfClass(ItemEntity.class, aabb))
         {
@@ -75,16 +77,33 @@ public class SwordEffectHandler
                 continue;
             }
             ItemStack stack = itemEntity.getItem();
-            if (player.getInventory().add(stack))
+            if (stack.isEmpty())
             {
-                // 全部进背包
-                itemEntity.discard();
+                continue;
+            }
+
+            if (box.isEmpty())
+            {
+                // 无黑盒：直接进背包，放不下则拉到脚下
+                if (player.getInventory().add(stack))
+                {
+                    itemEntity.discard();
+                }
+                else
+                {
+                    itemEntity.setItem(stack);
+                    itemEntity.teleportTo(player.getX(), player.getY() + 0.5, player.getZ());
+                }
             }
             else
             {
-                // 背包放不下：剩余部分拉到玩家脚下，避免卡在原处
-                itemEntity.setItem(stack);
-                itemEntity.teleportTo(player.getX(), player.getY() + 0.5, player.getZ());
+                // 有开启的黑盒：按白名单/黑名单判定，命中入黑盒（无堆叠上限）、未命中销毁
+                if (BlackBoxData.shouldKeep(box, stack, player.level().registryAccess()))
+                {
+                    BlackBoxData.addToStorage(box, stack, player.level().registryAccess());
+                }
+                stack.setCount(0);
+                itemEntity.discard();
             }
         }
 
@@ -100,9 +119,10 @@ public class SwordEffectHandler
     }
 
     /** 吸魂：把附近非玩家生物吸到玩家面前一格。 */
-    private static void absorbEntities(ServerPlayer player)
+    private static void absorbEntities(ServerPlayer player, ItemStack sword)
     {
-        AABB aabb = player.getBoundingBox().inflate(ABSORB_RANGE);
+        double range = SwordModes.getSoulRange(sword);
+        AABB aabb = player.getBoundingBox().inflate(range);
 
         // 玩家视线水平方向前方 1 格
         double yaw = Math.toRadians(player.getYRot());

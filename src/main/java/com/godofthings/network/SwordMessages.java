@@ -27,6 +27,7 @@ public class SwordMessages
     {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToServer(SwordModePayload.TYPE, SwordModePayload.STREAM_CODEC, SwordModePayload::handle);
+        registrar.playToServer(SwordRangePayload.TYPE, SwordRangePayload.STREAM_CODEC, SwordRangePayload::handle);
     }
 
     public enum SwordMode
@@ -41,6 +42,11 @@ public class SwordMessages
     public static void send(SwordMode mode)
     {
         PacketDistributor.sendToServer(new SwordModePayload(mode));
+    }
+
+    public static void sendRange(SwordMode mode, int delta)
+    {
+        PacketDistributor.sendToServer(new SwordRangePayload(mode, delta));
     }
 
     public record SwordModePayload(SwordMode mode) implements CustomPacketPayload
@@ -82,6 +88,44 @@ public class SwordMessages
                     }
                     case STAR_ABSORB -> SwordModes.setStarAbsorbEnabled(sword, !SwordModes.isStarAbsorbEnabled(sword));
                     case SOUL_ABSORB -> SwordModes.setSoulAbsorbEnabled(sword, !SwordModes.isSoulAbsorbEnabled(sword));
+                }
+            });
+        }
+    }
+
+    /** 吸星/吸魂半径调整（C2S）：mode 仅用 STAR_ABSORB / SOUL_ABSORB，delta 为 ±1。 */
+    public record SwordRangePayload(SwordMode mode, int delta) implements CustomPacketPayload
+    {
+        public static final Type<SwordRangePayload> TYPE =
+                new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "sword_range"));
+        public static final StreamCodec<ByteBuf, SwordRangePayload> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.INT.map(i -> SwordMode.values()[i], SwordMode::ordinal), SwordRangePayload::mode,
+                ByteBufCodecs.INT, SwordRangePayload::delta,
+                SwordRangePayload::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return TYPE;
+        }
+
+        public static void handle(SwordRangePayload msg, net.neoforged.neoforge.network.handling.IPayloadContext ctx)
+        {
+            ctx.enqueueWork(() ->
+            {
+                if (!(ctx.player() instanceof ServerPlayer sender))
+                {
+                    return;
+                }
+                ItemStack sword = findSword(sender);
+                if (sword == null)
+                {
+                    return;
+                }
+                switch (msg.mode())
+                {
+                    case STAR_ABSORB -> SwordModes.setStarRange(sword, SwordModes.getStarRange(sword) + msg.delta());
+                    case SOUL_ABSORB -> SwordModes.setSoulRange(sword, SwordModes.getSoulRange(sword) + msg.delta());
                 }
             });
         }

@@ -2,9 +2,7 @@ package com.godofthings.handler;
 
 import com.godofthings.Godofthings;
 import com.godofthings.item.BlackBoxData;
-import com.godofthings.item.GodBlackBoxItem;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -28,7 +26,7 @@ public class BlackBoxPickupHandler
             return;
         }
 
-        ItemStack box = findEnabledBox(player);
+        ItemStack box = BlackBoxData.findEnabledBox(player);
         if (box.isEmpty())
         {
             return;
@@ -51,25 +49,5 @@ public class BlackBoxPickupHandler
         event.setCanPickup(TriState.FALSE);
         picked.setCount(0);
         itemEntity.discard();
-    }
-
-    private static ItemStack findEnabledBox(Player player)
-    {
-        Inventory inv = player.getInventory();
-        for (ItemStack s : inv.items)
-        {
-            if (s.getItem() instanceof GodBlackBoxItem && BlackBoxData.isEnabled(s))
-            {
-                return s;
-            }
-        }
-        for (ItemStack s : inv.offhand)
-        {
-            if (s.getItem() instanceof GodBlackBoxItem && BlackBoxData.isEnabled(s))
-            {
-                return s;
-            }
-        }
-        return ItemStack.EMPTY;
     }
 }
