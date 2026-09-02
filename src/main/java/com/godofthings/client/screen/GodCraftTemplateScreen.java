@@ -148,7 +148,8 @@ public class GodCraftTemplateScreen extends AbstractContainerScreen<GodCraftTemp
     @Override
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
-        // 模板界面无玩家物品栏槽位，留空避免画出悬空的「物品栏」标签
+        // 玩家物品栏标签（与主界面 GodCraftScreen 一致）
+        gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8 + SHIFT, 74, 4210752, false);
     }
 
     @Override

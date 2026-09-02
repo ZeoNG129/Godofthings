@@ -12,6 +12,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
@@ -41,6 +42,16 @@ public class GodCraftTemplateMenu extends AbstractContainerMenu {
             public void set(int value) {
             }
          });
+      }
+
+      // 玩家物品栏（与主界面 GodCraftMenu 一致：整体右移 46px 为左侧模板面板留位）
+      for (int row = 0; row < 3; row++) {
+         for (int col = 0; col < 9; col++) {
+            this.addSlot(new Slot(playerInv, col + row * 9 + 9, 8 + 46 + col * 18, 84 + row * 18));
+         }
+      }
+      for (int col = 0; col < 9; col++) {
+         this.addSlot(new Slot(playerInv, col, 8 + 46 + col * 18, 142));
       }
    }
 
@@ -100,6 +111,29 @@ public class GodCraftTemplateMenu extends AbstractContainerMenu {
    }
 
    public ItemStack quickMoveStack(Player player, int index) {
-      return ItemStack.EMPTY;
+      // 模板界面无机器槽位，仅有玩家物品栏：主物品栏(0-26) <-> 快捷栏(27-35) 之间移动
+      ItemStack itemstack = ItemStack.EMPTY;
+      Slot slot = this.slots.get(index);
+      if (slot != null && slot.hasItem()) {
+         ItemStack stack = slot.getItem();
+         itemstack = stack.copy();
+         if (index < 27) {
+            if (!this.moveItemStackTo(stack, 27, 36, false)) {
+               return ItemStack.EMPTY;
+            }
+         } else if (!this.moveItemStackTo(stack, 0, 27, false)) {
+            return ItemStack.EMPTY;
+         }
+         if (stack.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+         } else {
+            slot.setChanged();
+         }
+         if (stack.getCount() == itemstack.getCount()) {
+            return ItemStack.EMPTY;
+         }
+         slot.onTake(player, stack);
+      }
+      return itemstack;
    }
 }

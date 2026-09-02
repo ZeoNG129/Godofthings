@@ -49,6 +49,8 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
 {
     public static final int INPUT_SLOTS = 9;
     public static final int TOTAL_SLOTS = 10; // 0-8 合成格, 9 输出
+    /** 每 tick 最多合成次数（提高吞吐，原料不足或输出放不下时提前停止） */
+    public static final int MAX_CRAFTS_PER_TICK = 256;
 
     private final ItemStackHandler inputSlots = new ItemStackHandler(INPUT_SLOTS)
     {
@@ -435,9 +437,9 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
 
     /** 自动输入：把邻居容器里的物品「均分到每一格」。
      *  <p>
-     *  旧逻辑每次只填第一个可用槽（顺序填满，一格满了才轮到下一格）；
-     *  现改为按可用槽位数量平均分配，所有可用格同步均匀补充。
-     *  锁定模式只往锁定模板非空且匹配的槽位均分。 */
+     *  采用低水位优先分配：每次给当前数量最少的格子补 1 个，让所有格子数量始终均衡，
+     *  避免供给慢时退化成「第一格先满」的顺序填充（顺序填充会导致合成格长期不完整、
+     *  合成断续）。锁定模式只往锁定模板非空且匹配的槽位均分。 */
     private void pullInput(IItemHandler neighbor)
     {
         for (int s = 0; s < neighbor.getSlots(); s++)
@@ -482,30 +484,31 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
             ItemStack pulled = neighbor.extractItem(s, Math.min(src.getCount(), totalRoom), false);
             if (pulled.isEmpty()) continue;
 
-            // 3) 均分到每一格：每格先拿 总量/格数，放不下的部分顺延给还有空间的格子
+            // 3) 均分到每一格：低水位优先——每次给当前数量最少的格子补 1 个，
+            //    让所有格子数量始终均衡。旧算法按 总量/格数 一次摊派，在邻居
+            //    供料慢（每 tick 只来 1 个）时会退化成「第一格先满」的顺序填充，
+            //    导致合成格长期不完整、合成断续。
             int remaining = pulled.getCount();
-            while (remaining > 0 && !slots.isEmpty())
+            while (remaining > 0)
             {
-                int share = Math.max(1, remaining / slots.size());
-                List<Integer> full = new ArrayList<>();
+                int minSlot = -1;
+                int minCount = Integer.MAX_VALUE;
                 for (int i : slots)
                 {
-                    if (remaining <= 0) break;
-                    int give = Math.min(share, Math.min(room[i], remaining));
-                    if (give > 0)
+                    if (room[i] <= 0) continue;
+                    int count = inputSlots.getStackInSlot(i).getCount();
+                    if (count < minCount)
                     {
-                        ItemStack piece = pulled.copy();
-                        piece.setCount(give);
-                        inputSlots.insertItem(i, piece, false);
-                        room[i] -= give;
-                        remaining -= give;
-                    }
-                    if (room[i] <= 0)
-                    {
-                        full.add(i);
+                        minCount = count;
+                        minSlot = i;
                     }
                 }
-                slots.removeAll(full);
+                if (minSlot < 0) break; // 所有可用槽已满
+                ItemStack piece = pulled.copy();
+                piece.setCount(1);
+                inputSlots.insertItem(minSlot, piece, false);
+                room[minSlot]--;
+                remaining--;
             }
         }
     }
@@ -529,33 +532,46 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
         {
             return;
         }
+        // 循环合成多次，提高吞吐（原料不足或输出放不下时提前停止）
+        for (int n = 0; n < MAX_CRAFTS_PER_TICK; n++)
+        {
+            if (!craftOnce())
+            {
+                break;
+            }
+        }
+    }
+
+    /** 单次合成尝试；成功合成返回 true，否则 false。 */
+    private boolean craftOnce()
+    {
         // 锁定后：合成格必须与锁定模板一致
         if (!matchesLockedTemplate())
         {
-            return;
+            return false;
         }
         CraftingInput craftInv = makeCraftingInput();
         var recipeOpt = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, craftInv, level);
         if (recipeOpt.isEmpty())
         {
-            return;
+            return false;
         }
         RecipeHolder<CraftingRecipe> holder = recipeOpt.get();
         if (locked && lockedRecipeId != null && !lockedRecipeId.equals(holder.id()))
         {
-            return;
+            return false;
         }
         ItemStack result = holder.value().assemble(craftInv, level.registryAccess());
         if (result.isEmpty())
         {
-            return;
+            return false;
         }
         // 先模拟：输出槽能放下多少，剩余部分必须能完整推给相邻容器，否则停止（不消耗原料），
         // 避免产物部分入槽后剩余被静默丢弃
         ItemStack afterOutput = outputSlot.insertItem(0, result, true);
         if (!afterOutput.isEmpty() && !canPushResultFully(afterOutput))
         {
-            return; // 输出槽 + 所有输出方向容器都放不下完整产物 → 停止，不消耗原料
+            return false; // 输出槽 + 所有输出方向容器都放不下完整产物 → 停止，不消耗原料
         }
         // 消耗原料（按原始 9 格逐格扣除，与旧版逻辑一致）
         for (int i = 0; i < 9; i++)
@@ -571,6 +587,7 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
             pushResultToNeighbors(remaining);
         }
         setChanged();
+        return true;
     }
 
     /** 检查产物能否被面配置为输出方向的相邻容器完全接收 */
