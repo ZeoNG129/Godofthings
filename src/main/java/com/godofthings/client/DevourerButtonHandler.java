@@ -22,9 +22,9 @@ public class DevourerButtonHandler
     {
         if (event.getScreen() instanceof InventoryScreen inv)
         {
-            // 按钮放在背包界面内部左上角（避免 GUI 缩放较大时 getGuiLeft()-44 出屏不可见）
-            int x = inv.getGuiLeft() + 2;
-            int y = inv.getGuiTop() + 2;
+            // 按钮放在快捷栏第一格（8,142）正下方
+            int x = inv.getGuiLeft() + 8;
+            int y = inv.getGuiTop() + 160;
             Button button = Button.builder(
                             Component.literal("吞"),
                             b -> DevourerMessages.sendOpen())

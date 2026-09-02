@@ -12,6 +12,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.ArrayList;
@@ -30,6 +31,18 @@ public class GodArmorHandler
                 && player.getInventory().getArmor(2).getItem() instanceof GodArmorItem
                 && player.getInventory().getArmor(1).getItem() instanceof GodArmorItem
                 && player.getInventory().getArmor(0).getItem() instanceof GodArmorItem;
+    }
+
+    // 全套神之套装：飞行时不降低挖掘速度（消除 getDigSpeed 中 !onGround 的 /5 惩罚）
+    @SubscribeEvent
+    public static void onBreakSpeed(PlayerEvent.BreakSpeed event)
+    {
+        Player player = event.getEntity();
+        if (player.getAbilities().flying && isFullSetWorn(player))
+        {
+            // getOriginalSpeed() 已含飞行 /5 惩罚，乘 5 恢复
+            event.setNewSpeed(event.getOriginalSpeed() * 5.0F);
+        }
     }
 
     // 免疫所有伤害（含 kill 指令、火焰、熔岩、虚空、窒息等）
