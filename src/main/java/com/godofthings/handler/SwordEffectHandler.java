@@ -28,10 +28,22 @@ public class SwordEffectHandler
 {
     /** 吸收半径（格）。 */
     private static final double ABSORB_RANGE = 16.0;
+    /** 扫描间隔（tick）：16 格全量扫描三类实体较贵，每 5 tick 扫一次（4 次/秒）即可，避免每 tick 掉 TPS。 */
+    private static final int SCAN_INTERVAL = 5;
+    /** 吸魂：目标已在玩家面前 1.5 格内时不再传送，避免每 tick 重复 teleportTo 造成生物抖动与海量移动事件。 */
+    private static final double SOUL_TELEPORT_SQ = 1.5 * 1.5;
+    private static int tickCounter = 0;
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event)
     {
+        tickCounter++;
+        if (tickCounter < SCAN_INTERVAL)
+        {
+            return;
+        }
+        tickCounter = 0;
+
         MinecraftServer server = event.getServer();
         for (ServerPlayer player : server.getPlayerList().getPlayers())
         {
@@ -105,6 +117,11 @@ public class SwordEffectHandler
                 continue; // 不吸玩家（含自己）
             }
             if (mob.isRemoved() || mob.isDeadOrDying())
+            {
+                continue;
+            }
+            // 已在玩家面前的目标不再重复传送，避免每 tick teleportTo 造成的抖动与性能开销
+            if (mob.distanceToSqr(targetX, targetY, targetZ) <= SOUL_TELEPORT_SQ)
             {
                 continue;
             }

@@ -91,6 +91,8 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
     private int efficiencyLevel = 0;
     private int fortuneLevel = 0;
     private boolean silkTouch = false;
+    /** 缓存的假镐（带时运/精准采集）：避免每挖一块都重建 + 附魔（附魔需查附魔注册表，逐块重建是性能热点） */
+    private ItemStack cachedTool = ItemStack.EMPTY;
 
     public GodMinerBlockEntity(BlockPos pos, BlockState state)
     {
@@ -204,6 +206,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         efficiencyLevel = efficiency;
         fortuneLevel = fortune;
         silkTouch = silk;
+        cachedTool = ItemStack.EMPTY; // 附魔变化后重建缓存工具
         setChanged();
     }
 
@@ -486,21 +489,30 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    /** 计算掉落物：用假镐模拟，应用时运/精准采集 */
+    /** 缓存附魔假镐（懒加载，附魔变化时由 setEnchants 重建） */
+    private ItemStack getTool()
+    {
+        if (cachedTool.isEmpty())
+        {
+            cachedTool = new ItemStack(Items.DIAMOND_PICKAXE);
+            if (silkTouch)
+            {
+                cachedTool.enchant(level.registryAccess().registryOrThrow(Registries.ENCHANTMENT)
+                        .getHolderOrThrow(Enchantments.SILK_TOUCH), 1);
+            }
+            if (fortuneLevel > 0)
+            {
+                cachedTool.enchant(level.registryAccess().registryOrThrow(Registries.ENCHANTMENT)
+                        .getHolderOrThrow(Enchantments.FORTUNE), fortuneLevel);
+            }
+        }
+        return cachedTool;
+    }
+
+    /** 计算掉落物：用缓存假镐模拟，应用时运/精准采集 */
     private List<ItemStack> getDrops(BlockState state, BlockPos pos)
     {
-        ItemStack tool = new ItemStack(Items.DIAMOND_PICKAXE);
-        if (silkTouch)
-        {
-            tool.enchant(level.registryAccess().registryOrThrow(Registries.ENCHANTMENT)
-                    .getHolderOrThrow(Enchantments.SILK_TOUCH), 1);
-        }
-        if (fortuneLevel > 0)
-        {
-            tool.enchant(level.registryAccess().registryOrThrow(Registries.ENCHANTMENT)
-                    .getHolderOrThrow(Enchantments.FORTUNE), fortuneLevel);
-        }
-        List<ItemStack> drops = Block.getDrops(state, (ServerLevel) level, pos, null, null, tool);
+        List<ItemStack> drops = Block.getDrops(state, (ServerLevel) level, pos, null, null, getTool());
         if (drops.isEmpty() && !state.getBlock().asItem().equals(Items.AIR))
         {
             // 工具类型不匹配等原因导致空掉落 → 直接给方块本体

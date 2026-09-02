@@ -49,8 +49,12 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
 {
     public static final int INPUT_SLOTS = 9;
     public static final int TOTAL_SLOTS = 10; // 0-8 合成格, 9 输出
-    /** 每 tick 最多合成次数（提高吞吐，原料不足或输出放不下时提前停止） */
-    public static final int MAX_CRAFTS_PER_TICK = 256;
+    /**
+     * 每 tick 最多合成次数（原料不足或输出放不下时提前停止）。
+     * 256 会让每次合成都触发 getRecipeFor 遍历全部合成配方，大量堆叠时严重掉 TPS；
+     * 降到 8（160 次/秒，远超原版漏斗 2.5 次/秒）在性能与吞吐间取得平衡。
+     */
+    public static final int MAX_CRAFTS_PER_TICK = 8;
 
     private final ItemStackHandler inputSlots = new ItemStackHandler(INPUT_SLOTS)
     {
@@ -551,13 +555,8 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
             return false;
         }
         CraftingInput craftInv = makeCraftingInput();
-        var recipeOpt = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, craftInv, level);
-        if (recipeOpt.isEmpty())
-        {
-            return false;
-        }
-        RecipeHolder<CraftingRecipe> holder = recipeOpt.get();
-        if (locked && lockedRecipeId != null && !lockedRecipeId.equals(holder.id()))
+        RecipeHolder<CraftingRecipe> holder = findRecipe(craftInv);
+        if (holder == null)
         {
             return false;
         }
@@ -588,6 +587,27 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
         }
         setChanged();
         return true;
+    }
+
+    /**
+     * 查找当前合成格的配方。
+     * <p>锁定配方时直接按 {@link #lockedRecipeId} 用 byKey 取配方，避免每 tick 都
+     * getRecipeFor 遍历全部合成配方做矩阵匹配（这是神之合成掉 TPS 的主要热点之一）；
+     * 非锁定模式才用 getRecipeFor 匹配当前合成格。
+     */
+    @Nullable
+    private RecipeHolder<CraftingRecipe> findRecipe(CraftingInput craftInv)
+    {
+        if (locked && lockedRecipeId != null)
+        {
+            var byKey = level.getRecipeManager().byKey(lockedRecipeId);
+            if (byKey.isPresent() && byKey.get().value() instanceof CraftingRecipe cr)
+            {
+                return new RecipeHolder<>(lockedRecipeId, cr);
+            }
+            return null;
+        }
+        return level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, craftInv, level).orElse(null);
     }
 
     /** 检查产物能否被面配置为输出方向的相邻容器完全接收 */
