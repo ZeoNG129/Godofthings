@@ -42,7 +42,7 @@ public class BlackBoxPickupHandler
         // 白名单外销毁，白名单内（或未启用白名单）存入黑盒无堆叠上限
         if (BlackBoxData.shouldKeep(box, picked, player.level().registryAccess()))
         {
-            BlackBoxData.addToStorage(box, picked, player.level().registryAccess());
+            BlackBoxData.addToBox(box, picked, player.level().registryAccess());
         }
 
         // 阻止默认拾取并移除掉落物实体（物品已处置：入库或销毁）

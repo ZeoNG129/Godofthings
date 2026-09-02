@@ -192,8 +192,10 @@ public class SwordModeScreen extends Screen
     }
 
     /** 客户端乐观调整本地半径（服务端经 C2S 收敛，clamp 在 SwordModes.setXxxRange 内完成）。 */
-    private void adjustRange(SwordMessages.SwordMode mode, int delta)
+    private void adjustRange(SwordMessages.SwordMode mode, int direction)
     {
+        // 通用手势：Shift=±10，Shift+Ctrl=±50，否则 ±1
+        int delta = direction * GuiStep.amount();
         switch (mode)
         {
             case STAR_ABSORB -> SwordModes.setStarRange(sword, SwordModes.getStarRange(sword) + delta);

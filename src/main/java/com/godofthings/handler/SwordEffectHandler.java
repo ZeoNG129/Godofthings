@@ -100,7 +100,7 @@ public class SwordEffectHandler
                 // 有开启的黑盒：按白名单/黑名单判定，命中入黑盒（无堆叠上限）、未命中销毁
                 if (BlackBoxData.shouldKeep(box, stack, player.level().registryAccess()))
                 {
-                    BlackBoxData.addToStorage(box, stack, player.level().registryAccess());
+                    BlackBoxData.addToBox(box, stack, player.level().registryAccess());
                 }
                 stack.setCount(0);
                 itemEntity.discard();

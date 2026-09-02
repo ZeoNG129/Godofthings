@@ -34,6 +34,19 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
 
     private final ItemStackHandler filterHandler = new ItemStackHandler(BlackBoxData.FILTER_SLOTS)
     {
+        // 白名单槽位兼作存储：堆叠上限无限（数量可突破 64/99，真实数量显示在槽位）
+        @Override
+        public int getSlotLimit(int slot)
+        {
+            return Integer.MAX_VALUE;
+        }
+
+        @Override
+        protected int getStackLimit(int slot, ItemStack stack)
+        {
+            return Integer.MAX_VALUE;
+        }
+
         @Override
         protected void onContentsChanged(int slot)
         {
