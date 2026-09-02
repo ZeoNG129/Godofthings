@@ -29,6 +29,8 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
 
     /** 客户端由网络包同步的开关状态缓存（DataSlot 机制）。 */
     private int cachedEnabled = 0;
+    /** 客户端由网络包同步的过滤模式缓存：0=白名单，1=黑名单。 */
+    private int cachedMode = BlackBoxData.MODE_WHITELIST;
 
     private final ItemStackHandler filterHandler = new ItemStackHandler(BlackBoxData.FILTER_SLOTS)
     {
@@ -62,6 +64,25 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
         }
     };
 
+    private final DataSlot modeSlot = new DataSlot()
+    {
+        @Override
+        public int get()
+        {
+            if (playerInv.player.level().isClientSide)
+            {
+                return cachedMode;
+            }
+            return BlackBoxData.isWhitelistMode(getBox()) ? BlackBoxData.MODE_WHITELIST : BlackBoxData.MODE_BLACKLIST;
+        }
+
+        @Override
+        public void set(int value)
+        {
+            cachedMode = value;
+        }
+    };
+
     public GodBlackBoxMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
         this(containerId, playerInv, extraData.readVarInt());
@@ -77,6 +98,7 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
         {
             // 客户端：用本地黑盒的当前状态初始化缓存（后续由网络包同步收敛）
             this.cachedEnabled = BlackBoxData.isEnabled(getBox()) ? 1 : 0;
+            this.cachedMode = BlackBoxData.isWhitelistMode(getBox()) ? BlackBoxData.MODE_WHITELIST : BlackBoxData.MODE_BLACKLIST;
         }
         else
         {
@@ -111,6 +133,7 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
         }
 
         this.addDataSlot(enabledSlot);
+        this.addDataSlot(modeSlot);
     }
 
     public boolean isEnabled()
@@ -118,10 +141,23 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
         return enabledSlot.get() == 1;
     }
 
+    public boolean isWhitelistMode()
+    {
+        return modeSlot.get() == BlackBoxData.MODE_WHITELIST;
+    }
+
     /** 客户端点击开关后的乐观更新（立即反馈，服务端 broadcastChanges 随后收敛）。 */
     public void toggleEnabledLocal()
     {
         this.cachedEnabled = this.cachedEnabled == 1 ? 0 : 1;
+    }
+
+    /** 客户端点击模式按钮后的乐观更新。 */
+    public void toggleModeLocal()
+    {
+        this.cachedMode = this.cachedMode == BlackBoxData.MODE_WHITELIST
+                ? BlackBoxData.MODE_BLACKLIST
+                : BlackBoxData.MODE_WHITELIST;
     }
 
     private ItemStack getBox()
@@ -182,12 +218,21 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
     @Override
     public boolean clickMenuButton(Player player, int buttonId)
     {
-        if (buttonId == 0)
+        if (buttonId == 0 || buttonId == 1)
         {
             ItemStack box = getBox();
             if (!box.isEmpty() && !player.level().isClientSide)
             {
-                BlackBoxData.setEnabled(box, !BlackBoxData.isEnabled(box));
+                if (buttonId == 0)
+                {
+                    BlackBoxData.setEnabled(box, !BlackBoxData.isEnabled(box));
+                }
+                else
+                {
+                    BlackBoxData.setMode(box, BlackBoxData.isWhitelistMode(box)
+                            ? BlackBoxData.MODE_BLACKLIST
+                            : BlackBoxData.MODE_WHITELIST);
+                }
                 this.broadcastChanges();
             }
             return true;

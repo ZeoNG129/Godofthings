@@ -179,5 +179,7 @@
   "item.godofthings.god_black_box": "神之黑盒",
   "gui.godofthings.black_box.title": "神之黑盒",
   "gui.godofthings.black_box.enabled": "开启",
-  "gui.godofthings.black_box.disabled": "关闭"
+  "gui.godofthings.black_box.disabled": "关闭",
+  "gui.godofthings.black_box.mode_whitelist": "白名单",
+  "gui.godofthings.black_box.mode_blacklist": "黑名单"
 }

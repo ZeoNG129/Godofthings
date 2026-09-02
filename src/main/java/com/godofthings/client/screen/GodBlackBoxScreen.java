@@ -23,6 +23,11 @@ public class GodBlackBoxScreen extends AbstractContainerScreen<GodBlackBoxMenu>
     private static final int SWITCH_W = 48;
     private static final int SWITCH_H = 20;
 
+    private static final int MODE_X = 8;
+    private static final int MODE_Y = 41;
+    private static final int MODE_W = 48;
+    private static final int MODE_H = 20;
+
     public GodBlackBoxScreen(GodBlackBoxMenu menu, Inventory playerInv, Component title)
     {
         super(menu, playerInv, title);
@@ -48,6 +53,17 @@ public class GodBlackBoxScreen extends AbstractContainerScreen<GodBlackBoxMenu>
                 ? "gui.godofthings.black_box.enabled"
                 : "gui.godofthings.black_box.disabled");
         gui.drawString(this.font, label, bx + (SWITCH_W - this.font.width(label)) / 2, by + 6, 0xFFFFFF);
+
+        // 过滤模式按钮（白名单 / 黑名单）
+        boolean whitelist = this.menu.isWhitelistMode();
+        int mx = x + MODE_X;
+        int my = y + MODE_Y;
+        gui.fill(mx, my, mx + MODE_W, my + MODE_H, 0xFF16181D);
+        gui.fill(mx + 1, my + 1, mx + MODE_W - 1, my + MODE_H - 1, whitelist ? 0xFF57B757 : 0xFFB7573A);
+        Component modeLabel = Component.translatable(whitelist
+                ? "gui.godofthings.black_box.mode_whitelist"
+                : "gui.godofthings.black_box.mode_blacklist");
+        gui.drawString(this.font, modeLabel, mx + (MODE_W - this.font.width(modeLabel)) / 2, my + 6, 0xFFFFFF);
     }
 
     @Override
@@ -63,6 +79,17 @@ public class GodBlackBoxScreen extends AbstractContainerScreen<GodBlackBoxMenu>
             if (conn != null)
             {
                 conn.send(new ServerboundContainerButtonClickPacket(this.menu.containerId, 0));
+            }
+            return true;
+        }
+        if (relX >= MODE_X && relX < MODE_X + MODE_W && relY >= MODE_Y && relY < MODE_Y + MODE_H)
+        {
+            // 乐观更新本地模式，再发包让服务端切换
+            this.menu.toggleModeLocal();
+            ClientPacketListener conn = Minecraft.getInstance().getConnection();
+            if (conn != null)
+            {
+                conn.send(new ServerboundContainerButtonClickPacket(this.menu.containerId, 1));
             }
             return true;
         }
