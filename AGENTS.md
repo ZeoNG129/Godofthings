@@ -34,13 +34,13 @@
 1. 改 `gradle.properties` 的 `mod_version` + 在 `VERSIONING.md` 加历史
 2. `gradlew build`（自动部署）
 3. `git add -A && git commit -m "中文一句话" && git push origin 1.21.1`
-4. **仅大版本（第二位/首位变化）发 GitHub Release**：`powershell -ExecutionPolicy Bypass -File .\release.ps1 -Notes "更新说明"`；小版本（末位变化，修复/优化）只 commit+push，不单独发 release，等大版本时把整段小版本的更新汇总进一条 notes（更新日志一个大版本写一起，不用小版本详细介绍）
+4. **大版本（第二位/首位变化）才新建 GitHub Release**；小版本（末位变化，修复/优化）build 后把 `godofthings-<版本>.jar` 作为**额外 asset 上传到归属大版本 release 下**（用 REST API：`POST https://uploads.github.com/repos/ZeoNG129/Godofthings/releases/{大版本release_id}/assets?name=godofthings-<版本>.jar`，不新建 release），并在 release notes 里追加该小版本一行说明——即每个大版本一个 release，其下能下到该大版本所有小版本 jar
 
 ## 项目约定
 - 只保留原创内容，勿引入第三方模组移植包
 - 语言文件 `zh_cn.json` 与 `en_us.json` 键集必须双向一致
 - **README「内容一览」提交更新时就要同步更新**（新增/删除物品、方块、功能都要改那张表格）
 - git 分支：本项目用 `1.21.1` 分支（GitHub 仓库默认分支已设为 `1.21.1`）；1.20.1 Forge 版在 `main` 分支（本地 `E:\MC\Mod\1.20.1\Godofthings`），两仓库 remote 指向同一 GitHub 仓库 `ZeoNG129/Godofthings`
-- GitHub Release 按大版本整合：1.21.1 只保留「1.x」和「2.x」两个汇总 release（各附该大版本最终 jar），1.20.1 保留 v2.0.5；小版本不占独立 release
+- GitHub Release 按大版本归类：1.21.1 只有「1.x」和「2.x」两个 release（1.x 的 tag 是 v1.9.0、2.x 的 tag 是 v2.4.1），1.20.1 保留 v2.0.5；每个大版本 release 下挂该大版本**所有小版本 jar**（新小版本 jar 追加为 asset，不删除旧 asset）
 - 提交信息用中文一句话
 - 已知非阻塞警告：约 20-30 条 `@EventBusSubscriber bus()` [removal] 警告（`RegisterCapabilitiesEvent`/`RegisterPayloadHandlersEvent` 是 IModBusEvent 必须保留 `bus=Bus.MOD`，NeoForge 21.1 过渡标记，无替代 API）
