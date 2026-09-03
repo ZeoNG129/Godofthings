@@ -16,20 +16,19 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 神之砍杀屏幕：功能 / 存储两个板块（顶部按钮切换）。
+ * 神之砍杀屏幕：功能 / 存储 / 经验三个板块（顶部按钮切换），面配置由顶部按钮打开独立界面。
+ * 玩家物品栏固定在底部（y=84 起），各板块内容在 y=24-78 之间，互不重合。
  */
 public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu>
 {
-    private static final int TAB_W = 58;
-    private static final int TAB_H = 16;
-
-    private static final String[] FACE_LABELS = { "—", "入", "出", "双" };
+    private static final int TAB_W = 36;
+    private static final int TAB_H = 14;
 
     public GodSlaughterScreen(GodSlaughterMenu menu, Inventory playerInv, Component title)
     {
         super(menu, playerInv, title);
-        this.imageWidth = 256;
-        this.imageHeight = 200;
+        this.imageWidth = 176;
+        this.imageHeight = 166;
         this.inventoryLabelY = this.imageHeight - 94;
     }
 
@@ -40,92 +39,94 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
         int y = this.topPos;
         gui.fill(x, y, x + this.imageWidth, y + this.imageHeight, 0xFF1E1E22);
 
-        // 顶部两个板块按钮
-        drawButton(gui, x + 8, y + 8, TAB_W, TAB_H,
+        // 顶部：三个板块按钮 + 面配置按钮
+        drawButton(gui, x + 8, y + 4, TAB_W, TAB_H,
                 Component.translatable("gui.godofthings.slaughter.tab_function"),
                 this.menu.getCurrentTab() == GodSlaughterMenu.TAB_FUNCTION);
-        drawButton(gui, x + 70, y + 8, TAB_W, TAB_H,
+        drawButton(gui, x + 46, y + 4, TAB_W, TAB_H,
                 Component.translatable("gui.godofthings.slaughter.tab_storage"),
                 this.menu.getCurrentTab() == GodSlaughterMenu.TAB_STORAGE);
+        drawButton(gui, x + 84, y + 4, TAB_W, TAB_H,
+                Component.translatable("gui.godofthings.slaughter.tab_experience"),
+                this.menu.getCurrentTab() == GodSlaughterMenu.TAB_EXPERIENCE);
+        drawButton(gui, x + 122, y + 4, 46, TAB_H,
+                Component.translatable("gui.godofthings.face_config"), false);
 
-        if (this.menu.getCurrentTab() == GodSlaughterMenu.TAB_FUNCTION)
+        int tab = this.menu.getCurrentTab();
+        if (tab == GodSlaughterMenu.TAB_FUNCTION)
         {
             renderFunction(gui, x, y);
         }
-        else
+        else if (tab == GodSlaughterMenu.TAB_EXPERIENCE)
         {
-            renderStorage(gui, x, y);
+            renderExperience(gui, x, y);
         }
+        // 存储板块的槽位由 AbstractContainerScreen 渲染
     }
 
     private void renderFunction(GuiGraphics gui, int x, int y)
     {
-        // 开关
-        drawButton(gui, x + 8, y + 34, 110, 16,
+        // 开关 + 秒杀
+        drawButton(gui, x + 8, y + 24, 76, 16,
                 this.menu.isEnabled()
                         ? Component.translatable("gui.godofthings.slaughter.on")
                         : Component.translatable("gui.godofthings.slaughter.off"),
                 this.menu.isEnabled());
-
-        // 范围
-        gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.range",
-                this.menu.getRange()), x + 8, y + 60, 0xFFFFFF);
-        drawButton(gui, x + 150, y + 56, 20, 16, Component.literal("-"), false);
-        drawButton(gui, x + 172, y + 56, 20, 16, Component.literal("+"), false);
-
-        // 抢夺
-        drawButton(gui, x + 8, y + 80, 110, 16,
-                this.menu.isLootingEnabled()
-                        ? Component.translatable("gui.godofthings.slaughter.looting_on")
-                        : Component.translatable("gui.godofthings.slaughter.looting_off"),
-                this.menu.isLootingEnabled());
-        gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.looting",
-                this.menu.getLooting()), x + 124, y + 84, 0xFFFFFF);
-        drawButton(gui, x + 150, y + 100, 20, 16, Component.literal("-"), false);
-        drawButton(gui, x + 172, y + 100, 20, 16, Component.literal("+"), false);
-
-        // 秒杀
-        drawButton(gui, x + 8, y + 124, 110, 16,
+        drawButton(gui, x + 88, y + 24, 76, 16,
                 this.menu.isInstantKill()
                         ? Component.translatable("gui.godofthings.slaughter.instant_on")
                         : Component.translatable("gui.godofthings.slaughter.instant_off"),
                 this.menu.isInstantKill());
 
-        // 面配置
-        renderFaceButtons(gui, x, y + 148);
+        // 范围
+        gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.range",
+                this.menu.getRange()), x + 8, y + 50, 0xFFFFFF);
+        drawButton(gui, x + 96, y + 46, 18, 16, Component.literal("-"), false);
+        drawButton(gui, x + 116, y + 46, 18, 16, Component.literal("+"), false);
+
+        // 抢夺
+        drawButton(gui, x + 8, y + 66, 76, 16,
+                this.menu.isLootingEnabled()
+                        ? Component.translatable("gui.godofthings.slaughter.looting_on")
+                        : Component.translatable("gui.godofthings.slaughter.looting_off"),
+                this.menu.isLootingEnabled());
+        gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.looting",
+                this.menu.getLooting()), x + 136, y + 70, 0xFFFFFF);
+        drawButton(gui, x + 96, y + 66, 18, 16, Component.literal("-"), false);
+        drawButton(gui, x + 116, y + 66, 18, 16, Component.literal("+"), false);
     }
 
-    private void renderStorage(GuiGraphics gui, int x, int y)
+    private void renderExperience(GuiGraphics gui, int x, int y)
     {
-        gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.storage",
-                this.menu.getBlockEntity().getStorageCount()), x + 8, y + 34, 0x55FFFF);
-        // 27 格槽位由 AbstractContainerScreen 渲染
-        renderFaceButtons(gui, x, y + 148);
-    }
-
-    private void renderFaceButtons(GuiGraphics gui, int x, int y)
-    {
-        for (int i = 0; i < 6; i++)
-        {
-            int mode = this.menu.getFaceMode(i);
-            drawButton(gui, x + 8 + i * 40, y, 36, 16,
-                    Component.literal(FACE_LABELS[((mode % 4) + 4) % 4]), mode != 0);
-        }
+        gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.xp_stored",
+                this.menu.getExperiencePoints()), x + 8, y + 26, 0x55FF55);
+        drawButton(gui, x + 8, y + 48, 40, 16,
+                Component.translatable("gui.godofthings.slaughter.xp_take_1"), false);
+        drawButton(gui, x + 52, y + 48, 40, 16,
+                Component.translatable("gui.godofthings.slaughter.xp_take_10"), false);
+        drawButton(gui, x + 96, y + 48, 40, 16,
+                Component.translatable("gui.godofthings.slaughter.xp_take_100"), false);
+        drawButton(gui, x + 8, y + 66, 40, 16,
+                Component.translatable("gui.godofthings.slaughter.xp_take_all"), false);
     }
 
     private void drawButton(GuiGraphics gui, int bx, int by, int w, int h, Component label, boolean active)
     {
         gui.fill(bx, by, bx + w, by + h, 0xFF16181D);
         gui.fill(bx + 1, by + 1, bx + w - 1, by + h - 1, active ? 0xFF57B757 : 0xFF3A4048);
-        gui.drawString(this.font, label, bx + (w - this.font.width(label)) / 2, by + 4, 0xFFFFFF);
+        gui.drawString(this.font, label, bx + (w - this.font.width(label)) / 2, by + 3, 0xFFFFFF);
     }
 
-    /** 存储槽数量无上限，超过 999 用 K/M/G 等紧凑显示。 */
+    /** 只有存储板块渲染存储槽；存储槽数量无上限，超过 999 用 K/M/G 等紧凑显示。 */
     @Override
     protected void renderSlot(GuiGraphics gui, Slot slot)
     {
         if (slot.index < GodSlaughterBlockEntity.STORAGE_SLOTS)
         {
+            if (this.menu.getCurrentTab() != GodSlaughterMenu.TAB_STORAGE)
+            {
+                return;
+            }
             ItemStack stack = slot.getItem();
             if (!stack.isEmpty() && stack.getCount() > 999)
             {
@@ -156,66 +157,89 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
         int relY = (int) mouseY - this.topPos;
         int tab = this.menu.getCurrentTab();
 
-        // 板块切换
-        if (inRect(relX, relY, 8, 8, TAB_W, TAB_H))
+        // 顶部 tab + 面配置
+        if (inRect(relX, relY, 8, 4, TAB_W, TAB_H))
         {
             this.menu.setCurrentTab(GodSlaughterMenu.TAB_FUNCTION);
             return true;
         }
-        if (inRect(relX, relY, 70, 8, TAB_W, TAB_H))
+        if (inRect(relX, relY, 46, 4, TAB_W, TAB_H))
         {
             this.menu.setCurrentTab(GodSlaughterMenu.TAB_STORAGE);
             return true;
         }
-
-        // 面配置按钮（两个板块都有，位于 y+148）
-        for (int i = 0; i < 6; i++)
+        if (inRect(relX, relY, 84, 4, TAB_W, TAB_H))
         {
-            if (inRect(relX, relY, 8 + i * 40, 148, 36, 16))
-            {
-                sendButton(3 + i);
-                return true;
-            }
+            this.menu.setCurrentTab(GodSlaughterMenu.TAB_EXPERIENCE);
+            return true;
+        }
+        if (inRect(relX, relY, 122, 4, 46, TAB_H))
+        {
+            sendButton(3);
+            return true;
         }
 
         if (tab == GodSlaughterMenu.TAB_FUNCTION)
         {
-            if (inRect(relX, relY, 8, 34, 110, 16))
+            if (inRect(relX, relY, 8, 24, 76, 16))
             {
                 this.menu.toggleEnabledLocal();
                 sendButton(0);
                 return true;
             }
-            if (inRect(relX, relY, 150, 56, 20, 16))
+            if (inRect(relX, relY, 88, 24, 76, 16))
+            {
+                this.menu.toggleInstantKillLocal();
+                sendButton(2);
+                return true;
+            }
+            if (inRect(relX, relY, 96, 46, 18, 16))
             {
                 adjustRange(-GuiStep.amount());
                 return true;
             }
-            if (inRect(relX, relY, 172, 56, 20, 16))
+            if (inRect(relX, relY, 116, 46, 18, 16))
             {
                 adjustRange(GuiStep.amount());
                 return true;
             }
-            if (inRect(relX, relY, 8, 80, 110, 16))
+            if (inRect(relX, relY, 8, 66, 76, 16))
             {
                 this.menu.toggleLootingEnabledLocal();
                 sendButton(1);
                 return true;
             }
-            if (inRect(relX, relY, 150, 100, 20, 16))
+            if (inRect(relX, relY, 96, 66, 18, 16))
             {
                 adjustLooting(-GuiStep.amount());
                 return true;
             }
-            if (inRect(relX, relY, 172, 100, 20, 16))
+            if (inRect(relX, relY, 116, 66, 18, 16))
             {
                 adjustLooting(GuiStep.amount());
                 return true;
             }
-            if (inRect(relX, relY, 8, 124, 110, 16))
+        }
+        else if (tab == GodSlaughterMenu.TAB_EXPERIENCE)
+        {
+            if (inRect(relX, relY, 8, 48, 40, 16))
             {
-                this.menu.toggleInstantKillLocal();
-                sendButton(2);
+                sendButton(4);
+                return true;
+            }
+            if (inRect(relX, relY, 52, 48, 40, 16))
+            {
+                sendButton(5);
+                return true;
+            }
+            if (inRect(relX, relY, 96, 48, 40, 16))
+            {
+                sendButton(6);
+                return true;
+            }
+            if (inRect(relX, relY, 8, 66, 40, 16))
+            {
+                sendButton(7);
                 return true;
             }
         }

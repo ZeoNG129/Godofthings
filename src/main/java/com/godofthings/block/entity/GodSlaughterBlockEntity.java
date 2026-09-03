@@ -29,6 +29,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +61,9 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     private boolean lootingEnabled = false;
     private int looting = 100;
     private boolean instantKill = true;
+
+    /** 内部存储的经验点数（击杀生物吸收，不生成经验球）。 */
+    private int experiencePoints = 0;
 
     // ---- 存储 ----
     private final InfiniteItemHandler storage = new InfiniteItemHandler();
@@ -296,6 +300,41 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         return storage.getStacks().size();
     }
 
+    // ---- 经验 ----
+
+    public int getExperiencePoints()
+    {
+        return experiencePoints;
+    }
+
+    /** 击杀生物吸收经验（LivingExperienceDropEvent 调用）。 */
+    public void addExperience(int points)
+    {
+        if (points <= 0)
+        {
+            return;
+        }
+        this.experiencePoints += points;
+        setChanged();
+    }
+
+    /** 取出指定数量的经验点（返回实际取出量）。 */
+    public int takeExperience(int amount)
+    {
+        int actual = Math.max(0, Math.min(amount, experiencePoints));
+        this.experiencePoints -= actual;
+        setChanged();
+        return actual;
+    }
+
+    public int takeAllExperience()
+    {
+        int all = experiencePoints;
+        this.experiencePoints = 0;
+        setChanged();
+        return all;
+    }
+
     /** 掉落物进存储（掉落拦截调用）。 */
     public void insertIntoStorage(ItemStack stack)
     {
@@ -488,6 +527,30 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     @EventBusSubscriber(modid = Godofthings.MODID)
     public static class SlaughterEvents
     {
+        /** 经验吸收：机器击杀的生物经验点进内部存储，不生成经验球（不清理标记，掉落事件随后清理）。 */
+        @SubscribeEvent
+        public static void onLivingExperienceDrop(LivingExperienceDropEvent event)
+        {
+            LivingEntity entity = event.getEntity();
+            CompoundTag data = entity.getPersistentData();
+            if (!data.contains("GodSlaughterMachine"))
+            {
+                return;
+            }
+            long posLong = data.getLong("GodSlaughterMachine");
+            if (!(entity.level() instanceof ServerLevel level))
+            {
+                return;
+            }
+            BlockPos pos = BlockPos.of(posLong);
+            if (level.getBlockEntity(pos) instanceof GodSlaughterBlockEntity be)
+            {
+                int xp = event.getDroppedExperience();
+                event.setDroppedExperience(0);
+                be.addExperience(xp);
+            }
+        }
+
         @SubscribeEvent
         public static void onLivingDrops(LivingDropsEvent event)
         {
@@ -527,6 +590,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         this.lootingEnabled = tag.getBoolean("LootingEnabled");
         this.looting = tag.contains("Looting") ? tag.getInt("Looting") : 100;
         this.instantKill = tag.contains("InstantKill") ? tag.getBoolean("InstantKill") : true;
+        this.experiencePoints = tag.contains("ExperiencePoints") ? tag.getInt("ExperiencePoints") : 0;
         if (tag.contains("FaceModes"))
         {
             int[] modes = tag.getIntArray("FaceModes");
@@ -547,6 +611,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         tag.putBoolean("LootingEnabled", this.lootingEnabled);
         tag.putInt("Looting", this.looting);
         tag.putBoolean("InstantKill", this.instantKill);
+        tag.putInt("ExperiencePoints", this.experiencePoints);
         tag.putIntArray("FaceModes", faceModes);
         tag.put("Storage", storage.serializeNBT(registries));
     }

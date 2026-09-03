@@ -57,6 +57,7 @@ import com.godofthings.menu.GodFurnaceMenu;
 import com.godofthings.menu.GodMinerMenu;
 import com.godofthings.menu.GodRecordMenu;
 import com.godofthings.menu.GodResourceMenu;
+import com.godofthings.menu.GodSlaughterConfigMenu;
 import com.godofthings.menu.GodSlaughterMenu;
 import com.godofthings.menu.GodTransmitterMenu;
 import com.godofthings.menu.WaypointMenu;
@@ -306,6 +307,9 @@ public class Godofthings
     public static final DeferredHolder<MenuType<?>, MenuType<GodSlaughterMenu>> GOD_SLAUGHTER_MENU =
             MENUS.register("god_slaughter",
                     () -> IMenuTypeExtension.create(GodSlaughterMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodSlaughterConfigMenu>> GOD_SLAUGHTER_CONFIG_MENU =
+            MENUS.register("god_slaughter_config",
+                    () -> IMenuTypeExtension.create(GodSlaughterConfigMenu::new));
 
     // ---- 神之更改 ----
     public static final DeferredItem<GodChangeItem> GOD_CHANGE =

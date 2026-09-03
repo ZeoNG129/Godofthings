@@ -231,5 +231,11 @@
   "gui.godofthings.slaughter.looting": "抢夺：%s",
   "gui.godofthings.slaughter.instant_on": "秒杀：开",
   "gui.godofthings.slaughter.instant_off": "秒杀：关",
-  "gui.godofthings.slaughter.storage": "存储（%s 种物品）"
+  "gui.godofthings.slaughter.storage": "存储（%s 种物品）",
+  "gui.godofthings.slaughter.tab_experience": "经验",
+  "gui.godofthings.slaughter.xp_stored": "经验点数：%s",
+  "gui.godofthings.slaughter.xp_take_1": "取1级",
+  "gui.godofthings.slaughter.xp_take_10": "取10级",
+  "gui.godofthings.slaughter.xp_take_100": "取100级",
+  "gui.godofthings.slaughter.xp_take_all": "取全部"
 }

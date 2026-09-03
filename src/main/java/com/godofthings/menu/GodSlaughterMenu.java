@@ -2,9 +2,10 @@ package com.godofthings.menu;
 
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodSlaughterBlockEntity;
-import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -15,12 +16,14 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
 /**
- * 神之砍杀菜单：功能 / 存储两个板块（按钮切换），27 格存储槽（映射无限存储）。
+ * 神之砍杀菜单：功能 / 存储 / 经验三个板块（顶部按钮切换），27 格存储槽（映射无限存储）。
+ * 面配置由单独按钮打开 {@link GodSlaughterConfigMenu}。
  */
 public class GodSlaughterMenu extends AbstractContainerMenu
 {
     public static final int TAB_FUNCTION = 0;
     public static final int TAB_STORAGE = 1;
+    public static final int TAB_EXPERIENCE = 2;
 
     private final GodSlaughterBlockEntity be;
     private final ContainerLevelAccess access;
@@ -31,7 +34,7 @@ public class GodSlaughterMenu extends AbstractContainerMenu
     private int cachedLootingEnabled = 0;
     private int cachedLooting = 100;
     private int cachedInstantKill = 1;
-    private final int[] cachedFaceModes = new int[6];
+    private int cachedExperiencePoints = 0;
 
     // 当前标签页（纯客户端状态）
     private int currentTab = TAB_FUNCTION;
@@ -48,7 +51,6 @@ public class GodSlaughterMenu extends AbstractContainerMenu
         this.be = be;
         this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
 
-        // 功能 DataSlot
         this.addDataSlot(new DataSlot()
         {
             @Override public int get() { return be.isEnabled() ? 1 : 0; }
@@ -74,22 +76,18 @@ public class GodSlaughterMenu extends AbstractContainerMenu
             @Override public int get() { return be.isInstantKill() ? 1 : 0; }
             @Override public void set(int value) { cachedInstantKill = value; }
         });
-        for (int i = 0; i < 6; i++)
+        this.addDataSlot(new DataSlot()
         {
-            final int idx = i;
-            this.addDataSlot(new DataSlot()
-            {
-                @Override public int get() { return be.getFaceMode(Direction.values()[idx]); }
-                @Override public void set(int value) { cachedFaceModes[idx] = value; }
-            });
-        }
+            @Override public int get() { return be.getExperiencePoints(); }
+            @Override public void set(int value) { cachedExperiencePoints = value; }
+        });
 
         // 27 格存储槽（映射无限存储前 27 个堆叠）
         for (int row = 0; row < 3; row++)
         {
             for (int col = 0; col < 9; col++)
             {
-                this.addSlot(new SlotItemHandler(be.getStorageView(), row * 9 + col, 8 + col * 18, 60 + row * 18));
+                this.addSlot(new SlotItemHandler(be.getStorageView(), row * 9 + col, 8 + col * 18, 17 + row * 18));
             }
         }
 
@@ -98,12 +96,12 @@ public class GodSlaughterMenu extends AbstractContainerMenu
         {
             for (int col = 0; col < 9; col++)
             {
-                this.addSlot(new Slot(playerInv, col + row * 9 + 9, 8 + col * 18, 122 + row * 18));
+                this.addSlot(new Slot(playerInv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
             }
         }
         for (int col = 0; col < 9; col++)
         {
-            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 180));
+            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 142));
         }
     }
 
@@ -119,7 +117,7 @@ public class GodSlaughterMenu extends AbstractContainerMenu
     public boolean isLootingEnabled() { return cachedLootingEnabled == 1; }
     public int getLooting() { return cachedLooting; }
     public boolean isInstantKill() { return cachedInstantKill == 1; }
-    public int getFaceMode(int dirIndex) { return cachedFaceModes[dirIndex]; }
+    public int getExperiencePoints() { return cachedExperiencePoints; }
 
     public int getCurrentTab() { return currentTab; }
     public void setCurrentTab(int tab) { this.currentTab = tab; }
@@ -133,8 +131,7 @@ public class GodSlaughterMenu extends AbstractContainerMenu
     public void setLootingLocal(int v) { this.cachedLooting = v; }
 
     /**
-     * 按钮：0=开关，1=抢夺开关，2=秒杀开关，3-8=六面面模式循环。
-     * 范围 / 抢夺强度调节走 C2S payload（支持 Shift/Ctrl 步进手势）。
+     * 按钮：0=开关，1=抢夺开关，2=秒杀开关，3=打开面配置界面，4=取1级，5=取10级，6=取100级，7=取全部经验。
      */
     @Override
     public boolean clickMenuButton(Player player, int buttonId)
@@ -144,11 +141,45 @@ public class GodSlaughterMenu extends AbstractContainerMenu
             case 0 -> be.toggleEnabled();
             case 1 -> be.toggleLootingEnabled();
             case 2 -> be.toggleInstantKill();
-            case 3, 4, 5, 6, 7, 8 -> be.cycleFaceMode(Direction.values()[buttonId - 3]);
+            case 3 -> openConfig(player);
+            case 4 -> takeXp(player, 7);
+            case 5 -> takeXp(player, 70);
+            case 6 -> takeXp(player, 700);
+            case 7 -> takeXp(player, Integer.MAX_VALUE);
             default -> { return false; }
         }
         this.broadcastChanges();
         return true;
+    }
+
+    private void openConfig(Player player)
+    {
+        if (player instanceof ServerPlayer serverPlayer)
+        {
+            serverPlayer.openMenu(new MenuProvider()
+            {
+                @Override
+                public Component getDisplayName()
+                {
+                    return Component.translatable("gui.godofthings.face_config");
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player p)
+                {
+                    return new GodSlaughterConfigMenu(containerId, inventory, be);
+                }
+            }, buf -> buf.writeBlockPos(be.getBlockPos()));
+        }
+    }
+
+    private void takeXp(Player player, int amount)
+    {
+        int pts = amount >= Integer.MAX_VALUE ? be.takeAllExperience() : be.takeExperience(amount);
+        if (pts > 0)
+        {
+            player.giveExperiencePoints(pts);
+        }
     }
 
     @Override
@@ -168,19 +199,14 @@ public class GodSlaughterMenu extends AbstractContainerMenu
             result = stack.copy();
             if (index < GodSlaughterBlockEntity.STORAGE_SLOTS)
             {
-                // 存储槽 → 玩家物品栏
                 if (!this.moveItemStackTo(stack, GodSlaughterBlockEntity.STORAGE_SLOTS, this.slots.size(), true))
                 {
                     return ItemStack.EMPTY;
                 }
             }
-            else
+            else if (!this.moveItemStackTo(stack, 0, GodSlaughterBlockEntity.STORAGE_SLOTS, false))
             {
-                // 玩家物品栏 → 存储槽
-                if (!this.moveItemStackTo(stack, 0, GodSlaughterBlockEntity.STORAGE_SLOTS, false))
-                {
-                    return ItemStack.EMPTY;
-                }
+                return ItemStack.EMPTY;
             }
             if (stack.isEmpty())
             {
