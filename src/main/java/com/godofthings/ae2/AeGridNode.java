@@ -43,6 +43,7 @@ public class AeGridNode implements IInWorldGridNodeHost, IActionHost
         {
             mainNode = GridHelper.createManagedNode(be, new GridNodeListener());
             mainNode.setFlags(GridFlags.REQUIRE_CHANNEL); // 占一个频道
+            mainNode.setInWorldNode(true); // 关键：世界内节点，AE 线缆才能连接
             mainNode.setExposedOnSides(EnumSet.allOf(Direction.class));
             mainNode.setIdlePowerUsage(1.0);
         }
