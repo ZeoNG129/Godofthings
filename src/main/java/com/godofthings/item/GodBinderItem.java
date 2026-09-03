@@ -53,7 +53,7 @@ public class GodBinderItem extends Item
             }
             else
             {
-                nearest.bindMachine(dim, pos);
+                nearest.bindMachine(level, pos);
                 player.displayClientMessage(
                         Component.translatable("message.godofthings.binder.machine_bound"), true);
             }

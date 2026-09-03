@@ -42,7 +42,7 @@ public class BinderPlaceHandler
         GodTransmitterBlockEntity nearest = GodTransmitterBlockEntity.findNearest(level, pos);
         if (nearest != null)
         {
-            nearest.bindMachine(level.dimension(), pos);
+            nearest.bindMachine(level, pos);
             player.displayClientMessage(
                     Component.translatable("message.godofthings.binder.machine_bound"), true);
         }

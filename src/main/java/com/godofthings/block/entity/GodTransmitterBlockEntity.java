@@ -5,6 +5,7 @@ import com.godofthings.menu.GodTransmitterMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,8 +40,8 @@ import java.util.WeakHashMap;
 /**
  * 神之传输（能量传输器）方块实体：
  * <ul>
- *   <li>无线连接（机器充能）：维护按维度分组的绑定设备集合，范围内 FE 机器自动绑定，
- *       绑定器也可手动绑定 / 取消绑定；按机器速率（或无上限）逐设备充能。</li>
+ *   <li>无线连接（机器充能）：绑定器手动绑定 FE 机器（记录方块 ID），按机器速率（或无上限）逐设备充能；
+ *       每 20 tick 校验绑定方块是否仍存在，被打掉自动清理。</li>
  *   <li>玩家充能：权限界面选择绑定的玩家，按其速率（或无上限）给物品栏可充能物品充能。</li>
  *   <li>跨维度开关独立（机器 / 玩家），开启后无视距离（跨维度）充能。</li>
  * </ul>
@@ -52,6 +54,9 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     /** 机器速率滑块预设档位。 */
     public static final int[] RATE_PRESETS = {100, 1000, 5000, 10000, 100000};
 
+    /** 失效绑定清理间隔（tick）。 */
+    private static final int PRUNE_INTERVAL = 20;
+
     /** 已加载的神之传输注册表（供绑定器查找最近传输器）。 */
     private static final Set<GodTransmitterBlockEntity> LOADED =
             Collections.newSetFromMap(new WeakHashMap<>());
@@ -60,7 +65,9 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     private int machineRate = 100;
     private boolean machineUnlimited = false;
     private boolean machineCrossDimension = false;
-    private final Map<ResourceKey<Level>, Set<BlockPos>> boundMachines = new HashMap<>();
+    /** 绑定机器：维度 -> (坐标 -> 绑定时的方块 ID，用于打掉后清理)。 */
+    private final Map<ResourceKey<Level>, Map<BlockPos, String>> boundMachines = new HashMap<>();
+    private int pruneTimer = 0;
 
     // ---- 玩家充能 ----
     private boolean playerEnabled = true;
@@ -189,9 +196,9 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     public int getBoundCount()
     {
         int n = 0;
-        for (Set<BlockPos> set : boundMachines.values())
+        for (Map<BlockPos, String> map : boundMachines.values())
         {
-            n += set.size();
+            n += map.size();
         }
         return n;
     }
@@ -204,24 +211,31 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
 
     public boolean isBound(ResourceKey<Level> dim, BlockPos pos)
     {
-        Set<BlockPos> set = boundMachines.get(dim);
-        return set != null && set.contains(pos);
+        Map<BlockPos, String> map = boundMachines.get(dim);
+        return map != null && map.containsKey(pos);
     }
 
-    /** 手动绑定机器（加入绑定集合）。 */
-    public void bindMachine(ResourceKey<Level> dim, BlockPos pos)
+    /** 手动绑定机器（记录当前方块 ID，供打掉后自动清理）。 */
+    public void bindMachine(Level level, BlockPos pos)
     {
-        boundMachines.computeIfAbsent(dim, k -> new HashSet<>()).add(pos);
+        ResourceKey<Level> dim = level.dimension();
+        ResourceLocation key = BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock());
+        String blockId = key == null ? "" : key.toString();
+        boundMachines.computeIfAbsent(dim, k -> new HashMap<>()).put(pos, blockId);
         setChanged();
     }
 
-    /** 取消绑定（移出绑定集合）。 */
+    /** 取消绑定。 */
     public void unbindMachine(ResourceKey<Level> dim, BlockPos pos)
     {
-        Set<BlockPos> set = boundMachines.get(dim);
-        if (set != null)
+        Map<BlockPos, String> map = boundMachines.get(dim);
+        if (map != null)
         {
-            set.remove(pos);
+            map.remove(pos);
+            if (map.isEmpty())
+            {
+                boundMachines.remove(dim);
+            }
         }
         setChanged();
     }
@@ -230,10 +244,10 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     public List<String> getBoundMachineTexts()
     {
         List<String> list = new ArrayList<>();
-        for (Map.Entry<ResourceKey<Level>, Set<BlockPos>> entry : boundMachines.entrySet())
+        for (Map.Entry<ResourceKey<Level>, Map<BlockPos, String>> entry : boundMachines.entrySet())
         {
             String dim = entry.getKey().location().toString();
-            for (BlockPos p : entry.getValue())
+            for (BlockPos p : entry.getValue().keySet())
             {
                 list.add(dim + " " + p.getX() + " " + p.getY() + " " + p.getZ());
             }
@@ -291,6 +305,12 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
             be.chargePlayers(level);
         }
         be.chargeBoundMachines(level);
+        be.pruneTimer++;
+        if (be.pruneTimer >= PRUNE_INTERVAL)
+        {
+            be.pruneTimer = 0;
+            be.pruneBrokenTargets(level);
+        }
     }
 
     /** 给绑定的玩家充能。 */
@@ -350,7 +370,7 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
             return;
         }
         int amount = machineUnlimited ? Integer.MAX_VALUE : machineRate;
-        for (Map.Entry<ResourceKey<Level>, Set<BlockPos>> entry : boundMachines.entrySet())
+        for (Map.Entry<ResourceKey<Level>, Map<BlockPos, String>> entry : boundMachines.entrySet())
         {
             Level targetLevel = entry.getKey().equals(level.dimension())
                     ? level
@@ -363,7 +383,7 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
             {
                 continue;
             }
-            for (BlockPos target : entry.getValue())
+            for (BlockPos target : entry.getValue().keySet())
             {
                 if (!machineCrossDimension && target.distSqr(worldPosition) > (long) RANGE * RANGE)
                 {
@@ -374,40 +394,142 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         }
     }
 
-    private static void chargeMachineAt(Level level, BlockPos target, int amount)
+    /**
+     * 探测式充能：遍历 side=null 与六面，用 simulate 探测实际可接收量，选接收量最大的 storage
+     * （兼容 Mekanism 等 canReceive 行为特殊、或在特定面暴露能力的机器）。
+     */
+    private static int chargeMachineAt(Level level, BlockPos target, int amount)
     {
-        IEnergyStorage storage = level.getCapability(Capabilities.EnergyStorage.BLOCK, target, null);
-        if (storage != null && storage.canReceive())
+        IEnergyStorage best = null;
+        int bestReceive = -1;
+        IEnergyStorage s = level.getCapability(Capabilities.EnergyStorage.BLOCK, target, null);
+        if (s != null)
         {
-            storage.receiveEnergy(amount, false);
-            return;
+            int r = probeReceive(s, amount);
+            if (r > bestReceive)
+            {
+                bestReceive = r;
+                best = s;
+            }
         }
-        // 部分机器（如 Mekanism）仅在特定面暴露能力，遍历六面兜底
         for (Direction side : Direction.values())
         {
-            storage = level.getCapability(Capabilities.EnergyStorage.BLOCK, target, side);
-            if (storage != null && storage.canReceive())
+            s = level.getCapability(Capabilities.EnergyStorage.BLOCK, target, side);
+            if (s != null)
             {
-                storage.receiveEnergy(amount, false);
-                return;
+                int r = probeReceive(s, amount);
+                if (r > bestReceive)
+                {
+                    bestReceive = r;
+                    best = s;
+                }
             }
+        }
+        if (best != null && bestReceive > 0)
+        {
+            return best.receiveEnergy(amount, false);
+        }
+        return 0;
+    }
+
+    /** simulate 探测 storage 实际可接收量（异常返回 0）。 */
+    private static int probeReceive(IEnergyStorage storage, int amount)
+    {
+        try
+        {
+            if (!storage.canReceive())
+            {
+                return 0;
+            }
+            return Math.max(0, storage.receiveEnergy(amount, true));
+        }
+        catch (RuntimeException e)
+        {
+            return 0;
         }
     }
 
     public static boolean hasEnergyStorage(Level level, BlockPos pos)
     {
-        if (level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, null) != null)
+        IEnergyStorage s = level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, null);
+        if (accepts(s))
         {
             return true;
         }
         for (Direction side : Direction.values())
         {
-            if (level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, side) != null)
+            s = level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, side);
+            if (accepts(s))
             {
                 return true;
             }
         }
         return false;
+    }
+
+    private static boolean accepts(IEnergyStorage storage)
+    {
+        if (storage == null)
+        {
+            return false;
+        }
+        try
+        {
+            return storage.canReceive() || probeReceive(storage, 1000) > 0;
+        }
+        catch (RuntimeException e)
+        {
+            return false;
+        }
+    }
+
+    /** 定期清理失效绑定：方块被打掉（或替换）后，其方块 ID 与绑定记录不一致则移除。 */
+    private void pruneBrokenTargets(Level level)
+    {
+        if (level.isClientSide || level.getServer() == null)
+        {
+            return;
+        }
+        boolean changed = false;
+        Iterator<Map.Entry<ResourceKey<Level>, Map<BlockPos, String>>> dimIt = boundMachines.entrySet().iterator();
+        while (dimIt.hasNext())
+        {
+            Map.Entry<ResourceKey<Level>, Map<BlockPos, String>> dimEntry = dimIt.next();
+            ResourceKey<Level> dim = dimEntry.getKey();
+            Level targetLevel = dim.equals(level.dimension()) ? level : level.getServer().getLevel(dim);
+            if (targetLevel == null)
+            {
+                continue;
+            }
+            Iterator<Map.Entry<BlockPos, String>> posIt = dimEntry.getValue().entrySet().iterator();
+            while (posIt.hasNext())
+            {
+                Map.Entry<BlockPos, String> posEntry = posIt.next();
+                if (!blockMatches(targetLevel, posEntry.getKey(), posEntry.getValue()))
+                {
+                    posIt.remove();
+                    changed = true;
+                }
+            }
+            if (dimEntry.getValue().isEmpty())
+            {
+                dimIt.remove();
+            }
+        }
+        if (changed)
+        {
+            setChanged();
+        }
+    }
+
+    private static boolean blockMatches(Level level, BlockPos pos, String blockId)
+    {
+        if (blockId == null || blockId.isEmpty())
+        {
+            return true; // 旧存档无方块 ID，不清理
+        }
+        ResourceLocation current = BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock());
+        return current != null && current.toString().equals(blockId);
     }
 
     // ------------------------------------------------------------------ NBT
@@ -464,23 +586,24 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         tag.put("BoundPlayers", players);
     }
 
-    private static ListTag serializeBound(Map<ResourceKey<Level>, Set<BlockPos>> map)
+    private static ListTag serializeBound(Map<ResourceKey<Level>, Map<BlockPos, String>> map)
     {
         ListTag list = new ListTag();
-        for (Map.Entry<ResourceKey<Level>, Set<BlockPos>> entry : map.entrySet())
+        for (Map.Entry<ResourceKey<Level>, Map<BlockPos, String>> entry : map.entrySet())
         {
-            for (BlockPos p : entry.getValue())
+            for (Map.Entry<BlockPos, String> posEntry : entry.getValue().entrySet())
             {
                 CompoundTag t = new CompoundTag();
                 t.putString("Dim", entry.getKey().location().toString());
-                t.putLong("Pos", p.asLong());
+                t.putLong("Pos", posEntry.getKey().asLong());
+                t.putString("Block", posEntry.getValue());
                 list.add(t);
             }
         }
         return list;
     }
 
-    private static void deserializeBound(Map<ResourceKey<Level>, Set<BlockPos>> map, ListTag list)
+    private static void deserializeBound(Map<ResourceKey<Level>, Map<BlockPos, String>> map, ListTag list)
     {
         map.clear();
         for (int i = 0; i < list.size(); i++)
@@ -492,7 +615,9 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
                 continue;
             }
             ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION, loc);
-            map.computeIfAbsent(dim, k -> new HashSet<>()).add(BlockPos.of(t.getLong("Pos")));
+            BlockPos pos = BlockPos.of(t.getLong("Pos"));
+            String blockId = t.getString("Block");
+            map.computeIfAbsent(dim, k -> new HashMap<>()).put(pos, blockId);
         }
     }
 
