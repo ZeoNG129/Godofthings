@@ -11,6 +11,7 @@ import com.godofthings.block.GodHeavenEnchantBlock;
 import com.godofthings.block.GodMinerBlock;
 import com.godofthings.block.GodRecordBlock;
 import com.godofthings.block.GodResourceBlock;
+import com.godofthings.block.GodAbsorberBlock;
 import com.godofthings.block.GodSlaughterBlock;
 import com.godofthings.block.GodTransmitterBlock;
 import com.godofthings.block.SpaceTimeEternityBlock;
@@ -23,6 +24,7 @@ import com.godofthings.block.entity.GodFurnaceBlockEntity;
 import com.godofthings.block.entity.GodMinerBlockEntity;
 import com.godofthings.block.entity.GodRecordBlockEntity;
 import com.godofthings.block.entity.GodResourceBlockEntity;
+import com.godofthings.block.entity.GodAbsorberBlockEntity;
 import com.godofthings.block.entity.GodSlaughterBlockEntity;
 import com.godofthings.block.entity.GodTransmitterBlockEntity;
 import com.godofthings.block.entity.SpaceTimeEternityBlockEntity;
@@ -58,6 +60,8 @@ import com.godofthings.menu.GodMinerMenu;
 import com.godofthings.menu.GodRecordMenu;
 import com.godofthings.menu.GodResourceMenu;
 import com.godofthings.menu.GodSlaughterConfigMenu;
+import com.godofthings.menu.GodAbsorberConfigMenu;
+import com.godofthings.menu.GodAbsorberMenu;
 import com.godofthings.menu.GodSlaughterMenu;
 import com.godofthings.menu.GodTransmitterMenu;
 import com.godofthings.menu.WaypointMenu;
@@ -311,6 +315,27 @@ public class Godofthings
             MENUS.register("god_slaughter_config",
                     () -> IMenuTypeExtension.create(GodSlaughterConfigMenu::new));
 
+    // ---- 神之吸收 ----
+    public static final DeferredBlock<GodAbsorberBlock> GOD_ABSORBER =
+            BLOCKS.registerBlock("god_absorber", GodAbsorberBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_PURPLE)
+                            .pushReaction(PushReaction.DESTROY)
+                            .strength(5.0F, 1200.0F)
+                            .lightLevel(state -> 10)
+                            .sound(SoundType.METAL));
+    public static final DeferredItem<BlockItem> GOD_ABSORBER_ITEM =
+            ITEMS.registerSimpleBlockItem(GOD_ABSORBER, new Item.Properties());
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodAbsorberBlockEntity>> GOD_ABSORBER_BE =
+            BLOCK_ENTITIES.register("god_absorber",
+                    () -> BlockEntityType.Builder.of(GodAbsorberBlockEntity::new, GOD_ABSORBER.get()).build(null));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodAbsorberMenu>> GOD_ABSORBER_MENU =
+            MENUS.register("god_absorber",
+                    () -> IMenuTypeExtension.create(GodAbsorberMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodAbsorberConfigMenu>> GOD_ABSORBER_CONFIG_MENU =
+            MENUS.register("god_absorber_config",
+                    () -> IMenuTypeExtension.create(GodAbsorberConfigMenu::new));
+
     // ---- 神之更改 ----
     public static final DeferredItem<GodChangeItem> GOD_CHANGE =
             ITEMS.registerItem("god_change", props -> new GodChangeItem(props.stacksTo(1)));
@@ -475,6 +500,7 @@ public class Godofthings
                         output.accept(GOD_BINDER.get());
                         output.accept(GOD_TRANSMITTER_ITEM.get());
                         output.accept(GOD_SLAUGHTER_ITEM.get());
+                        output.accept(GOD_ABSORBER_ITEM.get());
                     })
                     .build());
 

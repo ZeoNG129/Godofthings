@@ -241,5 +241,7 @@
   "message.godofthings.toggle_on": "已开启",
   "message.godofthings.toggle_off": "已关闭",
   "jade.godofthings.ae_online": "设备在线",
-  "jade.godofthings.ae_offline": "设备离线"
+  "jade.godofthings.ae_offline": "设备离线",
+  "block.godofthings.god_absorber": "神之吸收",
+  "container.godofthings.god_absorber": "神之吸收"
 }

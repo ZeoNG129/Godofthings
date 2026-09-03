@@ -68,12 +68,13 @@ public class GodBlackBoxScreen extends AbstractContainerScreen<GodBlackBoxMenu>
     {
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        // 深色背景（不用 dispenser 贴图，避免其 3×3 槽位框与新扩槽位风格割裂）
+        gui.fill(x, y, x + this.imageWidth, y + this.imageHeight, 0xFF1E1E22);
 
-        // 第 4-5 列过滤槽框（dispenser 贴图只有 3×3，向右扩的 2 列手动画槽位框）
+        // 过滤槽框 5×3：全部用统一槽位框风格（一整体）
         for (int row = 0; row < 3; row++)
         {
-            for (int col = 3; col < 5; col++)
+            for (int col = 0; col < 5; col++)
             {
                 gui.blitSprite(SLOT_SPRITE, x + 62 + col * 18, y + 17 + row * 18, 18, 18);
             }

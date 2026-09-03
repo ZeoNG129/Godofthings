@@ -9,11 +9,14 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,10 +26,19 @@ import org.jetbrains.annotations.Nullable;
 public class SpaceTimeEternityBlock extends BaseEntityBlock
 {
     public static final MapCodec<SpaceTimeEternityBlock> CODEC = simpleCodec(SpaceTimeEternityBlock::new);
+    /** 是否锁定（true=绿色材质，false=红色材质）。 */
+    public static final BooleanProperty ENABLED = BooleanProperty.create("enabled");
 
     public SpaceTimeEternityBlock(Properties properties)
     {
         super(properties);
+        registerDefaultState(defaultBlockState().setValue(ENABLED, true));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder)
+    {
+        builder.add(ENABLED);
     }
 
     @Override
@@ -61,6 +73,7 @@ public class SpaceTimeEternityBlock extends BaseEntityBlock
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof SpaceTimeEternityBlockEntity be)
         {
             be.toggleEnabled();
+            level.setBlock(pos, state.setValue(ENABLED, be.isEnabled()), 3);
             player.displayClientMessage(Component.translatable(
                     be.isEnabled() ? "message.godofthings.toggle_on" : "message.godofthings.toggle_off"), true);
         }

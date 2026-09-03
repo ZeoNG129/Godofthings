@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "godofthings:block/space_time_eternity_on"
+  }
+}

@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
-      "model": "godofthings:block/creature_annihilation"
+    "enabled=true": {
+      "model": "godofthings:block/creature_annihilation_on"
+    },
+    "enabled=false": {
+      "model": "godofthings:block/creature_annihilation_off"
     }
   }
 }

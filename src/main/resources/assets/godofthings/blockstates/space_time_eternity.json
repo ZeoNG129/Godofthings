@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
-      "model": "godofthings:block/space_time_eternity"
+    "enabled=true": {
+      "model": "godofthings:block/space_time_eternity_on"
+    },
+    "enabled=false": {
+      "model": "godofthings:block/space_time_eternity_off"
     }
   }
 }

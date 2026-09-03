@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EPE",
+    "PNP",
+    "EPE"
+  ],
+  "key": {
+    "E": { "item": "minecraft:ender_pearl" },
+    "P": { "item": "minecraft:amethyst_block" },
+    "N": { "item": "minecraft:nether_star" }
+  },
+  "result": {
+    "id": "godofthings:god_absorber"
+  }
+}

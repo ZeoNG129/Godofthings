@@ -43,10 +43,10 @@ public class GodCraftScreen extends AbstractContainerScreen<GodCraftMenu>
     private static final int BTN_W = 22;
     private static final int BTN_H = 14;
 
-    // AE 接入开关按钮（合成产物槽正上方）
+    // AE 接入开关按钮（合成产物槽正上方，留出间隔不重合）
     private static final int AE_X = 170;
-    private static final int AE_Y = 15;
-    private static final int AE_SIZE = 20;
+    private static final int AE_Y = 12;
+    private static final int AE_SIZE = 16;
 
     public GodCraftScreen(GodCraftMenu menu, Inventory playerInventory, Component title)
     {
@@ -128,7 +128,7 @@ public class GodCraftScreen extends AbstractContainerScreen<GodCraftMenu>
         gui.fill(ax, ay, ax + AE_SIZE, ay + AE_SIZE, 0xFF16181D);
         gui.fill(ax + 1, ay + 1, ax + AE_SIZE - 1, ay + AE_SIZE - 1, aeOn ? 0xFF57B757 : 0xFF3A4048);
         Component aeLabel = Component.literal("AE");
-        gui.drawString(this.font, aeLabel, ax + (AE_SIZE - this.font.width(aeLabel)) / 2, ay + 6, 0xFFFFFF);
+        gui.drawString(this.font, aeLabel, ax + (AE_SIZE - this.font.width(aeLabel)) / 2, ay + 4, 0xFFFFFF);
     }
 
     private void drawBtn(GuiGraphics gui, int bx, int by, int w, int h, Component label, int color)

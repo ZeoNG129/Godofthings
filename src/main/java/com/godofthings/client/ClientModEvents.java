@@ -15,6 +15,8 @@ import com.godofthings.client.screen.GodEnchantScreen;
 import com.godofthings.client.screen.GodMinerScreen;
 import com.godofthings.client.screen.GodRecordScreen;
 import com.godofthings.client.screen.GodResourceScreen;
+import com.godofthings.client.screen.GodAbsorberConfigScreen;
+import com.godofthings.client.screen.GodAbsorberScreen;
 import com.godofthings.client.screen.GodSlaughterConfigScreen;
 import com.godofthings.client.screen.GodSlaughterScreen;
 import com.godofthings.client.screen.GodTransmitterScreen;
@@ -51,6 +53,8 @@ public class ClientModEvents
         event.register(Godofthings.GOD_TRANSMITTER_MENU.get(), GodTransmitterScreen::new);
         event.register(Godofthings.GOD_SLAUGHTER_MENU.get(), GodSlaughterScreen::new);
         event.register(Godofthings.GOD_SLAUGHTER_CONFIG_MENU.get(), GodSlaughterConfigScreen::new);
+        event.register(Godofthings.GOD_ABSORBER_MENU.get(), GodAbsorberScreen::new);
+        event.register(Godofthings.GOD_ABSORBER_CONFIG_MENU.get(), GodAbsorberConfigScreen::new);
     }
 
     @SubscribeEvent

@@ -24,11 +24,11 @@ public final class SwordModes
     public static final String STAR_ABSORB = "SwordStarAbsorb";
     /** 吸魂：手持神之剑把附近生物吸到玩家面前 */
     public static final String SOUL_ABSORB = "SwordSoulAbsorb";
-    /** 吸星/吸魂的生效半径（格），可调 3~300。 */
+    /** 吸星/吸魂的生效半径（格），可调 3~1600。 */
     public static final String STAR_RANGE = "SwordStarRange";
     public static final String SOUL_RANGE = "SwordSoulRange";
     public static final int MIN_RANGE = 3;
-    public static final int MAX_RANGE = 300;
+    public static final int MAX_RANGE = 1600;
     public static final int DEFAULT_RANGE = 16;
 
     /** 杀戮光环：开启后自动杀戮范围内选定目标类型的生物。 */

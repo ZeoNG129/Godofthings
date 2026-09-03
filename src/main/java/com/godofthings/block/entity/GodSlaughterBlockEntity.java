@@ -61,7 +61,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
 {
     /** UI 显示的存储槽位数量（内部为无限存储，前 27 个堆叠映射到槽位）。 */
     public static final int STORAGE_SLOTS = 27;
-    public static final int MAX_RANGE = 300;
+    public static final int MAX_RANGE = 1600;
 
     private static final int SCAN_INTERVAL = 10;
 
