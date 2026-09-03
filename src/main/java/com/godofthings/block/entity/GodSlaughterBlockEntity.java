@@ -52,7 +52,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     public static final int STORAGE_SLOTS = 27;
     public static final int MAX_RANGE = 300;
 
-    private static final int SCAN_INTERVAL = 10;
+    private static final int SCAN_INTERVAL = 20;
     private static final int MAX_KILLS_PER_TICK = 8;
 
     // ---- 功能 ----

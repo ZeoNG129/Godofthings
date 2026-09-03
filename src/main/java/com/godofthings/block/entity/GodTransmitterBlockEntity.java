@@ -68,6 +68,8 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     /** 绑定机器：维度 -> (坐标 -> 绑定时的方块 ID，用于打掉后清理)。 */
     private final Map<ResourceKey<Level>, Map<BlockPos, String>> boundMachines = new HashMap<>();
     private int pruneTimer = 0;
+    /** 最近探测到的接收 storage 缓存（同维度坐标），每 PRUNE_INTERVAL 随清理一起失效重建，避免每 tick 重复探测。 */
+    private final Map<BlockPos, IEnergyStorage> storageCache = new HashMap<>();
 
     // ---- 玩家充能 ----
     private boolean playerEnabled = true;
@@ -395,10 +397,30 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     }
 
     /**
-     * 探测式充能：遍历 side=null 与六面，用 simulate 探测实际可接收量，选接收量最大的 storage
-     * （兼容 Mekanism 等 canReceive 行为特殊、或在特定面暴露能力的机器）。
+     * 探测式充能（带缓存）：缓存命中直接用上次探测到的最佳 storage，否则遍历 side=null 与六面
+     * 用 simulate 探测实际可接收量选接收量最大的（兼容 Mekanism 等 canReceive 行为特殊 / 特定面暴露能力的机器）。
      */
-    private static int chargeMachineAt(Level level, BlockPos target, int amount)
+    private int chargeMachineAt(Level level, BlockPos target, int amount)
+    {
+        IEnergyStorage best = storageCache.get(target);
+        if (best == null)
+        {
+            best = findBestStorage(level, target, amount);
+            if (best != null)
+            {
+                storageCache.put(target, best);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        int r = probeReceive(best, amount);
+        return r > 0 ? best.receiveEnergy(amount, false) : 0;
+    }
+
+    /** 探测式找接收量最大的 storage（side=null + 六面）。 */
+    private static IEnergyStorage findBestStorage(Level level, BlockPos target, int amount)
     {
         IEnergyStorage best = null;
         int bestReceive = -1;
@@ -425,11 +447,7 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
                 }
             }
         }
-        if (best != null && bestReceive > 0)
-        {
-            return best.receiveEnergy(amount, false);
-        }
-        return 0;
+        return bestReceive > 0 ? best : null;
     }
 
     /** simulate 探测 storage 实际可接收量（异常返回 0）。 */
@@ -520,6 +538,8 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
         {
             setChanged();
         }
+        // 每 PRUNE_INTERVAL 重建 storage 缓存（机器可能更换面能力/被替换）
+        storageCache.clear();
     }
 
     private static boolean blockMatches(Level level, BlockPos pos, String blockId)
