@@ -34,11 +34,13 @@
 1. 改 `gradle.properties` 的 `mod_version` + 在 `VERSIONING.md` 加历史
 2. `gradlew build`（自动部署）
 3. `git add -A && git commit -m "中文一句话" && git push origin 1.21.1`
-4. `powershell -ExecutionPolicy Bypass -File .\release.ps1 -Notes "更新说明"`
+4. **仅大版本（第二位/首位变化）发 GitHub Release**：`powershell -ExecutionPolicy Bypass -File .\release.ps1 -Notes "更新说明"`；小版本（末位变化，修复/优化）只 commit+push，不单独发 release，等大版本时把整段小版本的更新汇总进一条 notes（更新日志一个大版本写一起，不用小版本详细介绍）
 
 ## 项目约定
 - 只保留原创内容，勿引入第三方模组移植包
 - 语言文件 `zh_cn.json` 与 `en_us.json` 键集必须双向一致
-- git 分支：本项目用 `1.21.1` 分支；1.20.1 Forge 版在 `main` 分支（本地 `E:\MC\Mod\1.20.1\Godofthings`），两仓库 remote 指向同一 GitHub 仓库 `ZeoNG129/Godofthings`
+- **README「内容一览」提交更新时就要同步更新**（新增/删除物品、方块、功能都要改那张表格）
+- git 分支：本项目用 `1.21.1` 分支（GitHub 仓库默认分支已设为 `1.21.1`）；1.20.1 Forge 版在 `main` 分支（本地 `E:\MC\Mod\1.20.1\Godofthings`），两仓库 remote 指向同一 GitHub 仓库 `ZeoNG129/Godofthings`
+- GitHub Release 按大版本整合：1.21.1 只保留「1.x」和「2.x」两个汇总 release（各附该大版本最终 jar），1.20.1 保留 v2.0.5；小版本不占独立 release
 - 提交信息用中文一句话
 - 已知非阻塞警告：约 20-30 条 `@EventBusSubscriber bus()` [removal] 警告（`RegisterCapabilitiesEvent`/`RegisterPayloadHandlersEvent` 是 IModBusEvent 必须保留 `bus=Bus.MOD`，NeoForge 21.1 过渡标记，无替代 API）
