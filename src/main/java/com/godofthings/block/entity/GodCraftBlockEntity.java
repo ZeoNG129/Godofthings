@@ -2,14 +2,12 @@ package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
 import appeng.api.config.Actionable;
-import appeng.api.networking.IGridNode;
-import appeng.api.networking.IInWorldGridNodeHost;
-import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
-import appeng.api.util.AECableType;
+import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.menu.GodCraftMenu;
@@ -56,7 +54,7 @@ import java.util.List;
  * - 锁定配方：锁定后只合成锁定配方，合成格只接受锁定模板物品
  * - 六个面可配置输入/输出
  */
-public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
+public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     public static final int INPUT_SLOTS = 9;
     public static final int TOTAL_SLOTS = 10; // 0-8 合成格, 9 输出
@@ -157,22 +155,10 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, II
     }
 
     @Override
-    public IGridNode getGridNode(Direction side)
-    {
-        return aeNode.getGridNode(side);
-    }
+    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
     @Override
-    public AECableType getCableConnectionType(Direction side)
-    {
-        return aeNode.getCableConnectionType(side);
-    }
-
-    @Override
-    public IGridNode getActionableNode()
-    {
-        return aeNode.getActionableNode();
-    }
+    public void saveChanges() { setChanged(); }
 
     /** 把输出槽产物推入 AE 网络（节流由 tick 控制）。 */
     private void pushOutputToAe()

@@ -2,14 +2,12 @@ package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
 import appeng.api.config.Actionable;
-import appeng.api.networking.IGridNode;
-import appeng.api.networking.IInWorldGridNodeHost;
-import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
-import appeng.api.util.AECableType;
+import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.config.MachinesConfig;
@@ -61,7 +59,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  * - 挖完后可再次点击开始：自动从顶部重新挖（支持改半径后重新工作）
  * - 内置无限大小物品储存，六面默认全部自动输出
  */
-public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
+public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     /** 矿机最大挖掘半径（格，方形半径），可经 godofthings-machines.toml 调整 */
     public static final int MAX_RADIUS = MachinesConfig.MINER_MAX_RADIUS.get();
@@ -137,22 +135,10 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, II
     // ---- AE 网格节点（线缆直连并网，产物主动输出进 AE） ----
 
     @Override
-    public IGridNode getGridNode(Direction side)
-    {
-        return aeNode.getGridNode(side);
-    }
+    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
     @Override
-    public AECableType getCableConnectionType(Direction side)
-    {
-        return aeNode.getCableConnectionType(side);
-    }
-
-    @Override
-    public IGridNode getActionableNode()
-    {
-        return aeNode.getActionableNode();
-    }
+    public void saveChanges() { setChanged(); }
 
     /** 把内置储存产物推入 AE 网络（节流由 tick 控制）。 */
     private void pushOutputToAe()

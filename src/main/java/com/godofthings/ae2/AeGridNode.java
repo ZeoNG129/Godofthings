@@ -37,7 +37,7 @@ public class AeGridNode implements IInWorldGridNodeHost, IActionHost
         this.be = be;
     }
 
-    private IManagedGridNode getMainNode()
+    public IManagedGridNode getMainNode()
     {
         if (mainNode == null)
         {

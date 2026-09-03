@@ -2,14 +2,12 @@ package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
 import appeng.api.config.Actionable;
-import appeng.api.networking.IGridNode;
-import appeng.api.networking.IInWorldGridNodeHost;
-import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
-import appeng.api.util.AECableType;
+import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.menu.GodAbsorberMenu;
@@ -50,7 +48,7 @@ import java.util.List;
  *   <li>面配置（六面输入输出）+ AE 并网（产物自动输出进 AE）。</li>
  * </ul>
  */
-public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
+public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     public static final int STORAGE_SLOTS = 27;
     public static final int MAX_RANGE = 1600;
@@ -177,9 +175,9 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
     public boolean isAeEnabled() { return aeEnabled; }
     public void toggleAeEnabled() { this.aeEnabled = !this.aeEnabled; setChanged(); }
 
-    @Override public IGridNode getGridNode(Direction side) { return aeNode.getGridNode(side); }
-    @Override public AECableType getCableConnectionType(Direction side) { return aeNode.getCableConnectionType(side); }
-    @Override public IGridNode getActionableNode() { return aeNode.getActionableNode(); }
+    @Override public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
+
+    @Override public void saveChanges() { setChanged(); }
 
     private void pushOutputToAe()
     {

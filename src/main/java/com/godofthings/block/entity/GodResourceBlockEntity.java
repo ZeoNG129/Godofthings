@@ -2,14 +2,12 @@ package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
 import appeng.api.config.Actionable;
-import appeng.api.networking.IGridNode;
-import appeng.api.networking.IInWorldGridNodeHost;
-import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
-import appeng.api.util.AECableType;
+import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.config.MachinesConfig;
@@ -75,7 +73,7 @@ import java.util.Set;
  * - 矿石块 → 对应的原矿 64 个
  * - 向下自动输出，内置无限储存；打掉不掉落
  */
-public class GodResourceBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
+public class GodResourceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     /** 工作间隔（tick），可经 godofthings-machines.toml 调整 */
     public static final int WORK_INTERVAL = MachinesConfig.RESOURCE_WORK_INTERVAL.get();
@@ -262,22 +260,10 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     // ---- AE 网格节点（线缆直连并网，产物自动输出进 AE） ----
 
     @Override
-    public IGridNode getGridNode(Direction side)
-    {
-        return aeNode.getGridNode(side);
-    }
+    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
     @Override
-    public AECableType getCableConnectionType(Direction side)
-    {
-        return aeNode.getCableConnectionType(side);
-    }
-
-    @Override
-    public IGridNode getActionableNode()
-    {
-        return aeNode.getActionableNode();
-    }
+    public void saveChanges() { setChanged(); }
 
     /** 把产物推入 AE 网络（节流由 tick 控制）。 */
     private void pushOutputToAe()

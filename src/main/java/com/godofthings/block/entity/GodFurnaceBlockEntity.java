@@ -2,14 +2,12 @@ package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
 import appeng.api.config.Actionable;
-import appeng.api.networking.IGridNode;
-import appeng.api.networking.IInWorldGridNodeHost;
-import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
-import appeng.api.util.AECableType;
+import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.item.GodAcceleratorItem;
@@ -48,7 +46,7 @@ import java.util.Optional;
  * - 六个面各自可配置 NONE / INPUT(自动抽入) / OUTPUT(自动推出)，见 {@link FaceMode}
  * - 每 tick 先自动传输补料，再熔炼
  */
-public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
+public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     public static final int INPUT_SLOT_COUNT = 6;
     public static final int OUTPUT_SLOT_COUNT = 6;
@@ -158,22 +156,10 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     // ---- AE 网格节点（线缆直连并网，产物自动输出进 AE） ----
 
     @Override
-    public IGridNode getGridNode(Direction side)
-    {
-        return aeNode.getGridNode(side);
-    }
+    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
     @Override
-    public AECableType getCableConnectionType(Direction side)
-    {
-        return aeNode.getCableConnectionType(side);
-    }
-
-    @Override
-    public IGridNode getActionableNode()
-    {
-        return aeNode.getActionableNode();
-    }
+    public void saveChanges() { setChanged(); }
 
     /** 把输出槽产物推入 AE 网络（节流由 tick 控制）。 */
     private void pushOutputToAe()

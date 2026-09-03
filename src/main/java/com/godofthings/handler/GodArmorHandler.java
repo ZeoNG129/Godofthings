@@ -5,6 +5,7 @@ import com.godofthings.item.GodArmorItem;
 import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -115,7 +116,8 @@ public class GodArmorHandler
                 player.setAirSupply(player.getMaxAirSupply()); // 水下呼吸
             }
             removeDebuffs(player); // 免疫所有负面状态
-            // 夜视：客户端以改伽马值方式实现（无闪烁），见 GodArmorClientHandler
+            // 无痕夜视：服务端药水效果，ambient=true 无粒子、visible=false 不显示 HUD、showIcon=false 无图标
+            player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 400, 0, true, false, false));
         }
         else
         {

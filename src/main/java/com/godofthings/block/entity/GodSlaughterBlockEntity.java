@@ -2,14 +2,12 @@ package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
 import appeng.api.config.Actionable;
-import appeng.api.networking.IGridNode;
-import appeng.api.networking.IInWorldGridNodeHost;
-import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
-import appeng.api.util.AECableType;
+import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.item.GodSwordItem;
@@ -57,7 +55,7 @@ import java.util.List;
  *   <li>输入输出：六面 FaceMode 配置（NONE/INPUT/OUTPUT/BOTH），自动抽入/推出。</li>
  * </ul>
  */
-public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
+public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     /** UI 显示的存储槽位数量（内部为无限存储，前 27 个堆叠映射到槽位）。 */
     public static final int STORAGE_SLOTS = 27;
@@ -335,22 +333,10 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     // ---- AE 网格节点（线缆直连并网，存储内容自动输出进 AE） ----
 
     @Override
-    public IGridNode getGridNode(Direction side)
-    {
-        return aeNode.getGridNode(side);
-    }
+    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
     @Override
-    public AECableType getCableConnectionType(Direction side)
-    {
-        return aeNode.getCableConnectionType(side);
-    }
-
-    @Override
-    public IGridNode getActionableNode()
-    {
-        return aeNode.getActionableNode();
-    }
+    public void saveChanges() { setChanged(); }
 
     /** 把内部存储物品推入 AE 网络（节流由 tick 控制）。 */
     private void pushOutputToAe()

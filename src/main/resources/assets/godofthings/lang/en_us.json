@@ -240,8 +240,6 @@
   "gui.godofthings.slaughter.xp_take_all": "Take All",
   "message.godofthings.toggle_on": "Enabled",
   "message.godofthings.toggle_off": "Disabled",
-  "jade.godofthings.ae_online": "Device Online",
-  "jade.godofthings.ae_offline": "Device Offline",
   "block.godofthings.god_absorber": "God Absorber",
   "container.godofthings.god_absorber": "God Absorber"
 }

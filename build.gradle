@@ -66,9 +66,6 @@ dependencies {
 
     // AE2 (应用能源2) —— 神之工具的“AE存储优先”模式（掉落优先存入ME网络）
     compileOnly files('libs/ae2-1.21.1-neoforge.jar')
-
-    // Jade (查看提示) —— 神之机器接入 AE 网络时显示设备在线状态
-    compileOnly files('libs/jade-1.21.1-neoforge.jar')
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
