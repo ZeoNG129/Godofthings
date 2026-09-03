@@ -1,9 +1,17 @@
 package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
+import appeng.api.config.Actionable;
+import appeng.api.networking.IGridNode;
+import appeng.api.networking.IInWorldGridNodeHost;
+import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.security.IActionSource;
+import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
+import appeng.api.util.AECableType;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.ItemHandlerMEStorage;
+import com.godofthings.ae2.AeGridNode;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodResourceMenu;
@@ -67,7 +75,7 @@ import java.util.Set;
  * - 矿石块 → 对应的原矿 64 个
  * - 向下自动输出，内置无限储存；打掉不掉落
  */
-public class GodResourceBlockEntity extends BlockEntity implements MenuProvider
+public class GodResourceBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
 {
     /** 工作间隔（tick），可经 godofthings-machines.toml 调整 */
     public static final int WORK_INTERVAL = MachinesConfig.RESOURCE_WORK_INTERVAL.get();
@@ -199,8 +207,12 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider
 
     private int tickCounter = 0;
 
-    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    /** 是否接入 AE（并网后产物自动输出进 AE 网络，占一个频道）。 */
     private boolean aeEnabled = true;
+
+    /** AE 网格节点（线缆直连并网）。 */
+    private final AeGridNode aeNode = new AeGridNode(this);
+    private int aeTick = 0;
 
     public GodResourceBlockEntity(BlockPos pos, BlockState state)
     {
@@ -247,11 +259,67 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
-    /** AE 存储接入（开关关闭返回 null 断开）。 */
-    @Nullable
-    public MEStorage getMEStorage()
+    // ---- AE 网格节点（线缆直连并网，产物自动输出进 AE） ----
+
+    @Override
+    public IGridNode getGridNode(Direction side)
     {
-        return aeEnabled ? new ItemHandlerMEStorage(getItemHandler(), getDisplayName()) : null;
+        return aeNode.getGridNode(side);
+    }
+
+    @Override
+    public AECableType getCableConnectionType(Direction side)
+    {
+        return aeNode.getCableConnectionType(side);
+    }
+
+    @Override
+    public IGridNode getActionableNode()
+    {
+        return aeNode.getActionableNode();
+    }
+
+    /** 把产物推入 AE 网络（节流由 tick 控制）。 */
+    private void pushOutputToAe()
+    {
+        if (!aeEnabled || !aeNode.isActive())
+        {
+            return;
+        }
+        IStorageService storage = aeNode.getStorage();
+        if (storage == null)
+        {
+            return;
+        }
+        MEStorage inv = storage.getInventory();
+        IActionSource source = aeNode.actionSource();
+        for (int slot = 0; slot < getItemHandler().getSlots(); slot++)
+        {
+            ItemStack stack = getItemHandler().getStackInSlot(slot);
+            if (stack.isEmpty())
+            {
+                continue;
+            }
+            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
+            if (inserted > 0)
+            {
+                getItemHandler().extractItem(slot, (int) inserted, false);
+            }
+        }
+    }
+
+    @Override
+    public void onLoad()
+    {
+        super.onLoad();
+        aeNode.create(level, worldPosition);
+    }
+
+    @Override
+    public void setRemoved()
+    {
+        aeNode.destroy();
+        super.setRemoved();
     }
 
     // ---- 每 tick 逻辑 ----
@@ -291,6 +359,13 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider
             }
         }
         pushDown();
+        // AE 产物输出节流：每 20 tick（1 秒）推一次
+        aeTick++;
+        if (aeTick >= 20)
+        {
+            aeTick = 0;
+            pushOutputToAe();
+        }
     }
 
     private void process(int slot)
@@ -629,8 +704,8 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_RESOURCE_BE.get(),
                     (be, side) -> be.itemHandler);
-            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_RESOURCE_BE.get(),
-                    (be, side) -> be.getMEStorage());
+            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_RESOURCE_BE.get(),
+                    (be, side) -> be);
         }
     }
 

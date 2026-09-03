@@ -1,9 +1,17 @@
 package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
+import appeng.api.config.Actionable;
+import appeng.api.networking.IGridNode;
+import appeng.api.networking.IInWorldGridNodeHost;
+import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.security.IActionSource;
+import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
+import appeng.api.util.AECableType;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.ItemHandlerMEStorage;
+import com.godofthings.ae2.AeGridNode;
 import com.godofthings.menu.GodCraftMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -48,7 +56,7 @@ import java.util.List;
  * - 锁定配方：锁定后只合成锁定配方，合成格只接受锁定模板物品
  * - 六个面可配置输入/输出
  */
-public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
+public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
 {
     public static final int INPUT_SLOTS = 9;
     public static final int TOTAL_SLOTS = 10; // 0-8 合成格, 9 输出
@@ -104,8 +112,12 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
     private final int[] faceModes = new int[6];
     private final IItemHandler[] sideHandlers = new IItemHandler[6];
 
-    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    /** 是否接入 AE（并网后产物自动输出进 AE 网络，占一个频道）。 */
     private boolean aeEnabled = true;
+
+    /** AE 网格节点（线缆直连并网）。 */
+    private final AeGridNode aeNode = new AeGridNode(this);
+    private int aeTick = 0;
 
     public GodCraftBlockEntity(BlockPos pos, BlockState state)
     {
@@ -131,7 +143,7 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
     public ItemStackHandler getInputSlots() { return inputSlots; }
     public ItemStackHandler getOutputSlot() { return outputSlot; }
 
-    // ---- AE 接入 ----
+    // ---- AE 接入（网格节点：线缆直连并网，产物主动输出进 AE） ----
 
     public boolean isAeEnabled()
     {
@@ -144,11 +156,48 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
-    /** AE 存储接入（开关关闭返回 null 断开）。 */
-    @Nullable
-    public MEStorage getMEStorage()
+    @Override
+    public IGridNode getGridNode(Direction side)
     {
-        return aeEnabled ? new ItemHandlerMEStorage(inputSlots, getDisplayName()) : null;
+        return aeNode.getGridNode(side);
+    }
+
+    @Override
+    public AECableType getCableConnectionType(Direction side)
+    {
+        return aeNode.getCableConnectionType(side);
+    }
+
+    @Override
+    public IGridNode getActionableNode()
+    {
+        return aeNode.getActionableNode();
+    }
+
+    /** 把输出槽产物推入 AE 网络（节流由 tick 控制）。 */
+    private void pushOutputToAe()
+    {
+        if (!aeEnabled || !aeNode.isActive())
+        {
+            return;
+        }
+        IStorageService storage = aeNode.getStorage();
+        if (storage == null)
+        {
+            return;
+        }
+        MEStorage inv = storage.getInventory();
+        IActionSource source = aeNode.actionSource();
+        ItemStack stack = outputSlot.getStackInSlot(0);
+        if (stack.isEmpty())
+        {
+            return;
+        }
+        long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
+        if (inserted > 0)
+        {
+            outputSlot.extractItem(0, (int) inserted, false);
+        }
     }
 
     // ---- 开关 ----
@@ -424,6 +473,20 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
     }
     public void cycleFaceMode(Direction dir) { setFaceMode(dir, getFaceMode(dir) + 1); }
 
+    @Override
+    public void onLoad()
+    {
+        super.onLoad();
+        aeNode.create(level, worldPosition);
+    }
+
+    @Override
+    public void setRemoved()
+    {
+        aeNode.destroy();
+        super.setRemoved();
+    }
+
     // ---- tick ----
 
     public static void tick(Level level, BlockPos pos, BlockState state, GodCraftBlockEntity be)
@@ -436,6 +499,13 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
         if (be.enabled)
         {
             be.tryCraft();
+        }
+        // AE 产物输出节流：每 20 tick（1 秒）推一次
+        be.aeTick++;
+        if (be.aeTick >= 20)
+        {
+            be.aeTick = 0;
+            be.pushOutputToAe();
         }
     }
 
@@ -720,8 +790,8 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_CRAFT_BE.get(),
                     (be, side) -> be.getSideCapability(side));
-            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_CRAFT_BE.get(),
-                    (be, side) -> be.getMEStorage());
+            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_CRAFT_BE.get(),
+                    (be, side) -> be);
         }
     }
 

@@ -1,9 +1,17 @@
 package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
+import appeng.api.config.Actionable;
+import appeng.api.networking.IGridNode;
+import appeng.api.networking.IInWorldGridNodeHost;
+import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.security.IActionSource;
+import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
+import appeng.api.util.AECableType;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.ItemHandlerMEStorage;
+import com.godofthings.ae2.AeGridNode;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodFurnaceMenu;
 import net.minecraft.core.BlockPos;
@@ -40,7 +48,7 @@ import java.util.Optional;
  * - 六个面各自可配置 NONE / INPUT(自动抽入) / OUTPUT(自动推出)，见 {@link FaceMode}
  * - 每 tick 先自动传输补料，再熔炼
  */
-public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
+public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
 {
     public static final int INPUT_SLOT_COUNT = 6;
     public static final int OUTPUT_SLOT_COUNT = 6;
@@ -114,8 +122,12 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
 
     private final IItemHandler[] sideHandlers = new IItemHandler[6];
 
-    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    /** 是否接入 AE（并网后产物自动输出进 AE 网络，占一个频道）。 */
     private boolean aeEnabled = true;
+
+    /** AE 网格节点（线缆直连并网）。 */
+    private final AeGridNode aeNode = new AeGridNode(this);
+    private int aeTick = 0;
 
     public GodFurnaceBlockEntity(BlockPos pos, BlockState state)
     {
@@ -143,11 +155,53 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
-    /** AE 存储接入（开关关闭返回 null 断开）。 */
-    @Nullable
-    public MEStorage getMEStorage()
+    // ---- AE 网格节点（线缆直连并网，产物自动输出进 AE） ----
+
+    @Override
+    public IGridNode getGridNode(Direction side)
     {
-        return aeEnabled ? new ItemHandlerMEStorage(itemHandler, getDisplayName()) : null;
+        return aeNode.getGridNode(side);
+    }
+
+    @Override
+    public AECableType getCableConnectionType(Direction side)
+    {
+        return aeNode.getCableConnectionType(side);
+    }
+
+    @Override
+    public IGridNode getActionableNode()
+    {
+        return aeNode.getActionableNode();
+    }
+
+    /** 把输出槽产物推入 AE 网络（节流由 tick 控制）。 */
+    private void pushOutputToAe()
+    {
+        if (!aeEnabled || !aeNode.isActive())
+        {
+            return;
+        }
+        IStorageService storage = aeNode.getStorage();
+        if (storage == null)
+        {
+            return;
+        }
+        MEStorage inv = storage.getInventory();
+        IActionSource source = aeNode.actionSource();
+        for (int slot = OUTPUT_SLOT_START; slot < OUTPUT_SLOT_START + OUTPUT_SLOT_COUNT; slot++)
+        {
+            ItemStack stack = itemHandler.getStackInSlot(slot);
+            if (stack.isEmpty())
+            {
+                continue;
+            }
+            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
+            if (inserted > 0)
+            {
+                itemHandler.extractItem(slot, (int) inserted, false);
+            }
+        }
     }
 
     /** 神之加速槽（只接受神之加速，最多 64 个） */
@@ -222,8 +276,8 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_FURNACE_BE.get(),
                     (be, side) -> be.getSideCapability(side));
-            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_FURNACE_BE.get(),
-                    (be, side) -> be.getMEStorage());
+            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_FURNACE_BE.get(),
+                    (be, side) -> be);
         }
     }
 
@@ -297,6 +351,20 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
 
     // ---- tick：先自动传输，再熔炼 ----
 
+    @Override
+    public void onLoad()
+    {
+        super.onLoad();
+        aeNode.create(level, worldPosition);
+    }
+
+    @Override
+    public void setRemoved()
+    {
+        aeNode.destroy();
+        super.setRemoved();
+    }
+
     public static void tick(Level level, BlockPos pos, BlockState state, GodFurnaceBlockEntity be)
     {
         if (level.isClientSide)
@@ -305,6 +373,13 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
         }
         be.autoTransfer();
         be.smelt();
+        // AE 产物输出节流：每 20 tick（1 秒）推一次
+        be.aeTick++;
+        if (be.aeTick >= 20)
+        {
+            be.aeTick = 0;
+            be.pushOutputToAe();
+        }
     }
 
     private void autoTransfer()

@@ -39,7 +39,6 @@ public class GodEnchantMenu extends AbstractContainerMenu
     private final List<Enchantment> enchantList;
     private int selectedIndex = 0;
     private int selectedLevel = 1;
-    private int cachedAeEnabled = 1;
 
     public GodEnchantMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
@@ -85,16 +84,6 @@ public class GodEnchantMenu extends AbstractContainerMenu
             @Override public int get() { return selectedLevel; }
             @Override public void set(int value) { selectedLevel = value; }
         });
-        this.addDataSlot(new DataSlot()
-        {
-            @Override public int get() { return be.isAeEnabled() ? 1 : 0; }
-            @Override public void set(int value) { cachedAeEnabled = value; }
-        });
-    }
-
-    public boolean isAeEnabled()
-    {
-        return cachedAeEnabled == 1;
     }
 
     public GodEnchantBlockEntity getBlockEntity()
@@ -176,12 +165,6 @@ public class GodEnchantMenu extends AbstractContainerMenu
     @Override
     public boolean clickMenuButton(Player player, int buttonId)
     {
-        if (buttonId == 5)
-        {
-            be.toggleAeEnabled();
-            this.broadcastChanges();
-            return true;
-        }
         List<Enchantment> list = currentList();
         if (buttonId == 0)
         {

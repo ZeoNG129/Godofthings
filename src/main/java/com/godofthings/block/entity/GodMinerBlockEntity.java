@@ -1,9 +1,17 @@
 package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
+import appeng.api.config.Actionable;
+import appeng.api.networking.IGridNode;
+import appeng.api.networking.IInWorldGridNodeHost;
+import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.security.IActionSource;
+import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
+import appeng.api.util.AECableType;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.ItemHandlerMEStorage;
+import com.godofthings.ae2.AeGridNode;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodMinerMenu;
@@ -53,7 +61,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  * - 挖完后可再次点击开始：自动从顶部重新挖（支持改半径后重新工作）
  * - 内置无限大小物品储存，六面默认全部自动输出
  */
-public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
+public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
 {
     /** 矿机最大挖掘半径（格，方形半径），可经 godofthings-machines.toml 调整 */
     public static final int MAX_RADIUS = MachinesConfig.MINER_MAX_RADIUS.get();
@@ -79,8 +87,12 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         }
     };
 
-    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    /** 是否接入 AE（线缆直连并网，产物主动输出进 AE，占一个频道）。 */
     private boolean aeEnabled = true;
+
+    /** AE 网格节点（线缆直连并网）。 */
+    private final AeGridNode aeNode = new AeGridNode(this);
+    private int aeTick = 0;
 
     private boolean running = false;
     private int radius = 16;
@@ -122,11 +134,53 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
-    /** AE 存储接入（开关关闭返回 null 断开）。 */
-    @Nullable
-    public MEStorage getMEStorage()
+    // ---- AE 网格节点（线缆直连并网，产物主动输出进 AE） ----
+
+    @Override
+    public IGridNode getGridNode(Direction side)
     {
-        return aeEnabled ? new ItemHandlerMEStorage(getItemHandler(), getDisplayName()) : null;
+        return aeNode.getGridNode(side);
+    }
+
+    @Override
+    public AECableType getCableConnectionType(Direction side)
+    {
+        return aeNode.getCableConnectionType(side);
+    }
+
+    @Override
+    public IGridNode getActionableNode()
+    {
+        return aeNode.getActionableNode();
+    }
+
+    /** 把内置储存产物推入 AE 网络（节流由 tick 控制）。 */
+    private void pushOutputToAe()
+    {
+        if (!aeEnabled || !aeNode.isActive())
+        {
+            return;
+        }
+        IStorageService storage = aeNode.getStorage();
+        if (storage == null)
+        {
+            return;
+        }
+        MEStorage inv = storage.getInventory();
+        IActionSource source = aeNode.actionSource();
+        for (int slot = 0; slot < getItemHandler().getSlots(); slot++)
+        {
+            ItemStack stack = getItemHandler().getStackInSlot(slot);
+            if (stack.isEmpty())
+            {
+                continue;
+            }
+            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
+            if (inserted > 0)
+            {
+                getItemHandler().extractItem(slot, (int) inserted, false);
+            }
+        }
     }
 
     public FluidTank getTank()
@@ -298,6 +352,13 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
             return;
         }
         be.tickServer();
+        // AE 产物输出节流：每 20 tick（1 秒）推一次
+        be.aeTick++;
+        if (be.aeTick >= 20)
+        {
+            be.aeTick = 0;
+            be.pushOutputToAe();
+        }
     }
 
     private void tickServer()
@@ -413,6 +474,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
     @Override
     public void setRemoved()
     {
+        aeNode.destroy();
         super.setRemoved();
         // 运行中拆除矿机：释放本机强制加载过的区块，避免区块常驻内存泄漏
         releaseForcedChunks();
@@ -422,6 +484,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
     public void onLoad()
     {
         super.onLoad();
+        aeNode.create(level, worldPosition);
         if (areaClearedOnLoad || level == null || level.isClientSide || !(level instanceof ServerLevel serverLevel))
         {
             return;
@@ -695,8 +758,8 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
                     (be, side) -> be.itemHandler);
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Godofthings.GOD_MINER_BE.get(),
                     (be, side) -> be.tank);
-            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_MINER_BE.get(),
-                    (be, side) -> be.getMEStorage());
+            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_MINER_BE.get(),
+                    (be, side) -> be);
         }
     }
 

@@ -8,7 +8,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
@@ -25,7 +24,6 @@ public class GodDevourerMenu extends AbstractContainerMenu
     private final @Nullable GodDevourerBlockEntity be;
     private final DevourerItemHandler itemHandler;
     private final ContainerLevelAccess access;
-    private int cachedAeEnabled = 1;
 
     // 客户端构造（方块版，从 buf 读 BlockPos）
     public GodDevourerMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
@@ -46,11 +44,6 @@ public class GodDevourerMenu extends AbstractContainerMenu
         {
             be.onMenuOpened();
         }
-        this.addDataSlot(new DataSlot()
-        {
-            @Override public int get() { return be.isAeEnabled() ? 1 : 0; }
-            @Override public void set(int value) { cachedAeEnabled = value; }
-        });
     }
 
     // 服务端构造（便携版：背包按钮打开，无方块）
@@ -95,28 +88,6 @@ public class GodDevourerMenu extends AbstractContainerMenu
             return true; // 便携版
         }
         return stillValid(this.access, player, Godofthings.GOD_DEVOURER.get());
-    }
-
-    public boolean isAeEnabled()
-    {
-        return cachedAeEnabled == 1;
-    }
-
-    // 客户端点击「AE」按钮 → ServerboundContainerButtonClickPacket(containerId, 7)
-    // 服务端切换 AE 接入开关（便携版无方块，be 为 null 时忽略）
-    @Override
-    public boolean clickMenuButton(Player player, int buttonId)
-    {
-        if (buttonId == 7)
-        {
-            if (be != null)
-            {
-                be.toggleAeEnabled();
-                this.broadcastChanges();
-            }
-            return true;
-        }
-        return false;
     }
 
     @Override

@@ -1,9 +1,17 @@
 package com.godofthings.block.entity;
 
 import appeng.api.AECapabilities;
+import appeng.api.config.Actionable;
+import appeng.api.networking.IGridNode;
+import appeng.api.networking.IInWorldGridNodeHost;
+import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.security.IActionSource;
+import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
+import appeng.api.util.AECableType;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.ItemHandlerMEStorage;
+import com.godofthings.ae2.AeGridNode;
 import com.godofthings.item.GodSwordItem;
 import com.godofthings.menu.GodSlaughterMenu;
 import net.minecraft.core.BlockPos;
@@ -49,7 +57,7 @@ import java.util.List;
  *   <li>输入输出：六面 FaceMode 配置（NONE/INPUT/OUTPUT/BOTH），自动抽入/推出。</li>
  * </ul>
  */
-public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
+public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider, IInWorldGridNodeHost, IActionHost
 {
     /** UI 显示的存储槽位数量（内部为无限存储，前 27 个堆叠映射到槽位）。 */
     public static final int STORAGE_SLOTS = 27;
@@ -76,8 +84,12 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     private final int[] faceModes = new int[6];
     private final SideHandler[] sideHandlers = new SideHandler[6];
 
-    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    /** 是否接入 AE（并网后存储内容自动输出进 AE 网络，占一个频道）。 */
     private boolean aeEnabled = true;
+
+    /** AE 网格节点（线缆直连并网）。 */
+    private final AeGridNode aeNode = new AeGridNode(this);
+    private int aeTick = 0;
 
     // ---- 击杀用 ----
     private FakePlayer fakePlayer;
@@ -191,8 +203,8 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_SLAUGHTER_BE.get(),
                     (be, side) -> be.getSideCapability(side));
-            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_SLAUGHTER_BE.get(),
-                    (be, side) -> be.getMEStorage());
+            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_SLAUGHTER_BE.get(),
+                    (be, side) -> be);
         }
     }
 
@@ -298,7 +310,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    public IItemHandler getStorageView()
+    public IItemHandlerModifiable getStorageView()
     {
         return storageView;
     }
@@ -321,11 +333,53 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
-    /** AE 存储接入（开关关闭返回 null 断开）。 */
-    @Nullable
-    public MEStorage getMEStorage()
+    // ---- AE 网格节点（线缆直连并网，存储内容自动输出进 AE） ----
+
+    @Override
+    public IGridNode getGridNode(Direction side)
     {
-        return aeEnabled ? new ItemHandlerMEStorage(getStorageView(), getDisplayName()) : null;
+        return aeNode.getGridNode(side);
+    }
+
+    @Override
+    public AECableType getCableConnectionType(Direction side)
+    {
+        return aeNode.getCableConnectionType(side);
+    }
+
+    @Override
+    public IGridNode getActionableNode()
+    {
+        return aeNode.getActionableNode();
+    }
+
+    /** 把内部存储物品推入 AE 网络（节流由 tick 控制）。 */
+    private void pushOutputToAe()
+    {
+        if (!aeEnabled || !aeNode.isActive())
+        {
+            return;
+        }
+        IStorageService storageService = aeNode.getStorage();
+        if (storageService == null)
+        {
+            return;
+        }
+        MEStorage inv = storageService.getInventory();
+        IActionSource source = aeNode.actionSource();
+        for (int slot = 0; slot < getStorageView().getSlots(); slot++)
+        {
+            ItemStack stack = getStorageView().getStackInSlot(slot);
+            if (stack.isEmpty())
+            {
+                continue;
+            }
+            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
+            if (inserted > 0)
+            {
+                getStorageView().extractItem(slot, (int) inserted, false);
+            }
+        }
     }
 
     // ---- 经验 ----
@@ -420,6 +474,20 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
 
     // ---- tick ----
 
+    @Override
+    public void onLoad()
+    {
+        super.onLoad();
+        aeNode.create(level, worldPosition);
+    }
+
+    @Override
+    public void setRemoved()
+    {
+        aeNode.destroy();
+        super.setRemoved();
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, GodSlaughterBlockEntity be)
     {
         if (level.isClientSide)
@@ -430,6 +498,13 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         if (be.enabled)
         {
             be.scanAndKill(level);
+        }
+        // AE 产物输出节流：每 20 tick（1 秒）推一次
+        be.aeTick++;
+        if (be.aeTick >= 20)
+        {
+            be.aeTick = 0;
+            be.pushOutputToAe();
         }
     }
 
