@@ -218,5 +218,18 @@
   "gui.godofthings.transmitter.bound_machines": "Bound Machines",
   "message.godofthings.binder.machine_bound": "Machine bound",
   "message.godofthings.binder.machine_unbound": "Machine unbound",
-  "message.godofthings.binder.no_transmitter": "No transmitter nearby"
+  "message.godofthings.binder.no_transmitter": "No transmitter nearby",
+  "block.godofthings.god_slaughter": "God Slaughter",
+  "container.godofthings.god_slaughter": "God Slaughter",
+  "gui.godofthings.slaughter.tab_function": "Function",
+  "gui.godofthings.slaughter.tab_storage": "Storage",
+  "gui.godofthings.slaughter.on": "ON",
+  "gui.godofthings.slaughter.off": "OFF",
+  "gui.godofthings.slaughter.range": "Range: %s",
+  "gui.godofthings.slaughter.looting_on": "Looting: ON",
+  "gui.godofthings.slaughter.looting_off": "Looting: OFF",
+  "gui.godofthings.slaughter.looting": "Looting: %s",
+  "gui.godofthings.slaughter.instant_on": "Instant Kill: ON",
+  "gui.godofthings.slaughter.instant_off": "Instant Kill: OFF",
+  "gui.godofthings.slaughter.storage": "Storage (%s types)"
 }

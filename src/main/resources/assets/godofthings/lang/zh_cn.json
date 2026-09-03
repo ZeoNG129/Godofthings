@@ -218,5 +218,18 @@
   "gui.godofthings.transmitter.bound_machines": "已绑定机器列表",
   "message.godofthings.binder.machine_bound": "已绑定机器",
   "message.godofthings.binder.machine_unbound": "已取消绑定机器",
-  "message.godofthings.binder.no_transmitter": "附近没有神之传输"
+  "message.godofthings.binder.no_transmitter": "附近没有神之传输",
+  "block.godofthings.god_slaughter": "神之砍杀",
+  "container.godofthings.god_slaughter": "神之砍杀",
+  "gui.godofthings.slaughter.tab_function": "功能",
+  "gui.godofthings.slaughter.tab_storage": "存储",
+  "gui.godofthings.slaughter.on": "已开启",
+  "gui.godofthings.slaughter.off": "已关闭",
+  "gui.godofthings.slaughter.range": "范围：%s",
+  "gui.godofthings.slaughter.looting_on": "抢夺：开",
+  "gui.godofthings.slaughter.looting_off": "抢夺：关",
+  "gui.godofthings.slaughter.looting": "抢夺：%s",
+  "gui.godofthings.slaughter.instant_on": "秒杀：开",
+  "gui.godofthings.slaughter.instant_off": "秒杀：关",
+  "gui.godofthings.slaughter.storage": "存储（%s 种物品）"
 }

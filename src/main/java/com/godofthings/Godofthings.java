@@ -11,6 +11,7 @@ import com.godofthings.block.GodHeavenEnchantBlock;
 import com.godofthings.block.GodMinerBlock;
 import com.godofthings.block.GodRecordBlock;
 import com.godofthings.block.GodResourceBlock;
+import com.godofthings.block.GodSlaughterBlock;
 import com.godofthings.block.GodTransmitterBlock;
 import com.godofthings.block.SpaceTimeEternityBlock;
 import com.godofthings.block.entity.CreatureAnnihilationBlockEntity;
@@ -22,6 +23,7 @@ import com.godofthings.block.entity.GodFurnaceBlockEntity;
 import com.godofthings.block.entity.GodMinerBlockEntity;
 import com.godofthings.block.entity.GodRecordBlockEntity;
 import com.godofthings.block.entity.GodResourceBlockEntity;
+import com.godofthings.block.entity.GodSlaughterBlockEntity;
 import com.godofthings.block.entity.GodTransmitterBlockEntity;
 import com.godofthings.block.entity.SpaceTimeEternityBlockEntity;
 import com.godofthings.config.MachinesConfig;
@@ -55,6 +57,7 @@ import com.godofthings.menu.GodFurnaceMenu;
 import com.godofthings.menu.GodMinerMenu;
 import com.godofthings.menu.GodRecordMenu;
 import com.godofthings.menu.GodResourceMenu;
+import com.godofthings.menu.GodSlaughterMenu;
 import com.godofthings.menu.GodTransmitterMenu;
 import com.godofthings.menu.WaypointMenu;
 import com.godofthings.recipe.GodUnbreakableRecipe;
@@ -286,6 +289,24 @@ public class Godofthings
             MENUS.register("god_transmitter",
                     () -> IMenuTypeExtension.create(GodTransmitterMenu::new));
 
+    // ---- 神之砍杀 ----
+    public static final DeferredBlock<GodSlaughterBlock> GOD_SLAUGHTER =
+            BLOCKS.registerBlock("god_slaughter", GodSlaughterBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_RED)
+                            .pushReaction(PushReaction.DESTROY)
+                            .strength(5.0F, 1200.0F)
+                            .lightLevel(state -> 12)
+                            .sound(SoundType.METAL));
+    public static final DeferredItem<BlockItem> GOD_SLAUGHTER_ITEM =
+            ITEMS.registerSimpleBlockItem(GOD_SLAUGHTER, new Item.Properties());
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodSlaughterBlockEntity>> GOD_SLAUGHTER_BE =
+            BLOCK_ENTITIES.register("god_slaughter",
+                    () -> BlockEntityType.Builder.of(GodSlaughterBlockEntity::new, GOD_SLAUGHTER.get()).build(null));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodSlaughterMenu>> GOD_SLAUGHTER_MENU =
+            MENUS.register("god_slaughter",
+                    () -> IMenuTypeExtension.create(GodSlaughterMenu::new));
+
     // ---- 神之更改 ----
     public static final DeferredItem<GodChangeItem> GOD_CHANGE =
             ITEMS.registerItem("god_change", props -> new GodChangeItem(props.stacksTo(1)));
@@ -449,6 +470,7 @@ public class Godofthings
                         output.accept(GOD_BLACK_BOX.get());
                         output.accept(GOD_BINDER.get());
                         output.accept(GOD_TRANSMITTER_ITEM.get());
+                        output.accept(GOD_SLAUGHTER_ITEM.get());
                     })
                     .build());
 

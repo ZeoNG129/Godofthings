@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DSD",
+    "RNR",
+    "DSD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:diamond_block" },
+    "S": { "item": "minecraft:diamond_sword" },
+    "R": { "item": "minecraft:redstone_block" },
+    "N": { "item": "minecraft:nether_star" }
+  },
+  "result": {
+    "id": "godofthings:god_slaughter"
+  }
+}
