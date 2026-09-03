@@ -43,6 +43,11 @@ public class GodCraftScreen extends AbstractContainerScreen<GodCraftMenu>
     private static final int BTN_W = 22;
     private static final int BTN_H = 14;
 
+    // AE 接入开关按钮（右上角空位：标题下方、结果槽左侧）
+    private static final int AE_X = 150;
+    private static final int AE_Y = 18;
+    private static final int AE_SIZE = 20;
+
     public GodCraftScreen(GodCraftMenu menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
@@ -115,6 +120,15 @@ public class GodCraftScreen extends AbstractContainerScreen<GodCraftMenu>
 
         // 配方模板详情按钮
         drawBtn(gui, x + BTN_X, y + BTN_Y[3], BTN_W, BTN_H, Component.literal("模"), 0xFF3F5F8F);
+
+        // AE 接入开关按钮（绿色 = 开 / 灰 = 关）
+        int ax = x + AE_X;
+        int ay = y + AE_Y;
+        boolean aeOn = this.menu.isAeEnabled();
+        gui.fill(ax, ay, ax + AE_SIZE, ay + AE_SIZE, 0xFF16181D);
+        gui.fill(ax + 1, ay + 1, ax + AE_SIZE - 1, ay + AE_SIZE - 1, aeOn ? 0xFF57B757 : 0xFF3A4048);
+        Component aeLabel = Component.literal("AE");
+        gui.drawString(this.font, aeLabel, ax + (AE_SIZE - this.font.width(aeLabel)) / 2, ay + 6, 0xFFFFFF);
     }
 
     private void drawBtn(GuiGraphics gui, int bx, int by, int w, int h, Component label, int color)
@@ -167,6 +181,11 @@ public class GodCraftScreen extends AbstractContainerScreen<GodCraftMenu>
         if (relX >= BTN_X && relX < BTN_X + BTN_W && relY >= BTN_Y[3] && relY < BTN_Y[3] + BTN_H)
         {
             sendButton(3); // 配方模板详情
+            return true;
+        }
+        if (relX >= AE_X && relX < AE_X + AE_SIZE && relY >= AE_Y && relY < AE_Y + AE_SIZE)
+        {
+            sendButton(28); // AE 接入开关
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);

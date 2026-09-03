@@ -50,6 +50,11 @@ public class GodEnchantScreen extends AbstractContainerScreen<GodEnchantMenu>
     private static final int BATCH_W = 27;
     private static final int BATCH_H = 16;
 
+    // AE 接入开关按钮（右上角空位）
+    private static final int AE_X = 150;
+    private static final int AE_Y = 8;
+    private static final int AE_SIZE = 20;
+
     private int scrollOffset = 0;
 
     public GodEnchantScreen(GodEnchantMenu menu, Inventory playerInventory, Component title)
@@ -132,6 +137,15 @@ public class GodEnchantScreen extends AbstractContainerScreen<GodEnchantMenu>
         gui.fill(bx2 + 1, by2 + 1, bx2 + BATCH_W - 1, by2 + BATCH_H - 1, 0xFF3F5F8F);
         Component batch = Component.translatable("gui.godofthings.enchant.batch");
         gui.drawString(this.font, batch, bx2 + (BATCH_W - this.font.width(batch)) / 2, by2 + 4, 0xFFFFFF);
+
+        // AE 接入开关按钮（右上角）
+        int ax = x + AE_X;
+        int ay = y + AE_Y;
+        boolean aeOn = this.menu.isAeEnabled();
+        gui.fill(ax, ay, ax + AE_SIZE, ay + AE_SIZE, 0xFF16181D);
+        gui.fill(ax + 1, ay + 1, ax + AE_SIZE - 1, ay + AE_SIZE - 1, aeOn ? 0xFF57B757 : 0xFF3A4048);
+        Component aeLabel = Component.literal("AE");
+        gui.drawString(this.font, aeLabel, ax + (AE_SIZE - this.font.width(aeLabel)) / 2, ay + 6, 0xFFFFFF);
     }
 
     @Override
@@ -183,6 +197,12 @@ public class GodEnchantScreen extends AbstractContainerScreen<GodEnchantMenu>
         if (relX >= BATCH_X && relX < BATCH_X + BATCH_W && relY >= BATCH_Y && relY < BATCH_Y + BATCH_H)
         {
             sendButton(4);
+            return true;
+        }
+
+        if (relX >= AE_X && relX < AE_X + AE_SIZE && relY >= AE_Y && relY < AE_Y + AE_SIZE)
+        {
+            sendButton(5);
             return true;
         }
 

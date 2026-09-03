@@ -1,6 +1,9 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.storage.MEStorage;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.ItemHandlerMEStorage;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodMinerMenu;
@@ -76,6 +79,9 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         }
     };
 
+    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    private boolean aeEnabled = true;
+
     private boolean running = false;
     private int radius = 16;
     private int currentY = Integer.MIN_VALUE; // 当前竖列正在挖的 Y（未初始化标记）
@@ -103,6 +109,24 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
     public InfiniteItemHandler getItemHandler()
     {
         return itemHandler;
+    }
+
+    public boolean isAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    public void toggleAeEnabled()
+    {
+        this.aeEnabled = !this.aeEnabled;
+        setChanged();
+    }
+
+    /** AE 存储接入（开关关闭返回 null 断开）。 */
+    @Nullable
+    public MEStorage getMEStorage()
+    {
+        return aeEnabled ? new ItemHandlerMEStorage(getItemHandler(), getDisplayName()) : null;
     }
 
     public FluidTank getTank()
@@ -671,6 +695,8 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
                     (be, side) -> be.itemHandler);
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Godofthings.GOD_MINER_BE.get(),
                     (be, side) -> be.tank);
+            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_MINER_BE.get(),
+                    (be, side) -> be.getMEStorage());
         }
     }
 
@@ -680,6 +706,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.saveAdditional(tag, provider);
+        tag.putBoolean("AeEnabled", aeEnabled);
         tag.putBoolean("Running", running);
         tag.putInt("Radius", radius);
         tag.putInt("CurrentY", currentY);
@@ -698,6 +725,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.loadAdditional(tag, provider);
+        this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
         running = tag.getBoolean("Running");
         radius = tag.getInt("Radius");
         currentY = tag.getInt("CurrentY");

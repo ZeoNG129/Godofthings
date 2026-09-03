@@ -1,6 +1,9 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.storage.MEStorage;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.ItemHandlerMEStorage;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodResourceMenu;
@@ -196,6 +199,9 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider
 
     private int tickCounter = 0;
 
+    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    private boolean aeEnabled = true;
+
     public GodResourceBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.GOD_RESOURCE_BE.get(), pos, state);
@@ -228,6 +234,24 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider
     public int getStorageCount()
     {
         return itemHandler.getStacks().size();
+    }
+
+    public boolean isAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    public void toggleAeEnabled()
+    {
+        this.aeEnabled = !this.aeEnabled;
+        setChanged();
+    }
+
+    /** AE 存储接入（开关关闭返回 null 断开）。 */
+    @Nullable
+    public MEStorage getMEStorage()
+    {
+        return aeEnabled ? new ItemHandlerMEStorage(getItemHandler(), getDisplayName()) : null;
     }
 
     // ---- 每 tick 逻辑 ----
@@ -605,6 +629,8 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_RESOURCE_BE.get(),
                     (be, side) -> be.itemHandler);
+            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_RESOURCE_BE.get(),
+                    (be, side) -> be.getMEStorage());
         }
     }
 
@@ -618,6 +644,7 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider
         tag.put("AccelSlot", accelSlot.serializeNBT(provider));
         tag.put("Inventory", itemHandler.serializeNBT(provider));
         tag.putInt("TickCounter", tickCounter);
+        tag.putBoolean("AeEnabled", aeEnabled);
     }
 
     @Override
@@ -637,6 +664,7 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider
             itemHandler.deserializeNBT(provider, tag.getCompound("Inventory"));
         }
         tickCounter = tag.getInt("TickCounter");
+        this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
     }
 
     // ---- MenuProvider ----

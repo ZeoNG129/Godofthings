@@ -1,6 +1,9 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.storage.MEStorage;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.ItemHandlerMEStorage;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodDropMenu;
@@ -223,6 +226,9 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider
         }
     };
 
+    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    private boolean aeEnabled = true;
+
     private int tickCounter = 0;
 
     public GodDropBlockEntity(BlockPos pos, BlockState state)
@@ -239,6 +245,24 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider
     public InfiniteItemHandler getItemHandler()
     {
         return itemHandler;
+    }
+
+    public boolean isAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    public void toggleAeEnabled()
+    {
+        this.aeEnabled = !this.aeEnabled;
+        setChanged();
+    }
+
+    /** AE 存储接入（开关关闭返回 null 断开）。 */
+    @Nullable
+    public MEStorage getMEStorage()
+    {
+        return aeEnabled ? new ItemHandlerMEStorage(getItemHandler(), getDisplayName()) : null;
     }
 
     /** 神之加速槽（只接受神之加速，最多 64 个） */
@@ -501,6 +525,8 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_DROP_BE.get(),
                     (be, side) -> be.getItemHandler());
+            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_DROP_BE.get(),
+                    (be, side) -> be.getMEStorage());
         }
     }
 
@@ -514,12 +540,14 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider
         tag.put("AccelSlot", accelSlot.serializeNBT(registries));
         tag.put("Inventory", itemHandler.serializeNBT(registries));
         tag.putInt("TickCounter", tickCounter);
+        tag.putBoolean("AeEnabled", aeEnabled);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries)
     {
         super.loadAdditional(tag, registries);
+        this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
         if (tag.contains("InputSlot"))
         {
             inputSlot.deserializeNBT(registries, tag.getCompound("InputSlot"));

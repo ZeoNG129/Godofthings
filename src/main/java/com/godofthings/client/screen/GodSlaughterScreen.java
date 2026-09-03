@@ -49,8 +49,11 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
         drawButton(gui, x + 84, y + 4, TAB_W, TAB_H,
                 Component.translatable("gui.godofthings.slaughter.tab_experience"),
                 this.menu.getCurrentTab() == GodSlaughterMenu.TAB_EXPERIENCE);
-        drawButton(gui, x + 122, y + 4, 46, TAB_H,
+        drawButton(gui, x + 122, y + 4, 40, TAB_H,
                 Component.translatable("gui.godofthings.face_config"), false);
+        // AE 接入开关（绿色=开，灰色=关），位于顶部最右侧
+        drawButton(gui, x + 162, y + 4, 14, TAB_H,
+                Component.literal("AE"), this.menu.isAeEnabled());
 
         int tab = this.menu.getCurrentTab();
         if (tab == GodSlaughterMenu.TAB_FUNCTION)
@@ -169,9 +172,14 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
             this.menu.setCurrentTab(GodSlaughterMenu.TAB_EXPERIENCE);
             return true;
         }
-        if (inRect(relX, relY, 122, 4, 46, TAB_H))
+        if (inRect(relX, relY, 122, 4, 40, TAB_H))
         {
             sendButton(3);
+            return true;
+        }
+        if (inRect(relX, relY, 162, 4, 14, TAB_H))
+        {
+            sendButton(8);
             return true;
         }
 

@@ -1,6 +1,9 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.storage.MEStorage;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.ItemHandlerMEStorage;
 import com.godofthings.menu.GodCraftMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -101,6 +104,9 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
     private final int[] faceModes = new int[6];
     private final IItemHandler[] sideHandlers = new IItemHandler[6];
 
+    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    private boolean aeEnabled = true;
+
     public GodCraftBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.GOD_CRAFT_BE.get(), pos, state);
@@ -124,6 +130,26 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
 
     public ItemStackHandler getInputSlots() { return inputSlots; }
     public ItemStackHandler getOutputSlot() { return outputSlot; }
+
+    // ---- AE 接入 ----
+
+    public boolean isAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    public void toggleAeEnabled()
+    {
+        this.aeEnabled = !this.aeEnabled;
+        setChanged();
+    }
+
+    /** AE 存储接入（开关关闭返回 null 断开）。 */
+    @Nullable
+    public MEStorage getMEStorage()
+    {
+        return aeEnabled ? new ItemHandlerMEStorage(inputSlots, getDisplayName()) : null;
+    }
 
     // ---- 开关 ----
 
@@ -694,6 +720,8 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_CRAFT_BE.get(),
                     (be, side) -> be.getSideCapability(side));
+            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_CRAFT_BE.get(),
+                    (be, side) -> be.getMEStorage());
         }
     }
 
@@ -753,6 +781,7 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
         tag.putIntArray("FaceModes", faceModes);
         tag.putBoolean("Locked", locked);
         tag.putBoolean("Enabled", enabled);
+        tag.putBoolean("AeEnabled", aeEnabled);
         CompoundTag li = new CompoundTag();
         for (int i = 0; i < INPUT_SLOTS; i++)
         {
@@ -795,6 +824,7 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
         }
         locked = tag.getBoolean("Locked");
         enabled = tag.getBoolean("Enabled");
+        this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
         if (tag.contains("LockedItems"))
         {
             CompoundTag li = tag.getCompound("LockedItems");

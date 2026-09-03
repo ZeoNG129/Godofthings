@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
@@ -18,6 +19,7 @@ public class GodFurnaceMenu extends AbstractContainerMenu
 {
     private final GodFurnaceBlockEntity be;
     private final ContainerLevelAccess access;
+    private int cachedAeEnabled = 1;
 
     // 客户端构造：从 extraData 读取 BlockPos，再查客户端 BE 副本
     public GodFurnaceMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
@@ -67,6 +69,17 @@ public class GodFurnaceMenu extends AbstractContainerMenu
         {
             this.addSlot(new Slot(playerInv, col, 8 + col * 18, 142));
         }
+
+        this.addDataSlot(new DataSlot()
+        {
+            @Override public int get() { return be.isAeEnabled() ? 1 : 0; }
+            @Override public void set(int value) { cachedAeEnabled = value; }
+        });
+    }
+
+    public boolean isAeEnabled()
+    {
+        return cachedAeEnabled == 1;
     }
 
     public GodFurnaceBlockEntity getBlockEntity()
@@ -79,6 +92,12 @@ public class GodFurnaceMenu extends AbstractContainerMenu
     @Override
     public boolean clickMenuButton(Player player, int buttonId)
     {
+        if (buttonId == 7)
+        {
+            be.toggleAeEnabled();
+            this.broadcastChanges();
+            return true;
+        }
         if (buttonId == 6 && player instanceof ServerPlayer serverPlayer)
         {
             // 1.21.1：NetworkHooks.openScreen → IPlayerExtension.openMenu(provider, Consumer<RegistryFriendlyByteBuf>)

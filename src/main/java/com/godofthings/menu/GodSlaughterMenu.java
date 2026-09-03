@@ -35,6 +35,7 @@ public class GodSlaughterMenu extends AbstractContainerMenu
     private int cachedLooting = 100;
     private int cachedInstantKill = 1;
     private int cachedExperiencePoints = 0;
+    private int cachedAeEnabled = 1;
 
     // 当前标签页（纯客户端状态）
     private int currentTab = TAB_FUNCTION;
@@ -80,6 +81,11 @@ public class GodSlaughterMenu extends AbstractContainerMenu
         {
             @Override public int get() { return be.getExperiencePoints(); }
             @Override public void set(int value) { cachedExperiencePoints = value; }
+        });
+        this.addDataSlot(new DataSlot()
+        {
+            @Override public int get() { return be.isAeEnabled() ? 1 : 0; }
+            @Override public void set(int value) { cachedAeEnabled = value; }
         });
 
         // 27 格存储槽（映射无限存储前 27 个堆叠）
@@ -127,6 +133,7 @@ public class GodSlaughterMenu extends AbstractContainerMenu
     public boolean isInstantKill() { return cachedInstantKill == 1; }
     public int getExperiencePoints() { return cachedExperiencePoints; }
     public int getExperienceLevel() { return GodSlaughterBlockEntity.xpToLevel(cachedExperiencePoints); }
+    public boolean isAeEnabled() { return cachedAeEnabled == 1; }
 
     public int getCurrentTab() { return currentTab; }
     public void setCurrentTab(int tab) { this.currentTab = tab; }
@@ -140,7 +147,7 @@ public class GodSlaughterMenu extends AbstractContainerMenu
     public void setLootingLocal(int v) { this.cachedLooting = v; }
 
     /**
-     * 按钮：0=开关，1=抢夺开关，2=秒杀开关，3=打开面配置界面，4=取1级，5=取10级，6=取100级，7=取全部经验。
+     * 按钮：0=开关，1=抢夺开关，2=秒杀开关，3=打开面配置界面，4=取1级，5=取10级，6=取100级，7=取全部经验，8=AE接入开关。
      */
     @Override
     public boolean clickMenuButton(Player player, int buttonId)
@@ -155,6 +162,7 @@ public class GodSlaughterMenu extends AbstractContainerMenu
             case 5 -> takeXpLevels(player, 10);
             case 6 -> takeXpLevels(player, 100);
             case 7 -> takeXpAll(player);
+            case 8 -> be.toggleAeEnabled();
             default -> { return false; }
         }
         this.broadcastChanges();

@@ -1,6 +1,9 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.storage.MEStorage;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.ItemHandlerMEStorage;
 import com.godofthings.menu.GodEnchantMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -33,6 +36,9 @@ public class GodEnchantBlockEntity extends BlockEntity implements MenuProvider
         }
     };
 
+    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    private boolean aeEnabled = true;
+
     public GodEnchantBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.GOD_ENCHANT_BE.get(), pos, state);
@@ -41,6 +47,24 @@ public class GodEnchantBlockEntity extends BlockEntity implements MenuProvider
     public ItemStackHandler getItemHandler()
     {
         return itemHandler;
+    }
+
+    public boolean isAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    public void toggleAeEnabled()
+    {
+        this.aeEnabled = !this.aeEnabled;
+        setChanged();
+    }
+
+    /** AE 存储接入（开关关闭返回 null 断开）。 */
+    @Nullable
+    public MEStorage getMEStorage()
+    {
+        return aeEnabled ? new ItemHandlerMEStorage(getItemHandler(), getDisplayName()) : null;
     }
 
     // ---- capability 注册 ----
@@ -54,6 +78,8 @@ public class GodEnchantBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_ENCHANT_BE.get(),
                     (be, side) -> be.getItemHandler());
+            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_ENCHANT_BE.get(),
+                    (be, side) -> be.getMEStorage());
         }
     }
 
@@ -70,12 +96,14 @@ public class GodEnchantBlockEntity extends BlockEntity implements MenuProvider
     {
         super.saveAdditional(tag, registries);
         tag.put("Inventory", itemHandler.serializeNBT(registries));
+        tag.putBoolean("AeEnabled", aeEnabled);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries)
     {
         super.loadAdditional(tag, registries);
+        this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
         if (tag.contains("Inventory"))
         {
             itemHandler.deserializeNBT(registries, tag.getCompound("Inventory"));

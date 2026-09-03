@@ -16,6 +16,7 @@ public class GodMinerMenu extends AbstractContainerMenu
 {
     private final GodMinerBlockEntity be;
     private final ContainerLevelAccess access;
+    private int cachedAeEnabled = 1;
 
     public GodMinerMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
@@ -88,6 +89,16 @@ public class GodMinerMenu extends AbstractContainerMenu
             @Override
             public void set(int value) { /* 只读 */ }
         });
+        this.addDataSlot(new DataSlot()
+        {
+            @Override public int get() { return be.isAeEnabled() ? 1 : 0; }
+            @Override public void set(int value) { cachedAeEnabled = value; }
+        });
+    }
+
+    public boolean isAeEnabled()
+    {
+        return cachedAeEnabled == 1;
     }
 
     public GodMinerBlockEntity getBlockEntity()
@@ -138,6 +149,13 @@ public class GodMinerMenu extends AbstractContainerMenu
         if (buttonId == 8)
         {
             be.toggleSilkTouch();
+            this.broadcastChanges();
+            return true;
+        }
+        // 9=切换 AE 接入（ME 存储总线占一个频道；开关关闭断开）
+        if (buttonId == 9)
+        {
+            be.toggleAeEnabled();
             this.broadcastChanges();
             return true;
         }

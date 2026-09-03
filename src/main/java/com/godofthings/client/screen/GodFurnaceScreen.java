@@ -21,6 +21,11 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
     private static final int GEAR_Y = 17;
     private static final int GEAR_SIZE = 20;
 
+    // AE 接入开关按钮（齿轮下方）
+    private static final int AE_X = 150;
+    private static final int AE_Y = 39;
+    private static final int AE_SIZE = 20;
+
     public GodFurnaceScreen(GodFurnaceMenu menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
@@ -56,6 +61,15 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
         gui.fill(bx + 1, by + 1, bx + GEAR_SIZE - 1, by + GEAR_SIZE - 1,
                 hovering ? 0xFF5A5A5A : 0xFF3A3A3A);
         gui.blit(TEXTURE, bx + 1, by + 1, 176, 16, 18, 18);  // 齿轮图标
+
+        // AE 接入开关按钮
+        int ax = x + AE_X;
+        int ay = y + AE_Y;
+        boolean aeOn = this.menu.isAeEnabled();
+        gui.fill(ax, ay, ax + AE_SIZE, ay + AE_SIZE, 0xFF16181D);
+        gui.fill(ax + 1, ay + 1, ax + AE_SIZE - 1, ay + AE_SIZE - 1, aeOn ? 0xFF57B757 : 0xFF3A4048);
+        Component aeLabel = Component.literal("AE");
+        gui.drawString(this.font, aeLabel, ax + (AE_SIZE - this.font.width(aeLabel)) / 2, ay + 6, 0xFFFFFF);
     }
 
     @Override
@@ -71,6 +85,17 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
             if (conn != null)
             {
                 conn.send(new ServerboundContainerButtonClickPacket(this.menu.containerId, 6));
+            }
+            return true;
+        }
+
+        if (relX >= AE_X && relX < AE_X + AE_SIZE && relY >= AE_Y && relY < AE_Y + AE_SIZE)
+        {
+            // AE 接入开关（服务端在 clickMenuButton(7) 中切换）
+            ClientPacketListener conn = Minecraft.getInstance().getConnection();
+            if (conn != null)
+            {
+                conn.send(new ServerboundContainerButtonClickPacket(this.menu.containerId, 7));
             }
             return true;
         }

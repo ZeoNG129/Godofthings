@@ -16,6 +16,7 @@ public class GodDropMenu extends AbstractContainerMenu
 {
     private final GodDropBlockEntity be;
     private final ContainerLevelAccess access;
+    private int cachedAeEnabled = 1;
 
     public GodDropMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
@@ -61,11 +62,37 @@ public class GodDropMenu extends AbstractContainerMenu
             @Override
             public void set(int value) { /* 只读 */ }
         });
+
+        // AE 接入开关状态
+        this.addDataSlot(new DataSlot()
+        {
+            @Override public int get() { return be.isAeEnabled() ? 1 : 0; }
+            @Override public void set(int value) { cachedAeEnabled = value; }
+        });
+    }
+
+    public boolean isAeEnabled()
+    {
+        return cachedAeEnabled == 1;
     }
 
     public GodDropBlockEntity getBlockEntity()
     {
         return be;
+    }
+
+    // 客户端点击「AE」按钮 → ServerboundContainerButtonClickPacket(containerId, 10)
+    // 服务端在此切换 AE 接入开关
+    @Override
+    public boolean clickMenuButton(Player player, int buttonId)
+    {
+        if (buttonId == 10)
+        {
+            be.toggleAeEnabled();
+            this.broadcastChanges();
+            return true;
+        }
+        return false;
     }
 
     @Override

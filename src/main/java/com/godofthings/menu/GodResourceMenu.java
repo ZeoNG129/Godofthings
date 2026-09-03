@@ -16,6 +16,7 @@ public class GodResourceMenu extends AbstractContainerMenu
 {
     private final GodResourceBlockEntity be;
     private final ContainerLevelAccess access;
+    private int cachedAeEnabled = 1;
 
     public GodResourceMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
@@ -61,11 +62,37 @@ public class GodResourceMenu extends AbstractContainerMenu
             @Override
             public void set(int value) { /* 只读 */ }
         });
+
+        // AE 接入开关状态（客户端同步）
+        this.addDataSlot(new DataSlot()
+        {
+            @Override
+            public int get() { return be.isAeEnabled() ? 1 : 0; }
+            @Override
+            public void set(int value) { cachedAeEnabled = value; }
+        });
+    }
+
+    public boolean isAeEnabled()
+    {
+        return cachedAeEnabled == 1;
     }
 
     public GodResourceBlockEntity getBlockEntity()
     {
         return be;
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int buttonId)
+    {
+        if (buttonId == 10)
+        {
+            be.toggleAeEnabled();
+            this.broadcastChanges();
+            return true;
+        }
+        return false;
     }
 
     @Override

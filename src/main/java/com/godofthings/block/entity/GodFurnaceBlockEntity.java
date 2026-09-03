@@ -1,6 +1,9 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.storage.MEStorage;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.ItemHandlerMEStorage;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodFurnaceMenu;
 import net.minecraft.core.BlockPos;
@@ -111,6 +114,9 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
 
     private final IItemHandler[] sideHandlers = new IItemHandler[6];
 
+    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    private boolean aeEnabled = true;
+
     public GodFurnaceBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.GOD_FURNACE_BE.get(), pos, state);
@@ -124,6 +130,24 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
     public ItemStackHandler getItemHandler()
     {
         return itemHandler;
+    }
+
+    public boolean isAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    public void toggleAeEnabled()
+    {
+        this.aeEnabled = !this.aeEnabled;
+        setChanged();
+    }
+
+    /** AE 存储接入（开关关闭返回 null 断开）。 */
+    @Nullable
+    public MEStorage getMEStorage()
+    {
+        return aeEnabled ? new ItemHandlerMEStorage(itemHandler, getDisplayName()) : null;
     }
 
     /** 神之加速槽（只接受神之加速，最多 64 个） */
@@ -198,6 +222,8 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_FURNACE_BE.get(),
                     (be, side) -> be.getSideCapability(side));
+            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_FURNACE_BE.get(),
+                    (be, side) -> be.getMEStorage());
         }
     }
 
@@ -536,6 +562,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
         tag.put("Inventory", itemHandler.serializeNBT(registries));
         tag.put("AccelSlot", accelSlot.serializeNBT(registries));
         tag.putIntArray("FaceModes", faceModes);
+        tag.putBoolean("AeEnabled", aeEnabled);
     }
 
     // 1.21.1（1.20.5+ 破坏性变更）：load(CompoundTag) → loadAdditional(CompoundTag, HolderLookup.Provider)
@@ -543,6 +570,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries)
     {
         super.loadAdditional(tag, registries);
+        this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
         if (tag.contains("AccelSlot"))
         {
             accelSlot.deserializeNBT(registries, tag.getCompound("AccelSlot"));

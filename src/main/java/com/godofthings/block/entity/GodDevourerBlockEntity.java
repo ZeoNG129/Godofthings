@@ -1,9 +1,14 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.storage.MEStorage;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.ItemHandlerMEStorage;
 import com.godofthings.handler.DevourerItemHandler;
 import com.godofthings.menu.GodDevourerMenu;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -40,6 +45,8 @@ public class GodDevourerBlockEntity extends BlockEntity implements MenuProvider
     private final FluidTank fluidTank = new FluidTank(1_000_000_000);
     /** 当前打开菜单的玩家数（服务端计数，用于「退出界面再销毁」） */
     private int viewers = 0;
+    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    private boolean aeEnabled = true;
 
     public GodDevourerBlockEntity(BlockPos pos, BlockState state)
     {
@@ -74,6 +81,24 @@ public class GodDevourerBlockEntity extends BlockEntity implements MenuProvider
         return fluidTank;
     }
 
+    public boolean isAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    public void toggleAeEnabled()
+    {
+        this.aeEnabled = !this.aeEnabled;
+        setChanged();
+    }
+
+    /** AE 存储接入（开关关闭返回 null 断开）。 */
+    @Nullable
+    public MEStorage getMEStorage()
+    {
+        return aeEnabled ? new ItemHandlerMEStorage(getItemHandler(), getDisplayName()) : null;
+    }
+
     /** 玩家打开菜单（服务端） */
     public void onMenuOpened()
     {
@@ -103,6 +128,24 @@ public class GodDevourerBlockEntity extends BlockEntity implements MenuProvider
         return new GodDevourerMenu(containerId, playerInv, this);
     }
 
+    // ---- NBT ----
+
+    // 1.21.1（1.20.5+ 破坏性变更）：save(CompoundTag) → saveAdditional(CompoundTag, HolderLookup.Provider)
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries)
+    {
+        super.saveAdditional(tag, registries);
+        tag.putBoolean("AeEnabled", aeEnabled);
+    }
+
+    // 1.21.1（1.20.5+ 破坏性变更）：load(CompoundTag) → loadAdditional(CompoundTag, HolderLookup.Provider)
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries)
+    {
+        super.loadAdditional(tag, registries);
+        this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
+    }
+
     @EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD)
     public static class CapabilityRegistration
     {
@@ -115,6 +158,9 @@ public class GodDevourerBlockEntity extends BlockEntity implements MenuProvider
             // 六面全部开放：液体每 tick 销毁
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Godofthings.GOD_DEVOURER_BE.get(),
                     (be, side) -> be.fluidTank);
+            // AE 存储总线接入（占一个频道），开关关闭返回 null 断开
+            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_DEVOURER_BE.get(),
+                    (be, side) -> be.getMEStorage());
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.storage.MEStorage;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.ItemHandlerMEStorage;
 import com.godofthings.item.GodSwordItem;
 import com.godofthings.menu.GodSlaughterMenu;
 import net.minecraft.core.BlockPos;
@@ -72,6 +75,9 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     // ---- 面模式（输入输出配置） ----
     private final int[] faceModes = new int[6];
     private final SideHandler[] sideHandlers = new SideHandler[6];
+
+    /** 是否接入 AE（ME 存储总线可接入本机存储，占一个频道）。 */
+    private boolean aeEnabled = true;
 
     // ---- 击杀用 ----
     private FakePlayer fakePlayer;
@@ -185,6 +191,8 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_SLAUGHTER_BE.get(),
                     (be, side) -> be.getSideCapability(side));
+            event.registerBlockEntity(AECapabilities.ME_STORAGE, Godofthings.GOD_SLAUGHTER_BE.get(),
+                    (be, side) -> be.getMEStorage());
         }
     }
 
@@ -298,6 +306,26 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     public int getStorageCount()
     {
         return storage.getStacks().size();
+    }
+
+    // ---- AE 接入 ----
+
+    public boolean isAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    public void toggleAeEnabled()
+    {
+        this.aeEnabled = !this.aeEnabled;
+        setChanged();
+    }
+
+    /** AE 存储接入（开关关闭返回 null 断开）。 */
+    @Nullable
+    public MEStorage getMEStorage()
+    {
+        return aeEnabled ? new ItemHandlerMEStorage(getStorageView(), getDisplayName()) : null;
     }
 
     // ---- 经验 ----
@@ -638,6 +666,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         this.lootingEnabled = tag.getBoolean("LootingEnabled");
         this.looting = tag.contains("Looting") ? tag.getInt("Looting") : 100;
         this.instantKill = tag.contains("InstantKill") ? tag.getBoolean("InstantKill") : true;
+        this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
         this.experiencePoints = tag.contains("ExperiencePoints") ? tag.getInt("ExperiencePoints") : 0;
         if (tag.contains("FaceModes"))
         {
@@ -661,6 +690,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         tag.putBoolean("InstantKill", this.instantKill);
         tag.putInt("ExperiencePoints", this.experiencePoints);
         tag.putIntArray("FaceModes", faceModes);
+        tag.putBoolean("AeEnabled", aeEnabled);
         tag.put("Storage", storage.serializeNBT(registries));
     }
 

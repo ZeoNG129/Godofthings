@@ -46,6 +46,11 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
     private static final int ENCHANT_BTN_W = 24;
     private static final int ENCHANT_BTN_H = 16;
 
+    // AE 接入开关按钮（时运/精准右侧，绿色=开/灰=关）
+    private static final int AE_X = 64;
+    private static final int AE_Y = 20;
+    private static final int AE_SIZE = 20;
+
     public GodMinerScreen(GodMinerMenu menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
@@ -83,6 +88,15 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         gui.fill(sx + 1, sy + 1, sx + ENCHANT_BTN_W - 1, sy + ENCHANT_BTN_H - 1, silk ? 0xFF2E7D32 : 0xFF4A4A4A);
         Component silkLabel = Component.translatable("gui.godofthings.miner.silk_touch");
         gui.drawString(this.font, silkLabel, sx + (ENCHANT_BTN_W - this.font.width(silkLabel)) / 2, sy + 4, 0xFFFFFF);
+
+        // AE 接入开关按钮（绿色=开/灰=关）
+        int ax = x + AE_X;
+        int ay = y + AE_Y;
+        boolean aeOn = this.menu.isAeEnabled();
+        gui.fill(ax, ay, ax + AE_SIZE, ay + AE_SIZE, 0xFF16181D);
+        gui.fill(ax + 1, ay + 1, ax + AE_SIZE - 1, ay + AE_SIZE - 1, aeOn ? 0xFF57B757 : 0xFF3A4048);
+        Component aeLabel = Component.literal("AE");
+        gui.drawString(this.font, aeLabel, ax + (AE_SIZE - this.font.width(aeLabel)) / 2, ay + 6, 0xFFFFFF);
 
         // 开始/停止按钮
         int bx = x + START_X;
@@ -146,6 +160,13 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         {
             be.toggleSilkTouch(); // 乐观更新
             sendButton(8);
+            return true;
+        }
+
+        if (relX >= AE_X && relX < AE_X + AE_SIZE && relY >= AE_Y && relY < AE_Y + AE_SIZE)
+        {
+            // AE 接入开关（服务端在 clickMenuButton(9) 中切换，经 DataSlot 同步回显）
+            sendButton(9);
             return true;
         }
 

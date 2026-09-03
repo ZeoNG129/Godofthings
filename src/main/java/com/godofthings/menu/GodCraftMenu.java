@@ -21,7 +21,7 @@ import net.neoforged.neoforge.items.SlotItemHandler;
  * - 0-8 合成格（3×3，8,17 起始——整体右移 46px，为左侧模板槽留位）
  * - 9 结果槽（124,35，实时预览）
  * 按钮：0 = 锁定/解锁配方；1 = 启动/停止自动合成；2 = 打开面配置；3 = 打开模板详情；
- * 10-17 = 加载模板；20-27 = 保存模板（Shift）。
+ * 10-17 = 加载模板；20-27 = 保存模板（Shift）；28 = AE 接入开关。
  */
 public class GodCraftMenu extends AbstractContainerMenu
 {
@@ -30,6 +30,7 @@ public class GodCraftMenu extends AbstractContainerMenu
 
     private final GodCraftBlockEntity be;
     private final ContainerLevelAccess access;
+    private int cachedAeEnabled = 1;
 
     public GodCraftMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
@@ -87,6 +88,17 @@ public class GodCraftMenu extends AbstractContainerMenu
             @Override public int get() { return be.isEnabled() ? 1 : 0; }
             @Override public void set(int value) { be.setEnabled(value != 0); }
         });
+        // 同步 AE 接入开关
+        this.addDataSlot(new DataSlot()
+        {
+            @Override public int get() { return be.isAeEnabled() ? 1 : 0; }
+            @Override public void set(int value) { cachedAeEnabled = value; }
+        });
+    }
+
+    public boolean isAeEnabled()
+    {
+        return cachedAeEnabled == 1;
     }
 
     public GodCraftBlockEntity getBlockEntity()
@@ -143,6 +155,12 @@ public class GodCraftMenu extends AbstractContainerMenu
                     return new GodCraftTemplateMenu(containerId, inventory, be);
                 }
             }, buf -> buf.writeBlockPos(be.getBlockPos()));
+            return true;
+        }
+        if (buttonId == 28)
+        {
+            be.toggleAeEnabled();
+            this.broadcastChanges();
             return true;
         }
         // 模板槽：10-17 = 加载模板；20-27 = 保存模板（Shift+单击）
