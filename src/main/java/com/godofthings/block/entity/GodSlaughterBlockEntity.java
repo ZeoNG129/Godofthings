@@ -30,6 +30,7 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -240,7 +241,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     }
 
     /** 27 格固定视图（菜单槽位用），映射无限存储前 27 个堆叠。 */
-    public class StorageView implements IItemHandler
+    public class StorageView implements IItemHandlerModifiable
     {
         @Override
         public int getSlots()
@@ -252,6 +253,12 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         public ItemStack getStackInSlot(int slot)
         {
             return storage.getStackInSlot(slot);
+        }
+
+        @Override
+        public void setStackInSlot(int slot, ItemStack stack)
+        {
+            storage.setStackInSlot(slot, stack);
         }
 
         @Override
