@@ -22,9 +22,9 @@ public class DevourerButtonHandler
     {
         if (event.getScreen() instanceof InventoryScreen inv)
         {
-            // 按钮放在快捷栏第一格（8,142）正下方
-            int x = inv.getGuiLeft() + 8;
-            int y = inv.getGuiTop() + 160;
+            // 按钮放在物品栏边框的左下角
+            int x = inv.getGuiLeft();
+            int y = inv.getGuiTop() + 166;
             Button button = Button.builder(
                             Component.literal("吞"),
                             b -> DevourerMessages.sendOpen())

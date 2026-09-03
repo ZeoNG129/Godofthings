@@ -335,6 +335,45 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         return all;
     }
 
+    /** 存储经验点数换算成的等级（原版累计经验公式）。 */
+    public int getExperienceLevel()
+    {
+        return xpToLevel(experiencePoints);
+    }
+
+    /** 升到指定等级需要的累计经验点数（原版公式）。 */
+    public static int xpToReach(int level)
+    {
+        if (level <= 0)
+        {
+            return 0;
+        }
+        if (level <= 16)
+        {
+            return level * level + 6 * level;
+        }
+        if (level <= 31)
+        {
+            return (int) (2.5 * level * level - 40.5 * level + 360);
+        }
+        return (int) (4.5 * level * level - 162.5 * level + 2220);
+    }
+
+    /** 累计经验点数 → 等级（原版公式反解）。 */
+    public static int xpToLevel(int points)
+    {
+        if (points <= 0)
+        {
+            return 0;
+        }
+        int level = 0;
+        while (level < 30000 && xpToReach(level + 1) <= points)
+        {
+            level++;
+        }
+        return level;
+    }
+
     /** 掉落物进存储（掉落拦截调用）。 */
     public void insertIntoStorage(ItemStack stack)
     {
@@ -382,10 +421,19 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
 
         AABB aabb = new AABB(worldPosition).inflate(range);
         List<LivingEntity> mobs = level.getEntitiesOfClass(LivingEntity.class, aabb);
+        double cx = worldPosition.getX() + 0.5;
+        double cy = worldPosition.getY() + 0.5;
+        double cz = worldPosition.getZ() + 0.5;
+        double rangeSq = (double) range * range;
         int killed = 0;
         for (LivingEntity mob : mobs)
         {
             if (mob instanceof Player || mob.isDeadOrDying() || mob.isRemoved())
+            {
+                continue;
+            }
+            // 球形半径：只杀距离中心 ≤ range 的生物（避免 AABB 对角方向超出半径）
+            if (mob.distanceToSqr(cx, cy, cz) > rangeSq)
             {
                 continue;
             }

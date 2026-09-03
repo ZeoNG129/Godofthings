@@ -87,7 +87,15 @@ public class GodSlaughterMenu extends AbstractContainerMenu
         {
             for (int col = 0; col < 9; col++)
             {
-                this.addSlot(new SlotItemHandler(be.getStorageView(), row * 9 + col, 8 + col * 18, 17 + row * 18));
+                this.addSlot(new SlotItemHandler(be.getStorageView(), row * 9 + col, 8 + col * 18, 17 + row * 18)
+                {
+                    @Override
+                    public boolean isActive()
+                    {
+                        // 存储槽只在存储板块渲染、hover、可点击，其它板块完全独立
+                        return currentTab == TAB_STORAGE;
+                    }
+                });
             }
         }
 
@@ -118,6 +126,7 @@ public class GodSlaughterMenu extends AbstractContainerMenu
     public int getLooting() { return cachedLooting; }
     public boolean isInstantKill() { return cachedInstantKill == 1; }
     public int getExperiencePoints() { return cachedExperiencePoints; }
+    public int getExperienceLevel() { return GodSlaughterBlockEntity.xpToLevel(cachedExperiencePoints); }
 
     public int getCurrentTab() { return currentTab; }
     public void setCurrentTab(int tab) { this.currentTab = tab; }
@@ -142,10 +151,10 @@ public class GodSlaughterMenu extends AbstractContainerMenu
             case 1 -> be.toggleLootingEnabled();
             case 2 -> be.toggleInstantKill();
             case 3 -> openConfig(player);
-            case 4 -> takeXp(player, 7);
-            case 5 -> takeXp(player, 70);
-            case 6 -> takeXp(player, 700);
-            case 7 -> takeXp(player, Integer.MAX_VALUE);
+            case 4 -> takeXpLevels(player, 1);
+            case 5 -> takeXpLevels(player, 10);
+            case 6 -> takeXpLevels(player, 100);
+            case 7 -> takeXpAll(player);
             default -> { return false; }
         }
         this.broadcastChanges();
@@ -173,9 +182,22 @@ public class GodSlaughterMenu extends AbstractContainerMenu
         }
     }
 
-    private void takeXp(Player player, int amount)
+    /** 取出指定等级的经验：给玩家升 N 级，从存储扣「升 N 级所需累计点数」（随玩家当前等级递增，与原版一致）。 */
+    private void takeXpLevels(Player player, int levels)
     {
-        int pts = amount >= Integer.MAX_VALUE ? be.takeAllExperience() : be.takeExperience(amount);
+        int targetLevel = player.experienceLevel + levels;
+        int targetTotal = GodSlaughterBlockEntity.xpToReach(targetLevel);
+        int cost = Math.max(0, targetTotal - player.totalExperience);
+        int pts = be.takeExperience(cost);
+        if (pts > 0)
+        {
+            player.giveExperiencePoints(pts);
+        }
+    }
+
+    private void takeXpAll(Player player)
+    {
+        int pts = be.takeAllExperience();
         if (pts > 0)
         {
             player.giveExperiencePoints(pts);

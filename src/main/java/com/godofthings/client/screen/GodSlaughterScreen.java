@@ -99,7 +99,7 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
     private void renderExperience(GuiGraphics gui, int x, int y)
     {
         gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.xp_stored",
-                this.menu.getExperiencePoints()), x + 8, y + 26, 0x55FF55);
+                this.menu.getExperienceLevel()), x + 8, y + 26, 0x55FF55);
         drawButton(gui, x + 8, y + 48, 40, 16,
                 Component.translatable("gui.godofthings.slaughter.xp_take_1"), false);
         drawButton(gui, x + 52, y + 48, 40, 16,
@@ -117,16 +117,12 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
         gui.drawString(this.font, label, bx + (w - this.font.width(label)) / 2, by + 3, 0xFFFFFF);
     }
 
-    /** 只有存储板块渲染存储槽；存储槽数量无上限，超过 999 用 K/M/G 等紧凑显示。 */
+    /** 存储槽数量无上限，超过 999 用 K/M/G 等紧凑显示（槽位是否渲染由 isActive 控制，与板块独立）。 */
     @Override
     protected void renderSlot(GuiGraphics gui, Slot slot)
     {
         if (slot.index < GodSlaughterBlockEntity.STORAGE_SLOTS)
         {
-            if (this.menu.getCurrentTab() != GodSlaughterMenu.TAB_STORAGE)
-            {
-                return;
-            }
             ItemStack stack = slot.getItem();
             if (!stack.isEmpty() && stack.getCount() > 999)
             {
