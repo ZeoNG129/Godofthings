@@ -46,6 +46,8 @@ public class AeGridNode implements IInWorldGridNodeHost, IActionHost
             mainNode.setInWorldNode(true); // 关键：世界内节点，AE 线缆才能连接
             mainNode.setExposedOnSides(EnumSet.allOf(Direction.class));
             mainNode.setIdlePowerUsage(1.0);
+            // 网络工具/控制器里显示机器方块图标（而非默认线缆）
+            mainNode.setVisualRepresentation(be.getBlockState().getBlock().asItem());
         }
         return mainNode;
     }

@@ -20,15 +20,28 @@ public class SpaceTimeEternityBlockEntity extends BlockEntity
     private long lockedDayTime = -1;
     private boolean lockedRaining;
     private boolean lockedThundering;
+    /** 是否锁定（默认开启，右键切换）。 */
+    private boolean enabled = true;
 
     public SpaceTimeEternityBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.SPACE_TIME_ETERNITY_BE.get(), pos, state);
     }
 
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
+
+    public void toggleEnabled()
+    {
+        this.enabled = !this.enabled;
+        setChanged();
+    }
+
     public static void tick(Level level, BlockPos pos, BlockState state, SpaceTimeEternityBlockEntity be)
     {
-        if (level.isClientSide || !(level instanceof ServerLevel serverLevel))
+        if (level.isClientSide || !(level instanceof ServerLevel serverLevel) || !be.enabled)
         {
             return;
         }
@@ -55,6 +68,7 @@ public class SpaceTimeEternityBlockEntity extends BlockEntity
         tag.putLong("LockedDayTime", lockedDayTime);
         tag.putBoolean("LockedRaining", lockedRaining);
         tag.putBoolean("LockedThundering", lockedThundering);
+        tag.putBoolean("Enabled", enabled);
     }
 
     @Override
@@ -67,5 +81,6 @@ public class SpaceTimeEternityBlockEntity extends BlockEntity
             lockedRaining = tag.getBoolean("LockedRaining");
             lockedThundering = tag.getBoolean("LockedThundering");
         }
+        this.enabled = tag.contains("Enabled") ? tag.getBoolean("Enabled") : true;
     }
 }

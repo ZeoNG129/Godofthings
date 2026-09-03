@@ -21,6 +21,7 @@ public class GodBlackBoxScreen extends AbstractContainerScreen<GodBlackBoxMenu>
 {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.withDefaultNamespace("textures/gui/container/dispenser.png");
+    private static final ResourceLocation SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot");
 
     private static final int SWITCH_X = 8;
     private static final int SWITCH_Y = 17;
@@ -68,6 +69,15 @@ public class GodBlackBoxScreen extends AbstractContainerScreen<GodBlackBoxMenu>
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
         gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+
+        // 第 4-5 列过滤槽框（dispenser 贴图只有 3×3，向右扩的 2 列手动画槽位框）
+        for (int row = 0; row < 3; row++)
+        {
+            for (int col = 3; col < 5; col++)
+            {
+                gui.blitSprite(SLOT_SPRITE, x + 62 + col * 18, y + 17 + row * 18, 18, 18);
+            }
+        }
 
         // 开关按钮
         boolean enabled = this.menu.isEnabled();

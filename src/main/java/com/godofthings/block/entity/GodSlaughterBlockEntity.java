@@ -63,8 +63,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     public static final int STORAGE_SLOTS = 27;
     public static final int MAX_RANGE = 300;
 
-    private static final int SCAN_INTERVAL = 20;
-    private static final int MAX_KILLS_PER_TICK = 8;
+    private static final int SCAN_INTERVAL = 10;
 
     // ---- 功能 ----
     private boolean enabled = false;
@@ -508,7 +507,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    /** 扫描范围内生物并击杀（节流，每 SCAN_INTERVAL tick 扫一次，每次最多 MAX_KILLS_PER_TICK 个）。 */
+    /** 扫描范围内生物并一次性全部击杀（每 SCAN_INTERVAL tick 扫一次，范围内全部瞬间死亡）。 */
     private void scanAndKill(Level level)
     {
         if (!(level instanceof ServerLevel serverLevel) || range <= 0)
@@ -528,7 +527,6 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         double cy = worldPosition.getY() + 0.5;
         double cz = worldPosition.getZ() + 0.5;
         double rangeSq = (double) range * range;
-        int killed = 0;
         for (LivingEntity mob : mobs)
         {
             if (mob instanceof Player || mob.isDeadOrDying() || mob.isRemoved())
@@ -541,10 +539,6 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
                 continue;
             }
             killTarget(serverLevel, mob);
-            if (++killed >= MAX_KILLS_PER_TICK)
-            {
-                break;
-            }
         }
     }
 

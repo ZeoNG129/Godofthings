@@ -43,9 +43,9 @@ public class GodCraftScreen extends AbstractContainerScreen<GodCraftMenu>
     private static final int BTN_W = 22;
     private static final int BTN_H = 14;
 
-    // AE 接入开关按钮（右上角空位：标题下方、结果槽左侧）
-    private static final int AE_X = 150;
-    private static final int AE_Y = 18;
+    // AE 接入开关按钮（合成产物槽正上方）
+    private static final int AE_X = 170;
+    private static final int AE_Y = 15;
     private static final int AE_SIZE = 20;
 
     public GodCraftScreen(GodCraftMenu menu, Inventory playerInventory, Component title)

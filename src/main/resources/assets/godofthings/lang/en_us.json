@@ -237,5 +237,9 @@
   "gui.godofthings.slaughter.xp_take_1": "Take 1 Lvl",
   "gui.godofthings.slaughter.xp_take_10": "Take 10 Lvl",
   "gui.godofthings.slaughter.xp_take_100": "Take 100 Lvl",
-  "gui.godofthings.slaughter.xp_take_all": "Take All"
+  "gui.godofthings.slaughter.xp_take_all": "Take All",
+  "message.godofthings.toggle_on": "Enabled",
+  "message.godofthings.toggle_off": "Disabled",
+  "jade.godofthings.ae_online": "Device Online",
+  "jade.godofthings.ae_offline": "Device Offline"
 }

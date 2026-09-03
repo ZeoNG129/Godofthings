@@ -29,8 +29,8 @@ public final class BlackBoxData
     public static final String KEY_MODE = "BlackBoxMode";
     public static final String KEY_FILTER = "BlackBoxFilter";
     public static final String KEY_STORAGE = "BlackBoxStorage";
-    /** 过滤槽数量（3×3）。 */
-    public static final int FILTER_SLOTS = 9;
+    /** 过滤槽数量（5×3，向右扩充）。 */
+    public static final int FILTER_SLOTS = 15;
     /** 过滤模式：白名单。 */
     public static final int MODE_WHITELIST = 0;
     /** 过滤模式：黑名单。 */

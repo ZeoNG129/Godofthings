@@ -2,6 +2,8 @@ package com.godofthings.block.entity;
 
 import com.godofthings.Godofthings;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.Level;
@@ -28,19 +30,49 @@ public class CreatureAnnihilationBlockEntity extends BlockEntity
     /** 各维度已加载的生物覆灭方块位置（仅服务端维护） */
     private static final Map<ResourceKey<Level>, Set<BlockPos>> ACTIVE = new ConcurrentHashMap<>();
 
+    /** 是否抑制（默认开启，右键切换）。 */
+    private boolean enabled = true;
+
     public CreatureAnnihilationBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.CREATURE_ANNIHILATION_BE.get(), pos, state);
+    }
+
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
+
+    public void toggleEnabled()
+    {
+        this.enabled = !this.enabled;
+        if (level != null && !level.isClientSide)
+        {
+            if (enabled)
+            {
+                register();
+            }
+            else
+            {
+                unregister();
+            }
+        }
+        setChanged();
     }
 
     @Override
     public void onLoad()
     {
         super.onLoad();
-        if (level != null && !level.isClientSide)
+        if (level != null && !level.isClientSide && enabled)
         {
-            ACTIVE.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet()).add(getBlockPos());
+            register();
         }
+    }
+
+    private void register()
+    {
+        ACTIVE.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet()).add(getBlockPos());
     }
 
     @Override
@@ -71,6 +103,20 @@ public class CreatureAnnihilationBlockEntity extends BlockEntity
                 }
             }
         }
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider)
+    {
+        super.saveAdditional(tag, provider);
+        tag.putBoolean("Enabled", enabled);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider)
+    {
+        super.loadAdditional(tag, provider);
+        this.enabled = tag.contains("Enabled") ? tag.getBoolean("Enabled") : true;
     }
 
     /** 判断某生成点是否落入任一生物覆灭方块的抑制范围 */

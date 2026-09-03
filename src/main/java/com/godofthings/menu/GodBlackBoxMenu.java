@@ -124,12 +124,12 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
             }
         }
 
-        // 白名单过滤槽 3×3（复用投掷器 dispenser 贴图的 3×3 槽位区）
+        // 白名单过滤槽 5×3（前 3 列对齐 dispenser 贴图槽位区，向右扩 2 列）
         for (int row = 0; row < 3; row++)
         {
-            for (int col = 0; col < 3; col++)
+            for (int col = 0; col < 5; col++)
             {
-                this.addSlot(new SlotItemHandler(filterHandler, row * 3 + col, 62 + col * 18, 17 + row * 18));
+                this.addSlot(new SlotItemHandler(filterHandler, row * 5 + col, 62 + col * 18, 17 + row * 18));
             }
         }
 

@@ -200,6 +200,44 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, II
         }
     }
 
+    /** 从 AE 网络拉取锁定模板原料，补齐合成格（开启 AE + 锁定模板时自动合成）。 */
+    private void aeAutoCraft()
+    {
+        if (!aeEnabled || !aeNode.isActive() || !locked)
+        {
+            return;
+        }
+        IStorageService storage = aeNode.getStorage();
+        if (storage == null)
+        {
+            return;
+        }
+        MEStorage inv = storage.getInventory();
+        IActionSource source = aeNode.actionSource();
+        for (int i = 0; i < INPUT_SLOTS; i++)
+        {
+            ItemStack tpl = lockedItems[i];
+            if (tpl.isEmpty())
+            {
+                continue;
+            }
+            ItemStack cur = inputSlots.getStackInSlot(i);
+            int have = (!cur.isEmpty() && ItemStack.isSameItem(cur, tpl)) ? cur.getCount() : 0;
+            int need = tpl.getCount() - have;
+            if (need <= 0)
+            {
+                continue;
+            }
+            AEItemKey key = AEItemKey.of(tpl);
+            long extracted = inv.extract(key, need, Actionable.MODULATE, source);
+            if (extracted > 0)
+            {
+                ItemStack got = tpl.copyWithCount((int) extracted);
+                inputSlots.insertItem(i, got, false);
+            }
+        }
+    }
+
     // ---- 开关 ----
 
     public boolean isEnabled() { return enabled; }
@@ -500,11 +538,12 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, II
         {
             be.tryCraft();
         }
-        // AE 产物输出节流：每 20 tick（1 秒）推一次
+        // AE 自动合成 + 产物输出节流：每 20 tick（1 秒）拉一次原料、推一次产物
         be.aeTick++;
         if (be.aeTick >= 20)
         {
             be.aeTick = 0;
+            be.aeAutoCraft();
             be.pushOutputToAe();
         }
     }
