@@ -4,6 +4,7 @@ import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodTransmitterBlockEntity;
 import com.godofthings.menu.GodTransmitterMenu;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -41,7 +42,9 @@ public class TransmitterMessages
                 TransmitterBindPlayerPayload::handle);
         registrar.playToServer(TransmitterRequestListPayload.TYPE, TransmitterRequestListPayload.STREAM_CODEC,
                 TransmitterRequestListPayload::handle);
-        // TransmitterListPayload（S2C）在客户端侧 ClientTransmitterHandler 注册 handler
+        // S2C 列表通道：必须在两端都注册（服务端也要声明，否则客户端连接时报「服务端缺少此通道」）
+        registrar.playToClient(TransmitterListPayload.TYPE, TransmitterListPayload.STREAM_CODEC,
+                TransmitterListPayload::handle);
     }
 
     public static void sendRate(int rate, int mode)
@@ -208,6 +211,19 @@ public class TransmitterMessages
         public Type<? extends CustomPacketPayload> type()
         {
             return TYPE;
+        }
+
+        /** 客户端处理：更新打开的菜单列表缓存。 */
+        public static void handle(TransmitterListPayload msg, IPayloadContext ctx)
+        {
+            ctx.enqueueWork(() ->
+            {
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player != null && mc.player.containerMenu instanceof GodTransmitterMenu menu)
+                {
+                    menu.setList(msg.online(), msg.boundPlayers(), msg.boundMachines());
+                }
+            });
         }
     }
 }
