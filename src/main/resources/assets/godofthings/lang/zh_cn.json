@@ -160,6 +160,8 @@
   "gui.godofthings.waypoint.title": "传送点",
   "gui.godofthings.waypoint.edit": "编辑",
   "gui.godofthings.waypoint.edit_title": "编辑传送点",
+  "gui.godofthings.waypoint.new": "新建",
+  "gui.godofthings.waypoint.new_title": "新建传送点",
   "gui.godofthings.waypoint.edit_name": "名字",
   "gui.godofthings.waypoint.edit_coord": "坐标",
   "gui.godofthings.waypoint.edit_here": "设为当前位置",

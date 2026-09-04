@@ -45,6 +45,7 @@ public class WaypointMessages
         registrar.playToServer(WaypointActionPayload.TYPE, WaypointActionPayload.STREAM_CODEC, WaypointActionPayload::handle);
         registrar.playToServer(WaypointOpenPayload.TYPE, WaypointOpenPayload.STREAM_CODEC, WaypointOpenPayload::handle);
         registrar.playToServer(WaypointEditPayload.TYPE, WaypointEditPayload.STREAM_CODEC, WaypointEditPayload::handle);
+        registrar.playToServer(WaypointCreatePayload.TYPE, WaypointCreatePayload.STREAM_CODEC, WaypointCreatePayload::handle);
     }
 
     public static void sendListTo(ServerPlayer player, List<Waypoint> list)
@@ -73,6 +74,12 @@ public class WaypointMessages
     public static void sendEdit(String oldName, String newName, double x, double y, double z)
     {
         PacketDistributor.sendToServer(new WaypointEditPayload(oldName, newName, x, y, z));
+    }
+
+    /** 客户端请求新建点位（名字 + 坐标，维度/面对方向取玩家当前状态） */
+    public static void sendCreate(String name, double x, double y, double z)
+    {
+        PacketDistributor.sendToServer(new WaypointCreatePayload(name, x, y, z));
     }
 
     public record WaypointListPayload(List<Waypoint> waypoints) implements CustomPacketPayload
@@ -229,6 +236,46 @@ public class WaypointMessages
                 {
                     WaypointData data = WaypointData.get(serverPlayer.server);
                     data.edit(msg.oldName(), msg.newName(), msg.x(), msg.y(), msg.z());
+                    sendListTo(serverPlayer, data.list());
+                }
+            });
+        }
+    }
+
+    public record WaypointCreatePayload(String name, double x, double y, double z) implements CustomPacketPayload
+    {
+        public static final Type<WaypointCreatePayload> TYPE =
+                new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "waypoint_create"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, WaypointCreatePayload> STREAM_CODEC =
+                StreamCodec.of(WaypointCreatePayload::write, WaypointCreatePayload::read);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return TYPE;
+        }
+
+        private static void write(RegistryFriendlyByteBuf buf, WaypointCreatePayload msg)
+        {
+            buf.writeUtf(msg.name);
+            buf.writeDouble(msg.x);
+            buf.writeDouble(msg.y);
+            buf.writeDouble(msg.z);
+        }
+
+        private static WaypointCreatePayload read(RegistryFriendlyByteBuf buf)
+        {
+            return new WaypointCreatePayload(buf.readUtf(), buf.readDouble(), buf.readDouble(), buf.readDouble());
+        }
+
+        public static void handle(WaypointCreatePayload msg, IPayloadContext ctx)
+        {
+            ctx.enqueueWork(() ->
+            {
+                if (ctx.player() instanceof ServerPlayer serverPlayer)
+                {
+                    WaypointData data = WaypointData.get(serverPlayer.server);
+                    data.create(serverPlayer, msg.name(), msg.x(), msg.y(), msg.z());
                     sendListTo(serverPlayer, data.list());
                 }
             });

@@ -106,6 +106,30 @@ public class WaypointData extends SavedData
         return true;
     }
 
+    /**
+     * 新建点位：名字不能为空且不能与已有点位重名；维度 / 面对方向取玩家当前状态。
+     * 返回是否成功。
+     */
+    public boolean create(ServerPlayer player, String name, double x, double y, double z)
+    {
+        if (name.isEmpty() || waypoints.containsKey(name))
+        {
+            return false;
+        }
+        Waypoint wp = new Waypoint();
+        wp.name = name;
+        wp.dimension = player.level().dimension().location().toString();
+        wp.x = x;
+        wp.y = y;
+        wp.z = z;
+        wp.yaw = player.getYRot();
+        wp.pitch = player.getXRot();
+        wp.pinned = false;
+        waypoints.put(name, wp);
+        setDirty();
+        return true;
+    }
+
     /** 置顶优先，其余保持插入顺序 */
     public List<Waypoint> list()
     {

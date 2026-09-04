@@ -160,6 +160,8 @@
   "gui.godofthings.waypoint.title": "Waypoints",
   "gui.godofthings.waypoint.edit": "Edit",
   "gui.godofthings.waypoint.edit_title": "Edit Waypoint",
+  "gui.godofthings.waypoint.new": "New",
+  "gui.godofthings.waypoint.new_title": "New Waypoint",
   "gui.godofthings.waypoint.edit_name": "Name",
   "gui.godofthings.waypoint.edit_coord": "Coordinates",
   "gui.godofthings.waypoint.edit_here": "Set to Here",

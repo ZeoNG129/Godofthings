@@ -23,6 +23,7 @@ public class WaypointEditScreen extends Screen
     private static final Predicate<String> NUMERIC = s -> s.isEmpty() || s.matches("-?\\d*\\.?\\d*");
 
     private final Screen parent;
+    /** null = 新建模式（无已有点位，坐标默认玩家当前位置） */
     private final Waypoint wp;
 
     private EditBox nameField;
@@ -32,9 +33,17 @@ public class WaypointEditScreen extends Screen
 
     public WaypointEditScreen(Screen parent, Waypoint wp)
     {
-        super(Component.translatable("gui.godofthings.waypoint.edit_title"));
+        super(wp == null
+                ? Component.translatable("gui.godofthings.waypoint.new_title")
+                : Component.translatable("gui.godofthings.waypoint.edit_title"));
         this.parent = parent;
         this.wp = wp;
+    }
+
+    /** 新建模式：名字为空、坐标默认玩家当前位置。 */
+    public WaypointEditScreen(Screen parent)
+    {
+        this(parent, null);
     }
 
     @Override
@@ -45,7 +54,7 @@ public class WaypointEditScreen extends Screen
 
         this.nameField = new EditBox(this.font, cx + 80, cy + 36, 160, 18, Component.translatable("gui.godofthings.waypoint.edit_name"));
         this.nameField.setMaxLength(32);
-        this.nameField.setValue(wp.name);
+        this.nameField.setValue(wp == null ? "" : wp.name);
 
         this.xField = new EditBox(this.font, cx + 80, cy + 62, 48, 18, Component.literal("X"));
         this.yField = new EditBox(this.font, cx + 134, cy + 62, 48, 18, Component.literal("Y"));
@@ -53,9 +62,18 @@ public class WaypointEditScreen extends Screen
         this.xField.setFilter(NUMERIC);
         this.yField.setFilter(NUMERIC);
         this.zField.setFilter(NUMERIC);
-        this.xField.setValue(String.valueOf(Math.round(wp.x)));
-        this.yField.setValue(String.valueOf(Math.round(wp.y)));
-        this.zField.setValue(String.valueOf(Math.round(wp.z)));
+        if (wp == null)
+        {
+            this.xField.setValue("0");
+            this.yField.setValue("0");
+            this.zField.setValue("0");
+        }
+        else
+        {
+            this.xField.setValue(String.valueOf(Math.round(wp.x)));
+            this.yField.setValue(String.valueOf(Math.round(wp.y)));
+            this.zField.setValue(String.valueOf(Math.round(wp.z)));
+        }
 
         this.addRenderableWidget(this.nameField);
         this.addRenderableWidget(this.xField);
@@ -74,6 +92,10 @@ public class WaypointEditScreen extends Screen
                 b -> this.minecraft.setScreen(parent)).bounds(cx + 136, cy + 120, 80, 20).build());
 
         this.setInitialFocus(this.nameField);
+        if (wp == null)
+        {
+            fillFromPlayerPos(); // 新建默认填玩家当前位置
+        }
     }
 
     /** 用玩家当前站立位置填充坐标输入框 */
@@ -106,7 +128,14 @@ public class WaypointEditScreen extends Screen
         {
             return; // 非法数字输入忽略
         }
-        WaypointMessages.sendEdit(wp.name, newName, x, y, z);
+        if (wp == null)
+        {
+            WaypointMessages.sendCreate(newName, x, y, z);
+        }
+        else
+        {
+            WaypointMessages.sendEdit(wp.name, newName, x, y, z);
+        }
         this.minecraft.setScreen(parent);
     }
 

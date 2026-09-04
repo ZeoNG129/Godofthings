@@ -31,6 +31,12 @@ public abstract class AbstractWaypointScreen<T extends AbstractContainerMenu & W
     private static final int BTN_PIN_W = 22;
     private static final int BTN_DEL_W = 24;
 
+    // 顶部「新建」按钮
+    private static final int NEW_X = 228;
+    private static final int NEW_Y = 4;
+    private static final int NEW_W = 44;
+    private static final int NEW_H = 14;
+
     private static final int PAGE_Y = 218;
     private static final int PAGE_H = 16;
     private static final int PAGE_PREV_X = 8;
@@ -66,6 +72,11 @@ public abstract class AbstractWaypointScreen<T extends AbstractContainerMenu & W
         gui.fill(x, y, x + imageWidth, y + imageHeight, 0xC0101010);
         gui.fill(x + 4, y + 4, x + imageWidth - 4, y + imageHeight - 4, 0xFF1E1E22);
         gui.drawString(this.font, this.title, x + 8, y + 6, 0xFFFFFF);
+
+        // 顶部「新建」按钮
+        gui.fill(x + NEW_X, y + NEW_Y, x + NEW_X + NEW_W, y + NEW_Y + NEW_H, 0xFF2E7D32);
+        Component newText = Component.translatable("gui.godofthings.waypoint.new");
+        gui.drawString(this.font, newText, x + NEW_X + (NEW_W - this.font.width(newText)) / 2, y + NEW_Y + 3, 0xFFFFFF);
 
         List<Waypoint> all = list();
         if (all.isEmpty())
@@ -139,6 +150,13 @@ public abstract class AbstractWaypointScreen<T extends AbstractContainerMenu & W
     {
         int relX = (int) mouseX - this.leftPos;
         int relY = (int) mouseY - this.topPos;
+
+        // 顶部「新建」按钮
+        if (in(relX, NEW_X, NEW_W) && in(relY, NEW_Y, NEW_H))
+        {
+            this.minecraft.setScreen(new WaypointEditScreen(this));
+            return true;
+        }
 
         // 翻页
         if (in(relY, PAGE_Y, PAGE_H))
