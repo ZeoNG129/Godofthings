@@ -176,6 +176,24 @@ public class ArmorSkillHandler
         {
             applyGolden(player);
         }
+        // 常驻效果（阶段 2 第三批）：烈焰不侵 / 发光 / 驱法破咒
+        if (tickCounter % EFFECT_INTERVAL == 0 && isActive(player))
+        {
+            Map<String, Integer> lv = ArmorSkillData.get(player);
+            if (ArmorSkillEngine.isOn(lv, ArmorSkills.FIRE_PROTECT))
+            {
+                ensureEffect(player, net.minecraft.world.effect.MobEffects.FIRE_RESISTANCE, 0);
+            }
+            if (ArmorSkillEngine.isOn(lv, ArmorSkills.GLOW))
+            {
+                applyGlow(player);
+            }
+            if (ArmorSkillEngine.isOn(lv, ArmorSkills.SPELL_PURGE)
+                    && player.level().getGameTime() % ArmorSkillEngine.SPELL_PURGE_INTERVAL == 0)
+            {
+                purgeDebuffs(player);
+            }
+        }
     }
 
     // ---- 攻击侧：暴击 / 破甲 ----
@@ -202,6 +220,20 @@ public class ArmorSkillHandler
             {
                 event.setAmount((float) (event.getAmount() * multiplier));
             }
+            // 破法之刃：目标身上每个增益 → 对其伤害 +15%（最多 +60%）
+            if (ArmorSkillEngine.isOn(levels, ArmorSkills.SPELLBREAK)
+                    && event.getEntity() instanceof LivingEntity buffTarget)
+            {
+                int beneficial = 0;
+                for (net.minecraft.world.effect.MobEffectInstance inst : buffTarget.getActiveEffects())
+                {
+                    if (inst.getEffect().value().isBeneficial())
+                    {
+                        beneficial++;
+                    }
+                }
+                multiplier *= 1.0 + ArmorSkillEngine.spellbreakBonus(beneficial);
+            }
             // 死神凝视：非玩家目标血量低于 15% 时 30% 概率直接处决
             if (ArmorSkillEngine.isOn(levels, ArmorSkills.ULT_REAPER)
                     && !(event.getEntity() instanceof ServerPlayer)
@@ -214,14 +246,38 @@ public class ArmorSkillHandler
             }
         }
 
-        // ② 我方被攻击：奥术神体（魔法伤害 -35%）
-        if (event.getEntity() instanceof ServerPlayer victim && isActive(victim))
+        // ② 我方被攻击：奥术防护（壁垒/真解公式减伤 + 法术抑制 + 适应叠层 + 法术反射）
+        if (event.getEntity() instanceof ServerPlayer victim && isActive(victim)
+                && isMagicDamage(event.getSource()))
         {
             Map<String, Integer> victimLevels = ArmorSkillData.get(victim);
-            if (ArmorSkillEngine.isOn(victimLevels, ArmorSkills.ULT_ARCANE_BODY)
-                    && isMagicDamage(event.getSource()))
+            // 法术反射：概率把伤害原样反弹给施法者，自身免伤
+            if (ArmorSkillEngine.isOn(victimLevels, ArmorSkills.SPELL_REFLECT)
+                    && event.getSource().getEntity() instanceof LivingEntity caster
+                    && caster != victim
+                    && victim.getRandom().nextFloat() < ArmorSkillEngine.SPELL_REFLECT_CHANCE)
             {
-                event.setAmount((float) (event.getAmount() * (1.0 - ArmorSkillEngine.ARCANE_REDUCTION)));
+                caster.hurt(victim.damageSources().magic(), event.getAmount());
+                event.setAmount(0.0f);
+            }
+            else
+            {
+                double red = ArmorSkillEngine.magicReduction(victimLevels);
+                if (isIndirectDamage(event.getSource()))
+                {
+                    red = 1.0 - (1.0 - red) * (1.0 - ArmorSkillEngine.dampenReduction(victimLevels));
+                }
+                // 适应之躯：受击层数（0~60%）再乘算一层
+                red = 1.0 - (1.0 - red) * (1.0 - adaptBonus(victim));
+                if (red > 0.0)
+                {
+                    event.setAmount((float) (event.getAmount() * (1.0 - Math.min(0.9999, red))));
+                }
+            }
+            // 受击后叠一层适应
+            if (ArmorSkillEngine.isOn(victimLevels, ArmorSkills.ARCANE_ADAPT))
+            {
+                addAdaptStack(victim);
             }
         }
 
@@ -511,6 +567,200 @@ public class ArmorSkillHandler
                 new net.minecraft.world.item.component.Unbreakable(true));
         event.setOutput(out);
         event.setCost(1);
+    }
+
+    /**
+     * 附魔三件套（特殊被动，均在铁砧上操作）：
+     * <ul>
+     *   <li>随机附魔：右槽 4 青金石 + 1 级经验 → 给左槽物品加一条随机正面附魔</li>
+     *   <li>附魔突破：右槽 2 青金石块 + 4 级经验 → 已有附魔各 +1 级（上限 20）</li>
+     *   <li>超限附魔：右槽 2 下界之星 + 10 级经验 → 已有附魔各 +1 级（上限 100）</li>
+     * </ul>
+     */
+    @SubscribeEvent
+    public static void onAnvilEnchant(net.neoforged.neoforge.event.AnvilUpdateEvent event)
+    {
+        if (!(event.getPlayer() instanceof ServerPlayer player) || !isActive(player))
+        {
+            return;
+        }
+        net.minecraft.world.item.ItemStack left = event.getLeft();
+        net.minecraft.world.item.ItemStack right = event.getRight();
+        if (left.isEmpty() || right.isEmpty() || !net.minecraft.world.item.enchantment.EnchantmentHelper.canStoreEnchantments(left))
+        {
+            return;
+        }
+        Map<String, Integer> levels = ArmorSkillData.get(player);
+        boolean over = ArmorSkillEngine.isOn(levels, ArmorSkills.ENCHANT_OVER)
+                && right.is(net.minecraft.world.item.Items.NETHER_STAR) && right.getCount() >= 2;
+        boolean brk = !over && ArmorSkillEngine.isOn(levels, ArmorSkills.ENCHANT_BREAK)
+                && right.is(net.minecraft.world.item.Items.LAPIS_BLOCK) && right.getCount() >= 2;
+        boolean rnd = !over && !brk && ArmorSkillEngine.isOn(levels, ArmorSkills.ENCHANT_RANDOM)
+                && right.is(net.minecraft.world.item.Items.LAPIS_LAZULI) && right.getCount() >= 4;
+        if (!over && !brk && !rnd)
+        {
+            return;
+        }
+        net.minecraft.world.item.ItemStack out = left.copyWithCount(1);
+        if (rnd)
+        {
+            var reg = player.server.registryAccess()
+                    .registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+            java.util.List<net.minecraft.core.Holder.Reference<net.minecraft.world.item.enchantment.Enchantment>> pool =
+                    reg.holders()
+                            .filter(h -> !h.is(net.minecraft.tags.EnchantmentTags.CURSE)
+                                    && h.value().canEnchant(left))
+                            .toList();
+            if (pool.isEmpty())
+            {
+                return;
+            }
+            net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment> pick =
+                    pool.get(player.getRandom().nextInt(pool.size()));
+            net.minecraft.world.item.enchantment.EnchantmentHelper.updateEnchantments(out,
+                    m -> m.set(pick, Math.max(1, m.getLevel(pick) + 1)));
+        }
+        else
+        {
+            int cap = over ? 100 : 20;
+            net.minecraft.world.item.enchantment.EnchantmentHelper.updateEnchantments(out, m ->
+            {
+                for (net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment> h
+                        : new java.util.ArrayList<>(m.keySet()))
+                {
+                    int cur = m.getLevel(h);
+                    if (cur < cap)
+                    {
+                        m.set(h, cur + 1);
+                    }
+                }
+            });
+        }
+        event.setOutput(out);
+        event.setCost(over ? 10 : (brk ? 4 : 1));
+        event.setMaterialCost(over ? 2 : (brk ? 2 : 4));
+    }
+
+    /** 无限交易：每次交易后重置该报价的已用次数 */
+    @SubscribeEvent
+    public static void onTradeWithVillager(net.neoforged.neoforge.event.entity.player.TradeWithVillagerEvent event)
+    {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !isActive(player)
+                || !ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.UNLIMITED_TRADES))
+        {
+            return;
+        }
+        event.getMerchantOffer().resetUses();
+    }
+
+    /** 村民大师：右键村民把它提升为大师级（5 级） */
+    @SubscribeEvent
+    public static void onEntityInteract(net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.EntityInteract event)
+    {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !isActive(player)
+                || !ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.VILLAGER_MASTER))
+        {
+            return;
+        }
+        if (event.getTarget() instanceof net.minecraft.world.entity.npc.Villager villager
+                && villager.getVillagerData().getLevel() < 5)
+        {
+            villager.setVillagerData(villager.getVillagerData().setLevel(5));
+            villager.setVillagerXp(0);
+        }
+    }
+
+    /** 暴食：进食瞬间完成（把使用时长压到 1 tick） */
+    @SubscribeEvent
+    public static void onUseItemStart(net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent.Start event)
+    {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !isActive(player))
+        {
+            return;
+        }
+        if (event.getItem().has(net.minecraft.core.component.DataComponents.FOOD)
+                && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.GLUTTONY))
+        {
+            event.setDuration(1);
+        }
+    }
+
+    /** 发光：给附近生物挂发光效果（每 40 tick 刷一次，持续 100 tick） */
+    private static void applyGlow(ServerPlayer player)
+    {
+        net.minecraft.world.phys.AABB box = player.getBoundingBox()
+                .inflate(ArmorSkillEngine.GLOW_RADIUS);
+        for (net.minecraft.world.entity.LivingEntity e : player.level().getEntitiesOfClass(
+                net.minecraft.world.entity.LivingEntity.class, box))
+        {
+            if (e != player)
+            {
+                e.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                        net.minecraft.world.effect.MobEffects.GLOWING, EFFECT_DURATION, 0, true, false, false));
+            }
+        }
+    }
+
+    /** 驱法破咒：清除自己与附近友方各一个负面效果 */
+    private static void purgeDebuffs(ServerPlayer player)
+    {
+        purgeOne(player);
+        net.minecraft.world.phys.AABB box = player.getBoundingBox().inflate(8.0);
+        for (net.minecraft.world.entity.player.Player other : player.level().getEntitiesOfClass(
+                net.minecraft.world.entity.player.Player.class, box))
+        {
+            if (other != player)
+            {
+                purgeOne(other);
+            }
+        }
+    }
+
+    private static void purgeOne(net.minecraft.world.entity.LivingEntity entity)
+    {
+        for (net.minecraft.world.effect.MobEffectInstance inst : entity.getActiveEffects())
+        {
+            if (!inst.getEffect().value().isBeneficial())
+            {
+                entity.removeEffect(inst.getEffect());
+                return; // 每次只清一个
+            }
+        }
+    }
+
+    /** 是否间接伤害（弹射物 / 法术）——法术抑制只对这类生效 */
+    private static boolean isIndirectDamage(net.minecraft.world.damagesource.DamageSource source)
+    {
+        return source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.Projectile
+                || source.is(net.minecraft.world.damagesource.DamageTypes.INDIRECT_MAGIC);
+    }
+
+    // ---- 适应之躯：受击叠层（0~60%），8 秒无受击衰减到 0 ----
+
+    private static final Map<UUID, Integer> ADAPT_STACKS = new HashMap<>();
+    private static final Map<UUID, Long> ADAPT_EXPIRE = new HashMap<>();
+
+    private static void addAdaptStack(ServerPlayer player)
+    {
+        long now = player.level().getGameTime();
+        int stacks = ADAPT_STACKS.getOrDefault(player.getUUID(), 0);
+        if (now > ADAPT_EXPIRE.getOrDefault(player.getUUID(), 0L))
+        {
+            stacks = 0; // 过期重新计
+        }
+        ADAPT_STACKS.put(player.getUUID(), Math.min(30, stacks + 1));
+        ADAPT_EXPIRE.put(player.getUUID(), now + 160);
+    }
+
+    private static double adaptBonus(ServerPlayer player)
+    {
+        long now = player.level().getGameTime();
+        if (now > ADAPT_EXPIRE.getOrDefault(player.getUUID(), 0L))
+        {
+            return 0;
+        }
+        int stacks = ADAPT_STACKS.getOrDefault(player.getUUID(), 0);
+        return Math.min(ArmorSkillEngine.ADAPT_MAX, stacks * ArmorSkillEngine.ADAPT_STEP);
     }
 
     /** 自动熔炼：把方块掉落里可熔炼的物品换成熔炼产物（查原版熔炉配方表） */

@@ -84,7 +84,37 @@ public record ArmorSkillDef(
         /** 妖魂凝卵：掉落刷怪蛋 */
         MOB_SPAWN_EGG,
         /** 斩首夺颅：掉落头颅 */
-        MOB_HEAD
+        MOB_HEAD,
+        /** 发光（附近生物发光） */
+        GLOW,
+        /** 烈焰不侵（常驻抗火） */
+        FIRE_PROTECT,
+        /** 暴食（进食瞬间完成） */
+        GLUTTONY,
+        /** 奥术壁垒（魔法防御值） */
+        ARCANE_BULWARK,
+        /** 奥术真解（追加魔法防御值） */
+        ARCANE_AMP,
+        /** 适应之躯（受击叠层减伤） */
+        ARCANE_ADAPT,
+        /** 法术抑制（弹射物/法术额外减伤） */
+        SPELL_DAMPEN,
+        /** 法术反射 */
+        SPELL_REFLECT,
+        /** 驱法破咒（周期性清除负面） */
+        SPELL_PURGE,
+        /** 破法之刃（按目标增益数增伤） */
+        SPELLBREAK,
+        /** 随机附魔（铁砧） */
+        ENCHANT_RANDOM,
+        /** 附魔突破（铁砧） */
+        ENCHANT_BREAK,
+        /** 超限附魔（铁砧） */
+        ENCHANT_OVER,
+        /** 无限交易 */
+        UNLIMITED_TRADES,
+        /** 村民大师 */
+        VILLAGER_MASTER
     }
 
     /**

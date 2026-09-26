@@ -94,6 +94,23 @@ public final class ArmorSkills
     public static final String ULT_BREAK_ALL = "ult_break_all";
     public static final String ULT_UNBREAK_TAG = "ult_unbreak_tag";
 
+    // ---- 特殊被动（阶段 2 第三批：生存便利 / 附魔 / 交易 / 奥术防护） ----
+    public static final String GLOW = "glow";
+    public static final String FIRE_PROTECT = "fire_protect";
+    public static final String GLUTTONY = "gluttony";
+    public static final String ARCANE_BULWARK = "arcane_bulwark";
+    public static final String ARCANE_AMP = "arcane_amp";
+    public static final String ARCANE_ADAPT = "arcane_adapt";
+    public static final String SPELL_DAMPEN = "spell_dampen";
+    public static final String SPELL_REFLECT = "spell_reflect";
+    public static final String SPELL_PURGE = "spell_purge";
+    public static final String SPELLBREAK = "spellbreak";
+    public static final String ENCHANT_RANDOM = "enchant_random";
+    public static final String ENCHANT_BREAK = "enchant_break";
+    public static final String ENCHANT_OVER = "enchant_over";
+    public static final String UNLIMITED_TRADES = "unlimited_trades";
+    public static final String VILLAGER_MASTER = "villager_master";
+
     /** 基础/增幅类每项等级上限（原 mod 压缩后的上限） */
     public static final int BASE_MAX_LEVEL = 100;
     public static final int AMPLIFY_MAX_LEVEL = 50;
@@ -239,6 +256,38 @@ public final class ArmorSkills
         reg(ULT_BREAK_ALL, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.BREAK_ALL);
         // 不朽铭文：铁砧中用两个相同物品合成"无法破坏"工具
         reg(ULT_UNBREAK_TAG, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.UNBREAK_TAG);
+
+        // ══════════ 特殊被动（阶段 2 第三批） ══════════
+        // 发光：附近生物发光（35 格）
+        reg(GLOW, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.GLOW);
+        // 烈焰不侵：常驻抗火
+        reg(FIRE_PROTECT, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.FIRE_PROTECT);
+        // 暴食：进食瞬间完成
+        reg(GLUTTONY, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.GLUTTONY);
+        // 奥术壁垒：每级 +6 魔法防御（减伤 = 防/(防+1200)，渐进不封顶）
+        reg(ARCANE_BULWARK, ArmorSkillCategory.SPECIAL, 100, ArmorSkillDef.EffectKind.ARCANE_BULWARK);
+        // 奥术真解：每级再 +4 魔法防御
+        reg(ARCANE_AMP, ArmorSkillCategory.SPECIAL, 100, ArmorSkillDef.EffectKind.ARCANE_AMP);
+        // 适应之躯：每次受魔法伤害 +2% 减伤（最多 60%）
+        reg(ARCANE_ADAPT, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.ARCANE_ADAPT);
+        // 法术抑制：弹射物/法术额外减伤（防/(防+800)，每级 +5 防御）
+        reg(SPELL_DAMPEN, ArmorSkillCategory.SPECIAL, 100, ArmorSkillDef.EffectKind.SPELL_DAMPEN);
+        // 法术反射：30% 概率把魔法伤害反弹给施法者
+        reg(SPELL_REFLECT, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.SPELL_REFLECT);
+        // 驱法破咒：每 5 秒清除自己与附近友方各一个负面效果
+        reg(SPELL_PURGE, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.SPELL_PURGE);
+        // 破法之刃：目标每有一个增益，对其伤害 +15%（最多 +60%）
+        reg(SPELLBREAK, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.SPELLBREAK);
+        // 随机附魔：铁砧 + 4 青金石 + 1 级经验 → 随机正面附魔
+        reg(ENCHANT_RANDOM, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.ENCHANT_RANDOM);
+        // 附魔突破：铁砧 + 2 青金石块 + 4 级经验 → 已有附魔 +1 级（上限 20）
+        reg(ENCHANT_BREAK, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.ENCHANT_BREAK);
+        // 超限附魔：铁砧 + 2 下界之星 + 10 级经验 → 已有附魔 +1 级（上限 100）
+        reg(ENCHANT_OVER, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.ENCHANT_OVER);
+        // 无限交易：村民交易不消耗次数
+        reg(UNLIMITED_TRADES, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.UNLIMITED_TRADES);
+        // 村民大师：右键村民使其成为大师级
+        reg(VILLAGER_MASTER, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.VILLAGER_MASTER);
     }
 
     private ArmorSkills()

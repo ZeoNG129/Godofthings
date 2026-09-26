@@ -105,6 +105,9 @@ public class GodArmorSkillScreen extends Screen
     /** 标签页：0 = 基础属性，1 = 特殊增幅，2 = 套装功能 */
     private int tab;
     private int scroll;
+    /** 穿齐状态缓存：只在界面打开时、每 5 tick 才重算一次（不再每帧扫背包） */
+    private boolean wornCache;
+    private int wornTick;
     private boolean draggingBar;
     private String draggingSkill = "";
     private boolean draggingScrollbar;
@@ -170,6 +173,14 @@ public class GodArmorSkillScreen extends Screen
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick)
     {
         computeLayout();
+        // 穿齐状态：打开界面时立即算一次，之后每 5 tick 刷一次（≈0.25 秒，肉眼无感）
+        // 注意：render 只在界面打开期间被调用，所以界面关闭时完全不扫描。
+        if (wornTick <= 0 || wornTick % 5 == 0)
+        {
+            net.minecraft.client.player.LocalPlayer me = net.minecraft.client.Minecraft.getInstance().player;
+            wornCache = me != null && com.godofthings.handler.GodArmorHandler.isFullSetWorn(me);
+        }
+        wornTick++;
 
         // 大框架：圆角底 + 描边
         fillRound(gui, px0, py0, px0 + panelW, py0 + panelH, R_BIG, C_FRAME_EDGE);
@@ -207,9 +218,7 @@ public class GodArmorSkillScreen extends Screen
         gui.drawString(this.font, Component.translatable("gui.godofthings.armor.skill.title"),
                 px0 + 12, py0 + 8, C_TITLE, false);
         // 右侧显示当前是否穿齐全套（技能生效条件）
-        // 实时读玩家背包（每帧查询，穿脱护甲立刻反映；不再错用"功能开关位图"）
-        net.minecraft.client.player.LocalPlayer me = net.minecraft.client.Minecraft.getInstance().player;
-        boolean worn = me != null && com.godofthings.handler.GodArmorHandler.isFullSetWorn(me);
+        boolean worn = wornCache;
         Component state = Component.translatable(worn
                 ? "gui.godofthings.armor.skill.worn"
                 : "gui.godofthings.armor.skill.not_worn");

@@ -251,4 +251,76 @@ public final class ArmorSkillEngine
     {
         return net.minecraft.world.item.SpawnEggItem.byId(type);
     }
+
+    // ══════════ 阶段 2 第三批：奥术防护 / 附魔 / 交易 ══════════
+
+    /** 法术反射概率 */
+    public static final float SPELL_REFLECT_CHANCE = 0.30f;
+    /** 驱法破咒间隔（tick） */
+    public static final int SPELL_PURGE_INTERVAL = 100;
+    /** 破法之刃：目标每个增益的增伤，与上限 */
+    public static final float SPELLBREAK_PER_BUFF = 0.15f;
+    public static final float SPELLBREAK_MAX = 0.60f;
+    /** 适应之躯：每层减伤与上限 */
+    public static final float ADAPT_STEP = 0.02f;
+    public static final float ADAPT_MAX = 0.60f;
+    /** 发光半径（格） */
+    public static final double GLOW_RADIUS = 35.0;
+
+    /**
+     * 防御值 → 减伤率（移植自参考模组）。
+     * <p>{@code red = def / (def + k)}：渐进逼近 1、永不封顶，且有效生命 {@code EHP = 1 + def/k}
+     * 随防御线性增长 —— 所以每一级的价值恒定，可以放心支持大等级上限（不会"第 5 级就封顶"）。
+     */
+    public static double defenseToReduction(double defense, double k)
+    {
+        if (defense <= 0)
+        {
+            return 0;
+        }
+        return defense / (defense + Math.max(1.0e-6, k));
+    }
+
+    /** 奥术防御值：壁垒每级 +6、奥术真解每级再 +4（已把原 mod 的 ×10 等级压缩烘进来） */
+    public static double arcaneDefense(Map<String, Integer> levels)
+    {
+        double def = ArmorSkillData.effectiveLevel(levels, ArmorSkills.ARCANE_BULWARK) * 6.0;
+        if (def <= 0)
+        {
+            return 0;
+        }
+        def += ArmorSkillData.effectiveLevel(levels, ArmorSkills.ARCANE_AMP) * 4.0;
+        return def;
+    }
+
+    /**
+     * 魔法减伤率：奥术壁垒公式（k=1200），并与「奥术神体」的 −35% 乘算叠加。
+     * <p>上限 99.99% 仅为防除零，不是设计封顶（公式本身在有限等级内到不了 100%）。
+     */
+    public static double magicReduction(Map<String, Integer> levels)
+    {
+        double red = defenseToReduction(arcaneDefense(levels), 1200.0);
+        if (red <= 0)
+        {
+            return 0;
+        }
+        if (ArmorSkillData.isEnabled(levels, ArmorSkills.ULT_ARCANE_BODY))
+        {
+            red = 1.0 - (1.0 - red) * (1.0 - ARCANE_REDUCTION);
+        }
+        return Math.min(0.9999, red);
+    }
+
+    /** 法术抑制：仅对弹射物/法术（间接伤害）生效的额外减伤（每级 +5 防御，k=800） */
+    public static double dampenReduction(Map<String, Integer> levels)
+    {
+        double def = ArmorSkillData.effectiveLevel(levels, ArmorSkills.SPELL_DAMPEN) * 5.0;
+        return defenseToReduction(def, 800.0);
+    }
+
+    /** 破法之刃：按目标身上的增益数量增伤（每层 +15%，最多 +60%） */
+    public static double spellbreakBonus(int beneficialEffects)
+    {
+        return Math.min(SPELLBREAK_MAX, beneficialEffects * SPELLBREAK_PER_BUFF);
+    }
 }
