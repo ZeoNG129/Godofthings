@@ -123,10 +123,6 @@ public final class ArmorSkills
     public static final String MACHINE_SPAWN_EGG = "machine_spawn_egg";
     public static final String MACHINE_MOB_HEAD = "machine_mob_head";
     public static final String MACHINE_AUTO_SMELT = "machine_auto_smelt";
-    public static final String MACHINE_ZONE_ATTACK = "machine_zone_attack";
-    public static final String MACHINE_ZONE_PROTECT = "machine_zone_protect";
-    public static final String MACHINE_ZONE_EXCAVATE = "machine_zone_excavate";
-    public static final String MACHINE_ZONE_PLACE = "machine_zone_place";
 
     /** 基础/增幅类每项等级上限（原 mod 压缩后的上限） */
     public static final int BASE_MAX_LEVEL = 100;
@@ -319,14 +315,6 @@ public final class ArmorSkills
         reg(MACHINE_SPAWN_EGG, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
         reg(MACHINE_MOB_HEAD, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
         reg(MACHINE_AUTO_SMELT, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
-        // 选区攻击：半径内敌对生物持续受击（每 20 tick 一次，伤害 = 你的攻击伤害）
-        reg(MACHINE_ZONE_ATTACK, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.ZONE_ATTACK);
-        // 防护选区：半径内友好生物免疫你的伤害（最多 10 只）
-        reg(MACHINE_ZONE_PROTECT, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.ZONE_PROTECT);
-        // 选区挖掘：按触发键一键挖掉半径内可破坏方块（分批执行，不卡顿）
-        reg(MACHINE_ZONE_EXCAVATE, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.ZONE_EXCAVATE);
-        // 选区放置：按触发键用主手方块填满半径内空位（消耗手中的方块）
-        reg(MACHINE_ZONE_PLACE, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.ZONE_PLACE);
     }
 
     private ArmorSkills()

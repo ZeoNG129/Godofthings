@@ -4,7 +4,6 @@ import com.godofthings.Godofthings;
 import com.godofthings.armor.skill.ArmorSkillData;
 import com.godofthings.armor.skill.ArmorSkillEngine;
 import com.godofthings.armor.skill.ArmorSkills;
-import com.godofthings.armor.skill.ArmorZoneData;
 import com.godofthings.network.ArmorSkillMessages;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -176,14 +175,6 @@ public class ArmorSkillHandler
         {
             applyGolden(player);
         }
-        // 机械共鸣：选区操作分批执行（每 tick 最多 256 格，不卡顿）
-        processZoneQueue(player);
-        // 机械共鸣：选区攻击（半径内敌对生物每 20 tick 受一次你的攻击伤害）
-        if (tickCounter % 20 == 0 && isActive(player)
-                && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.MACHINE_ZONE_ATTACK))
-        {
-            attackHostilesInZone(player);
-        }
         // 常驻效果（阶段 2 第三批）：烈焰不侵 / 发光 / 驱法破咒
         if (tickCounter % EFFECT_INTERVAL == 0 && isActive(player))
         {
@@ -252,16 +243,6 @@ public class ArmorSkillHandler
             {
                 event.setAmount(ArmorSkillEngine.REAPER_DAMAGE);
             }
-        }
-
-        // ①.5 防护选区：我方攻击半径内的友好生物时取消伤害（机械共鸣）
-        if (event.getSource().getEntity() instanceof ServerPlayer attacker && isActive(attacker)
-                && ArmorSkillEngine.isOn(ArmorSkillData.get(attacker), ArmorSkills.MACHINE_ZONE_PROTECT)
-                && event.getEntity() instanceof LivingEntity target
-                && isProtectedFriendly(attacker, target))
-        {
-            event.setCanceled(true);
-            return;
         }
 
         // ② 我方被攻击：奥术防护（壁垒/真解公式减伤 + 法术抑制 + 适应叠层 + 法术反射）
@@ -812,14 +793,8 @@ public class ArmorSkillHandler
         return net.minecraft.world.item.ItemStack.EMPTY;
     }
 
-    // ══════════ 机械共鸣（阶段 3） ══════════
 
-    /** 选区操作每 tick 最多处理的方块数（防卡顿） */
-    private static final int ZONE_BATCH = 256;
-
-    /** 待执行的选区操作队列（按玩家） */
-    private static final Map<UUID, java.util.ArrayDeque<net.minecraft.core.BlockPos>> ZONE_QUEUE = new HashMap<>();
-    private static final Map<UUID, Boolean> ZONE_MODE_PLACE = new HashMap<>();
+    // ══════════ 机械共鸣（阶段 3）：机器继承判定 ══════════
 
     /**
      * 效果归属的玩家：真玩家 = 自己；假玩家（模拟玩家机器，如数字型采矿机）= 其主人（需在线）。
@@ -836,7 +811,7 @@ public class ArmorSkillHandler
     }
 
     /**
-     * 效果是否允许对本次触发生效（机械共鸣判定，移植自参考模组 {@code isEffectAllowedFor}）。
+     * 效果是否允许对本次触发生效（机械共鸣判定，移植自参考模组 isEffectAllowedFor）。
      * <ul>
      *   <li><b>真玩家</b>：只要穿齐全套即生效，<b>不需要</b>共鸣技能</li>
      *   <li><b>假玩家（机器）</b>：主人需在线且穿齐全套，并<b>开启对应的共鸣技能</b>才允许继承</li>
@@ -864,7 +839,7 @@ public class ArmorSkillHandler
         return owner == null ? Map.of() : ArmorSkillData.get(owner);
     }
 
-    /** 万载不磨是否生效（真玩家看自己的技能；机器看共鸣开关 + 主人的技能） */
+    /** 万载不磨是否生效（机器需开「工具不毁·共鸣」） */
     private static boolean unbreakableAllowed(ServerPlayer player)
     {
         if (player instanceof net.neoforged.neoforge.common.util.FakePlayer)
@@ -873,186 +848,5 @@ public class ArmorSkillHandler
                     && ArmorSkillEngine.isOn(levelsFor(player), ArmorSkills.UNBREAKABLE);
         }
         return isActive(player) && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.UNBREAKABLE);
-    }
-
-    /**
-     * 是否受"防护选区"保护：目标落在【防护模式】框选的区域内，且是非怪物非玩家。
-     * <p>区域由玩家用木棍框选（见 {@link ArmorZoneData}）。
-     */
-    private static boolean isProtectedFriendly(ServerPlayer attacker, LivingEntity target)
-    {
-        if (target == attacker || target instanceof net.minecraft.world.entity.player.Player
-                || target instanceof net.minecraft.world.entity.monster.Monster)
-        {
-            return false;
-        }
-        ArmorZoneData.Zone zone = ArmorZoneData.getServer(attacker, ArmorZoneData.MODE_PROTECT);
-        return zone != null && zone.contains(target.blockPosition());
-    }
-
-    /** 选区攻击：落在【攻击模式】选区内的敌对生物持续受击（伤害 = 你的攻击力） */
-    private static void attackHostilesInZone(ServerPlayer player)
-    {
-        ArmorZoneData.Zone zone = ArmorZoneData.getServer(player, ArmorZoneData.MODE_ATTACK);
-        if (zone == null)
-        {
-            return;
-        }
-        net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(
-                zone.min().getX(), zone.min().getY(), zone.min().getZ(),
-                zone.max().getX() + 1.0, zone.max().getY() + 1.0, zone.max().getZ() + 1.0);
-        float damage = (float) player.getAttributeValue(
-                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
-        for (net.minecraft.world.entity.monster.Monster mob
-                : player.level().getEntitiesOfClass(net.minecraft.world.entity.monster.Monster.class, box))
-        {
-            if (mob.isAlive() && zone.contains(mob.blockPosition()))
-            {
-                mob.hurt(player.damageSources().playerAttack(player), damage);
-            }
-        }
-    }
-
-    /** 模式 → 对应的选区技能 id */
-    private static String modeSkill(int mode)
-    {
-        return switch (mode)
-        {
-            case ArmorZoneData.MODE_PLACE -> ArmorSkills.MACHINE_ZONE_PLACE;
-            case ArmorZoneData.MODE_EXCAVATE -> ArmorSkills.MACHINE_ZONE_EXCAVATE;
-            case ArmorZoneData.MODE_ATTACK -> ArmorSkills.MACHINE_ZONE_ATTACK;
-            default -> ArmorSkills.MACHINE_ZONE_PROTECT;
-        };
-    }
-
-    /** 服务端：记录客户端木棍框选出来的选区 */
-    public static void handleZoneSet(ServerPlayer player, int mode, net.minecraft.core.BlockPos a,
-                                     net.minecraft.core.BlockPos b)
-    {
-        if (!isActive(player) || mode < 0 || mode >= ArmorZoneData.MODE_COUNT)
-        {
-            return;
-        }
-        ArmorZoneData.Zone zone = ArmorZoneData.of(a, b);
-        if (zone.volume() > ArmorZoneData.MAX_VOLUME)
-        {
-            return;
-        }
-        ArmorZoneData.setServer(player, mode, zone);
-    }
-
-    /** 服务端：清除某模式的选区 */
-    public static void handleZoneClear(ServerPlayer player, int mode)
-    {
-        if (mode >= 0 && mode < ArmorZoneData.MODE_COUNT)
-        {
-            ArmorZoneData.clearServer(player, mode);
-        }
-    }
-
-    /**
-     * 客户端触发选区操作（按当前模式执行）。
-     * <p>放置 / 挖掘：把选区内的方块入队，之后每 tick 分批处理；
-     * 攻击 / 防护：持续生效，无需手动执行（只提示）。
-     */
-    public static void startZoneOperation(ServerPlayer player, int mode)
-    {
-        if (mode < 0 || mode >= ArmorZoneData.MODE_COUNT)
-        {
-            return;
-        }
-        if (!isActive(player) || !ArmorSkillEngine.isOn(ArmorSkillData.get(player), modeSkill(mode)))
-        {
-            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
-                    "chat.godofthings.armor.zone.not_learned"), true);
-            return;
-        }
-        ArmorZoneData.Zone zone = ArmorZoneData.getServer(player, mode);
-        if (zone == null)
-        {
-            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
-                    "chat.godofthings.armor.zone.no_zone"), true);
-            return;
-        }
-        if (mode == ArmorZoneData.MODE_ATTACK || mode == ArmorZoneData.MODE_PROTECT)
-        {
-            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
-                    "chat.godofthings.armor.zone.passive"), true);
-            return;
-        }
-        java.util.ArrayDeque<net.minecraft.core.BlockPos> queue = new java.util.ArrayDeque<>();
-        for (int x = zone.min().getX(); x <= zone.max().getX(); x++)
-        {
-            for (int y = zone.min().getY(); y <= zone.max().getY(); y++)
-            {
-                for (int z = zone.min().getZ(); z <= zone.max().getZ(); z++)
-                {
-                    queue.add(new net.minecraft.core.BlockPos(x, y, z));
-                }
-            }
-        }
-        ZONE_QUEUE.put(player.getUUID(), queue);
-        ZONE_MODE_PLACE.put(player.getUUID(), mode == ArmorZoneData.MODE_PLACE);
-    }
-
-    /** 每 tick 从队列里处理一批方块（放置或挖掘） */
-    private static void processZoneQueue(ServerPlayer player)
-    {
-        java.util.ArrayDeque<net.minecraft.core.BlockPos> queue = ZONE_QUEUE.get(player.getUUID());
-        if (queue == null || queue.isEmpty())
-        {
-            return;
-        }
-        boolean place = ZONE_MODE_PLACE.getOrDefault(player.getUUID(), false);
-        net.minecraft.server.level.ServerLevel level = player.serverLevel();
-        net.minecraft.world.item.ItemStack held = player.getMainHandItem();
-        int done = 0;
-        while (done < ZONE_BATCH && !queue.isEmpty())
-        {
-            net.minecraft.core.BlockPos pos = queue.poll();
-            done++;
-            if (!level.isLoaded(pos) || pos.equals(player.blockPosition()))
-            {
-                continue;
-            }
-            net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
-            if (place)
-            {
-                if (held.isEmpty() || !state.canBeReplaced())
-                {
-                    continue; // 没有方块可放
-                }
-                net.minecraft.world.level.block.state.BlockState toPlace =
-                        net.minecraft.world.level.block.Block.byItem(held.getItem()).defaultBlockState();
-                if (toPlace.isAir() || !toPlace.canSurvive(level, pos))
-                {
-                    continue;
-                }
-                level.setBlock(pos, toPlace, 3);
-                if (!player.isCreative())
-                {
-                    held.shrink(1);
-                    if (held.isEmpty())
-                    {
-                        break; // 方块用完了
-                    }
-                }
-            }
-            else
-            {
-                if (state.isAir() || state.getDestroySpeed(level, pos) < 0)
-                {
-                    continue; // 空气 / 不可破坏方块（基岩等）跳过
-                }
-                level.destroyBlock(pos, true, player);
-            }
-        }
-        if (queue.isEmpty())
-        {
-            ZONE_QUEUE.remove(player.getUUID());
-            ZONE_MODE_PLACE.remove(player.getUUID());
-            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
-                    place ? "chat.godofthings.armor.zone.placed" : "chat.godofthings.armor.zone.dug"), true);
-        }
     }
 }

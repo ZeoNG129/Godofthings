@@ -119,14 +119,8 @@ public record ArmorSkillDef(
         UNDERWATER_VISION,
         /** 机械共鸣：允许模拟玩家机器继承对应效果 */
         MACHINE_RESONANCE,
-        /** 选区攻击：范围内敌对生物持续受击 */
-        ZONE_ATTACK,
         /** 防护选区：范围内友好生物免疫你的伤害 */
-        ZONE_PROTECT,
-        /** 选区挖掘：一键挖掉范围内可破坏方块 */
-        ZONE_EXCAVATE,
         /** 选区放置：一键用主手方块填满范围内空位 */
-        ZONE_PLACE
     }
 
     /**

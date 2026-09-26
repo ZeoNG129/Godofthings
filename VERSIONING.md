@@ -122,3 +122,9 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **右下角功能面板**（移植 `StickToolHudRenderer`）：彩色圆点 + 当前模式名 + 一行操作提示 + **选区尺寸（体积与 X×Y×Z）**；黑底 `0xAA000000`、距底部 35px、右缘 4px，与参考模组一致。
   - **切换模式自动跳过未解锁的模式**（参考模组的 `nextUnlockedStickMode` 行为）：H 键只在已开启的选区技能之间循环，不会停在点了也没用的模式上。
   - **木棍判定放宽为主手或副手**（参考模组同款：副手只做状态查看/选区，不抢交互）。
+- 2.12.2 → **2.12.3（按用户要求：整体删除选区功能）**：
+  - **删除的功能**：机械共鸣里的 4 个选区技能（选区放置 / 选区挖掘 / 选区攻击 / 防护选区）、木棍框选系统、选区线框渲染、右下角选区面板、`H`（切模式）与 `N`（执行）快捷键、全部选区网络包与语言键。
+  - **删除的文件**：`client/ArmorZoneClient.java`、`armor/skill/ArmorZoneData.java`；从 `ArmorSkillMessages` / `ArmorSkillHandler` / `ArmorSkills` / `ArmorSkillDef` / `WandKeyBindings` / `ArmorKeyHandler` 中移除全部选区代码。
+  - **技能总数 85 → 81**（基础 15 / 增幅 15 / 终极 21 / 特殊 22 / **机械共鸣 8**）；语言键 490 → **458**（zh/en 双向一致，差异 0）。
+  - **机械共鸣的 8 个「共鸣」开关保留**（生物掉落 / 方块掉落 / 战利品爆炸 / 经验 / 刷怪蛋 / 头颅 / 自动熔炼 / 工具不毁），机器继承判定 `effectAllowed` 不受影响。
+  - **为什么删**：2.12.0 的固定半径版不好用；2.12.1/2.12.2 改成木棍框选后又出现两次闪退（`IllegalStateException: Not building!`——在按区块层派发的 `AFTER_TRANSLUCENT_BLOCKS` 阶段调用 `endBatch` 污染了帧内 BufferBuilder 状态）。用户判定这个功能不值得继续投入，故整体移除。
