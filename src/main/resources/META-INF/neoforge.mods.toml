@@ -23,3 +23,7 @@ description='''${mod_description}'''
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"
+
+# 声明 Mixin 配置：血条压缩（GuiHeartsCompressMixin）由 FML 加载
+[[mixins]]
+config="${mod_id}.mixins.json"

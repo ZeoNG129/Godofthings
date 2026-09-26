@@ -342,5 +342,15 @@
   "gui.godofthings.armor.skill.amp_crit.desc": "每级 +50% 暴击伤害",
   "gui.godofthings.armor.skill.amp_lifesteal.desc": "每级 +40% 吸血",
   "gui.godofthings.armor.skill.amp_thorns.desc": "每级 +40% 荆棘反伤",
-  "gui.godofthings.armor.skill.amp_armor_pen.desc": "每级 +40% 破甲增伤"
+  "gui.godofthings.armor.skill.amp_armor_pen.desc": "每级 +40% 破甲增伤",
+  "gui.godofthings.armor.skill.tab.feature": "套装功能",
+  "gui.godofthings.armor.skill.worn": "已穿齐全套",
+  "gui.godofthings.armor.skill.not_worn": "未穿齐全套",
+  "gui.godofthings.armor.skill.on": "开",
+  "gui.godofthings.armor.skill.off2": "关",
+  "gui.godofthings.armor.skill.reset": "重置",
+  "gui.godofthings.armor.skill.lv_max": "Lv.%s / %s",
+  "gui.godofthings.armor.skill.hint.feature": "左键 开 / 关",
+  "hud.godofthings.health.value": "%s / %s",
+  "hud.godofthings.health.absorption": "吸收 %s"
 }

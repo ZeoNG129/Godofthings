@@ -1,7 +1,6 @@
 package com.godofthings.client;
 
 import com.godofthings.Godofthings;
-import com.godofthings.client.screen.GodArmorConfigScreen;
 import com.godofthings.client.screen.GodArmorSkillScreen;
 import com.godofthings.network.ArmorMessages;
 import com.godofthings.network.ArmorSkillMessages;
@@ -12,12 +11,12 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /**
- * 神之套装界面快捷键：
+ * 神之套装配置界面快捷键（技能树与套装功能已合并为同一个界面，用标签页切换）：
  * <ul>
- *   <li><b>O</b>：功能开关界面（12 项套装功能）</li>
- *   <li><b>K</b>：技能树界面（基础属性 / 特殊增幅 …）</li>
+ *   <li><b>K</b>：打开配置界面，停在「基础属性」页</li>
+ *   <li><b>O</b>：打开同一个界面，直接停在「套装功能」页（原 O 键的 12 项开关）</li>
  * </ul>
- * 打开前先向服务端拉一次权威值，避免界面显示的是过期镜像。
+ * 打开前先向服务端拉一次权威值（技能表 + 功能位图），避免界面显示的是过期镜像。
  * 不要求穿齐全套也能打开（可以先配置，穿上后生效）。
  */
 // 游戏总线为默认值（Bus.GAME），省略 bus 属性
@@ -37,13 +36,19 @@ public final class ArmorKeyHandler
         // consumeClick 检测按下沿：每按一次触发一次
         while (WandKeyBindings.OPEN_ARMOR_CONFIG_KEY.get().consumeClick())
         {
-            ArmorMessages.requestSync();
-            mc.setScreen(new GodArmorConfigScreen());
+            requestAll();
+            mc.setScreen(new GodArmorSkillScreen(GodArmorSkillScreen.TAB_FEATURE));
         }
         while (WandKeyBindings.OPEN_ARMOR_SKILL_KEY.get().consumeClick())
         {
-            ArmorSkillMessages.requestSync();
-            mc.setScreen(new GodArmorSkillScreen());
+            requestAll();
+            mc.setScreen(new GodArmorSkillScreen(GodArmorSkillScreen.TAB_BASE));
         }
+    }
+
+    private static void requestAll()
+    {
+        ArmorMessages.requestSync();
+        ArmorSkillMessages.requestSync();
     }
 }

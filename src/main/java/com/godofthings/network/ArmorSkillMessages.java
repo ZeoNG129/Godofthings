@@ -24,21 +24,25 @@ import java.util.Map;
 /**
  * 神之套装技能树的网络通道（两端都要注册）。
  * <ul>
- *   <li>C2S {@code ArmorSkillActionPayload}：单个技能操作（0=开/关，1=+1级，2=+10级）。</li>
+ *   <li>C2S {@code ArmorSkillActionPayload}：单个技能操作
+ *       （0=开/关，1=+1级，2=+10级，3=设为指定等级（拖动进度条用））。</li>
  *   <li>C2S {@code ArmorSkillBulkPayload}：整列操作（分类序号，-1=全部；等级 0=全关）。</li>
  *   <li>C2S {@code ArmorSkillRequestPayload}：打开界面时拉一次权威值。</li>
  *   <li>S2C {@code ArmorSkillSyncPayload}：服务端在登录 / 每次变更 / 收到请求时推送整张技能表。</li>
  * </ul>
+ * 服务端为唯一权威：等级一律 <b>clamp 到 [0, 上限]</b>，<b>满级后再升级不再回绕到 1 级</b>。
  */
 @EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD)
 public final class ArmorSkillMessages
 {
-    /** 单个技能操作：开/关 */
+    /** 开 / 关 */
     public static final int ACTION_TOGGLE = 0;
-    /** 单个技能操作：等级 +1（到上限后回到 1 级） */
+    /** 等级 +1（到上限即停，不回绕） */
     public static final int ACTION_LEVEL_UP = 1;
-    /** 单个技能操作：等级 +10（到上限后回到 1 级） */
+    /** 等级 +10（到上限即停，不回绕） */
     public static final int ACTION_LEVEL_UP_10 = 2;
+    /** 设为 value 指定的绝对等级（拖动进度条） */
+    public static final int ACTION_SET_LEVEL = 3;
 
     /** 整列操作里代表"全部技能"的分类序号 */
     public static final int CATEGORY_ALL = -1;
@@ -59,7 +63,12 @@ public final class ArmorSkillMessages
 
     public static void sendAction(String skillId, int action)
     {
-        PacketDistributor.sendToServer(new ArmorSkillActionPayload(skillId, action));
+        sendAction(skillId, action, 0);
+    }
+
+    public static void sendAction(String skillId, int action, int value)
+    {
+        PacketDistributor.sendToServer(new ArmorSkillActionPayload(skillId, action, value));
     }
 
     public static void sendBulk(int categoryOrdinal, int level)
@@ -81,7 +90,7 @@ public final class ArmorSkillMessages
 
     // ---- 包定义 ----
 
-    public record ArmorSkillActionPayload(String skillId, int action) implements CustomPacketPayload
+    public record ArmorSkillActionPayload(String skillId, int action, int value) implements CustomPacketPayload
     {
         public static final Type<ArmorSkillActionPayload> TYPE =
                 new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "armor_skill_action"));
@@ -89,6 +98,7 @@ public final class ArmorSkillMessages
         public static final StreamCodec<ByteBuf, ArmorSkillActionPayload> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.STRING_UTF8, ArmorSkillActionPayload::skillId,
                 ByteBufCodecs.VAR_INT, ArmorSkillActionPayload::action,
+                ByteBufCodecs.VAR_INT, ArmorSkillActionPayload::value,
                 ArmorSkillActionPayload::new);
 
         @Override
@@ -113,12 +123,13 @@ public final class ArmorSkillMessages
                 int current = ArmorSkillData.level(player, def.id());
                 int next = switch (msg.action())
                 {
-                    case ACTION_LEVEL_UP -> (current <= 0) ? ArmorSkills.UNLOCK_LEVEL
-                            : (current >= def.maxLevel() ? ArmorSkills.UNLOCK_LEVEL : current + 1);
-                    case ACTION_LEVEL_UP_10 -> (current <= 0) ? ArmorSkills.UNLOCK_LEVEL
-                            : (current + 10 > def.maxLevel() ? ArmorSkills.UNLOCK_LEVEL
-                            : Math.min(def.maxLevel(), current + 10));
-                    default -> (current > 0) ? 0 : ArmorSkills.UNLOCK_LEVEL; // 开/关
+                    // 升级到上限即停（不回绕到 1 级）
+                    case ACTION_LEVEL_UP -> current <= 0 ? ArmorSkills.UNLOCK_LEVEL
+                            : Math.min(def.maxLevel(), current + 1);
+                    case ACTION_LEVEL_UP_10 -> current <= 0 ? ArmorSkills.UNLOCK_LEVEL
+                            : Math.min(def.maxLevel(), current + 10);
+                    case ACTION_SET_LEVEL -> Math.max(0, Math.min(def.maxLevel(), msg.value()));
+                    default -> current > 0 ? 0 : ArmorSkills.UNLOCK_LEVEL; // 开/关
                 };
                 ArmorSkillData.setLevel(player, def.id(), next);
                 com.godofthings.handler.ArmorSkillHandler.refresh(player);

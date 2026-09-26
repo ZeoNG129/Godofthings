@@ -342,5 +342,15 @@
   "gui.godofthings.armor.skill.amp_crit.desc": "+50% crit damage per level",
   "gui.godofthings.armor.skill.amp_lifesteal.desc": "+40% lifesteal per level",
   "gui.godofthings.armor.skill.amp_thorns.desc": "+40% thorns damage per level",
-  "gui.godofthings.armor.skill.amp_armor_pen.desc": "+40% armor-pen bonus per level"
+  "gui.godofthings.armor.skill.amp_armor_pen.desc": "+40% armor-pen bonus per level",
+  "gui.godofthings.armor.skill.tab.feature": "Armor Features",
+  "gui.godofthings.armor.skill.worn": "Full set worn",
+  "gui.godofthings.armor.skill.not_worn": "Full set not worn",
+  "gui.godofthings.armor.skill.on": "ON",
+  "gui.godofthings.armor.skill.off2": "OFF",
+  "gui.godofthings.armor.skill.reset": "Reset All",
+  "gui.godofthings.armor.skill.lv_max": "Lv.%s / %s",
+  "gui.godofthings.armor.skill.hint.feature": "LMB toggle",
+  "hud.godofthings.health.value": "%s / %s",
+  "hud.godofthings.health.absorption": "Absorb %s"
 }
