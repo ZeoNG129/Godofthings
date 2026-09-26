@@ -53,6 +53,12 @@ public class ArmorSkillHandler
     public static void refresh(ServerPlayer player)
     {
         Map<String, Integer> levels = ArmorSkillData.get(player);
+        // 属性重挂前先记录生命状况：装备后生命上限会从 20 涨到几万，
+        // 而当前血量不会自动跟着涨（原版只在上限下降时 clamp），
+        // 会导致血条压缩后只剩不到 1 点（半颗心）。故按"生命比例"同步。
+        float beforeHealth = player.getHealth();
+        float beforeMax = player.getMaxHealth();
+
         if (isActive(player))
         {
             ArmorSkillEngine.applyAll(player, levels);
@@ -61,6 +67,16 @@ public class ArmorSkillHandler
         {
             ArmorSkillEngine.removeAll(player);
         }
+
+        float afterMax = player.getMaxHealth();
+        if (afterMax > beforeMax && beforeMax > 0.0f)
+        {
+            // 上限变高：保持原来的生命百分比（满血→满血，半血→半血）
+            float ratio = Math.max(0.0f, Math.min(1.0f, beforeHealth / beforeMax));
+            player.setHealth(Math.max(1.0f, ratio * afterMax));
+        }
+        // 上限变低时不缩放（交回原版 clamp 行为，脱下套装即为满血）
+
         LAST_SIGNATURE.put(player.getUUID(), signatureOf(player, levels));
     }
 

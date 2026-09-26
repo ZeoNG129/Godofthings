@@ -207,7 +207,9 @@ public class GodArmorSkillScreen extends Screen
         gui.drawString(this.font, Component.translatable("gui.godofthings.armor.skill.title"),
                 px0 + 12, py0 + 8, C_TITLE, false);
         // 右侧显示当前是否穿齐全套（技能生效条件）
-        boolean worn = GodArmorState.getClientMask() != 0;
+        // 实时读玩家背包（每帧查询，穿脱护甲立刻反映；不再错用"功能开关位图"）
+        net.minecraft.client.player.LocalPlayer me = net.minecraft.client.Minecraft.getInstance().player;
+        boolean worn = me != null && com.godofthings.handler.GodArmorHandler.isFullSetWorn(me);
         Component state = Component.translatable(worn
                 ? "gui.godofthings.armor.skill.worn"
                 : "gui.godofthings.armor.skill.not_worn");
