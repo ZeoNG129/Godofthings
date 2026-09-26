@@ -142,3 +142,13 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **脉动错峰**：用 `(gameTime + player.getId()) % interval == 0` 按玩家错峰（参考模组的多人优化手法），避免同 tick 集体做球扫描造成周期性尖峰。
   - **技能总数 81 → 92**（基础 15 / 增幅 15 / 终极 21 / 特殊 22 / **光环 11** / 机械共鸣 8）；界面扩为 **7 个标签页**（新增「光环」，紫色 `0xFF3A2B4A`/`0xFF4E3A63`，强调色 `0xFFC79BFF`）；语言键 458 → **481**（zh/en 差异 0）。
   - **踩坑**：1.21.1 里 `ContainerHelper.insertItemStacked(...)` 签名与旧版不同（编译报"找不到符号"）→ 改为手写槽位填充（`getContainerSize`/`canPlaceItem`/`getItem`/`setItem`/`isSameItemSameComponents`），完全不依赖易变的辅助类。
+- 2.13.0 → **2.14.0（技能树阶段 5：魔法增幅 26 个 —— 技能树全类别收官）**：依赖铁魔法 / 新生魔艺 / Goety 的 26 个魔法增幅技能落地。三个 mod 均已安装（Iron's Spells 3.16.3、Ars Nouveau 5.13.1、Goety 3.1.5.1）。
+  - **核心设计：零编译依赖的属性桥接**（`MagicAttributeBridge`）。NeoForge 中所有属性（含其它 mod 注册的）最终都在原版属性注册表里，因此只要知道 **属性 ID 字符串**就能取到：
+    `BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.tryParse("irons_spellbooks:max_mana"))`
+    → **完全不需要 import 三个 mod 的任何类**，也就不存在 `NoClassDefFoundError`（这正是本项目 AE2 那次崩溃的根因），天然满足**可选依赖**要求：**装了生效、没装自动跳过、绝不影响启动**。
+  - **两级解析**：先按候选 ID 精确匹配，全部失败则**在该 mod 命名空间内按关键词扫描属性**（如 `irons_spellbooks` + `["fire","power"]`），即使 mod 更新改名也大概率仍能命中；实在找不到就**静默跳过**。
+  - **独立事件处理器** `MagicAttributeHandler`：穿齐全套 → 每 20 tick 幂等挂/更新属性修正（先移除再添加，修正器 ID `godofthings:magic_<技能>`）；脱下套装 → 立刻全部移除。**完全不动已有技能 tick 逻辑**，异常一律吞掉不外抛。
+  - **26 个技能与其属性**：铁魔法 13 个（`max_mana` +10/级、`mana_regen` +0.05/级、`cast_time_reduction` +0.5%/级、`cooldown_reduction` +0.5%/级、九系 `*_spell_power` 各 +5%/级）；Goety 11 个（焦点强度 +5%/级、灵魂节约 -2%/级、九系法术强度各 +5%/级，按 `goety:*` 候选 + 关键词兜底）；新生魔艺 + 通用 2 个（魔力上限 / 魔力回复，按 `ars_nouveau:*` 候选 + 兜底）。
+  - **技能总数 92 → 118**（基础 15 / 增幅 15 / **魔法增幅 26** / 终极 21 / 特殊 22 / 光环 11 / 机械 8）；界面扩为 **8 个标签页**（新增「魔法增幅」，蓝紫 `0xFF2A2E4A`/`0xFF3B4066`，强调色 `0xFF8AA8FF`）；语言键 481 → **533**（zh/en 差异 0）。
+  - 说明：这是"**可选依赖**"而不是"热插拔" —— 装了才启用、没装自动隐藏，但**加减 mod 必须重启游戏**（Minecraft 模组在启动时一次性加载）。
+  - **踩坑**：`player.getAttribute(...)` 在 1.21.1 需要 **`Holder<Attribute>`** 而不是 `Attribute` → 用 `BuiltInRegistries.ATTRIBUTE.getHolder(rl)` 与 `wrapAsHolder(...)`；`List.of(keywords)` 会把已是的 `List<String>` 再包一层导致"推论变量 E 具有不兼容的上限"，应直接传 `keywords`。

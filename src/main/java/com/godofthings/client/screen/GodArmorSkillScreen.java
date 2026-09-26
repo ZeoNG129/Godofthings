@@ -84,6 +84,7 @@ public class GodArmorSkillScreen extends Screen
             { 0xFF4C3B27, 0xFF625035 }, // SPECIAL 特殊被动
             { 0xFF3A2B4A, 0xFF4E3A63 }, // AURA 光环（紫）
             { 0xFF3E4248, 0xFF515760 }, // MACHINE 机械共鸣（沿用参考模组配色）
+            { 0xFF2A2E4A, 0xFF3B4066 }, // MAGIC 魔法增幅（蓝紫）
             { 0xFF2B3A2E, 0xFF3A4E3E }, // 套装功能
     };
 
@@ -91,10 +92,10 @@ public class GodArmorSkillScreen extends Screen
     private static final ArmorSkillCategory[] TAB_CATEGORIES = {
             ArmorSkillCategory.BASE, ArmorSkillCategory.AMPLIFY,
             ArmorSkillCategory.ULTIMATE, ArmorSkillCategory.SPECIAL, ArmorSkillCategory.AURA,
-            ArmorSkillCategory.MACHINE };
+            ArmorSkillCategory.MACHINE, ArmorSkillCategory.MAGIC };
 
     private static final int[] TAB_ACCENT = {
-            C_ACCENT_BASE, C_ACCENT_AMPLIFY, 0xFFFF6B6B, 0xFFFFD166, 0xFFC79BFF, 0xFFAFC4D6,
+            C_ACCENT_BASE, C_ACCENT_AMPLIFY, 0xFFFF6B6B, 0xFFFFD166, 0xFFC79BFF, 0xFFAFC4D6, 0xFF8AA8FF,
             C_ACCENT_FEATURE };
 
     /** 标签页索引（O 键 → 套装功能页；K 键 → 基础属性页） */
@@ -104,9 +105,10 @@ public class GodArmorSkillScreen extends Screen
     public static final int TAB_SPECIAL = 3;
     public static final int TAB_AURA = 4;
     public static final int TAB_MACHINE = 5;
-    public static final int TAB_FEATURE = 6;
-    /** 标签页总数（前 6 个是技能分类，最后一个是套装功能） */
-    private static final int TAB_COUNT = 7;
+    public static final int TAB_MAGIC = 6;
+    public static final int TAB_FEATURE = 7;
+    /** 标签页总数（前 7 个是技能分类，最后一个是套装功能） */
+    private static final int TAB_COUNT = 8;
 
     /** 标签页：0 = 基础属性，1 = 特殊增幅，2 = 套装功能 */
     private int tab;

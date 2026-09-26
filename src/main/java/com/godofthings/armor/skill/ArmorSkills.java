@@ -115,6 +115,34 @@ public final class ArmorSkills
     // ---- 机械共鸣（阶段 3：机器继承开关 + 选区技能） ----
     // 注意：参考模组的 machine_star（机械之星）是"前置核心"，自身无任何效果，
     // 按用户"删除前置需求"的要求不做（做了也只是一个点了没反应的节点）。
+    // ---- 魔法增幅（阶段 5）：依赖外部魔法 mod，按属性字符串 ID 生效 ----
+    public static final String MANA_AMP = "mana_amp";
+    public static final String ARS_MANA_REGEN = "ars_mana_regen";
+    public static final String IRON_MANA_AMP = "iron_mana_amp";
+    public static final String IRON_MANA_REGEN = "iron_mana_regen";
+    public static final String IRON_CAST_TIME = "iron_cast_time";
+    public static final String IRON_COOLDOWN = "iron_cooldown";
+    public static final String IRON_FIRE = "iron_fire";
+    public static final String IRON_ICE = "iron_ice";
+    public static final String IRON_LIGHTNING = "iron_lightning";
+    public static final String IRON_HOLY = "iron_holy";
+    public static final String IRON_ENDER = "iron_ender";
+    public static final String IRON_BLOOD = "iron_blood";
+    public static final String IRON_EVOCATION = "iron_evocation";
+    public static final String IRON_NATURE = "iron_nature";
+    public static final String IRON_ELDRITCH = "iron_eldritch";
+    public static final String GOETY_POTENCY = "goety_potency";
+    public static final String GOETY_SOUL_DISCOUNT = "goety_soul_discount";
+    public static final String GOETY_ABYSS = "goety_abyss";
+    public static final String GOETY_FROST = "goety_frost";
+    public static final String GOETY_GEOMANCY = "goety_geomancy";
+    public static final String GOETY_NECROMANCY = "goety_necromancy";
+    public static final String GOETY_NETHER = "goety_nether";
+    public static final String GOETY_STORM = "goety_storm";
+    public static final String GOETY_VOID = "goety_void";
+    public static final String GOETY_WILD = "goety_wild";
+    public static final String GOETY_WIND = "goety_wind";
+
     // ---- 光环（阶段 4）----
     public static final String AURA_DAMAGE = "aura_damage";
     public static final String AURA_EMPOWER = "aura_empower";
@@ -317,6 +345,34 @@ public final class ArmorSkills
         // 碧波清眸：水下/岩浆清晰视野（客户端雾效完全禁用，见 FogRendererMixin）
         reg(UNDERWATER_VISION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.UNDERWATER_VISION);
 
+        // ══════════ 魔法增幅（阶段 5）：26 个，外部魔法 mod 的属性增幅 ══════════
+        reg(MANA_AMP, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(ARS_MANA_REGEN, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_MANA_AMP, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_MANA_REGEN, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_CAST_TIME, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_COOLDOWN, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_FIRE, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_ICE, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_LIGHTNING, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_HOLY, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_ENDER, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_BLOOD, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_EVOCATION, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_NATURE, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(IRON_ELDRITCH, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_POTENCY, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_SOUL_DISCOUNT, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_ABYSS, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_FROST, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_GEOMANCY, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_NECROMANCY, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_NETHER, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_STORM, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_VOID, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_WILD, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+        reg(GOETY_WIND, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
+
         // ══════════ 光环（阶段 4）══════════
         // 脉动间隔基础 200 tick；疾攻之势每级 -10%；杀戮领域每级 +10% 伤害、修罗杀域再乘 +10%
         reg(AURA_DAMAGE, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_DAMAGE);
@@ -388,6 +444,7 @@ public final class ArmorSkills
     {
         return category == ArmorSkillCategory.BASE || category == ArmorSkillCategory.AMPLIFY
                 || category == ArmorSkillCategory.ULTIMATE || category == ArmorSkillCategory.SPECIAL
-                || category == ArmorSkillCategory.MACHINE || category == ArmorSkillCategory.AURA;
+                || category == ArmorSkillCategory.MACHINE || category == ArmorSkillCategory.AURA
+                || category == ArmorSkillCategory.MAGIC;
     }
 }

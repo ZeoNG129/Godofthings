@@ -115,6 +115,8 @@ public record ArmorSkillDef(
         UNLIMITED_TRADES,
         /** 村民大师 */
         VILLAGER_MASTER,
+        /** 魔法增幅：给外部魔法 mod 的属性加修正（属性按字符串 ID 解析，零编译依赖） */
+        MAGIC_ATTR,
         /** 光环：杀戮领域（范围脉动伤害） */
         AURA_DAMAGE,
         /** 光环：修罗杀域（光环伤害增幅） */
