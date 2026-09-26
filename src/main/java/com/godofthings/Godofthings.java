@@ -538,6 +538,7 @@ public class Godofthings
         MENUS.register(modEventBus);
         RECIPE_SERIALIZERS.register(modEventBus);
         ATTACHMENT_TYPES.register(modEventBus);
+        com.godofthings.armor.skill.ModAttributes.ATTRIBUTES.register(modEventBus); // 自定义属性：物理减伤（金身真解）
         GodFlatDimension.CHUNK_GENERATORS.register(modEventBus);
 
         // 神之机器参数配置（矿机/资源机/掉落机，godofthings-machines.toml）

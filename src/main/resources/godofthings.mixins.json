@@ -4,7 +4,8 @@
   "package": "com.godofthings.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "RangedAttributeMixin"
+    "RangedAttributeMixin",
+    "BlockStateMixin"
   ],
   "client": [
     "GuiHeartsCompressMixin"

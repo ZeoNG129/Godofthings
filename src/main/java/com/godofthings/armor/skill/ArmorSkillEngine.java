@@ -198,4 +198,57 @@ public final class ArmorSkillEngine
     {
         return ArmorSkillData.isEnabled(levels, ArmorSkills.DARK_VISION);
     }
+
+    // ══════════ 阶段 2 第二批：战斗大招 / 掉落生产 ══════════
+
+    /** 便捷：某技能是否已开启 */
+    public static boolean isOn(Map<String, Integer> levels, String skillId)
+    {
+        return ArmorSkillData.isEnabled(levels, skillId);
+    }
+
+    /** 死神凝视：处决血量阈值（目标生命占比低于此值才可能被处决） */
+    public static final float REAPER_THRESHOLD = 0.15f;
+    /** 死神凝视：触发概率 */
+    public static final float REAPER_CHANCE = 0.30f;
+    /** 死神凝视：处决伤害（护甲减伤后仍足以秒杀） */
+    public static final float REAPER_DAMAGE = 99999.0f;
+    /** 凤凰涅槃：复活后保留的生命比例 */
+    public static final float REVIVE_HEALTH_RATIO = 0.5f;
+    /** 凤凰涅槃 / 虚空神体：免死冷却（tick） */
+    public static final int UNDYING_COOLDOWN = 1200;
+    /** 奥术神体：魔法伤害减免比例 */
+    public static final float ARCANE_REDUCTION = 0.35f;
+
+    /** 妖魂凝卵：掉落刷怪蛋的概率（每级 10%） */
+    public static double spawnEggChance(Map<String, Integer> levels)
+    {
+        return Math.min(1.0, ArmorSkillData.effectiveLevel(levels, ArmorSkills.MOB_SPAWN_EGG) * 0.10);
+    }
+
+    /** 斩首夺颅：掉落头颅的概率（每级 20%） */
+    public static double headDropChance(Map<String, Integer> levels)
+    {
+        return Math.min(1.0, ArmorSkillData.effectiveLevel(levels, ArmorSkills.MOB_HEAD) * 0.20);
+    }
+
+    /** 该生物类型对应的头颅物品（无对应则返回 null） */
+    public static net.minecraft.world.item.Item headItemFor(net.minecraft.world.entity.EntityType<?> type)
+    {
+        if (type == net.minecraft.world.entity.EntityType.ZOMBIE) return net.minecraft.world.item.Items.ZOMBIE_HEAD;
+        if (type == net.minecraft.world.entity.EntityType.SKELETON) return net.minecraft.world.item.Items.SKELETON_SKULL;
+        if (type == net.minecraft.world.entity.EntityType.WITHER_SKELETON) return net.minecraft.world.item.Items.WITHER_SKELETON_SKULL;
+        if (type == net.minecraft.world.entity.EntityType.CREEPER) return net.minecraft.world.item.Items.CREEPER_HEAD;
+        if (type == net.minecraft.world.entity.EntityType.ENDER_DRAGON) return net.minecraft.world.item.Items.DRAGON_HEAD;
+        if (type == net.minecraft.world.entity.EntityType.PIGLIN) return net.minecraft.world.item.Items.PIGLIN_HEAD;
+        if (type == net.minecraft.world.entity.EntityType.PLAYER) return net.minecraft.world.item.Items.PLAYER_HEAD;
+        if (type == net.minecraft.world.entity.EntityType.ZOMBIFIED_PIGLIN) return net.minecraft.world.item.Items.ZOMBIE_HEAD;
+        return null;
+    }
+
+    /** 该生物类型对应的刷怪蛋（原版 byId 查表；没有对应刷怪蛋返回 null） */
+    public static net.minecraft.world.item.Item spawnEggFor(net.minecraft.world.entity.EntityType<?> type)
+    {
+        return net.minecraft.world.item.SpawnEggItem.byId(type);
+    }
 }

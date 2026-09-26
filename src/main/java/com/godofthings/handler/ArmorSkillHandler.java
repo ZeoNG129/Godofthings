@@ -3,6 +3,7 @@ package com.godofthings.handler;
 import com.godofthings.Godofthings;
 import com.godofthings.armor.skill.ArmorSkillData;
 import com.godofthings.armor.skill.ArmorSkillEngine;
+import com.godofthings.armor.skill.ArmorSkills;
 import com.godofthings.network.ArmorSkillMessages;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -147,6 +148,18 @@ public class ArmorSkillHandler
                 player.onUpdateAbilities();
             }
         }
+        // 万载不磨：定期把物品耐久修满（工具/护甲永不损耗）
+        if (tickCounter % 20 == 0 && isActive(player)
+                && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.UNBREAKABLE))
+        {
+            repairInventory(player);
+        }
+        // 不坏金身：常驻 抗性提升 X / 伤害吸收 C / 抗火 V（无限时长，HUD 不倒数）
+        if (tickCounter % 20 == 0 && isActive(player)
+                && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.ULT_GOLDEN))
+        {
+            applyGolden(player);
+        }
     }
 
     // ---- 攻击侧：暴击 / 破甲 ----
@@ -160,7 +173,10 @@ public class ArmorSkillHandler
                 && isActive(attacker))
         {
             Map<String, Integer> levels = ArmorSkillData.get(attacker);
-            double multiplier = 1.0 + ArmorSkillEngine.armorPenPercent(levels);
+            // 金身真解：自定义「物理减伤」属性，独立乘算层（不改原版护甲公式）
+            double reduction = attacker.getAttributeValue(com.godofthings.armor.skill.ModAttributes.DAMAGE_REDUCTION);
+            double multiplier = (1.0 - Math.max(0.0, Math.min(1.0, reduction)))
+                    * (1.0 + ArmorSkillEngine.armorPenPercent(levels));
             double critChance = ArmorSkillEngine.critChance(levels);
             if (critChance > 0 && attacker.getRandom().nextDouble() < critChance)
             {
@@ -170,9 +186,30 @@ public class ArmorSkillHandler
             {
                 event.setAmount((float) (event.getAmount() * multiplier));
             }
+            // 死神凝视：非玩家目标血量低于 15% 时 30% 概率直接处决
+            if (ArmorSkillEngine.isOn(levels, ArmorSkills.ULT_REAPER)
+                    && !(event.getEntity() instanceof ServerPlayer)
+                    && event.getEntity() instanceof LivingEntity target
+                    && target.isAlive()
+                    && target.getHealth() / Math.max(1.0f, target.getMaxHealth()) < ArmorSkillEngine.REAPER_THRESHOLD
+                    && attacker.getRandom().nextFloat() < ArmorSkillEngine.REAPER_CHANCE)
+            {
+                event.setAmount(ArmorSkillEngine.REAPER_DAMAGE);
+            }
         }
 
-        // ② 我方被攻击：荆棘反伤
+        // ② 我方被攻击：奥术神体（魔法伤害 -35%）
+        if (event.getEntity() instanceof ServerPlayer victim && isActive(victim))
+        {
+            Map<String, Integer> victimLevels = ArmorSkillData.get(victim);
+            if (ArmorSkillEngine.isOn(victimLevels, ArmorSkills.ULT_ARCANE_BODY)
+                    && isMagicDamage(event.getSource()))
+            {
+                event.setAmount((float) (event.getAmount() * (1.0 - ArmorSkillEngine.ARCANE_REDUCTION)));
+            }
+        }
+
+        // ③ 我方被攻击：荆棘反伤
         if (event.getEntity() instanceof ServerPlayer victim
                 && isActive(victim)
                 && event.getSource().getEntity() instanceof LivingEntity attacker
@@ -231,9 +268,39 @@ public class ArmorSkillHandler
         {
             growStack(drop.getItem(), mult);
         }
+        // 妖魂凝卵 / 斩首夺颅：按概率额外掉落刷怪蛋与头颅
+        if (!(event.getEntity() instanceof ServerPlayer))
+        {
+            net.minecraft.world.entity.EntityType<?> type = event.getEntity().getType();
+            double eggChance = ArmorSkillEngine.spawnEggChance(levels);
+            if (eggChance > 0 && player.getRandom().nextDouble() < eggChance)
+            {
+                net.minecraft.world.item.Item egg = ArmorSkillEngine.spawnEggFor(type);
+                if (egg != null)
+                {
+                    event.getDrops().add(newDrop(event.getEntity(), new net.minecraft.world.item.ItemStack(egg)));
+                }
+            }
+            double headChance = ArmorSkillEngine.headDropChance(levels);
+            if (headChance > 0 && player.getRandom().nextDouble() < headChance)
+            {
+                net.minecraft.world.item.Item head = ArmorSkillEngine.headItemFor(type);
+                if (head != null)
+                {
+                    event.getDrops().add(newDrop(event.getEntity(), new net.minecraft.world.item.ItemStack(head)));
+                }
+            }
+        }
     }
 
-    /** 方块掉落：点石成金 × 财源滚滚 */
+    /** 在实体位置生成一个掉落物实体（用于额外掉落） */
+    private static net.minecraft.world.entity.item.ItemEntity newDrop(net.minecraft.world.entity.LivingEntity at,
+                                                                     net.minecraft.world.item.ItemStack stack)
+    {
+        return new net.minecraft.world.entity.item.ItemEntity(at.level(), at.getX(), at.getY() + 0.5, at.getZ(), stack);
+    }
+
+    /** 方块掉落：点石成金 × 财源滚滚 + 自动熔炼 */
     @SubscribeEvent
     public static void onBlockDrops(net.neoforged.neoforge.event.level.BlockDropsEvent event)
     {
@@ -250,6 +317,24 @@ public class ArmorSkillHandler
         for (net.minecraft.world.entity.item.ItemEntity drop : event.getDrops())
         {
             growStack(drop.getItem(), mult);
+        }
+        // 自动熔炼：把可熔炼的掉落物换成熔炼产物
+        if (ArmorSkillEngine.isOn(levels, ArmorSkills.AUTO_SMELT))
+        {
+            for (net.minecraft.world.entity.item.ItemEntity drop : event.getDrops())
+            {
+                net.minecraft.world.item.ItemStack in = drop.getItem();
+                if (in.isEmpty())
+                {
+                    continue;
+                }
+                net.minecraft.world.item.ItemStack out = smeltResult(player, in);
+                if (!out.isEmpty())
+                {
+                    out.setCount(Math.max(1, out.getCount() * in.getCount()));
+                    drop.setItem(out);
+                }
+            }
         }
     }
 
@@ -280,5 +365,156 @@ public class ArmorSkillHandler
         {
             stack.setCount(target);
         }
+    }
+
+    // ---- 阶段 2 第二批：战斗大招 / 掉落生产 / 铁砧 ----
+
+    /** 免死（凤凰涅槃 / 虚空神体）冷却到期时间，按玩家 UUID */
+    private static final Map<UUID, Long> UNDYING_UNTIL = new HashMap<>();
+
+    /** 是否魔法伤害（奥术神体用） */
+    private static boolean isMagicDamage(net.minecraft.world.damagesource.DamageSource source)
+    {
+        return source.is(net.minecraft.world.damagesource.DamageTypes.MAGIC)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.INDIRECT_MAGIC);
+    }
+
+    /** 万载不磨：把背包里所有损耗过的物品耐久修满（含护甲与副手） */
+    private static void repairInventory(ServerPlayer player)
+    {
+        var inv = player.getInventory();
+        for (int i = 0; i < inv.getContainerSize(); i++)
+        {
+            net.minecraft.world.item.ItemStack st = inv.getItem(i);
+            if (!st.isEmpty() && st.isDamageableItem() && st.getDamageValue() > 0)
+            {
+                st.setDamageValue(0);
+            }
+        }
+        for (net.minecraft.world.entity.EquipmentSlot slot : net.minecraft.world.entity.EquipmentSlot.values())
+        {
+            net.minecraft.world.item.ItemStack st = player.getItemBySlot(slot);
+            if (!st.isEmpty() && st.isDamageableItem() && st.getDamageValue() > 0)
+            {
+                st.setDamageValue(0);
+            }
+        }
+    }
+
+    /** 不坏金身：常驻 抗性提升 X / 伤害吸收 C / 抗火 V（无限时长；等级不足时补齐） */
+    private static void applyGolden(ServerPlayer player)
+    {
+        ensureEffect(player, net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE, 9);
+        ensureEffect(player, net.minecraft.world.effect.MobEffects.ABSORPTION, 99);
+        ensureEffect(player, net.minecraft.world.effect.MobEffects.FIRE_RESISTANCE, 4);
+    }
+
+    private static void ensureEffect(ServerPlayer player, net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> effect, int amplifier)
+    {
+        net.minecraft.world.effect.MobEffectInstance cur = player.getEffect(effect);
+        if (cur == null || cur.getAmplifier() < amplifier)
+        {
+            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                    effect, Integer.MAX_VALUE, amplifier, false, false, false));
+        }
+    }
+
+    /** 虚空神体：免疫击退 */
+    @SubscribeEvent
+    public static void onKnockBack(net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent event)
+    {
+        if (event.getEntity() instanceof ServerPlayer player && isActive(player)
+                && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.ULT_VOID_BODY))
+        {
+            event.setCanceled(true);
+        }
+    }
+
+    /**
+     * 免死：凤凰涅槃（优先）与虚空神体（兜底）。
+     * <p>凤凰涅槃：回 50% 血、清空状态、5 秒伤害吸收盾、播放不死图腾动画，冷却 60 秒。
+     * <p>虚空神体：同样阻止死亡并回 50% 血，冷却 60 秒。
+     */
+    @SubscribeEvent
+    public static void onLivingDeath(net.neoforged.neoforge.event.entity.living.LivingDeathEvent event)
+    {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !isActive(player))
+        {
+            return;
+        }
+        Map<String, Integer> levels = ArmorSkillData.get(player);
+        boolean revive = ArmorSkillEngine.isOn(levels, ArmorSkills.ULT_REVIVE);
+        boolean voidBody = ArmorSkillEngine.isOn(levels, ArmorSkills.ULT_VOID_BODY);
+        if (!revive && !voidBody)
+        {
+            return;
+        }
+        long now = player.level().getGameTime();
+        if (now < UNDYING_UNTIL.getOrDefault(player.getUUID(), 0L))
+        {
+            return; // 冷却中
+        }
+        event.setCanceled(true);
+        player.setHealth(Math.max(1.0f, player.getMaxHealth() * ArmorSkillEngine.REVIVE_HEALTH_RATIO));
+        if (revive)
+        {
+            player.removeAllEffects();
+        }
+        // 吸收盾代替无敌帧
+        player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                net.minecraft.world.effect.MobEffects.ABSORPTION, 100, 4, false, false, false));
+        // 原版不死图腾同款复活动画
+        player.level().broadcastEntityEvent(player, (byte) 35);
+        UNDYING_UNTIL.put(player.getUUID(), now + ArmorSkillEngine.UNDYING_COOLDOWN);
+        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                "chat.godofthings.armor.undying",
+                ArmorSkillEngine.UNDYING_COOLDOWN / 20));
+    }
+
+    /** 不朽铭文：铁砧中放入两个相同物品 → 合成带「无法破坏」词条的工具 */
+    @SubscribeEvent
+    public static void onAnvilUpdate(net.neoforged.neoforge.event.AnvilUpdateEvent event)
+    {
+        if (!(event.getPlayer() instanceof ServerPlayer player) || !isActive(player)
+                || !ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.ULT_UNBREAK_TAG))
+        {
+            return;
+        }
+        net.minecraft.world.item.ItemStack left = event.getLeft();
+        net.minecraft.world.item.ItemStack right = event.getRight();
+        if (left.isEmpty() || right.isEmpty() || !net.minecraft.world.item.ItemStack.isSameItem(left, right))
+        {
+            return;
+        }
+        if (left.has(net.minecraft.core.component.DataComponents.UNBREAKABLE))
+        {
+            return; // 已经是无法破坏
+        }
+        net.minecraft.world.item.ItemStack out = left.copyWithCount(1);
+        out.set(net.minecraft.core.component.DataComponents.UNBREAKABLE,
+                new net.minecraft.world.item.component.Unbreakable(true));
+        event.setOutput(out);
+        event.setCost(1);
+    }
+
+    /** 自动熔炼：把方块掉落里可熔炼的物品换成熔炼产物（查原版熔炉配方表） */
+    private static net.minecraft.world.item.ItemStack smeltResult(ServerPlayer player, net.minecraft.world.item.ItemStack in)
+    {
+        var server = player.getServer();
+        if (server == null)
+        {
+            return net.minecraft.world.item.ItemStack.EMPTY;
+        }
+        for (var holder : server.getRecipeManager()
+                .getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.SMELTING))
+        {
+            var recipe = holder.value();
+            var ings = recipe.getIngredients();
+            if (!ings.isEmpty() && ings.get(0).test(in))
+            {
+                return recipe.getResultItem(server.registryAccess()).copy();
+            }
+        }
+        return net.minecraft.world.item.ItemStack.EMPTY;
     }
 }

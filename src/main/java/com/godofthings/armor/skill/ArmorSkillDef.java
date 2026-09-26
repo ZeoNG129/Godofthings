@@ -62,7 +62,29 @@ public record ArmorSkillDef(
         /** 战利品爆炸（财源滚滚） */
         LOOT_BOMB,
         /** 经验倍率（经验飞涨） */
-        XP_GAIN
+        XP_GAIN,
+        /** 不坏金身：常驻抗性/吸收/抗火 */
+        GOLDEN,
+        /** 凤凰涅槃：死亡原地复活 */
+        REVIVE,
+        /** 死神凝视：处决低血目标 */
+        REAPER,
+        /** 奥术神体：魔法减伤 */
+        ARCANE_BODY,
+        /** 虚空神体：免疫击退 + 免死兜底 */
+        VOID_BODY,
+        /** 万载不磨：工具/护甲不消耗耐久 */
+        UNBREAKABLE,
+        /** 自动熔炼：方块掉落自动熔炼 */
+        AUTO_SMELT,
+        /** 万物可掘：可挖不可破坏方块 */
+        BREAK_ALL,
+        /** 不朽铭文：铁砧加"无法破坏"词条 */
+        UNBREAK_TAG,
+        /** 妖魂凝卵：掉落刷怪蛋 */
+        MOB_SPAWN_EGG,
+        /** 斩首夺颅：掉落头颅 */
+        MOB_HEAD
     }
 
     /**

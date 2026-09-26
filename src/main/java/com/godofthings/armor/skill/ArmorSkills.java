@@ -80,6 +80,20 @@ public final class ArmorSkills
     public static final String DARK_VISION = "dark_vision";
     public static final String VILLAGE_HERO = "village_hero";
 
+    // ---- 终极节点（阶段 2 第二批：战斗大招 / 掉落生产） ----
+    public static final String AMP_ARMOR = "amp_armor";
+    public static final String ULT_GOLDEN = "ult_golden";
+    public static final String ULT_REVIVE = "ult_revive";
+    public static final String ULT_REAPER = "ult_reaper";
+    public static final String ULT_ARCANE_BODY = "ult_arcane_body";
+    public static final String ULT_VOID_BODY = "ult_void_body";
+    public static final String UNBREAKABLE = "unbreakable";
+    public static final String MOB_SPAWN_EGG = "mob_spawn_egg";
+    public static final String MOB_HEAD = "mob_head";
+    public static final String AUTO_SMELT = "auto_smelt";
+    public static final String ULT_BREAK_ALL = "ult_break_all";
+    public static final String ULT_UNBREAK_TAG = "ult_unbreak_tag";
+
     /** 基础/增幅类每项等级上限（原 mod 压缩后的上限） */
     public static final int BASE_MAX_LEVEL = 100;
     public static final int AMPLIFY_MAX_LEVEL = 50;
@@ -198,6 +212,33 @@ public final class ArmorSkills
         reg(DARK_VISION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.DARK_VISION);
         // 万民敬仰：村庄英雄（每级 1 级效果，上限 10）
         reg(VILLAGE_HERO, ArmorSkillCategory.SPECIAL, 10, ArmorSkillDef.EffectKind.VILLAGE_HERO);
+
+        // ══════════ 终极节点（阶段 2 第二批） ══════════
+        // 金身真解：每级 +1% 物理减伤（自定义属性，上限 80 级 = 80%）
+        reg(AMP_ARMOR, ArmorSkillCategory.ULTIMATE, 80, ATTR,
+                add(ModAttributes.DAMAGE_REDUCTION, 0.01));
+        // 不坏金身：常驻 抗性提升 X / 伤害吸收 C / 抗火 V（无限时长）
+        reg(ULT_GOLDEN, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.GOLDEN);
+        // 凤凰涅槃：死亡原地复活（回 50% 血、清负面、5 秒吸收盾、冷却 60 秒）
+        reg(ULT_REVIVE, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.REVIVE);
+        // 死神凝视：目标生命低于 15% 时 30% 概率直接处决
+        reg(ULT_REAPER, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.REAPER);
+        // 奥术神体：魔法伤害 -35%
+        reg(ULT_ARCANE_BODY, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.ARCANE_BODY);
+        // 虚空神体：免疫击退 + 免死兜底（冷却 60 秒）
+        reg(ULT_VOID_BODY, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.VOID_BODY);
+        // 万载不磨：工具/护甲不消耗耐久
+        reg(UNBREAKABLE, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.UNBREAKABLE);
+        // 妖魂凝卵：每级 10% 概率掉落刷怪蛋（上限 10 级 = 100%）
+        reg(MOB_SPAWN_EGG, ArmorSkillCategory.ULTIMATE, 10, ArmorSkillDef.EffectKind.MOB_SPAWN_EGG);
+        // 斩首夺颅：每级 20% 概率掉落头颅（上限 5 级 = 100%）
+        reg(MOB_HEAD, ArmorSkillCategory.ULTIMATE, 5, ArmorSkillDef.EffectKind.MOB_HEAD);
+        // 自动熔炼：方块掉落自动熔炼成成品
+        reg(AUTO_SMELT, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.AUTO_SMELT);
+        // 万物可掘：可挖基岩等不可破坏方块（需手持镐子）
+        reg(ULT_BREAK_ALL, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.BREAK_ALL);
+        // 不朽铭文：铁砧中用两个相同物品合成"无法破坏"工具
+        reg(ULT_UNBREAK_TAG, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.UNBREAK_TAG);
     }
 
     private ArmorSkills()
