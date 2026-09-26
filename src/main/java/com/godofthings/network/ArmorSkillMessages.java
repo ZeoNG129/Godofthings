@@ -57,6 +57,7 @@ public final class ArmorSkillMessages
         registrar.playToServer(ArmorSkillBulkPayload.TYPE, ArmorSkillBulkPayload.STREAM_CODEC, ArmorSkillBulkPayload::handle);
         registrar.playToServer(ArmorSkillRequestPayload.TYPE, ArmorSkillRequestPayload.STREAM_CODEC, ArmorSkillRequestPayload::handle);
         registrar.playToClient(ArmorSkillSyncPayload.TYPE, ArmorSkillSyncPayload.STREAM_CODEC, ArmorSkillSyncPayload::handle);
+        registrar.playToServer(ArmorSkillZonePayload.TYPE, ArmorSkillZonePayload.STREAM_CODEC, ArmorSkillZonePayload::handle);
     }
 
     // ---- 客户端发送入口 ----
@@ -74,6 +75,12 @@ public final class ArmorSkillMessages
     public static void sendBulk(int categoryOrdinal, int level)
     {
         PacketDistributor.sendToServer(new ArmorSkillBulkPayload(categoryOrdinal, level));
+    }
+
+    /** 客户端触发选区操作（true = 放置，false = 挖掘） */
+    public static void sendZone(boolean place)
+    {
+        PacketDistributor.sendToServer(new ArmorSkillZonePayload(place));
     }
 
     public static void requestSync()
@@ -244,6 +251,34 @@ public final class ArmorSkillMessages
         {
             // 只写客户端镜像，不碰玩家附件（附件是服务端权威数据）
             ctx.enqueueWork(() -> ArmorSkillData.setClientLevels(msg.levels()));
+        }
+    }
+
+    /** 选区操作触发（机械共鸣）：C2S */
+    public record ArmorSkillZonePayload(boolean place) implements CustomPacketPayload
+    {
+        public static final Type<ArmorSkillZonePayload> TYPE =
+                new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "armor_skill_zone"));
+
+        public static final StreamCodec<ByteBuf, ArmorSkillZonePayload> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.BOOL, ArmorSkillZonePayload::place,
+                ArmorSkillZonePayload::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return TYPE;
+        }
+
+        public static void handle(ArmorSkillZonePayload msg, IPayloadContext ctx)
+        {
+            ctx.enqueueWork(() ->
+            {
+                if (ctx.player() instanceof ServerPlayer player)
+                {
+                    com.godofthings.handler.ArmorSkillHandler.startZoneOperation(player, msg.place());
+                }
+            });
         }
     }
 }

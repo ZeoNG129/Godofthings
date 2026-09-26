@@ -39,6 +39,14 @@ public final class ArmorKeyHandler
             requestAll();
             mc.setScreen(new GodArmorSkillScreen());
         }
+        while (WandKeyBindings.ZONE_EXCAVATE_KEY.get().consumeClick())
+        {
+            ArmorSkillMessages.sendZone(false);
+        }
+        while (WandKeyBindings.ZONE_PLACE_KEY.get().consumeClick())
+        {
+            ArmorSkillMessages.sendZone(true);
+        }
         while (WandKeyBindings.OPEN_ARMOR_SKILL_KEY.get().consumeClick())
         {
             requestAll();

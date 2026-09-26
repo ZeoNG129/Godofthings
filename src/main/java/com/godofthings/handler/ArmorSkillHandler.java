@@ -165,8 +165,7 @@ public class ArmorSkillHandler
             }
         }
         // 万载不磨：定期把物品耐久修满（工具/护甲永不损耗）
-        if (tickCounter % 20 == 0 && isActive(player)
-                && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.UNBREAKABLE))
+        if (tickCounter % 20 == 0 && unbreakableAllowed(player))
         {
             repairInventory(player);
         }
@@ -175,6 +174,14 @@ public class ArmorSkillHandler
                 && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.ULT_GOLDEN))
         {
             applyGolden(player);
+        }
+        // 机械共鸣：选区操作分批执行（每 tick 最多 256 格，不卡顿）
+        processZoneQueue(player);
+        // 机械共鸣：选区攻击（半径内敌对生物每 20 tick 受一次你的攻击伤害）
+        if (tickCounter % 20 == 0 && isActive(player)
+                && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.MACHINE_ZONE_ATTACK))
+        {
+            attackHostilesInZone(player);
         }
         // 常驻效果（阶段 2 第三批）：烈焰不侵 / 发光 / 驱法破咒
         if (tickCounter % EFFECT_INTERVAL == 0 && isActive(player))
@@ -244,6 +251,16 @@ public class ArmorSkillHandler
             {
                 event.setAmount(ArmorSkillEngine.REAPER_DAMAGE);
             }
+        }
+
+        // ①.5 防护选区：我方攻击半径内的友好生物时取消伤害（机械共鸣）
+        if (event.getSource().getEntity() instanceof ServerPlayer attacker && isActive(attacker)
+                && ArmorSkillEngine.isOn(ArmorSkillData.get(attacker), ArmorSkills.MACHINE_ZONE_PROTECT)
+                && event.getEntity() instanceof LivingEntity target
+                && isProtectedFriendly(attacker, target))
+        {
+            event.setCanceled(true);
+            return;
         }
 
         // ② 我方被攻击：奥术防护（壁垒/真解公式减伤 + 法术抑制 + 适应叠层 + 法术反射）
@@ -326,12 +343,15 @@ public class ArmorSkillHandler
     @SubscribeEvent
     public static void onLivingDrops(net.neoforged.neoforge.event.entity.living.LivingDropsEvent event)
     {
-        if (!(event.getSource().getEntity() instanceof ServerPlayer player) || !isActive(player))
+        if (!(event.getSource().getEntity() instanceof ServerPlayer player)
+                || !effectAllowed(player, ArmorSkills.MACHINE_MOB_DROP))
         {
             return;
         }
-        Map<String, Integer> levels = ArmorSkillData.get(player);
-        double mult = ArmorSkillEngine.mobDropMultiplier(levels) * ArmorSkillEngine.lootBombMultiplier(levels);
+        Map<String, Integer> levels = levelsFor(player);
+        double bomb = effectAllowed(player, ArmorSkills.MACHINE_LOOT_BOMB)
+                ? ArmorSkillEngine.lootBombMultiplier(levels) : 1.0;
+        double mult = ArmorSkillEngine.mobDropMultiplier(levels) * bomb;
         if (mult <= 1.0)
         {
             return;
@@ -344,7 +364,8 @@ public class ArmorSkillHandler
         if (!(event.getEntity() instanceof ServerPlayer))
         {
             net.minecraft.world.entity.EntityType<?> type = event.getEntity().getType();
-            double eggChance = ArmorSkillEngine.spawnEggChance(levels);
+            double eggChance = effectAllowed(player, ArmorSkills.MACHINE_SPAWN_EGG)
+                    ? ArmorSkillEngine.spawnEggChance(levels) : 0.0;
             if (eggChance > 0 && player.getRandom().nextDouble() < eggChance)
             {
                 net.minecraft.world.item.Item egg = ArmorSkillEngine.spawnEggFor(type);
@@ -353,7 +374,8 @@ public class ArmorSkillHandler
                     event.getDrops().add(newDrop(event.getEntity(), new net.minecraft.world.item.ItemStack(egg)));
                 }
             }
-            double headChance = ArmorSkillEngine.headDropChance(levels);
+            double headChance = effectAllowed(player, ArmorSkills.MACHINE_MOB_HEAD)
+                    ? ArmorSkillEngine.headDropChance(levels) : 0.0;
             if (headChance > 0 && player.getRandom().nextDouble() < headChance)
             {
                 net.minecraft.world.item.Item head = ArmorSkillEngine.headItemFor(type);
@@ -376,12 +398,15 @@ public class ArmorSkillHandler
     @SubscribeEvent
     public static void onBlockDrops(net.neoforged.neoforge.event.level.BlockDropsEvent event)
     {
-        if (!(event.getBreaker() instanceof ServerPlayer player) || !isActive(player))
+        if (!(event.getBreaker() instanceof ServerPlayer player)
+                || !effectAllowed(player, ArmorSkills.MACHINE_BLOCK_DROP))
         {
             return;
         }
-        Map<String, Integer> levels = ArmorSkillData.get(player);
-        double mult = ArmorSkillEngine.blockDropMultiplier(levels) * ArmorSkillEngine.lootBombMultiplier(levels);
+        Map<String, Integer> levels = levelsFor(player);
+        double bomb = effectAllowed(player, ArmorSkills.MACHINE_LOOT_BOMB)
+                ? ArmorSkillEngine.lootBombMultiplier(levels) : 1.0;
+        double mult = ArmorSkillEngine.blockDropMultiplier(levels) * bomb;
         if (mult <= 1.0)
         {
             return;
@@ -391,7 +416,8 @@ public class ArmorSkillHandler
             growStack(drop.getItem(), mult);
         }
         // 自动熔炼：把可熔炼的掉落物换成熔炼产物
-        if (ArmorSkillEngine.isOn(levels, ArmorSkills.AUTO_SMELT))
+        if (ArmorSkillEngine.isOn(levels, ArmorSkills.AUTO_SMELT)
+                && effectAllowed(player, ArmorSkills.MACHINE_AUTO_SMELT))
         {
             for (net.minecraft.world.entity.item.ItemEntity drop : event.getDrops())
             {
@@ -414,11 +440,12 @@ public class ArmorSkillHandler
     @SubscribeEvent
     public static void onExperienceDrop(net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent event)
     {
-        if (!(event.getAttackingPlayer() instanceof ServerPlayer player) || !isActive(player))
+        if (!(event.getAttackingPlayer() instanceof ServerPlayer player)
+                || !effectAllowed(player, ArmorSkills.MACHINE_XP_GAIN))
         {
             return;
         }
-        double mult = ArmorSkillEngine.xpMultiplier(ArmorSkillData.get(player));
+        double mult = ArmorSkillEngine.xpMultiplier(levelsFor(player));
         if (mult > 1.0)
         {
             event.setDroppedExperience((int) Math.min(Integer.MAX_VALUE, Math.round(event.getDroppedExperience() * mult)));
@@ -782,5 +809,184 @@ public class ArmorSkillHandler
             }
         }
         return net.minecraft.world.item.ItemStack.EMPTY;
+    }
+
+    // ══════════ 机械共鸣（阶段 3） ══════════
+
+    /** 选区半径（格，方形半径） */
+    public static final int ZONE_RADIUS = 8;
+    /** 选区操作每 tick 最多处理的方块数（防卡顿） */
+    private static final int ZONE_BATCH = 256;
+
+    /** 待执行的选区操作队列（按玩家） */
+    private static final Map<UUID, java.util.ArrayDeque<net.minecraft.core.BlockPos>> ZONE_QUEUE = new HashMap<>();
+    private static final Map<UUID, Boolean> ZONE_MODE_PLACE = new HashMap<>();
+
+    /**
+     * 效果归属的玩家：真玩家 = 自己；假玩家（模拟玩家机器，如数字型采矿机）= 其主人（需在线）。
+     * <p>机器以主人 UUID 触发事件，故用 UUID 反查在线主人。
+     */
+    private static ServerPlayer ownerOf(ServerPlayer player)
+    {
+        if (!(player instanceof net.neoforged.neoforge.common.util.FakePlayer))
+        {
+            return player;
+        }
+        return player.getServer() == null ? null
+                : player.getServer().getPlayerList().getPlayer(player.getUUID());
+    }
+
+    /**
+     * 效果是否允许对本次触发生效（机械共鸣判定，移植自参考模组 {@code isEffectAllowedFor}）。
+     * <ul>
+     *   <li><b>真玩家</b>：只要穿齐全套即生效，<b>不需要</b>共鸣技能</li>
+     *   <li><b>假玩家（机器）</b>：主人需在线且穿齐全套，并<b>开启对应的共鸣技能</b>才允许继承</li>
+     * </ul>
+     * 关闭共鸣技能立即回收（每次事件实时判定，无持久状态）。
+     */
+    public static boolean effectAllowed(ServerPlayer player, String machineSkillId)
+    {
+        if (!(player instanceof net.neoforged.neoforge.common.util.FakePlayer))
+        {
+            return isActive(player);
+        }
+        ServerPlayer owner = ownerOf(player);
+        if (owner == null || !isActive(owner))
+        {
+            return false;
+        }
+        return ArmorSkillEngine.isOn(ArmorSkillData.get(owner), machineSkillId);
+    }
+
+    /** 取"生效用的等级表"：真玩家 = 自己；机器 = 主人 */
+    private static Map<String, Integer> levelsFor(ServerPlayer player)
+    {
+        ServerPlayer owner = ownerOf(player);
+        return owner == null ? Map.of() : ArmorSkillData.get(owner);
+    }
+
+    /** 万载不磨是否生效（真玩家看自己的技能；机器看共鸣开关 + 主人的技能） */
+    private static boolean unbreakableAllowed(ServerPlayer player)
+    {
+        if (player instanceof net.neoforged.neoforge.common.util.FakePlayer)
+        {
+            return effectAllowed(player, ArmorSkills.MACHINE_UNBREAKABLE)
+                    && ArmorSkillEngine.isOn(levelsFor(player), ArmorSkills.UNBREAKABLE);
+        }
+        return isActive(player) && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.UNBREAKABLE);
+    }
+
+    /** 是否受"防护选区"保护的友好生物（非怪物、非玩家、在自己半径内） */
+    private static boolean isProtectedFriendly(ServerPlayer attacker, LivingEntity target)
+    {
+        if (target == attacker || target instanceof net.minecraft.world.entity.player.Player
+                || target instanceof net.minecraft.world.entity.monster.Monster)
+        {
+            return false;
+        }
+        return target.distanceToSqr(attacker) <= (double) ZONE_RADIUS * ZONE_RADIUS;
+    }
+
+    /** 选区攻击：半径内的敌对生物持续受击（伤害 = 你的攻击力） */
+    private static void attackHostilesInZone(ServerPlayer player)
+    {
+        net.minecraft.world.phys.AABB box = player.getBoundingBox().inflate(ZONE_RADIUS);
+        float damage = (float) player.getAttributeValue(
+                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+        for (net.minecraft.world.entity.monster.Monster mob
+                : player.level().getEntitiesOfClass(net.minecraft.world.entity.monster.Monster.class, box))
+        {
+            if (mob.isAlive())
+            {
+                mob.hurt(player.damageSources().playerAttack(player), damage);
+            }
+        }
+    }
+
+    /** 客户端触发选区操作：mode = true 放置 / false 挖掘 */
+    public static void startZoneOperation(ServerPlayer player, boolean place)
+    {
+        String skill = place ? ArmorSkills.MACHINE_ZONE_PLACE : ArmorSkills.MACHINE_ZONE_EXCAVATE;
+        if (!isActive(player) || !ArmorSkillEngine.isOn(ArmorSkillData.get(player), skill))
+        {
+            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                    "chat.godofthings.armor.zone.not_learned"), true);
+            return;
+        }
+        java.util.ArrayDeque<net.minecraft.core.BlockPos> queue = new java.util.ArrayDeque<>();
+        net.minecraft.core.BlockPos center = player.blockPosition();
+        for (int dx = -ZONE_RADIUS; dx <= ZONE_RADIUS; dx++)
+        {
+            for (int dy = -ZONE_RADIUS; dy <= ZONE_RADIUS; dy++)
+            {
+                for (int dz = -ZONE_RADIUS; dz <= ZONE_RADIUS; dz++)
+                {
+                    queue.add(center.offset(dx, dy, dz));
+                }
+            }
+        }
+        ZONE_QUEUE.put(player.getUUID(), queue);
+        ZONE_MODE_PLACE.put(player.getUUID(), place);
+    }
+
+    /** 每 tick 从队列里处理一批方块（放置或挖掘） */
+    private static void processZoneQueue(ServerPlayer player)
+    {
+        java.util.ArrayDeque<net.minecraft.core.BlockPos> queue = ZONE_QUEUE.get(player.getUUID());
+        if (queue == null || queue.isEmpty())
+        {
+            return;
+        }
+        boolean place = ZONE_MODE_PLACE.getOrDefault(player.getUUID(), false);
+        net.minecraft.server.level.ServerLevel level = player.serverLevel();
+        net.minecraft.world.item.ItemStack held = player.getMainHandItem();
+        int done = 0;
+        while (done < ZONE_BATCH && !queue.isEmpty())
+        {
+            net.minecraft.core.BlockPos pos = queue.poll();
+            done++;
+            if (!level.isLoaded(pos) || pos.equals(player.blockPosition()))
+            {
+                continue;
+            }
+            net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+            if (place)
+            {
+                if (held.isEmpty() || !state.canBeReplaced())
+                {
+                    continue; // 没有方块可放
+                }
+                net.minecraft.world.level.block.state.BlockState toPlace =
+                        net.minecraft.world.level.block.Block.byItem(held.getItem()).defaultBlockState();
+                if (toPlace.isAir() || !toPlace.canSurvive(level, pos))
+                {
+                    continue;
+                }
+                level.setBlock(pos, toPlace, 3);
+                if (!player.isCreative())
+                {
+                    held.shrink(1);
+                    if (held.isEmpty())
+                    {
+                        break; // 方块用完了
+                    }
+                }
+            }
+            else
+            {
+                if (state.isAir() || state.getDestroySpeed(level, pos) < 0)
+                {
+                    continue; // 空气 / 不可破坏方块（基岩等）跳过
+                }
+                level.destroyBlock(pos, true, player);
+            }
+        }
+        if (queue.isEmpty())
+        {
+            ZONE_QUEUE.remove(player.getUUID());
+            ZONE_MODE_PLACE.remove(player.getUUID());
+            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                    place ? "chat.godofthings.armor.zone.placed" : "chat.godofthings.armor.zone.dug"), true);
+        }
     }
 }
