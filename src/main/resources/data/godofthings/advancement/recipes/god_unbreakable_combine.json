@@ -1,0 +1,15 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "godofthings:god_unbreakable_combine"
+      }
+    }
+  },
+  "requirements": [ [ "has_the_recipe" ] ],
+  "rewards": {
+    "recipes": [ "godofthings:god_unbreakable_combine" ]
+  }
+}

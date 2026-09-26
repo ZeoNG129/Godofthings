@@ -36,6 +36,13 @@
 3. `git add -A && git commit -m "中文一句话" && git push origin 1.21.1`
 4. **大版本（第二位/首位变化）才新建 GitHub Release**；小版本（末位变化，修复/优化）build 后把 `godofthings-<版本>.jar` 作为**额外 asset 上传到归属大版本 release 下**（用 REST API：`POST https://uploads.github.com/repos/ZeoNG129/Godofthings/releases/{大版本release_id}/assets?name=godofthings-<版本>.jar`，不新建 release），并在 release notes 里追加该小版本一行说明——即每个大版本一个 release，其下能下到该大版本所有小版本 jar
 
+## 外部模组兼容约定（重要）
+- `libs/` 下的第三方 jar 全是 **compileOnly**：运行时由整合包提供，缺失时模组必须仍能启动。
+- **绝不能把第三方 mod 的接口写进 `implements` 子句**——JVM 在类加载时会立刻解析直接父接口，接口 class 不在 classpath 上就抛 `NoClassDefFoundError`，`ModList.isLoaded()` 守卫救不了（方法是执行时才解析，`implements` 是加载时就解析）。
+- 需要 AE2 的地方照现有模式做：不引用 appeng 的入口类（`ae2/AeSoftDepend`、`ae2/AeCapabilityDispatch`）+ 硬引用集中在 `com.godofthings.ae2` 下的 AE 子类/注册类里，靠 `Class.forName` 反射按需加载；基础类只留空实现钩子（如 `pushOutputToAe()`）。
+- 没有 jar 可编译的模组（如 Ad Astra）一律用反射 + `Proxy`，见 `handler/AdAstraCompat.java`。
+- 自查命令：`build/libs/godofthings-<版本>.jar` 里所有 class 用 `javap -p` 看 `implements` 列表，不该出现非原版/非本模组类型。
+
 ## 项目约定
 - 只保留原创内容，勿引入第三方模组移植包
 - 语言文件 `zh_cn.json` 与 `en_us.json` 键集必须双向一致
@@ -43,4 +50,4 @@
 - git 分支：本项目用 `1.21.1` 分支（GitHub 仓库默认分支已设为 `1.21.1`）；1.20.1 Forge 版在 `main` 分支（本地 `E:\MC\Mod\1.20.1\Godofthings`），两仓库 remote 指向同一 GitHub 仓库 `ZeoNG129/Godofthings`
 - GitHub Release 按大版本归类：1.21.1 只有「1.x」和「2.x」两个 release（1.x 的 tag 是 v1.9.0、2.x 的 tag 是 v2.4.1），1.20.1 保留 v2.0.5；每个大版本 release 下挂该大版本**所有小版本 jar**（新小版本 jar 追加为 asset，不删除旧 asset）
 - 提交信息用中文一句话
-- 已知非阻塞警告：约 20-30 条 `@EventBusSubscriber bus()` [removal] 警告（`RegisterCapabilitiesEvent`/`RegisterPayloadHandlersEvent` 是 IModBusEvent 必须保留 `bus=Bus.MOD`，NeoForge 21.1 过渡标记，无替代 API）
+- 已知非阻塞警告：约 40 条 `@EventBusSubscriber bus()` [removal] 警告（`RegisterCapabilitiesEvent`/`RegisterPayloadHandlersEvent` 是 IModBusEvent 必须保留 `bus=Bus.MOD`，NeoForge 21.1 过渡标记，无替代 API）

@@ -16,9 +16,10 @@ mcmodsrepo/
 bin/
 eclipse/
 
-# Run directories (dev client data)
+# Run directories (dev client / data / dedicated server)
 run/
 run-data/
+run-server/
 
 # Logs
 *.log

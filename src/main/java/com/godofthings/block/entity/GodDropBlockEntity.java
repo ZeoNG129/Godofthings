@@ -1,15 +1,6 @@
 package com.godofthings.block.entity;
 
-import appeng.api.AECapabilities;
-import appeng.api.config.Actionable;
-import appeng.api.networking.IManagedGridNode;
-import appeng.api.networking.security.IActionSource;
-import appeng.api.networking.storage.IStorageService;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.storage.MEStorage;
-import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.AeGridNode;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodDropMenu;
@@ -75,7 +66,7 @@ import java.util.Set;
  * - 不消耗刷怪蛋（生产模板，按时间持续产出）
  * - 向下自动输出，内置无限储存；打掉不掉落
  */
-public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodDropBlockEntity extends BlockEntity implements MenuProvider
 {
     /** 工作间隔（tick），可经 godofthings-machines.toml 调整 */
     public static final int WORK_INTERVAL = MachinesConfig.DROP_WORK_INTERVAL.get();
@@ -235,8 +226,6 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
     /** 是否接入 AE（并网后产物自动输出进 AE 网络，占一个频道）。 */
     private boolean aeEnabled = true;
 
-    /** AE 网格节点（线缆直连并网）。 */
-    private final AeGridNode aeNode = new AeGridNode(this);
     private int aeTick = 0;
 
     private int tickCounter = 0;
@@ -268,41 +257,19 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
         setChanged();
     }
 
+
     // ---- AE 网格节点（线缆直连并网，产物自动输出进 AE） ----
 
-    @Override
-    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
-    @Override
-    public void saveChanges() { setChanged(); }
+    // ---- AE 产物输出（AE2 未安装时为空操作，见 AeSoftDepend 注释） ----
 
-    /** 把产物推入 AE 网络（节流由 tick 控制）。 */
-    private void pushOutputToAe()
+    /**
+     * AE 产物输出钩子：装了 AE2 时方块实体实际是
+     * {@code com.godofthings.ae2.GodDropAeBlockEntity}，由它覆写把产物推入 AE 网络；
+     * 未装 AE2 时命中本空实现，模组不会因缺 appeng 类而崩溃。
+     */
+    protected void pushOutputToAe()
     {
-        if (!aeEnabled || !aeNode.isActive())
-        {
-            return;
-        }
-        IStorageService storage = aeNode.getStorage();
-        if (storage == null)
-        {
-            return;
-        }
-        MEStorage inv = storage.getInventory();
-        IActionSource source = aeNode.actionSource();
-        for (int slot = 0; slot < getItemHandler().getSlots(); slot++)
-        {
-            ItemStack stack = getItemHandler().getStackInSlot(slot);
-            if (stack.isEmpty())
-            {
-                continue;
-            }
-            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
-            if (inserted > 0)
-            {
-                getItemHandler().extractItem(slot, (int) inserted, false);
-            }
-        }
     }
 
     /** 神之加速槽（只接受神之加速，最多 64 个） */
@@ -325,19 +292,6 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
 
     // ---- 生命周期：创建/销毁 AE 网格节点 ----
 
-    @Override
-    public void onLoad()
-    {
-        super.onLoad();
-        aeNode.create(level, worldPosition);
-    }
-
-    @Override
-    public void setRemoved()
-    {
-        aeNode.destroy();
-        super.setRemoved();
-    }
 
     // ---- 每 tick 逻辑 ----
 
@@ -588,8 +542,7 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_DROP_BE.get(),
                     (be, side) -> be.getItemHandler());
-            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_DROP_BE.get(),
-                    (be, side) -> be);
+            // AE2 的 IN_WORLD_GRID_NODE_HOST 能力由 com.godofthings.ae2.AeRegistration 在装了 AE2 时注册
         }
     }
 

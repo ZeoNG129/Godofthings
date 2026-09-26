@@ -8,6 +8,11 @@
           "type": "minecraft:item",
           "name": "godofthings:space_time_eternity"
         }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
       ]
     }
   ]

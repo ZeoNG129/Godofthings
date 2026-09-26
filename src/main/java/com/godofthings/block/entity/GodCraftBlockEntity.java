@@ -1,15 +1,6 @@
 package com.godofthings.block.entity;
 
-import appeng.api.AECapabilities;
-import appeng.api.config.Actionable;
-import appeng.api.networking.IManagedGridNode;
-import appeng.api.networking.security.IActionSource;
-import appeng.api.networking.storage.IStorageService;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.storage.MEStorage;
-import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.AeGridNode;
 import com.godofthings.menu.GodCraftMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -54,7 +45,7 @@ import java.util.List;
  * - 锁定配方：锁定后只合成锁定配方，合成格只接受锁定模板物品
  * - 六个面可配置输入/输出
  */
-public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodCraftBlockEntity extends BlockEntity implements MenuProvider
 {
     public static final int INPUT_SLOTS = 9;
     public static final int TOTAL_SLOTS = 10; // 0-8 合成格, 9 输出
@@ -113,8 +104,6 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
     /** 是否接入 AE（并网后产物自动输出进 AE 网络，占一个频道）。 */
     private boolean aeEnabled = true;
 
-    /** AE 网格节点（线缆直连并网）。 */
-    private final AeGridNode aeNode = new AeGridNode(this);
     private int aeTick = 0;
 
     public GodCraftBlockEntity(BlockPos pos, BlockState state)
@@ -154,74 +143,24 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
         setChanged();
     }
 
-    @Override
-    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
-    @Override
-    public void saveChanges() { setChanged(); }
+    // ---- AE 产物输出（AE2 未安装时为空操作，见 AeSoftDepend 注释） ----
 
-    /** 把输出槽产物推入 AE 网络（节流由 tick 控制）。 */
-    private void pushOutputToAe()
+    /**
+     * AE 产物输出钩子：装了 AE2 时方块实体实际是
+     * {@code com.godofthings.ae2.GodCraftAeBlockEntity}，由它覆写把产物推入 AE 网络；
+     * 未装 AE2 时命中本空实现，模组不会因缺 appeng 类而崩溃。
+     */
+    protected void pushOutputToAe()
     {
-        if (!aeEnabled || !aeNode.isActive())
-        {
-            return;
-        }
-        IStorageService storage = aeNode.getStorage();
-        if (storage == null)
-        {
-            return;
-        }
-        MEStorage inv = storage.getInventory();
-        IActionSource source = aeNode.actionSource();
-        ItemStack stack = outputSlot.getStackInSlot(0);
-        if (stack.isEmpty())
-        {
-            return;
-        }
-        long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
-        if (inserted > 0)
-        {
-            outputSlot.extractItem(0, (int) inserted, false);
-        }
     }
 
-    /** 从 AE 网络拉取锁定模板原料，补齐合成格（开启 AE + 锁定模板时自动合成）。 */
-    private void aeAutoCraft()
+    /**
+     * AE 自动合成钩子（锁定模板时从 AE 网络拉原料补齐合成格）：装了 AE2 时由
+     * {@code com.godofthings.ae2.GodCraftAeBlockEntity} 覆写；未装 AE2 时为空实现。
+     */
+    protected void aeAutoCraft()
     {
-        if (!aeEnabled || !aeNode.isActive() || !locked)
-        {
-            return;
-        }
-        IStorageService storage = aeNode.getStorage();
-        if (storage == null)
-        {
-            return;
-        }
-        MEStorage inv = storage.getInventory();
-        IActionSource source = aeNode.actionSource();
-        for (int i = 0; i < INPUT_SLOTS; i++)
-        {
-            ItemStack tpl = lockedItems[i];
-            if (tpl.isEmpty())
-            {
-                continue;
-            }
-            ItemStack cur = inputSlots.getStackInSlot(i);
-            int have = (!cur.isEmpty() && ItemStack.isSameItem(cur, tpl)) ? cur.getCount() : 0;
-            int need = tpl.getCount() - have;
-            if (need <= 0)
-            {
-                continue;
-            }
-            AEItemKey key = AEItemKey.of(tpl);
-            long extracted = inv.extract(key, need, Actionable.MODULATE, source);
-            if (extracted > 0)
-            {
-                ItemStack got = tpl.copyWithCount((int) extracted);
-                inputSlots.insertItem(i, got, false);
-            }
-        }
     }
 
     // ---- 开关 ----
@@ -497,19 +436,6 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
     }
     public void cycleFaceMode(Direction dir) { setFaceMode(dir, getFaceMode(dir) + 1); }
 
-    @Override
-    public void onLoad()
-    {
-        super.onLoad();
-        aeNode.create(level, worldPosition);
-    }
-
-    @Override
-    public void setRemoved()
-    {
-        aeNode.destroy();
-        super.setRemoved();
-    }
 
     // ---- tick ----
 
@@ -815,8 +741,7 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_CRAFT_BE.get(),
                     (be, side) -> be.getSideCapability(side));
-            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_CRAFT_BE.get(),
-                    (be, side) -> be);
+            // AE2 的 IN_WORLD_GRID_NODE_HOST 能力由 com.godofthings.ae2.AeRegistration 在装了 AE2 时注册
         }
     }
 

@@ -16,7 +16,8 @@ import net.minecraft.world.entity.player.Inventory;
  * 神之矿机界面：全部中文。
  * - 开始/停止按钮
  * - 半径调整按钮（-100/-10/-1/+1/+10/+100，范围 1-1600）
- * - 无储存槽：产物直接进内置无限储存，六面默认全部自动输出
+ * - 无储存槽：产物直接进内置无限储存
+ * - 面配置按钮：六面各自可设 无/输入（抽入神之加速）/输出（推出产物与液体）/输入和输出
  * - 状态显示（当前深度、挖掘速度、储液、内置储存）
  */
 public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
@@ -50,6 +51,12 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
     private static final int AE_X = 64;
     private static final int AE_Y = 20;
     private static final int AE_SIZE = 20;
+
+    // 面配置按钮（AE 开关右侧）：打开六面输入/输出配置界面
+    private static final int FACES_X = 88;
+    private static final int FACES_Y = 20;
+    private static final int FACES_W = 52;
+    private static final int FACES_H = 20;
 
     public GodMinerScreen(GodMinerMenu menu, Inventory playerInventory, Component title)
     {
@@ -97,6 +104,14 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         gui.fill(ax + 1, ay + 1, ax + AE_SIZE - 1, ay + AE_SIZE - 1, aeOn ? 0xFF57B757 : 0xFF3A4048);
         Component aeLabel = Component.literal("AE");
         gui.drawString(this.font, aeLabel, ax + (AE_SIZE - this.font.width(aeLabel)) / 2, ay + 6, 0xFFFFFF);
+
+        // 面配置按钮（服务端在 clickMenuButton(10) 中打开面配置界面）
+        int cfx = x + FACES_X;
+        int cfy = y + FACES_Y;
+        gui.fill(cfx, cfy, cfx + FACES_W, cfy + FACES_H, 0xFF16181D);
+        gui.fill(cfx + 1, cfy + 1, cfx + FACES_W - 1, cfy + FACES_H - 1, 0xFF3A4048);
+        Component facesLabel = Component.translatable("gui.godofthings.miner.face_config");
+        gui.drawString(this.font, facesLabel, cfx + (FACES_W - this.font.width(facesLabel)) / 2, cfy + 6, 0xFFFFFF);
 
         // 开始/停止按钮
         int bx = x + START_X;
@@ -167,6 +182,13 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         {
             // AE 接入开关（服务端在 clickMenuButton(9) 中切换，经 DataSlot 同步回显）
             sendButton(9);
+            return true;
+        }
+
+        if (relX >= FACES_X && relX < FACES_X + FACES_W && relY >= FACES_Y && relY < FACES_Y + FACES_H)
+        {
+            // 面配置界面由服务端打开（clickMenuButton(10) → openConfig）
+            sendButton(10);
             return true;
         }
 

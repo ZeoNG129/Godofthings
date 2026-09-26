@@ -118,6 +118,14 @@ public class WandKeyBindings
             GLFW.GLFW_KEY_J,
             CATEGORY
     ));
+    /** 神之套装功能开关界面（O） */
+    public static final Lazy<KeyMapping> OPEN_ARMOR_CONFIG_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.open_armor_config",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_O,
+            CATEGORY
+    ));
 
     /** 跟踪连锁挖掘按键的按下状态。 */
     public static boolean SWITCH_CHAIN_MINING_KEY_WAS_DOWN = false;
@@ -139,5 +147,6 @@ public class WandKeyBindings
         event.register(TOGGLE_INVULNERABILITY_KEY.get());
         event.register(OPEN_WAYPOINT_KEY.get());
         event.register(SWORD_MODE_KEY.get());
+        event.register(OPEN_ARMOR_CONFIG_KEY.get());
     }
 }

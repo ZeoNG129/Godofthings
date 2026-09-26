@@ -28,6 +28,8 @@ import com.godofthings.block.entity.GodAbsorberBlockEntity;
 import com.godofthings.block.entity.GodSlaughterBlockEntity;
 import com.godofthings.block.entity.GodTransmitterBlockEntity;
 import com.godofthings.block.entity.SpaceTimeEternityBlockEntity;
+import com.godofthings.ae2.AeSoftDepend;
+import com.godofthings.armor.GodArmorFeatures;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.dimension.GodFlatDimension;
 import com.godofthings.energy.CreativeEnergyCubeBlock;
@@ -57,6 +59,7 @@ import com.godofthings.menu.GodEnchantMenu;
 import com.godofthings.menu.GodFurnaceConfigMenu;
 import com.godofthings.menu.GodFurnaceMenu;
 import com.godofthings.menu.GodMinerMenu;
+import com.godofthings.menu.GodMinerConfigMenu;
 import com.godofthings.menu.GodRecordMenu;
 import com.godofthings.menu.GodResourceMenu;
 import com.godofthings.menu.GodSlaughterConfigMenu;
@@ -67,6 +70,7 @@ import com.godofthings.menu.GodTransmitterMenu;
 import com.godofthings.menu.WaypointMenu;
 import com.godofthings.recipe.GodUnbreakableRecipe;
 import com.mojang.logging.LogUtils;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -92,11 +96,13 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.slf4j.Logger;
 
 @Mod(Godofthings.MODID)
@@ -122,6 +128,16 @@ public class Godofthings
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, MODID);
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
             DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
+
+    /** 神之套装功能开关：按玩家保存的位图（见 GodArmorFeatures / GodArmorState） */
+    public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
+            DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, MODID);
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Integer>> ARMOR_FEATURES =
+            ATTACHMENT_TYPES.register("armor_features", () -> AttachmentType.builder(() -> GodArmorFeatures.ALL)
+                    .serialize(Codec.INT)
+                    .copyOnDeath()
+                    .build());
 
     // ---- 方块 ----
     // 注意：不能用 BlockBehaviour.Properties.copy(Blocks.FURNACE) —— 会连带原版熔炉的
@@ -307,7 +323,9 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_SLAUGHTER, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodSlaughterBlockEntity>> GOD_SLAUGHTER_BE =
             BLOCK_ENTITIES.register("god_slaughter",
-                    () -> BlockEntityType.Builder.of(GodSlaughterBlockEntity::new, GOD_SLAUGHTER.get()).build(null));
+                    () -> BlockEntityType.Builder.of(
+                            AeSoftDepend.blockEntity(GodSlaughterBlockEntity::new, "GodSlaughterAeBlockEntity"),
+                            GOD_SLAUGHTER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodSlaughterMenu>> GOD_SLAUGHTER_MENU =
             MENUS.register("god_slaughter",
                     () -> IMenuTypeExtension.create(GodSlaughterMenu::new));
@@ -328,7 +346,9 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_ABSORBER, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodAbsorberBlockEntity>> GOD_ABSORBER_BE =
             BLOCK_ENTITIES.register("god_absorber",
-                    () -> BlockEntityType.Builder.of(GodAbsorberBlockEntity::new, GOD_ABSORBER.get()).build(null));
+                    () -> BlockEntityType.Builder.of(
+                            AeSoftDepend.blockEntity(GodAbsorberBlockEntity::new, "GodAbsorberAeBlockEntity"),
+                            GOD_ABSORBER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodAbsorberMenu>> GOD_ABSORBER_MENU =
             MENUS.register("god_absorber",
                     () -> IMenuTypeExtension.create(GodAbsorberMenu::new));
@@ -351,7 +371,9 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_CRAFT, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodCraftBlockEntity>> GOD_CRAFT_BE =
             BLOCK_ENTITIES.register("god_craft",
-                    () -> BlockEntityType.Builder.of(GodCraftBlockEntity::new, GOD_CRAFT.get()).build(null));
+                    () -> BlockEntityType.Builder.of(
+                            AeSoftDepend.blockEntity(GodCraftBlockEntity::new, "GodCraftAeBlockEntity"),
+                            GOD_CRAFT.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodCraftMenu>> GOD_CRAFT_MENU =
             MENUS.register("god_craft", () -> IMenuTypeExtension.create(GodCraftMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodCraftConfigMenu>> GOD_CRAFT_CONFIG_MENU =
@@ -429,16 +451,24 @@ public class Godofthings
     // ---- 方块实体 ----
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodFurnaceBlockEntity>> GOD_FURNACE_BE =
             BLOCK_ENTITIES.register("god_furnace",
-                    () -> BlockEntityType.Builder.of(GodFurnaceBlockEntity::new, GOD_FURNACE.get()).build(null));
+                    () -> BlockEntityType.Builder.of(
+                            AeSoftDepend.blockEntity(GodFurnaceBlockEntity::new, "GodFurnaceAeBlockEntity"),
+                            GOD_FURNACE.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodMinerBlockEntity>> GOD_MINER_BE =
             BLOCK_ENTITIES.register("god_miner",
-                    () -> BlockEntityType.Builder.of(GodMinerBlockEntity::new, GOD_MINER.get()).build(null));
+                    () -> BlockEntityType.Builder.of(
+                            AeSoftDepend.blockEntity(GodMinerBlockEntity::new, "GodMinerAeBlockEntity"),
+                            GOD_MINER.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodResourceBlockEntity>> GOD_RESOURCE_BE =
             BLOCK_ENTITIES.register("god_resource",
-                    () -> BlockEntityType.Builder.of(GodResourceBlockEntity::new, GOD_RESOURCE.get()).build(null));
+                    () -> BlockEntityType.Builder.of(
+                            AeSoftDepend.blockEntity(GodResourceBlockEntity::new, "GodResourceAeBlockEntity"),
+                            GOD_RESOURCE.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodDropBlockEntity>> GOD_DROP_BE =
             BLOCK_ENTITIES.register("god_drop",
-                    () -> BlockEntityType.Builder.of(GodDropBlockEntity::new, GOD_DROP.get()).build(null));
+                    () -> BlockEntityType.Builder.of(
+                            AeSoftDepend.blockEntity(GodDropBlockEntity::new, "GodDropAeBlockEntity"),
+                            GOD_DROP.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodEnchantBlockEntity>> GOD_ENCHANT_BE =
             BLOCK_ENTITIES.register("god_enchant",
                     () -> BlockEntityType.Builder.of(GodEnchantBlockEntity::new,
@@ -451,6 +481,8 @@ public class Godofthings
             MENUS.register("god_furnace_config", () -> IMenuTypeExtension.create(GodFurnaceConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodMinerMenu>> GOD_MINER_MENU =
             MENUS.register("god_miner", () -> IMenuTypeExtension.create(GodMinerMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodMinerConfigMenu>> GOD_MINER_CONFIG_MENU =
+            MENUS.register("god_miner_config", () -> IMenuTypeExtension.create(GodMinerConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodResourceMenu>> GOD_RESOURCE_MENU =
             MENUS.register("god_resource", () -> IMenuTypeExtension.create(GodResourceMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodDropMenu>> GOD_DROP_MENU =
@@ -512,6 +544,7 @@ public class Godofthings
         BLOCK_ENTITIES.register(modEventBus);
         MENUS.register(modEventBus);
         RECIPE_SERIALIZERS.register(modEventBus);
+        ATTACHMENT_TYPES.register(modEventBus);
         GodFlatDimension.CHUNK_GENERATORS.register(modEventBus);
 
         // 神之机器参数配置（矿机/资源机/掉落机，godofthings-machines.toml）

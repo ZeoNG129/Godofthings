@@ -1,15 +1,6 @@
 package com.godofthings.block.entity;
 
-import appeng.api.AECapabilities;
-import appeng.api.config.Actionable;
-import appeng.api.networking.IManagedGridNode;
-import appeng.api.networking.security.IActionSource;
-import appeng.api.networking.storage.IStorageService;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.storage.MEStorage;
-import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.AeGridNode;
 import com.godofthings.item.GodSwordItem;
 import com.godofthings.menu.GodSlaughterMenu;
 import net.minecraft.core.BlockPos;
@@ -55,7 +46,7 @@ import java.util.List;
  *   <li>输入输出：六面 FaceMode 配置（NONE/INPUT/OUTPUT/BOTH），自动抽入/推出。</li>
  * </ul>
  */
-public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
 {
     /** UI 显示的存储槽位数量（内部为无限存储，前 27 个堆叠映射到槽位）。 */
     public static final int STORAGE_SLOTS = 27;
@@ -84,8 +75,6 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     /** 是否接入 AE（并网后存储内容自动输出进 AE 网络，占一个频道）。 */
     private boolean aeEnabled = true;
 
-    /** AE 网格节点（线缆直连并网）。 */
-    private final AeGridNode aeNode = new AeGridNode(this);
     private int aeTick = 0;
 
     // ---- 击杀用 ----
@@ -200,8 +189,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_SLAUGHTER_BE.get(),
                     (be, side) -> be.getSideCapability(side));
-            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_SLAUGHTER_BE.get(),
-                    (be, side) -> be);
+            // AE2 的 IN_WORLD_GRID_NODE_HOST 能力由 com.godofthings.ae2.AeRegistration 在装了 AE2 时注册
         }
     }
 
@@ -330,41 +318,19 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
+
     // ---- AE 网格节点（线缆直连并网，存储内容自动输出进 AE） ----
 
-    @Override
-    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
-    @Override
-    public void saveChanges() { setChanged(); }
+    // ---- AE 产物输出（AE2 未安装时为空操作，见 AeSoftDepend 注释） ----
 
-    /** 把内部存储物品推入 AE 网络（节流由 tick 控制）。 */
-    private void pushOutputToAe()
+    /**
+     * AE 产物输出钩子：装了 AE2 时方块实体实际是
+     * {@code com.godofthings.ae2.GodSlaughterAeBlockEntity}，由它覆写把产物推入 AE 网络；
+     * 未装 AE2 时命中本空实现，模组不会因缺 appeng 类而崩溃。
+     */
+    protected void pushOutputToAe()
     {
-        if (!aeEnabled || !aeNode.isActive())
-        {
-            return;
-        }
-        IStorageService storageService = aeNode.getStorage();
-        if (storageService == null)
-        {
-            return;
-        }
-        MEStorage inv = storageService.getInventory();
-        IActionSource source = aeNode.actionSource();
-        for (int slot = 0; slot < getStorageView().getSlots(); slot++)
-        {
-            ItemStack stack = getStorageView().getStackInSlot(slot);
-            if (stack.isEmpty())
-            {
-                continue;
-            }
-            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
-            if (inserted > 0)
-            {
-                getStorageView().extractItem(slot, (int) inserted, false);
-            }
-        }
     }
 
     // ---- 经验 ----
@@ -459,19 +425,6 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
 
     // ---- tick ----
 
-    @Override
-    public void onLoad()
-    {
-        super.onLoad();
-        aeNode.create(level, worldPosition);
-    }
-
-    @Override
-    public void setRemoved()
-    {
-        aeNode.destroy();
-        super.setRemoved();
-    }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, GodSlaughterBlockEntity be)
     {

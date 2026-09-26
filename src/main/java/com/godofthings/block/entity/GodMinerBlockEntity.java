@@ -1,15 +1,6 @@
 package com.godofthings.block.entity;
 
-import appeng.api.AECapabilities;
-import appeng.api.config.Actionable;
-import appeng.api.networking.IManagedGridNode;
-import appeng.api.networking.security.IActionSource;
-import appeng.api.networking.storage.IStorageService;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.storage.MEStorage;
-import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.AeGridNode;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodMinerMenu;
@@ -57,9 +48,11 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  * - 除基岩外所有方块（含液体）都会被挖掉，液体收集进内置无限液体罐
  * - 默认速度约 4 块/每tick（约 1 竖列/20 tick），效率每级 ×(1+3级) 加速
  * - 挖完后可再次点击开始：自动从顶部重新挖（支持改半径后重新工作）
- * - 内置无限大小物品储存，六面默认全部自动输出
+ * - 内置无限大小物品储存
+ * - 六个面各自可配置 NONE / INPUT(抽入神之加速) / OUTPUT(推出产物与液体) / BOTH，见 {@link FaceMode}；
+ *   未写入 FaceModes 的旧存档默认六面全 OUTPUT，与旧行为一致
  */
-public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
 {
     /** 矿机最大挖掘半径（格，方形半径），可经 godofthings-machines.toml 调整 */
     public static final int MAX_RADIUS = MachinesConfig.MINER_MAX_RADIUS.get();
@@ -68,6 +61,15 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
 
     private final InfiniteItemHandler itemHandler = new InfiniteItemHandler();
     private final FluidTank tank = new FluidTank(Integer.MAX_VALUE);
+
+    /** 每个面一个模式，索引 = Direction.get3DDataValue()，取值见 FaceMode.getId()。
+     *  默认全 OUTPUT：保持「六面默认全部自动输出」的旧行为，旧存档未存 FaceModes 时也走这里。 */
+    private final int[] faceModes = {
+            FaceMode.OUTPUT.getId(), FaceMode.OUTPUT.getId(), FaceMode.OUTPUT.getId(),
+            FaceMode.OUTPUT.getId(), FaceMode.OUTPUT.getId(), FaceMode.OUTPUT.getId() };
+    private final SideHandler[] sideHandlers = new SideHandler[6];
+    /** OUTPUT 面暴露的只出不进液体能力（外部只能抽走，不能向矿机灌液）。 */
+    private final OutputFluidHandler outputFluidHandler = new OutputFluidHandler();
 
     /** 神之加速槽：放入神之加速（放满 64 个）后，挖一整列基础 tick 降至 1 */
     private final ItemStackHandler accelSlot = new ItemStackHandler(1)
@@ -88,8 +90,6 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     /** 是否接入 AE（线缆直连并网，产物主动输出进 AE，占一个频道）。 */
     private boolean aeEnabled = true;
 
-    /** AE 网格节点（线缆直连并网）。 */
-    private final AeGridNode aeNode = new AeGridNode(this);
     private int aeTick = 0;
 
     private boolean running = false;
@@ -114,6 +114,10 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     {
         super(Godofthings.GOD_MINER_BE.get(), pos, state);
         itemHandler.setOnChange(this::setChanged);
+        for (int i = 0; i < 6; i++)
+        {
+            this.sideHandlers[i] = new SideHandler(i);
+        }
     }
 
     public InfiniteItemHandler getItemHandler()
@@ -132,40 +136,190 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         setChanged();
     }
 
+
     // ---- AE 网格节点（线缆直连并网，产物主动输出进 AE） ----
 
-    @Override
-    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
-    @Override
-    public void saveChanges() { setChanged(); }
+    // ---- AE 产物输出（AE2 未安装时为空操作，见 AeSoftDepend 注释） ----
 
-    /** 把内置储存产物推入 AE 网络（节流由 tick 控制）。 */
-    private void pushOutputToAe()
+    /**
+     * AE 产物输出钩子：装了 AE2 时方块实体实际是
+     * {@code com.godofthings.ae2.GodMinerAeBlockEntity}，由它覆写把产物推入 AE 网络；
+     * 未装 AE2 时命中本空实现，模组不会因缺 appeng 类而崩溃。
+     */
+    protected void pushOutputToAe()
     {
-        if (!aeEnabled || !aeNode.isActive())
+    }
+
+    // ---- 面模式 ----
+
+    public int getFaceMode(Direction dir)
+    {
+        return faceModes[dir.get3DDataValue()];
+    }
+
+    public void setFaceMode(Direction dir, int mode)
+    {
+        faceModes[dir.get3DDataValue()] = ((mode % 4) + 4) % 4;
+        setChanged();
+    }
+
+    public void cycleFaceMode(Direction dir)
+    {
+        setFaceMode(dir, getFaceMode(dir) + 1);
+    }
+
+    /** 该面是否允许推出产物（OUTPUT / BOTH） */
+    private boolean isOutputFace(Direction dir)
+    {
+        FaceMode mode = FaceMode.fromId(faceModes[dir.get3DDataValue()]);
+        return mode == FaceMode.OUTPUT || mode == FaceMode.BOTH;
+    }
+
+    /** 该面是否允许抽入神之加速（INPUT / BOTH） */
+    private boolean isInputFace(Direction dir)
+    {
+        FaceMode mode = FaceMode.fromId(faceModes[dir.get3DDataValue()]);
+        return mode == FaceMode.INPUT || mode == FaceMode.BOTH;
+    }
+
+    // ---- capability：每个面按模式暴露受限的物品/液体能力 ----
+
+    /** 物品能力入口：side == null 或 NONE 面返回 null（与神之熔炉/神之吸收一致）。 */
+    @Nullable
+    IItemHandler getSideCapability(@Nullable Direction side)
+    {
+        if (side == null)
         {
-            return;
+            return null;
         }
-        IStorageService storage = aeNode.getStorage();
-        if (storage == null)
+        int idx = side.get3DDataValue();
+        return faceModes[idx] != FaceMode.NONE.getId() ? sideHandlers[idx] : null;
+    }
+
+    /** 液体能力入口：只有 OUTPUT / BOTH 面暴露（矿机只产液体，不接受外部灌入）。 */
+    @Nullable
+    IFluidHandler getSideFluidCapability(@Nullable Direction side)
+    {
+        return side != null && isOutputFace(side) ? outputFluidHandler : null;
+    }
+
+    /**
+     * 某个面的包装物品 handler（槽位布局与神之熔炉一致：输入在前、输出在后）：
+     * <ul>
+     *   <li>槽 0 = 神之加速槽（输入槽）：只有 INPUT / BOTH 面可插入，且只收神之加速；任何面都抽不走。</li>
+     *   <li>槽 1..N = 内置无限储存（输出区）：只有 OUTPUT / BOTH 面可抽取，任何面都插不进。</li>
+     * </ul>
+     * 面模式可在运行时切换，故每次调用动态读取，无需失效缓存。
+     */
+    private class SideHandler implements IItemHandler
+    {
+        private final int dirIndex;
+
+        SideHandler(int dirIndex)
         {
-            return;
+            this.dirIndex = dirIndex;
         }
-        MEStorage inv = storage.getInventory();
-        IActionSource source = aeNode.actionSource();
-        for (int slot = 0; slot < getItemHandler().getSlots(); slot++)
+
+        private FaceMode mode()
         {
-            ItemStack stack = getItemHandler().getStackInSlot(slot);
-            if (stack.isEmpty())
+            return FaceMode.fromId(faceModes[dirIndex]);
+        }
+
+        @Override
+        public int getSlots()
+        {
+            return 1 + itemHandler.getSlots();
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot)
+        {
+            return slot == 0 ? accelSlot.getStackInSlot(0) : itemHandler.getStackInSlot(slot - 1);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate)
+        {
+            if (slot != 0)
             {
-                continue;
+                return stack; // 内置储存是产物区，不接受外部插入
             }
-            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
-            if (inserted > 0)
+            return (mode() == FaceMode.INPUT || mode() == FaceMode.BOTH)
+                    ? accelSlot.insertItem(0, stack, simulate)
+                    : stack;
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate)
+        {
+            if (slot == 0)
             {
-                getItemHandler().extractItem(slot, (int) inserted, false);
+                return ItemStack.EMPTY; // 加速槽不被管道抽走
             }
+            return (mode() == FaceMode.OUTPUT || mode() == FaceMode.BOTH)
+                    ? itemHandler.extractItem(slot - 1, amount, simulate)
+                    : ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getSlotLimit(int slot)
+        {
+            return slot == 0 ? accelSlot.getSlotLimit(0) : Integer.MAX_VALUE;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack)
+        {
+            return slot == 0
+                    && (mode() == FaceMode.INPUT || mode() == FaceMode.BOTH)
+                    && accelSlot.isItemValid(0, stack);
+        }
+    }
+
+    /** OUTPUT 面的液体能力：只允许抽走储液罐里的液体，fill 恒为 0。 */
+    private class OutputFluidHandler implements IFluidHandler
+    {
+        @Override
+        public int getTanks()
+        {
+            return tank.getTanks();
+        }
+
+        @Override
+        public FluidStack getFluidInTank(int tankIndex)
+        {
+            return tank.getFluidInTank(tankIndex);
+        }
+
+        @Override
+        public int getTankCapacity(int tankIndex)
+        {
+            return tank.getTankCapacity(tankIndex);
+        }
+
+        @Override
+        public boolean isFluidValid(int tankIndex, FluidStack stack)
+        {
+            return false;
+        }
+
+        @Override
+        public int fill(FluidStack resource, FluidAction action)
+        {
+            return 0;
+        }
+
+        @Override
+        public FluidStack drain(FluidStack resource, FluidAction action)
+        {
+            return tank.drain(resource, action);
+        }
+
+        @Override
+        public FluidStack drain(int maxDrain, FluidAction action)
+        {
+            return tank.drain(maxDrain, action);
         }
     }
 
@@ -380,8 +534,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
                 running = false; // 范围内没有需要挖掘的方块了
                 releaseForcedChunks();
                 setChanged();
-                pushOutput();
-                pushFluid();
+                autoTransfer();
                 return;
             }
             tickCounter++;
@@ -407,8 +560,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         {
             tickCounter = 0;
         }
-        pushOutput();
-        pushFluid();
+        autoTransfer();
     }
 
     /** 确保当前列所在区块已加载：未加载则请求强制加载并返回 false（等待） */
@@ -460,7 +612,6 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     @Override
     public void setRemoved()
     {
-        aeNode.destroy();
         super.setRemoved();
         // 运行中拆除矿机：释放本机强制加载过的区块，避免区块常驻内存泄漏
         releaseForcedChunks();
@@ -470,7 +621,6 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     public void onLoad()
     {
         super.onLoad();
-        aeNode.create(level, worldPosition);
         if (areaClearedOnLoad || level == null || level.isClientSide || !(level instanceof ServerLevel serverLevel))
         {
             return;
@@ -632,68 +782,112 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         }
     }
 
-    /** 六面全部自动输出到相邻容器 */
-    private void pushOutput()
+    /** 按面配置自动传输：INPUT 面抽入神之加速，OUTPUT / BOTH 面推出产物与液体。 */
+    private void autoTransfer()
     {
         for (Direction dir : Direction.values())
         {
+            if (getFaceMode(dir) == FaceMode.NONE.getId())
+            {
+                continue;
+            }
             BlockPos neighborPos = worldPosition.relative(dir);
             if (!level.isLoaded(neighborPos))
             {
                 continue;
             }
-            BlockEntity neighbor = level.getBlockEntity(neighborPos);
-            if (neighbor == null)
+            if (isInputFace(dir))
             {
-                continue;
+                pullAccelerator(neighborPos, dir);
             }
-            IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, dir.getOpposite());
-            if (handler != null)
+            if (isOutputFace(dir))
             {
-                pushTo(handler);
+                pushOutput(neighborPos, dir);
+                pushFluid(neighborPos, dir);
             }
         }
     }
 
-    /** 六面自动输出液体到相邻可装液体的容器 */
-    private void pushFluid()
+    /** INPUT 面：从相邻容器抽取神之加速补充加速槽（加速槽已满则跳过）。 */
+    private void pullAccelerator(BlockPos neighborPos, Direction dir)
+    {
+        if (accelSlot.getStackInSlot(0).getCount() >= accelSlot.getSlotLimit(0))
+        {
+            return;
+        }
+        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, dir.getOpposite());
+        if (handler == null)
+        {
+            return;
+        }
+        for (int s = 0; s < handler.getSlots(); s++)
+        {
+            ItemStack src = handler.getStackInSlot(s);
+            if (src.isEmpty() || !(src.getItem() instanceof GodAcceleratorItem))
+            {
+                continue;
+            }
+            // 先真放入加速槽，再按实际收下的数量从邻居取走；邻居拿不出那么多就把多收的还回去（兜底掉落，绝不凭空增殖）
+            ItemStack leftover = accelSlot.insertItem(0, src.copy(), false);
+            int moved = src.getCount() - leftover.getCount();
+            if (moved <= 0)
+            {
+                return;
+            }
+            ItemStack taken = handler.extractItem(s, moved, false);
+            if (taken.getCount() < moved)
+            {
+                ItemStack giveBack = accelSlot.extractItem(0, moved - taken.getCount(), false);
+                if (!giveBack.isEmpty())
+                {
+                    ItemStack stillLeft = handler.insertItem(s, giveBack, false);
+                    if (!stillLeft.isEmpty())
+                    {
+                        InfiniteItemHandler.dropRemainder(level, worldPosition, stillLeft);
+                    }
+                }
+            }
+            setChanged();
+            return; // 每 tick 每面最多搬一次，避免高频搬运
+        }
+    }
+
+    /** OUTPUT / BOTH 面：把内置储存产物推给该面相邻容器 */
+    private void pushOutput(BlockPos neighborPos, Direction dir)
+    {
+        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, dir.getOpposite());
+        if (handler != null)
+        {
+            pushTo(handler);
+        }
+    }
+
+    /** OUTPUT / BOTH 面：把储液罐里的液体推给该面相邻可装液体的容器 */
+    private void pushFluid(BlockPos neighborPos, Direction dir)
     {
         if (tank.getFluidAmount() <= 0)
         {
             return;
         }
-        for (Direction dir : Direction.values())
+        IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, neighborPos, dir.getOpposite());
+        if (handler == null)
         {
-            BlockPos neighborPos = worldPosition.relative(dir);
-            if (!level.isLoaded(neighborPos))
+            return;
+        }
+        FluidStack fluid = tank.getFluid();
+        if (fluid.isEmpty())
+        {
+            return;
+        }
+        int filled = handler.fill(fluid.copy(), IFluidHandler.FluidAction.SIMULATE);
+        if (filled > 0)
+        {
+            // 真正填入邻居，再按实际填入量从矿机排掉
+            int actual = handler.fill(fluid.copyWithAmount(filled), IFluidHandler.FluidAction.EXECUTE);
+            if (actual > 0)
             {
-                continue;
-            }
-            BlockEntity neighbor = level.getBlockEntity(neighborPos);
-            if (neighbor == null)
-            {
-                continue;
-            }
-            IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, neighborPos, dir.getOpposite());
-            if (handler == null)
-            {
-                continue;
-            }
-            FluidStack fluid = tank.getFluid();
-            if (fluid.isEmpty())
-            {
-                return;
-            }
-            int filled = handler.fill(fluid.copy(), IFluidHandler.FluidAction.SIMULATE);
-            if (filled > 0)
-            {
-                // 真正填入邻居，再按实际填入量从矿机排掉
-                int actual = handler.fill(fluid.copyWithAmount(filled), IFluidHandler.FluidAction.EXECUTE);
-                if (actual > 0)
-                {
-                    tank.drain(actual, IFluidHandler.FluidAction.EXECUTE);
-                    setChanged();
-                }
+                tank.drain(actual, IFluidHandler.FluidAction.EXECUTE);
+                setChanged();
             }
         }
     }
@@ -732,7 +926,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         }
     }
 
-    // ---- capability：任何面都能取走物品/液体 ----
+    // ---- capability：按面配置暴露物品/液体 ----
 
     @EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD)
     public static class CapabilityRegistration
@@ -741,11 +935,10 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         public static void registerCapabilities(RegisterCapabilitiesEvent event)
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_MINER_BE.get(),
-                    (be, side) -> be.itemHandler);
+                    (be, side) -> be.getSideCapability(side));
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Godofthings.GOD_MINER_BE.get(),
-                    (be, side) -> be.tank);
-            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_MINER_BE.get(),
-                    (be, side) -> be);
+                    (be, side) -> be.getSideFluidCapability(side));
+            // AE2 的 IN_WORLD_GRID_NODE_HOST 能力由 com.godofthings.ae2.AeRegistration 在装了 AE2 时注册
         }
     }
 
@@ -768,6 +961,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         tag.putInt("Fortune", fortuneLevel);
         tag.putBoolean("SilkTouch", silkTouch);
         tag.putByteArray("EmptyColumns", emptyColumns.toByteArray());
+        tag.putIntArray("FaceModes", faceModes);
     }
 
     @Override
@@ -796,6 +990,12 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         fortuneLevel = tag.getInt("Fortune");
         silkTouch = tag.getBoolean("SilkTouch");
         emptyColumns = BitSet.valueOf(tag.getByteArray("EmptyColumns"));
+        if (tag.contains("FaceModes"))
+        {
+            // 旧存档没有 FaceModes：保留字段默认值（六面全 OUTPUT），行为与旧版一致
+            int[] modes = tag.getIntArray("FaceModes");
+            System.arraycopy(modes, 0, faceModes, 0, Math.min(6, modes.length));
+        }
     }
 
     @Override
@@ -803,6 +1003,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     {
         CompoundTag tag = super.getUpdateTag(provider);
         tag.put("Tank", tank.writeToNBT(provider, new CompoundTag()));
+        tag.putIntArray("FaceModes", faceModes);
         return tag;
     }
 
@@ -813,6 +1014,10 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         if (tag.contains("Tank"))
         {
             tank.readFromNBT(provider, tag.getCompound("Tank"));
+        }
+        if (tag.contains("FaceModes"))
+        {
+            System.arraycopy(tag.getIntArray("FaceModes"), 0, faceModes, 0, 6);
         }
     }
 

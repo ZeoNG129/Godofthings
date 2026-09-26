@@ -3,6 +3,9 @@ package com.godofthings.menu;
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodMinerBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -159,7 +162,35 @@ public class GodMinerMenu extends AbstractContainerMenu
             this.broadcastChanges();
             return true;
         }
+        // 10=打开面配置界面（六面输入/输出配置）
+        if (buttonId == 10)
+        {
+            openConfig(player);
+            return true;
+        }
         return false;
+    }
+
+    /** 打开面配置界面（六路模式 DataSlot + 返回），与神之熔炉 / 神之吸收同构。 */
+    private void openConfig(Player player)
+    {
+        if (player instanceof ServerPlayer serverPlayer)
+        {
+            serverPlayer.openMenu(new MenuProvider()
+            {
+                @Override
+                public Component getDisplayName()
+                {
+                    return Component.translatable("gui.godofthings.face_config");
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player p)
+                {
+                    return new GodMinerConfigMenu(containerId, inventory, be);
+                }
+            }, buf -> buf.writeBlockPos(be.getBlockPos()));
+        }
     }
 
     @Override

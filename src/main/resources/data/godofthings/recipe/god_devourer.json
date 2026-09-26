@@ -2,12 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "OOO",
-    "ONO",
+    "OLO",
     "OOO"
   ],
   "key": {
     "O": { "item": "minecraft:obsidian" },
-    "N": { "item": "minecraft:nether_star" }
+    "L": { "item": "minecraft:lava_bucket" }
   },
   "result": {
     "id": "godofthings:god_devourer"

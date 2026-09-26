@@ -1,5 +1,7 @@
 package com.godofthings.handler;
 
+import com.godofthings.armor.GodArmorFeatures;
+import com.godofthings.armor.GodArmorState;
 import com.mojang.logging.LogUtils;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
@@ -36,7 +38,7 @@ public final class AdAstraCompat {
          String var3 = method.getName();
          switch (var3) {
             case "tick":
-               if (args[1] instanceof Player player && GodArmorHandler.isFullSetWorn(player)) {
+               if (args[1] instanceof Player player && GodArmorState.active(player, GodArmorFeatures.OXYGEN)) {
                   return false;
                }
 
@@ -61,7 +63,7 @@ public final class AdAstraCompat {
          String var3 = method.getName();
          switch (var3) {
             case "hasOxygen":
-               if (args[0] instanceof Player player && GodArmorHandler.isFullSetWorn(player)) {
+               if (args[0] instanceof Player player && GodArmorState.active(player, GodArmorFeatures.OXYGEN)) {
                   return true;
                }
 
