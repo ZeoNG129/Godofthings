@@ -2,7 +2,9 @@ package com.godofthings.client;
 
 import com.godofthings.Godofthings;
 import com.godofthings.client.screen.GodArmorConfigScreen;
+import com.godofthings.client.screen.GodArmorSkillScreen;
 import com.godofthings.network.ArmorMessages;
+import com.godofthings.network.ArmorSkillMessages;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -10,10 +12,13 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /**
- * O 键打开神之套装功能开关界面。
- * <p>
- * 打开前先向服务端拉一次权威开关值，避免界面显示的是过期镜像。
- * 不要求穿齐全套也能打开（可以先配置，穿上后按开关生效）。
+ * 神之套装界面快捷键：
+ * <ul>
+ *   <li><b>O</b>：功能开关界面（12 项套装功能）</li>
+ *   <li><b>K</b>：技能树界面（基础属性 / 特殊增幅 …）</li>
+ * </ul>
+ * 打开前先向服务端拉一次权威值，避免界面显示的是过期镜像。
+ * 不要求穿齐全套也能打开（可以先配置，穿上后生效）。
  */
 // 游戏总线为默认值（Bus.GAME），省略 bus 属性
 @EventBusSubscriber(modid = Godofthings.MODID, value = Dist.CLIENT)
@@ -34,6 +39,11 @@ public final class ArmorKeyHandler
         {
             ArmorMessages.requestSync();
             mc.setScreen(new GodArmorConfigScreen());
+        }
+        while (WandKeyBindings.OPEN_ARMOR_SKILL_KEY.get().consumeClick())
+        {
+            ArmorSkillMessages.requestSync();
+            mc.setScreen(new GodArmorSkillScreen());
         }
     }
 }

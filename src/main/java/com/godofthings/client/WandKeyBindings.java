@@ -127,6 +127,15 @@ public class WandKeyBindings
             CATEGORY
     ));
 
+    /** 神之套装技能树界面（K） */
+    public static final Lazy<KeyMapping> OPEN_ARMOR_SKILL_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.open_armor_skill",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_K,
+            CATEGORY
+    ));
+
     /** 跟踪连锁挖掘按键的按下状态。 */
     public static boolean SWITCH_CHAIN_MINING_KEY_WAS_DOWN = false;
 
@@ -148,5 +157,6 @@ public class WandKeyBindings
         event.register(OPEN_WAYPOINT_KEY.get());
         event.register(SWORD_MODE_KEY.get());
         event.register(OPEN_ARMOR_CONFIG_KEY.get());
+        event.register(OPEN_ARMOR_SKILL_KEY.get());
     }
 }

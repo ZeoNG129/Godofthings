@@ -37,7 +37,7 @@
 4. **大版本（第二位/首位变化）才新建 GitHub Release**；小版本（末位变化，修复/优化）build 后把 `godofthings-<版本>.jar` 作为**额外 asset 上传到归属大版本 release 下**（用 REST API：`POST https://uploads.github.com/repos/ZeoNG129/Godofthings/releases/{大版本release_id}/assets?name=godofthings-<版本>.jar`，不新建 release），并在 release notes 里追加该小版本一行说明——即每个大版本一个 release，其下能下到该大版本所有小版本 jar
 
 ## 项目约定
-- 只保留原创内容，勿引入第三方模组移植包
+- 只保留原创内容，勿引入第三方模组移植包；**例外**：经用户明确同意后可移植第三方代码，但必须取自**许可允许的开源协议**（MIT / Apache-2.0 等），并在 `README.md` 的「第三方代码与许可」一节保留**原始版权声明与完整许可证文本**，同时去除此作者的个人化命名前缀（如「子枫的」）
 - 语言文件 `zh_cn.json` 与 `en_us.json` 键集必须双向一致
 - **README「内容一览」提交更新时就要同步更新**（新增/删除物品、方块、功能都要改那张表格）
 - git 分支：本项目用 `1.21.1` 分支（GitHub 仓库默认分支已设为 `1.21.1`）；1.20.1 Forge 版在 `main` 分支（本地 `E:\MC\Mod\1.20.1\Godofthings`），两仓库 remote 指向同一 GitHub 仓库 `ZeoNG129/Godofthings`

@@ -33,6 +33,7 @@
 | 神之吸收 God Absorber | 大范围吸收掉落物+经验（开关/范围 0-1600/存储经验面板/面配置/AE 并网） |
 | 维度 | 超平坦维度 + 虚空维度 + 双向传送门方块 |
 | 能量系统 | **创造能量立方 Creative Energy Cube**：无限 FE 能量源——六个面均以最大速率（∞ FE/t）向相邻机器输出；右键打开 GUI 充电 |
+| 神之套装技能树 | 穿齐全套神之护甲后按 **K** 打开技能树界面（列式布局）：**基础属性 15 项**（血魄淬炼/磐石之躯/剑心通明/疾风连击/破岩神工/健步如飞/生生不息/鸿运当头/一蹦三尺/御空翱翔/如鱼得水/暴击要害/噬血之刃/荆棘护体/破甲利刃）+ **特殊增幅 15 项**（对应的「X真解」百分比放大）。统一公式：**最终属性 = 基础固定值总和 × (1 + 增幅百分比总和)**。**无技能点、无前置**：左键开/关（解锁即 1 级）、右键 +1 级、Shift+右键 +10 级；每列可一键全开/全关。仅在穿齐全套时生效 |
 | AE2 兼容 | 熔炉/矿机/资源机/掉落机/砍杀/合成台/吸收 **7 台**会生产资源的机器可作为 AE 网格节点直接并网（线缆直连、占一个频道），产物自动输出进 AE 网络；每台 UI 有「AE」接入开关（只控制是否把产物推进 AE，不改变机器本身的并网状态） |
 
 ## 环境要求
@@ -108,3 +109,33 @@ src/main/resources/
 ## 许可
 
 **All Rights Reserved**（见 `src/main/resources/META-INF/neoforge.mods.toml`）。
+
+## 第三方代码与许可
+
+本模组的**神之套装技能树**（技能数值、效果公式与界面布局）移植自
+**[Zifeng Skill Tree / 子枫的百宝箱](https://github.com/ZeoNG129)**（作者 **zifeng**），
+按 **MIT License** 使用：
+
+> MIT License
+> Copyright (c) 2026 zifeng
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
+
+移植部分已按本项目需要重做（无技能点、无前置、挂载到神之套装而非全局技能树），
+技能显示名中的原作者个人前缀（「子枫的」）已按要求去除。

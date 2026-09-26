@@ -138,6 +138,14 @@ public class Godofthings
                     .copyOnDeath()
                     .build());
 
+    /** 神之套装技能树：按玩家保存的「技能 id → 等级」表（见 ArmorSkills / ArmorSkillData） */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<java.util.Map<String, Integer>>> ARMOR_SKILLS =
+            ATTACHMENT_TYPES.register("armor_skills", () -> AttachmentType.<java.util.Map<String, Integer>>builder(
+                            () -> new java.util.HashMap<String, Integer>())
+                    .serialize(Codec.unboundedMap(Codec.STRING, Codec.INT))
+                    .copyOnDeath()
+                    .build());
+
     // ---- 方块 ----
     // 注意：不能用 BlockBehaviour.Properties.copy(Blocks.FURNACE) —— 会连带原版熔炉的
     // `lit` 状态属性，而本方块未定义该属性，注册时直接崩溃。因此手动构造属性。

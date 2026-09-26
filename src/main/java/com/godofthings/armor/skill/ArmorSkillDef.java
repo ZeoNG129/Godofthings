@@ -1,0 +1,83 @@
+package com.godofthings.armor.skill;
+
+import net.minecraft.core.Holder;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+
+import java.util.List;
+
+/**
+ * 一个神之套装技能的定义。
+ * <p>
+ * 数值体系移植自 <b>Zifeng Skill Tree（子枫的百宝箱）</b>（Copyright (c) 2026 zifeng, MIT）。
+ * 原 mod 有 10 倍"等级压缩"（1000 级 → 100 级），效果在计算时统一 ×10；
+ * 本移植把该倍率**直接烘进 {@link AttrEffect#perLevel()}**，因此这里的数值都是
+ * <b>「每 UI 等级」</b>的量（= 原 perPoint × 10），界面上显示几级就按几级算。
+ *
+ * @param id       技能 id（与原 mod 的 skillId 一致，便于对照）
+ * @param category 所属分类
+ * @param maxLevel 等级上限（原 mod 压缩后的上限）
+ * @param attrs    属性型效果（{@link EffectKind#ATTR} 时使用）
+ * @param kind     效果类型
+ */
+public record ArmorSkillDef(
+        String id,
+        ArmorSkillCategory category,
+        int maxLevel,
+        List<AttrEffect> attrs,
+        EffectKind kind)
+{
+    /** 效果类型：属性型 or 需要事件驱动的机制型 */
+    public enum EffectKind
+    {
+        /** 直接挂属性修饰符 */
+        ATTR,
+        /** 每秒回血（生生不息） */
+        REGEN,
+        /** 暴击（暴击要害 / 暴击真解） */
+        CRIT,
+        /** 吸血（噬血之刃 / 噬血真解） */
+        LIFESTEAL,
+        /** 荆棘反伤（荆棘护体 / 荆棘真解） */
+        THORNS,
+        /** 破甲增伤（破甲利刃 / 破甲真解） */
+        ARMOR_PEN
+    }
+
+    /**
+     * 一条属性加成。
+     *
+     * @param attribute 目标属性
+     * @param perLevel  每 UI 等级数值
+     * @param op        {@code ADD_VALUE}（加算）或 {@code ADD_MULTIPLIED_TOTAL}（乘算）
+     */
+    public record AttrEffect(Holder<Attribute> attribute, double perLevel, AttributeModifier.Operation op)
+    {
+        public static AttrEffect add(Holder<Attribute> attribute, double perLevel)
+        {
+            return new AttrEffect(attribute, perLevel, AttributeModifier.Operation.ADD_VALUE);
+        }
+
+        public static AttrEffect mult(Holder<Attribute> attribute, double perLevel)
+        {
+            return new AttrEffect(attribute, perLevel, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        }
+    }
+
+    /** 属性修饰符 id（每个技能独立，避免同属性技能互相覆盖） */
+    public net.minecraft.resources.ResourceLocation modifierId()
+    {
+        return net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("godofthings", "armor_skill_" + id);
+    }
+
+    /** 语言文件键：名称 / 说明 */
+    public String nameKey()
+    {
+        return "gui.godofthings.armor.skill." + id;
+    }
+
+    public String descKey()
+    {
+        return "gui.godofthings.armor.skill." + id + ".desc";
+    }
+}
