@@ -4,6 +4,7 @@ import com.godofthings.Godofthings;
 import com.godofthings.armor.skill.ArmorSkillData;
 import com.godofthings.armor.skill.ArmorSkillEngine;
 import com.godofthings.armor.skill.ArmorSkills;
+import com.godofthings.armor.skill.ArmorZoneData;
 import com.godofthings.network.ArmorSkillMessages;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -813,8 +814,6 @@ public class ArmorSkillHandler
 
     // ══════════ 机械共鸣（阶段 3） ══════════
 
-    /** 选区半径（格，方形半径） */
-    public static final int ZONE_RADIUS = 8;
     /** 选区操作每 tick 最多处理的方块数（防卡顿） */
     private static final int ZONE_BATCH = 256;
 
@@ -876,7 +875,10 @@ public class ArmorSkillHandler
         return isActive(player) && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.UNBREAKABLE);
     }
 
-    /** 是否受"防护选区"保护的友好生物（非怪物、非玩家、在自己半径内） */
+    /**
+     * 是否受"防护选区"保护：目标落在【防护模式】框选的区域内，且是非怪物非玩家。
+     * <p>区域由玩家用木棍框选（见 {@link ArmorZoneData}）。
+     */
     private static boolean isProtectedFriendly(ServerPlayer attacker, LivingEntity target)
     {
         if (target == attacker || target instanceof net.minecraft.world.entity.player.Player
@@ -884,49 +886,113 @@ public class ArmorSkillHandler
         {
             return false;
         }
-        return target.distanceToSqr(attacker) <= (double) ZONE_RADIUS * ZONE_RADIUS;
+        ArmorZoneData.Zone zone = ArmorZoneData.getServer(attacker, ArmorZoneData.MODE_PROTECT);
+        return zone != null && zone.contains(target.blockPosition());
     }
 
-    /** 选区攻击：半径内的敌对生物持续受击（伤害 = 你的攻击力） */
+    /** 选区攻击：落在【攻击模式】选区内的敌对生物持续受击（伤害 = 你的攻击力） */
     private static void attackHostilesInZone(ServerPlayer player)
     {
-        net.minecraft.world.phys.AABB box = player.getBoundingBox().inflate(ZONE_RADIUS);
+        ArmorZoneData.Zone zone = ArmorZoneData.getServer(player, ArmorZoneData.MODE_ATTACK);
+        if (zone == null)
+        {
+            return;
+        }
+        net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(
+                zone.min().getX(), zone.min().getY(), zone.min().getZ(),
+                zone.max().getX() + 1.0, zone.max().getY() + 1.0, zone.max().getZ() + 1.0);
         float damage = (float) player.getAttributeValue(
                 net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
         for (net.minecraft.world.entity.monster.Monster mob
                 : player.level().getEntitiesOfClass(net.minecraft.world.entity.monster.Monster.class, box))
         {
-            if (mob.isAlive())
+            if (mob.isAlive() && zone.contains(mob.blockPosition()))
             {
                 mob.hurt(player.damageSources().playerAttack(player), damage);
             }
         }
     }
 
-    /** 客户端触发选区操作：mode = true 放置 / false 挖掘 */
-    public static void startZoneOperation(ServerPlayer player, boolean place)
+    /** 模式 → 对应的选区技能 id */
+    private static String modeSkill(int mode)
     {
-        String skill = place ? ArmorSkills.MACHINE_ZONE_PLACE : ArmorSkills.MACHINE_ZONE_EXCAVATE;
-        if (!isActive(player) || !ArmorSkillEngine.isOn(ArmorSkillData.get(player), skill))
+        return switch (mode)
+        {
+            case ArmorZoneData.MODE_PLACE -> ArmorSkills.MACHINE_ZONE_PLACE;
+            case ArmorZoneData.MODE_EXCAVATE -> ArmorSkills.MACHINE_ZONE_EXCAVATE;
+            case ArmorZoneData.MODE_ATTACK -> ArmorSkills.MACHINE_ZONE_ATTACK;
+            default -> ArmorSkills.MACHINE_ZONE_PROTECT;
+        };
+    }
+
+    /** 服务端：记录客户端木棍框选出来的选区 */
+    public static void handleZoneSet(ServerPlayer player, int mode, net.minecraft.core.BlockPos a,
+                                     net.minecraft.core.BlockPos b)
+    {
+        if (!isActive(player) || mode < 0 || mode >= ArmorZoneData.MODE_COUNT)
+        {
+            return;
+        }
+        ArmorZoneData.Zone zone = ArmorZoneData.of(a, b);
+        if (zone.volume() > ArmorZoneData.MAX_VOLUME)
+        {
+            return;
+        }
+        ArmorZoneData.setServer(player, mode, zone);
+    }
+
+    /** 服务端：清除某模式的选区 */
+    public static void handleZoneClear(ServerPlayer player, int mode)
+    {
+        if (mode >= 0 && mode < ArmorZoneData.MODE_COUNT)
+        {
+            ArmorZoneData.clearServer(player, mode);
+        }
+    }
+
+    /**
+     * 客户端触发选区操作（按当前模式执行）。
+     * <p>放置 / 挖掘：把选区内的方块入队，之后每 tick 分批处理；
+     * 攻击 / 防护：持续生效，无需手动执行（只提示）。
+     */
+    public static void startZoneOperation(ServerPlayer player, int mode)
+    {
+        if (mode < 0 || mode >= ArmorZoneData.MODE_COUNT)
+        {
+            return;
+        }
+        if (!isActive(player) || !ArmorSkillEngine.isOn(ArmorSkillData.get(player), modeSkill(mode)))
         {
             player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
                     "chat.godofthings.armor.zone.not_learned"), true);
             return;
         }
-        java.util.ArrayDeque<net.minecraft.core.BlockPos> queue = new java.util.ArrayDeque<>();
-        net.minecraft.core.BlockPos center = player.blockPosition();
-        for (int dx = -ZONE_RADIUS; dx <= ZONE_RADIUS; dx++)
+        ArmorZoneData.Zone zone = ArmorZoneData.getServer(player, mode);
+        if (zone == null)
         {
-            for (int dy = -ZONE_RADIUS; dy <= ZONE_RADIUS; dy++)
+            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                    "chat.godofthings.armor.zone.no_zone"), true);
+            return;
+        }
+        if (mode == ArmorZoneData.MODE_ATTACK || mode == ArmorZoneData.MODE_PROTECT)
+        {
+            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                    "chat.godofthings.armor.zone.passive"), true);
+            return;
+        }
+        java.util.ArrayDeque<net.minecraft.core.BlockPos> queue = new java.util.ArrayDeque<>();
+        for (int x = zone.min().getX(); x <= zone.max().getX(); x++)
+        {
+            for (int y = zone.min().getY(); y <= zone.max().getY(); y++)
             {
-                for (int dz = -ZONE_RADIUS; dz <= ZONE_RADIUS; dz++)
+                for (int z = zone.min().getZ(); z <= zone.max().getZ(); z++)
                 {
-                    queue.add(center.offset(dx, dy, dz));
+                    queue.add(new net.minecraft.core.BlockPos(x, y, z));
                 }
             }
         }
         ZONE_QUEUE.put(player.getUUID(), queue);
-        ZONE_MODE_PLACE.put(player.getUUID(), place);
+        ZONE_MODE_PLACE.put(player.getUUID(), mode == ArmorZoneData.MODE_PLACE);
     }
 
     /** 每 tick 从队列里处理一批方块（放置或挖掘） */

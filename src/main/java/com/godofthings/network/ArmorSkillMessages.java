@@ -57,7 +57,8 @@ public final class ArmorSkillMessages
         registrar.playToServer(ArmorSkillBulkPayload.TYPE, ArmorSkillBulkPayload.STREAM_CODEC, ArmorSkillBulkPayload::handle);
         registrar.playToServer(ArmorSkillRequestPayload.TYPE, ArmorSkillRequestPayload.STREAM_CODEC, ArmorSkillRequestPayload::handle);
         registrar.playToClient(ArmorSkillSyncPayload.TYPE, ArmorSkillSyncPayload.STREAM_CODEC, ArmorSkillSyncPayload::handle);
-        registrar.playToServer(ArmorSkillZonePayload.TYPE, ArmorSkillZonePayload.STREAM_CODEC, ArmorSkillZonePayload::handle);
+        registrar.playToServer(ArmorZonePayload.TYPE, ArmorZonePayload.STREAM_CODEC, ArmorZonePayload::handle);
+        registrar.playToServer(ArmorZoneTriggerPayload.TYPE, ArmorZoneTriggerPayload.STREAM_CODEC, ArmorZoneTriggerPayload::handle);
     }
 
     // ---- 客户端发送入口 ----
@@ -77,10 +78,23 @@ public final class ArmorSkillMessages
         PacketDistributor.sendToServer(new ArmorSkillBulkPayload(categoryOrdinal, level));
     }
 
-    /** 客户端触发选区操作（true = 放置，false = 挖掘） */
-    public static void sendZone(boolean place)
+    /** 客户端上报选区（木棍框选完成） */
+    public static void sendZoneSet(int mode, com.godofthings.armor.skill.ArmorZoneData.Zone zone)
     {
-        PacketDistributor.sendToServer(new ArmorSkillZonePayload(place));
+        PacketDistributor.sendToServer(new ArmorZonePayload(mode, 0, zone.min(), zone.max()));
+    }
+
+    /** 客户端清除某模式的选区 */
+    public static void sendZoneClear(int mode)
+    {
+        PacketDistributor.sendToServer(new ArmorZonePayload(mode, 1,
+                net.minecraft.core.BlockPos.ZERO, net.minecraft.core.BlockPos.ZERO));
+    }
+
+    /** 客户端执行某模式的选区操作 */
+    public static void sendZoneTrigger(int mode)
+    {
+        PacketDistributor.sendToServer(new ArmorZoneTriggerPayload(mode));
     }
 
     public static void requestSync()
@@ -254,15 +268,19 @@ public final class ArmorSkillMessages
         }
     }
 
-    /** 选区操作触发（机械共鸣）：C2S */
-    public record ArmorSkillZonePayload(boolean place) implements CustomPacketPayload
+    /** 选区上报（机械共鸣）：action 0 = 设置选区，1 = 清除选区 */
+    public record ArmorZonePayload(int mode, int action, net.minecraft.core.BlockPos a, net.minecraft.core.BlockPos b)
+            implements CustomPacketPayload
     {
-        public static final Type<ArmorSkillZonePayload> TYPE =
-                new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "armor_skill_zone"));
+        public static final Type<ArmorZonePayload> TYPE =
+                new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "armor_zone"));
 
-        public static final StreamCodec<ByteBuf, ArmorSkillZonePayload> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.BOOL, ArmorSkillZonePayload::place,
-                ArmorSkillZonePayload::new);
+        public static final StreamCodec<ByteBuf, ArmorZonePayload> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, ArmorZonePayload::mode,
+                ByteBufCodecs.VAR_INT, ArmorZonePayload::action,
+                net.minecraft.core.BlockPos.STREAM_CODEC, ArmorZonePayload::a,
+                net.minecraft.core.BlockPos.STREAM_CODEC, ArmorZonePayload::b,
+                ArmorZonePayload::new);
 
         @Override
         public Type<? extends CustomPacketPayload> type()
@@ -270,13 +288,49 @@ public final class ArmorSkillMessages
             return TYPE;
         }
 
-        public static void handle(ArmorSkillZonePayload msg, IPayloadContext ctx)
+        public static void handle(ArmorZonePayload msg, IPayloadContext ctx)
+        {
+            ctx.enqueueWork(() ->
+            {
+                if (!(ctx.player() instanceof ServerPlayer player))
+                {
+                    return;
+                }
+                if (msg.action() == 1)
+                {
+                    com.godofthings.handler.ArmorSkillHandler.handleZoneClear(player, msg.mode());
+                }
+                else
+                {
+                    com.godofthings.handler.ArmorSkillHandler.handleZoneSet(player, msg.mode(), msg.a(), msg.b());
+                }
+            });
+        }
+    }
+
+    /** 选区操作执行（机械共鸣）：按当前模式执行 */
+    public record ArmorZoneTriggerPayload(int mode) implements CustomPacketPayload
+    {
+        public static final Type<ArmorZoneTriggerPayload> TYPE =
+                new Type<>(ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "armor_zone_trigger"));
+
+        public static final StreamCodec<ByteBuf, ArmorZoneTriggerPayload> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, ArmorZoneTriggerPayload::mode,
+                ArmorZoneTriggerPayload::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return TYPE;
+        }
+
+        public static void handle(ArmorZoneTriggerPayload msg, IPayloadContext ctx)
         {
             ctx.enqueueWork(() ->
             {
                 if (ctx.player() instanceof ServerPlayer player)
                 {
-                    com.godofthings.handler.ArmorSkillHandler.startZoneOperation(player, msg.place());
+                    com.godofthings.handler.ArmorSkillHandler.startZoneOperation(player, msg.mode());
                 }
             });
         }

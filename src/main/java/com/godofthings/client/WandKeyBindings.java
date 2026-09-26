@@ -136,20 +136,20 @@ public class WandKeyBindings
             CATEGORY
     ));
 
-    /** 机械共鸣：选区挖掘触发键（N） */
+    /** 机械共鸣：切换选区模式（H；放置 → 挖掘 → 攻击 → 防护） */
+    public static final Lazy<KeyMapping> ZONE_MODE_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.zone_mode",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_H,
+            CATEGORY
+    ));
+    /** 机械共鸣：执行当前模式的选区操作（N） */
     public static final Lazy<KeyMapping> ZONE_EXCAVATE_KEY = Lazy.of(() -> new KeyMapping(
-            "key.godofthings.zone_excavate",
+            "key.godofthings.zone_trigger",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_N,
-            CATEGORY
-    ));
-    /** 机械共鸣：选区放置触发键（B） */
-    public static final Lazy<KeyMapping> ZONE_PLACE_KEY = Lazy.of(() -> new KeyMapping(
-            "key.godofthings.zone_place",
-            KeyConflictContext.IN_GAME,
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_B,
             CATEGORY
     ));
 
@@ -176,6 +176,6 @@ public class WandKeyBindings
         event.register(OPEN_ARMOR_CONFIG_KEY.get());
         event.register(OPEN_ARMOR_SKILL_KEY.get());
         event.register(ZONE_EXCAVATE_KEY.get());
-        event.register(ZONE_PLACE_KEY.get());
+        event.register(ZONE_MODE_KEY.get());
     }
 }
