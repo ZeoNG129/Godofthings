@@ -482,5 +482,11 @@
   "chat.godofthings.armor.zone.too_big": "Zone too big: %s blocks (limit %s)",
   "chat.godofthings.armor.zone.selected": "Zone set: %s blocks",
   "chat.godofthings.armor.zone.no_zone": "Select a region with a stick first (left-click twice)",
-  "chat.godofthings.armor.zone.passive": "Attack/Protect modes are always active, no trigger needed"
+  "chat.godofthings.armor.zone.passive": "Attack/Protect modes are always active, no trigger needed",
+  "gui.godofthings.armor.zone.hint.place": "Left-click twice to select - press N to fill",
+  "gui.godofthings.armor.zone.hint.excavate": "Left-click twice to select - press N to mine",
+  "gui.godofthings.armor.zone.hint.attack": "Left-click twice to select - hostiles inside take damage",
+  "gui.godofthings.armor.zone.hint.protect": "Left-click twice to select - friendlies inside are immune",
+  "gui.godofthings.armor.zone.no_sel": "No selection yet (left-click twice)",
+  "gui.godofthings.armor.zone.size": "Zone %s blocks (%s x %s x %s)"
 }

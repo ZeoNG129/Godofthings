@@ -115,3 +115,10 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **选区操作**：放置/挖掘把选区内方块入队，之后每 tick 最多 256 格分批处理；攻击模式 = 选区内敌对生物每 20 tick 受一次你的攻击伤害；防护模式 = 选区内友好生物免疫你的伤害（均为持续生效，按 N 只提示）。
   - 新增/改写 19 组语言键（模式名、提示语、按键名、技能说明），并把两条选区技能的说明从"半径 8 格"改写为"木棍框选 + N 执行"。
   - **踩坑记录**：① `ShapeRenderer` 在 1.21.1 <b>不存在</b>，画线框要用 `net.minecraft.client.renderer.LevelRenderer.renderLineBox(...)`（静态方法）；`MultiBufferSource` 在 `net.minecraft.client.renderer` 包下，不是 `com.mojang.blaze3d.vertex`。② **批量改语言文件时必须保留原行尾逗号**——用脚本重建整行时若丢掉逗号，非末行就缺分隔符，整个 JSON 非法（本次已踩，回滚重做并在写入前先做 JSON 校验）。
+- 2.12.1 → **2.12.2（选区可视化与交互补齐到参考模组的水平）**：用户反馈"选区做得不好"。对照参考模组的 `ZoneSkillRenderer` / `StickToolHudRenderer`，补齐了此前缺的四样：
+  - **双层线框**：外层压暗色并外扩 0.002，内层亮色（与参考模组"外金 + 内亮金"同一手法），颜色仍按模式区分。
+  - **半透明填充**：`LevelRenderer.renderVoxelShape(pose, fill, shape, 0,0,0, r,g,b, 0.35F, false)` + `RenderType.debugFilledBox()`，参考模组的填充 alpha 同为 0.35。
+  - **第二角预览**：选完第一角后，**视线所指处实时以青框预览**将要生成的选区（参考模组预览色 `0.15/0.95/1.0`），配合第一角的白色小框。
+  - **右下角功能面板**（移植 `StickToolHudRenderer`）：彩色圆点 + 当前模式名 + 一行操作提示 + **选区尺寸（体积与 X×Y×Z）**；黑底 `0xAA000000`、距底部 35px、右缘 4px，与参考模组一致。
+  - **切换模式自动跳过未解锁的模式**（参考模组的 `nextUnlockedStickMode` 行为）：H 键只在已开启的选区技能之间循环，不会停在点了也没用的模式上。
+  - **木棍判定放宽为主手或副手**（参考模组同款：副手只做状态查看/选区，不抢交互）。

@@ -482,5 +482,11 @@
   "chat.godofthings.armor.zone.too_big": "选区太大：%s 格（上限 %s）",
   "chat.godofthings.armor.zone.selected": "选区已确定：%s 格",
   "chat.godofthings.armor.zone.no_zone": "请先手持木棍左键点两次框选区域",
-  "chat.godofthings.armor.zone.passive": "攻击/防护模式为持续生效，无需手动执行"
+  "chat.godofthings.armor.zone.passive": "攻击/防护模式为持续生效，无需手动执行",
+  "gui.godofthings.armor.zone.hint.place": "左键点两次框选区域 · 按 N 用主手方块填充",
+  "gui.godofthings.armor.zone.hint.excavate": "左键点两次框选区域 · 按 N 挖掉区内方块",
+  "gui.godofthings.armor.zone.hint.attack": "左键点两次框选区域 · 区内敌对生物持续受击",
+  "gui.godofthings.armor.zone.hint.protect": "左键点两次框选区域 · 区内友好生物免伤",
+  "gui.godofthings.armor.zone.no_sel": "尚未框选（左键点两次）",
+  "gui.godofthings.armor.zone.size": "选区 %s 格（%s × %s × %s）"
 }
