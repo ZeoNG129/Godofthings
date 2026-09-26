@@ -4,12 +4,12 @@
   "package": "com.godofthings.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "RangedAttributeMixin",
-    "BlockStateMixin"
+    "RangedAttributeMixin"
   ],
   "client": [
     "GuiHeartsCompressMixin",
-    "FogRendererMixin"
+    "FogRendererMixin",
+    "ScreenEffectRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 0

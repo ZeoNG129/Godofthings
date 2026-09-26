@@ -152,3 +152,11 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **技能总数 92 → 118**（基础 15 / 增幅 15 / **魔法增幅 26** / 终极 21 / 特殊 22 / 光环 11 / 机械 8）；界面扩为 **8 个标签页**（新增「魔法增幅」，蓝紫 `0xFF2A2E4A`/`0xFF3B4066`，强调色 `0xFF8AA8FF`）；语言键 481 → **533**（zh/en 差异 0）。
   - 说明：这是"**可选依赖**"而不是"热插拔" —— 装了才启用、没装自动隐藏，但**加减 mod 必须重启游戏**（Minecraft 模组在启动时一次性加载）。
   - **踩坑**：`player.getAttribute(...)` 在 1.21.1 需要 **`Holder<Attribute>`** 而不是 `Attribute` → 用 `BuiltInRegistries.ATTRIBUTE.getHolder(rl)` 与 `wrapAsHolder(...)`；`List.of(keywords)` 会把已是的 `List<String>` 再包一层导致"推论变量 E 具有不兼容的上限"，应直接传 `keywords`。
+- 2.14.0 → **2.15.0（大清理：删光环 / 精简特殊被动 / 删 5 个终极节点 / 修岩浆火焰覆盖层）**
+  1. **完全删除光环（AURA 11 个技能）**：`ArmorSkillHandler` 中的整段光环运行时（脉动/磁吸/定身/净化/容器绑定）、`ArmorSkillEngine` 中的光环数值 API、界面「光环」标签页、全部光环语言键一并移除。
+  2. **特殊被动栏删除**：仅保留 6 项并**移入套装功能**（无等级、只有开关，占用 bit 12–17）：**万民敬仰 / 发光 / 暴食 / 无限交易 / 村民大师 / 碧波清眸**（原技能等级一律按最高级生效，因为改成开关后恒为"满级"）。其余 16 个特殊被动（长臂善舞 / 夜视 / 饱食 / 水下呼吸 / 黑暗视觉 / 烈焰不侵 / 奥术防护 6 件套 / 附魔三件套 / 破法之刃 / 驱法破咒）全部移除。实现落在新的 `ArmorExtraFeatures`（服务端 5 项）+ `FogRendererMixin`（碧波清眸，客户端读同一个开关位）。
+  3. **终极节点删除 5 个**：不朽铭文 / 万物可掘 / 万载不磨 / 虚空神体 / 凤凰涅槃。随之删除 `BlockStateMixin`（万物可掘的方块 Mixin）与 `mixins.json` 中的注册；`machine_unbreakable`（工具不毁·共鸣）因对应技能已删而一并移除，避免出现点了没反应的死节点。
+  4. **修复岩浆中的火焰覆盖层**：新增客户端 `ScreenEffectRendererMixin`，注入 `ScreenEffectRenderer.renderScreenEffect` HEAD —— 当**开着「火焰熔岩免疫」且穿齐全套**时，若玩家着火 / 浸在岩浆里（`isOnFire` / `isInLava` / `getRemainingFireTicks() > 0`）则**取消整层屏幕覆盖贴图**。此前只做了伤害与雾效免疫，那层橙色火焰纹理会照旧绘制挡视野。
+  - **技能总数 118 → 79**（基础 15 / 增幅 15 / 魔法增幅 26 / 终极 16 / 机械共鸣 7；光环与特殊被动两栏清空）；**套装功能 12 → 18 项**；界面标签页 **8 → 6**（基础属性 / 特殊增幅 / 终极节点 / 机械共鸣 / 魔法增幅 / 套装功能）；语言键 533 → **461**（zh/en 差异 0）。
+  - **实现手法（可复用）**：删除技能时，**把对已删技能常量的判定统一替换为常量**（`ArmorSkillData.isEnabled(..., ArmorSkills.X)` → `false`、`effectiveLevel(...)` → `0`、`ArmorSkillEngine.isOn(...)` → `false`），既保证编译通过、又让对应功能立即失效，风险远低于逐块删代码。
+  - **踩坑**：正则里用 `$` 锚点匹配行尾在 CRLF 文件上会失败（行尾是 `\r`），要用 `[ \t]*\r?$`；另外 **PowerShell 的 `-match` 默认不区分大小写**，用 `village_hero` 去检查 `VILLAGE_HERO` 会得到假阳性，必须用 `-cmatch` 或 `[regex]::Matches`。

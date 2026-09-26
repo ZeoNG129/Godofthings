@@ -73,44 +73,17 @@ public final class ArmorSkills
     public static final String XP_GAIN = "xp_gain";
 
     // ---- 特殊被动（阶段 2 第一批） ----
-    public static final String REACH = "reach";
-    public static final String NIGHT_VISION = "night_vision";
-    public static final String SATURATION = "saturation";
-    public static final String WATER_BREATHING = "water_breathing";
-    public static final String DARK_VISION = "dark_vision";
-    public static final String VILLAGE_HERO = "village_hero";
 
     // ---- 终极节点（阶段 2 第二批：战斗大招 / 掉落生产） ----
     public static final String AMP_ARMOR = "amp_armor";
     public static final String ULT_GOLDEN = "ult_golden";
-    public static final String ULT_REVIVE = "ult_revive";
     public static final String ULT_REAPER = "ult_reaper";
     public static final String ULT_ARCANE_BODY = "ult_arcane_body";
-    public static final String ULT_VOID_BODY = "ult_void_body";
-    public static final String UNBREAKABLE = "unbreakable";
     public static final String MOB_SPAWN_EGG = "mob_spawn_egg";
     public static final String MOB_HEAD = "mob_head";
     public static final String AUTO_SMELT = "auto_smelt";
-    public static final String ULT_BREAK_ALL = "ult_break_all";
-    public static final String ULT_UNBREAK_TAG = "ult_unbreak_tag";
 
     // ---- 特殊被动（阶段 2 第三批：生存便利 / 附魔 / 交易 / 奥术防护） ----
-    public static final String GLOW = "glow";
-    public static final String FIRE_PROTECT = "fire_protect";
-    public static final String GLUTTONY = "gluttony";
-    public static final String ARCANE_BULWARK = "arcane_bulwark";
-    public static final String ARCANE_AMP = "arcane_amp";
-    public static final String ARCANE_ADAPT = "arcane_adapt";
-    public static final String SPELL_DAMPEN = "spell_dampen";
-    public static final String SPELL_REFLECT = "spell_reflect";
-    public static final String SPELL_PURGE = "spell_purge";
-    public static final String SPELLBREAK = "spellbreak";
-    public static final String ENCHANT_RANDOM = "enchant_random";
-    public static final String ENCHANT_BREAK = "enchant_break";
-    public static final String ENCHANT_OVER = "enchant_over";
-    public static final String UNLIMITED_TRADES = "unlimited_trades";
-    public static final String VILLAGER_MASTER = "villager_master";
-    public static final String UNDERWATER_VISION = "underwater_vision";
 
     // ---- 机械共鸣（阶段 3：机器继承开关 + 选区技能） ----
     // 注意：参考模组的 machine_star（机械之星）是"前置核心"，自身无任何效果，
@@ -144,20 +117,8 @@ public final class ArmorSkills
     public static final String GOETY_WIND = "goety_wind";
 
     // ---- 光环（阶段 4）----
-    public static final String AURA_DAMAGE = "aura_damage";
-    public static final String AURA_EMPOWER = "aura_empower";
-    public static final String AURA_SPEED = "aura_speed";
-    public static final String AURA_HEAL = "aura_heal";
-    public static final String AURA_XP = "aura_xp";
-    public static final String AURA_MAGNET = "aura_magnet";
-    public static final String AURA_LOCK = "aura_lock";
-    public static final String AURA_VOID = "aura_void";
-    public static final String AURA_LOOT_VACUUM = "aura_loot_vacuum";
-    public static final String CONTAINER_HAUL = "container_haul";
-    public static final String PURIFY_FIELD = "purify_field";
 
     public static final String MACHINE_LOOT_BOMB = "machine_loot_bomb";
-    public static final String MACHINE_UNBREAKABLE = "machine_unbreakable";
     public static final String MACHINE_MOB_DROP = "machine_mob_drop";
     public static final String MACHINE_BLOCK_DROP = "machine_block_drop";
     public static final String MACHINE_XP_GAIN = "machine_xp_gain";
@@ -269,20 +230,9 @@ public final class ArmorSkills
         reg(ULT_FAVOR, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.FLIGHT);
 
         // ══════════ 特殊被动（阶段 2 第一批） ══════════
-        // 长臂善舞：每级 +1 格触摸/攻击距离（上限 50）
-        reg(REACH, ArmorSkillCategory.SPECIAL, 50, ATTR,
-                add(Attributes.ENTITY_INTERACTION_RANGE, 1.0),
-                add(Attributes.BLOCK_INTERACTION_RANGE, 1.0));
-        // 星瞳夜视：夜视（1 级）
-        reg(NIGHT_VISION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.NIGHT_VISION);
-        // 饱食无忧：饱食（1 级）
-        reg(SATURATION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.SATURATION);
         // 鲛人之息：水下呼吸（1 级）
-        reg(WATER_BREATHING, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.WATER_BREATHING);
         // 破暗之瞳：免疫黑暗（1 级，持续清除黑暗效果）
-        reg(DARK_VISION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.DARK_VISION);
         // 万民敬仰：村庄英雄（每级 1 级效果，上限 10）
-        reg(VILLAGE_HERO, ArmorSkillCategory.SPECIAL, 10, ArmorSkillDef.EffectKind.VILLAGE_HERO);
 
         // ══════════ 终极节点（阶段 2 第二批） ══════════
         // 金身真解：每级 +1% 物理减伤（自定义属性，上限 80 级 = 80%）
@@ -291,15 +241,11 @@ public final class ArmorSkills
         // 不坏金身：常驻 抗性提升 X / 伤害吸收 C / 抗火 V（无限时长）
         reg(ULT_GOLDEN, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.GOLDEN);
         // 凤凰涅槃：死亡原地复活（回 50% 血、清负面、5 秒吸收盾、冷却 60 秒）
-        reg(ULT_REVIVE, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.REVIVE);
         // 死神凝视：目标生命低于 15% 时 30% 概率直接处决
         reg(ULT_REAPER, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.REAPER);
-        // 奥术神体：魔法伤害 -35%
         reg(ULT_ARCANE_BODY, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.ARCANE_BODY);
         // 虚空神体：免疫击退 + 免死兜底（冷却 60 秒）
-        reg(ULT_VOID_BODY, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.VOID_BODY);
         // 万载不磨：工具/护甲不消耗耐久
-        reg(UNBREAKABLE, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.UNBREAKABLE);
         // 妖魂凝卵：每级 10% 概率掉落刷怪蛋（上限 10 级 = 100%）
         reg(MOB_SPAWN_EGG, ArmorSkillCategory.ULTIMATE, 10, ArmorSkillDef.EffectKind.MOB_SPAWN_EGG);
         // 斩首夺颅：每级 20% 概率掉落头颅（上限 5 级 = 100%）
@@ -307,43 +253,14 @@ public final class ArmorSkills
         // 自动熔炼：方块掉落自动熔炼成成品
         reg(AUTO_SMELT, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.AUTO_SMELT);
         // 万物可掘：可挖基岩等不可破坏方块（需手持镐子）
-        reg(ULT_BREAK_ALL, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.BREAK_ALL);
         // 不朽铭文：铁砧中用两个相同物品合成"无法破坏"工具
-        reg(ULT_UNBREAK_TAG, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.UNBREAK_TAG);
 
         // ══════════ 特殊被动（阶段 2 第三批） ══════════
-        // 发光：附近生物发光（35 格）
-        reg(GLOW, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.GLOW);
-        // 烈焰不侵：常驻抗火
-        reg(FIRE_PROTECT, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.FIRE_PROTECT);
-        // 暴食：进食瞬间完成
-        reg(GLUTTONY, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.GLUTTONY);
-        // 奥术壁垒：每级 +6 魔法防御（减伤 = 防/(防+1200)，渐进不封顶）
-        reg(ARCANE_BULWARK, ArmorSkillCategory.SPECIAL, 100, ArmorSkillDef.EffectKind.ARCANE_BULWARK);
-        // 奥术真解：每级再 +4 魔法防御
-        reg(ARCANE_AMP, ArmorSkillCategory.SPECIAL, 100, ArmorSkillDef.EffectKind.ARCANE_AMP);
         // 适应之躯：每次受魔法伤害 +2% 减伤（最多 60%）
-        reg(ARCANE_ADAPT, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.ARCANE_ADAPT);
-        // 法术抑制：弹射物/法术额外减伤（防/(防+800)，每级 +5 防御）
-        reg(SPELL_DAMPEN, ArmorSkillCategory.SPECIAL, 100, ArmorSkillDef.EffectKind.SPELL_DAMPEN);
-        // 法术反射：30% 概率把魔法伤害反弹给施法者
-        reg(SPELL_REFLECT, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.SPELL_REFLECT);
         // 驱法破咒：每 5 秒清除自己与附近友方各一个负面效果
-        reg(SPELL_PURGE, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.SPELL_PURGE);
         // 破法之刃：目标每有一个增益，对其伤害 +15%（最多 +60%）
-        reg(SPELLBREAK, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.SPELLBREAK);
         // 随机附魔：铁砧 + 4 青金石 + 1 级经验 → 随机正面附魔
-        reg(ENCHANT_RANDOM, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.ENCHANT_RANDOM);
-        // 附魔突破：铁砧 + 2 青金石块 + 4 级经验 → 已有附魔 +1 级（上限 20）
-        reg(ENCHANT_BREAK, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.ENCHANT_BREAK);
         // 超限附魔：铁砧 + 2 下界之星 + 10 级经验 → 已有附魔 +1 级（上限 100）
-        reg(ENCHANT_OVER, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.ENCHANT_OVER);
-        // 无限交易：村民交易不消耗次数
-        reg(UNLIMITED_TRADES, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.UNLIMITED_TRADES);
-        // 村民大师：右键村民使其成为大师级
-        reg(VILLAGER_MASTER, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.VILLAGER_MASTER);
-        // 碧波清眸：水下/岩浆清晰视野（客户端雾效完全禁用，见 FogRendererMixin）
-        reg(UNDERWATER_VISION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.UNDERWATER_VISION);
 
         // ══════════ 魔法增幅（阶段 5）：26 个，外部魔法 mod 的属性增幅 ══════════
         reg(MANA_AMP, ArmorSkillCategory.MAGIC, 50, ArmorSkillDef.EffectKind.MAGIC_ATTR);
@@ -375,22 +292,10 @@ public final class ArmorSkills
 
         // ══════════ 光环（阶段 4）══════════
         // 脉动间隔基础 200 tick；疾攻之势每级 -10%；杀戮领域每级 +10% 伤害、修罗杀域再乘 +10%
-        reg(AURA_DAMAGE, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_DAMAGE);
-        reg(AURA_EMPOWER, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_EMPOWER);
-        reg(AURA_SPEED, ArmorSkillCategory.AURA, 10, ArmorSkillDef.EffectKind.AURA_SPEED);
-        reg(AURA_HEAL, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_HEAL);
-        reg(AURA_XP, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_XP);
-        reg(AURA_MAGNET, ArmorSkillCategory.AURA, 1, ArmorSkillDef.EffectKind.AURA_MAGNET);
-        reg(AURA_LOCK, ArmorSkillCategory.AURA, 1, ArmorSkillDef.EffectKind.AURA_LOCK);
-        reg(AURA_VOID, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_VOID);
-        reg(AURA_LOOT_VACUUM, ArmorSkillCategory.AURA, 1, ArmorSkillDef.EffectKind.AURA_LOOT_VACUUM);
-        reg(CONTAINER_HAUL, ArmorSkillCategory.AURA, 1, ArmorSkillDef.EffectKind.CONTAINER_HAUL);
-        reg(PURIFY_FIELD, ArmorSkillCategory.AURA, 1, ArmorSkillDef.EffectKind.PURIFY_FIELD);
         // ══════════ 机械共鸣（阶段 3） ══════════
         // 八个「共鸣」开关：开启后，模拟玩家机器（FakePlayer，如数字型采矿机）才能继承对应效果；
         // 关闭立即回收（事件每次实时判定，无持久状态）。真玩家不受这些开关影响。
         reg(MACHINE_LOOT_BOMB, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
-        reg(MACHINE_UNBREAKABLE, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
         reg(MACHINE_MOB_DROP, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
         reg(MACHINE_BLOCK_DROP, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
         reg(MACHINE_XP_GAIN, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
@@ -444,7 +349,7 @@ public final class ArmorSkills
     {
         return category == ArmorSkillCategory.BASE || category == ArmorSkillCategory.AMPLIFY
                 || category == ArmorSkillCategory.ULTIMATE || category == ArmorSkillCategory.SPECIAL
-                || category == ArmorSkillCategory.MACHINE || category == ArmorSkillCategory.AURA
+                || category == ArmorSkillCategory.MACHINE
                 || category == ArmorSkillCategory.MAGIC;
     }
 }

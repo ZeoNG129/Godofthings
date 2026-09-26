@@ -2,6 +2,8 @@ package com.godofthings.mixin;
 
 import com.godofthings.armor.skill.ArmorSkillData;
 import com.godofthings.armor.skill.ArmorSkills;
+import com.godofthings.armor.GodArmorFeatures;
+import com.godofthings.armor.GodArmorState;
 import com.godofthings.handler.GodArmorHandler;
 import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -16,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 碧波清眸（underwater_vision）：水底 / 岩浆中拥有清晰视野。
+ * 碧波清眸（套装功能「碧波清眸」）：水底 / 岩浆中拥有清晰视野。
  * <p>
  * <b>移植自 Zifeng Skill Tree（子枫的百宝箱）的 {@code FogRendererMixin}</b>
  * （Copyright (c) 2026 zifeng, MIT License，见 README「第三方代码与许可」）。
@@ -54,7 +56,7 @@ public abstract class FogRendererMixin
         {
             return; // 仅本地玩家视角
         }
-        if (!ArmorSkillData.clientEnabled(ArmorSkills.UNDERWATER_VISION)
+        if (!GodArmorFeatures.isOn(GodArmorState.getClientMask(), GodArmorFeatures.UNDERWATER_VISION)
                 || !GodArmorHandler.isFullSetWorn(player))
         {
             return; // 技能未开启 或 未穿齐全套
