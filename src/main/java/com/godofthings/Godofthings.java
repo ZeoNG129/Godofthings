@@ -28,7 +28,6 @@ import com.godofthings.block.entity.GodAbsorberBlockEntity;
 import com.godofthings.block.entity.GodSlaughterBlockEntity;
 import com.godofthings.block.entity.GodTransmitterBlockEntity;
 import com.godofthings.block.entity.SpaceTimeEternityBlockEntity;
-import com.godofthings.ae2.AeSoftDepend;
 import com.godofthings.armor.GodArmorFeatures;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.dimension.GodFlatDimension;
@@ -323,9 +322,7 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_SLAUGHTER, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodSlaughterBlockEntity>> GOD_SLAUGHTER_BE =
             BLOCK_ENTITIES.register("god_slaughter",
-                    () -> BlockEntityType.Builder.of(
-                            AeSoftDepend.blockEntity(GodSlaughterBlockEntity::new, "GodSlaughterAeBlockEntity"),
-                            GOD_SLAUGHTER.get()).build(null));
+                    () -> BlockEntityType.Builder.of(GodSlaughterBlockEntity::new, GOD_SLAUGHTER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodSlaughterMenu>> GOD_SLAUGHTER_MENU =
             MENUS.register("god_slaughter",
                     () -> IMenuTypeExtension.create(GodSlaughterMenu::new));
@@ -346,9 +343,7 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_ABSORBER, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodAbsorberBlockEntity>> GOD_ABSORBER_BE =
             BLOCK_ENTITIES.register("god_absorber",
-                    () -> BlockEntityType.Builder.of(
-                            AeSoftDepend.blockEntity(GodAbsorberBlockEntity::new, "GodAbsorberAeBlockEntity"),
-                            GOD_ABSORBER.get()).build(null));
+                    () -> BlockEntityType.Builder.of(GodAbsorberBlockEntity::new, GOD_ABSORBER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodAbsorberMenu>> GOD_ABSORBER_MENU =
             MENUS.register("god_absorber",
                     () -> IMenuTypeExtension.create(GodAbsorberMenu::new));
@@ -371,9 +366,7 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_CRAFT, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodCraftBlockEntity>> GOD_CRAFT_BE =
             BLOCK_ENTITIES.register("god_craft",
-                    () -> BlockEntityType.Builder.of(
-                            AeSoftDepend.blockEntity(GodCraftBlockEntity::new, "GodCraftAeBlockEntity"),
-                            GOD_CRAFT.get()).build(null));
+                    () -> BlockEntityType.Builder.of(GodCraftBlockEntity::new, GOD_CRAFT.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodCraftMenu>> GOD_CRAFT_MENU =
             MENUS.register("god_craft", () -> IMenuTypeExtension.create(GodCraftMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodCraftConfigMenu>> GOD_CRAFT_CONFIG_MENU =
@@ -451,24 +444,16 @@ public class Godofthings
     // ---- 方块实体 ----
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodFurnaceBlockEntity>> GOD_FURNACE_BE =
             BLOCK_ENTITIES.register("god_furnace",
-                    () -> BlockEntityType.Builder.of(
-                            AeSoftDepend.blockEntity(GodFurnaceBlockEntity::new, "GodFurnaceAeBlockEntity"),
-                            GOD_FURNACE.get()).build(null));
+                    () -> BlockEntityType.Builder.of(GodFurnaceBlockEntity::new, GOD_FURNACE.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodMinerBlockEntity>> GOD_MINER_BE =
             BLOCK_ENTITIES.register("god_miner",
-                    () -> BlockEntityType.Builder.of(
-                            AeSoftDepend.blockEntity(GodMinerBlockEntity::new, "GodMinerAeBlockEntity"),
-                            GOD_MINER.get()).build(null));
+                    () -> BlockEntityType.Builder.of(GodMinerBlockEntity::new, GOD_MINER.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodResourceBlockEntity>> GOD_RESOURCE_BE =
             BLOCK_ENTITIES.register("god_resource",
-                    () -> BlockEntityType.Builder.of(
-                            AeSoftDepend.blockEntity(GodResourceBlockEntity::new, "GodResourceAeBlockEntity"),
-                            GOD_RESOURCE.get()).build(null));
+                    () -> BlockEntityType.Builder.of(GodResourceBlockEntity::new, GOD_RESOURCE.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodDropBlockEntity>> GOD_DROP_BE =
             BLOCK_ENTITIES.register("god_drop",
-                    () -> BlockEntityType.Builder.of(
-                            AeSoftDepend.blockEntity(GodDropBlockEntity::new, "GodDropAeBlockEntity"),
-                            GOD_DROP.get()).build(null));
+                    () -> BlockEntityType.Builder.of(GodDropBlockEntity::new, GOD_DROP.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodEnchantBlockEntity>> GOD_ENCHANT_BE =
             BLOCK_ENTITIES.register("god_enchant",
                     () -> BlockEntityType.Builder.of(GodEnchantBlockEntity::new,

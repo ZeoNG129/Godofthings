@@ -1,6 +1,15 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.config.Actionable;
+import appeng.api.networking.IManagedGridNode;
+import appeng.api.networking.security.IActionSource;
+import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.storage.MEStorage;
+import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.AeGridNode;
 import com.godofthings.menu.GodAbsorberMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -39,7 +48,7 @@ import java.util.List;
  *   <li>面配置（六面输入输出）+ AE 并网（产物自动输出进 AE）。</li>
  * </ul>
  */
-public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider
+public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     public static final int STORAGE_SLOTS = 27;
     public static final int MAX_RANGE = 1600;
@@ -55,6 +64,7 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider
     private final int[] faceModes = new int[6];
     private final SideHandler[] sideHandlers = new SideHandler[6];
 
+    private final AeGridNode aeNode = new AeGridNode(this);
     private boolean aeEnabled = true;
     private int aeTick = 0;
     private int scanTimer = 0;
@@ -97,7 +107,8 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_ABSORBER_BE.get(),
                     (be, side) -> be.getSideCapability(side));
-            // AE2 的 IN_WORLD_GRID_NODE_HOST 能力由 com.godofthings.ae2.AeRegistration 在装了 AE2 时注册
+            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_ABSORBER_BE.get(),
+                    (be, side) -> be);
         }
     }
 
@@ -162,23 +173,43 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider
     // ---- AE ----
 
     public boolean isAeEnabled() { return aeEnabled; }
-
     public void toggleAeEnabled() { this.aeEnabled = !this.aeEnabled; setChanged(); }
 
+    @Override public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
-    // ---- AE 产物输出（AE2 未安装时为空操作，见 AeSoftDepend 注释） ----
+    @Override public void saveChanges() { setChanged(); }
 
-    /**
-     * AE 产物输出钩子：装了 AE2 时方块实体实际是
-     * {@code com.godofthings.ae2.GodAbsorberAeBlockEntity}，由它覆写把产物推入 AE 网络；
-     * 未装 AE2 时命中本空实现，模组不会因缺 appeng 类而崩溃。
-     */
-    protected void pushOutputToAe()
+    private void pushOutputToAe()
     {
+        if (!aeEnabled || !aeNode.isActive()) return;
+        IStorageService storage = aeNode.getStorage();
+        if (storage == null) return;
+        MEStorage inv = storage.getInventory();
+        IActionSource source = aeNode.actionSource();
+        for (int slot = 0; slot < this.storage.getSlots(); slot++)
+        {
+            ItemStack stack = this.storage.getStackInSlot(slot);
+            if (stack.isEmpty()) continue;
+            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
+            if (inserted > 0) this.storage.extractItem(slot, (int) inserted, false);
+        }
     }
 
     // ---- 生命周期 ----
 
+    @Override
+    public void onLoad()
+    {
+        super.onLoad();
+        aeNode.create(level, worldPosition);
+    }
+
+    @Override
+    public void setRemoved()
+    {
+        aeNode.destroy();
+        super.setRemoved();
+    }
 
     // ---- tick ----
 

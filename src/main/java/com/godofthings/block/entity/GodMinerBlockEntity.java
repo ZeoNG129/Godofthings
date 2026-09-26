@@ -1,6 +1,15 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.config.Actionable;
+import appeng.api.networking.IManagedGridNode;
+import appeng.api.networking.security.IActionSource;
+import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.storage.MEStorage;
+import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.AeGridNode;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodMinerMenu;
@@ -48,11 +57,9 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  * - 除基岩外所有方块（含液体）都会被挖掉，液体收集进内置无限液体罐
  * - 默认速度约 4 块/每tick（约 1 竖列/20 tick），效率每级 ×(1+3级) 加速
  * - 挖完后可再次点击开始：自动从顶部重新挖（支持改半径后重新工作）
- * - 内置无限大小物品储存
- * - 六个面各自可配置 NONE / INPUT(抽入神之加速) / OUTPUT(推出产物与液体) / BOTH，见 {@link FaceMode}；
- *   未写入 FaceModes 的旧存档默认六面全 OUTPUT，与旧行为一致
+ * - 内置无限大小物品储存，六面默认全部自动输出
  */
-public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
+public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     /** 矿机最大挖掘半径（格，方形半径），可经 godofthings-machines.toml 调整 */
     public static final int MAX_RADIUS = MachinesConfig.MINER_MAX_RADIUS.get();
@@ -90,6 +97,8 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
     /** 是否接入 AE（线缆直连并网，产物主动输出进 AE，占一个频道）。 */
     private boolean aeEnabled = true;
 
+    /** AE 网格节点（线缆直连并网）。 */
+    private final AeGridNode aeNode = new AeGridNode(this);
     private int aeTick = 0;
 
     private boolean running = false;
@@ -136,19 +145,41 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
-
     // ---- AE 网格节点（线缆直连并网，产物主动输出进 AE） ----
 
+    @Override
+    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 
-    // ---- AE 产物输出（AE2 未安装时为空操作，见 AeSoftDepend 注释） ----
+    @Override
+    public void saveChanges() { setChanged(); }
 
-    /**
-     * AE 产物输出钩子：装了 AE2 时方块实体实际是
-     * {@code com.godofthings.ae2.GodMinerAeBlockEntity}，由它覆写把产物推入 AE 网络；
-     * 未装 AE2 时命中本空实现，模组不会因缺 appeng 类而崩溃。
-     */
-    protected void pushOutputToAe()
+    /** 把内置储存产物推入 AE 网络（节流由 tick 控制）。 */
+    private void pushOutputToAe()
     {
+        if (!aeEnabled || !aeNode.isActive())
+        {
+            return;
+        }
+        IStorageService storage = aeNode.getStorage();
+        if (storage == null)
+        {
+            return;
+        }
+        MEStorage inv = storage.getInventory();
+        IActionSource source = aeNode.actionSource();
+        for (int slot = 0; slot < getItemHandler().getSlots(); slot++)
+        {
+            ItemStack stack = getItemHandler().getStackInSlot(slot);
+            if (stack.isEmpty())
+            {
+                continue;
+            }
+            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
+            if (inserted > 0)
+            {
+                getItemHandler().extractItem(slot, (int) inserted, false);
+            }
+        }
     }
 
     // ---- 面模式 ----
@@ -612,6 +643,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
     @Override
     public void setRemoved()
     {
+        aeNode.destroy();
         super.setRemoved();
         // 运行中拆除矿机：释放本机强制加载过的区块，避免区块常驻内存泄漏
         releaseForcedChunks();
@@ -621,6 +653,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
     public void onLoad()
     {
         super.onLoad();
+        aeNode.create(level, worldPosition);
         if (areaClearedOnLoad || level == null || level.isClientSide || !(level instanceof ServerLevel serverLevel))
         {
             return;
@@ -938,7 +971,8 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider
                     (be, side) -> be.getSideCapability(side));
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Godofthings.GOD_MINER_BE.get(),
                     (be, side) -> be.getSideFluidCapability(side));
-            // AE2 的 IN_WORLD_GRID_NODE_HOST 能力由 com.godofthings.ae2.AeRegistration 在装了 AE2 时注册
+            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_MINER_BE.get(),
+                    (be, side) -> be);
         }
     }
 
