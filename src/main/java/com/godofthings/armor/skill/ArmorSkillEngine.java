@@ -323,4 +323,56 @@ public final class ArmorSkillEngine
     {
         return Math.min(SPELLBREAK_MAX, beneficialEffects * SPELLBREAK_PER_BUFF);
     }
+
+    // ══════════ 光环（阶段 4）══════════
+    /** 光环脉动基础间隔（tick） */
+    public static final int AURA_BASE_INTERVAL = 200;
+    /** 杀戮领域半径（格） */
+    public static final double AURA_ATTACK_RADIUS = 20.0;
+    /** 虚空诛灭半径（格） */
+    public static final double AURA_VOID_RADIUS = 50.0;
+    /** 吸星大法半径（格） */
+    public static final double AURA_MAGNET_RADIUS = 20.0;
+    /** 回春妙手半径（格） */
+    public static final double AURA_HEAL_RADIUS = 10.0;
+    /** 净化领域半径（格） */
+    public static final double PURIFY_RADIUS = 8.0;
+    /** 吸星大法每 tick 最多处理的实体数 */
+    public static final int MAGNET_MAX_PER_TICK = 64;
+    /** 净化领域间隔（tick） */
+    public static final int PURIFY_INTERVAL = 60;
+
+    /** 光环脉动间隔：基础 200 tick，疾攻之势每级 -10%，下限 20 */
+    public static int auraInterval(Map<String, Integer> levels)
+    {
+        int lv = ArmorSkillData.effectiveLevel(levels, ArmorSkills.AURA_SPEED);
+        double factor = Math.max(0.05, 1.0 - 0.10 * lv);
+        return (int) Math.max(20, Math.round(AURA_BASE_INTERVAL * factor));
+    }
+
+    /** 光环伤害倍率：杀戮领域 1+10%/级，再乘 修罗杀域 1+10%/级 */
+    public static double auraDamageMultiplier(Map<String, Integer> levels)
+    {
+        double base = 1.0 + 0.10 * ArmorSkillData.effectiveLevel(levels, ArmorSkills.AURA_DAMAGE);
+        double amp = 1.0 + 0.10 * ArmorSkillData.effectiveLevel(levels, ArmorSkills.AURA_EMPOWER);
+        return base * amp;
+    }
+
+    /** 回春妙手每次脉动的治疗量（最大生命的比例）：2%/级 */
+    public static double auraHealRatio(Map<String, Integer> levels)
+    {
+        return 0.02 * ArmorSkillData.effectiveLevel(levels, ArmorSkills.AURA_HEAL);
+    }
+
+    /** 汲灵之环每次脉动给予的经验：1/级 */
+    public static int auraXpPerPulse(Map<String, Integer> levels)
+    {
+        return ArmorSkillData.effectiveLevel(levels, ArmorSkills.AURA_XP);
+    }
+
+    /** 虚空诛灭的处决阈值（目标血量比例）：5% + 1%/级 */
+    public static double voidExecuteRatio(Map<String, Integer> levels)
+    {
+        return 0.05 + 0.01 * ArmorSkillData.effectiveLevel(levels, ArmorSkills.AURA_VOID);
+    }
 }

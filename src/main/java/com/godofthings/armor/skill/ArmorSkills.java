@@ -115,6 +115,19 @@ public final class ArmorSkills
     // ---- 机械共鸣（阶段 3：机器继承开关 + 选区技能） ----
     // 注意：参考模组的 machine_star（机械之星）是"前置核心"，自身无任何效果，
     // 按用户"删除前置需求"的要求不做（做了也只是一个点了没反应的节点）。
+    // ---- 光环（阶段 4）----
+    public static final String AURA_DAMAGE = "aura_damage";
+    public static final String AURA_EMPOWER = "aura_empower";
+    public static final String AURA_SPEED = "aura_speed";
+    public static final String AURA_HEAL = "aura_heal";
+    public static final String AURA_XP = "aura_xp";
+    public static final String AURA_MAGNET = "aura_magnet";
+    public static final String AURA_LOCK = "aura_lock";
+    public static final String AURA_VOID = "aura_void";
+    public static final String AURA_LOOT_VACUUM = "aura_loot_vacuum";
+    public static final String CONTAINER_HAUL = "container_haul";
+    public static final String PURIFY_FIELD = "purify_field";
+
     public static final String MACHINE_LOOT_BOMB = "machine_loot_bomb";
     public static final String MACHINE_UNBREAKABLE = "machine_unbreakable";
     public static final String MACHINE_MOB_DROP = "machine_mob_drop";
@@ -304,6 +317,19 @@ public final class ArmorSkills
         // 碧波清眸：水下/岩浆清晰视野（客户端雾效完全禁用，见 FogRendererMixin）
         reg(UNDERWATER_VISION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.UNDERWATER_VISION);
 
+        // ══════════ 光环（阶段 4）══════════
+        // 脉动间隔基础 200 tick；疾攻之势每级 -10%；杀戮领域每级 +10% 伤害、修罗杀域再乘 +10%
+        reg(AURA_DAMAGE, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_DAMAGE);
+        reg(AURA_EMPOWER, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_EMPOWER);
+        reg(AURA_SPEED, ArmorSkillCategory.AURA, 10, ArmorSkillDef.EffectKind.AURA_SPEED);
+        reg(AURA_HEAL, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_HEAL);
+        reg(AURA_XP, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_XP);
+        reg(AURA_MAGNET, ArmorSkillCategory.AURA, 1, ArmorSkillDef.EffectKind.AURA_MAGNET);
+        reg(AURA_LOCK, ArmorSkillCategory.AURA, 1, ArmorSkillDef.EffectKind.AURA_LOCK);
+        reg(AURA_VOID, ArmorSkillCategory.AURA, 50, ArmorSkillDef.EffectKind.AURA_VOID);
+        reg(AURA_LOOT_VACUUM, ArmorSkillCategory.AURA, 1, ArmorSkillDef.EffectKind.AURA_LOOT_VACUUM);
+        reg(CONTAINER_HAUL, ArmorSkillCategory.AURA, 1, ArmorSkillDef.EffectKind.CONTAINER_HAUL);
+        reg(PURIFY_FIELD, ArmorSkillCategory.AURA, 1, ArmorSkillDef.EffectKind.PURIFY_FIELD);
         // ══════════ 机械共鸣（阶段 3） ══════════
         // 八个「共鸣」开关：开启后，模拟玩家机器（FakePlayer，如数字型采矿机）才能继承对应效果；
         // 关闭立即回收（事件每次实时判定，无持久状态）。真玩家不受这些开关影响。
@@ -362,6 +388,6 @@ public final class ArmorSkills
     {
         return category == ArmorSkillCategory.BASE || category == ArmorSkillCategory.AMPLIFY
                 || category == ArmorSkillCategory.ULTIMATE || category == ArmorSkillCategory.SPECIAL
-                || category == ArmorSkillCategory.MACHINE;
+                || category == ArmorSkillCategory.MACHINE || category == ArmorSkillCategory.AURA;
     }
 }

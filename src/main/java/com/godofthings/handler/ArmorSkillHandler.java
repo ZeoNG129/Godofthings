@@ -7,6 +7,7 @@ import com.godofthings.armor.skill.ArmorSkills;
 import com.godofthings.network.ArmorSkillMessages;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -175,6 +176,8 @@ public class ArmorSkillHandler
         {
             applyGolden(player);
         }
+        // 光环（阶段 4）：吸附 / 脉动 / 净化 / 搬运
+        tickAura(player, ArmorSkillData.get(player), tickCounter);
         // 常驻效果（阶段 2 第三批）：烈焰不侵 / 发光 / 驱法破咒
         if (tickCounter % EFFECT_INTERVAL == 0 && isActive(player))
         {
@@ -848,5 +851,271 @@ public class ArmorSkillHandler
                     && ArmorSkillEngine.isOn(levelsFor(player), ArmorSkills.UNBREAKABLE);
         }
         return isActive(player) && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.UNBREAKABLE);
+    }
+
+    // ══════════ 光环（阶段 4）═════════
+
+    /** 搬运目标容器坐标存在玩家的持久数据里（随存档保存，不需要额外附件注册） */
+    private static final String HAUL_POS_KEY = "godofthings_haul_pos";
+
+    /** 当前绑定的搬运容器（null = 未绑定） */
+    public static net.minecraft.core.BlockPos haulPos(ServerPlayer player)
+    {
+        net.minecraft.nbt.CompoundTag data = player.getPersistentData();
+        return data.contains(HAUL_POS_KEY)
+                ? net.minecraft.core.BlockPos.of(data.getLong(HAUL_POS_KEY)) : null;
+    }
+
+    /**
+     * 潜行 + 右键容器 = 绑定为搬运目标（挪移术 / 搬运术共用）。
+     * <p>手里拿着物品时不抢交互，避免影响正常放置方块。
+     */
+    @SubscribeEvent
+    public static void onBindContainer(net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickBlock event)
+    {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !player.isShiftKeyDown())
+        {
+            return;
+        }
+        if (!event.getItemStack().isEmpty() || !isActive(player))
+        {
+            return;
+        }
+        Map<String, Integer> levels = ArmorSkillData.get(player);
+        if (!ArmorSkillEngine.isOn(levels, ArmorSkills.AURA_LOOT_VACUUM)
+                && !ArmorSkillEngine.isOn(levels, ArmorSkills.CONTAINER_HAUL))
+        {
+            return;
+        }
+        if (!(player.serverLevel().getBlockEntity(event.getPos()) instanceof net.minecraft.world.Container))
+        {
+            return;
+        }
+        player.getPersistentData().putLong(HAUL_POS_KEY, event.getPos().asLong());
+        player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                "chat.godofthings.armor.haul.bound", event.getPos().getX(), event.getPos().getY(),
+                event.getPos().getZ()), true);
+        event.setCanceled(true);
+    }
+
+    /** 光环主循环：吸星大法（每 tick）→ 脉动（按间隔，按玩家错峰）→ 净化（每 60 tick）→ 搬运（每 20 tick） */
+    private static void tickAura(ServerPlayer player, Map<String, Integer> levels, int tick)
+    {
+        // ① 吸星大法：掉落物与经验球吸向玩家；若绑定了容器且开了挪移术，则直接送入容器
+        if (ArmorSkillEngine.isOn(levels, ArmorSkills.AURA_MAGNET))
+        {
+            AABB box = player.getBoundingBox().inflate(ArmorSkillEngine.AURA_MAGNET_RADIUS);
+            boolean vacuum = ArmorSkillEngine.isOn(levels, ArmorSkills.AURA_LOOT_VACUUM) && haulPos(player) != null;
+            int done = 0;
+            for (net.minecraft.world.entity.item.ItemEntity item
+                    : player.level().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, box))
+            {
+                if (done++ >= ArmorSkillEngine.MAGNET_MAX_PER_TICK)
+                {
+                    break;
+                }
+                if (vacuum)
+                {
+                    insertIntoHaul(player, item.getItem());
+                    item.discard();
+                }
+                else
+                {
+                    pullTowards(player, item);
+                }
+            }
+            for (net.minecraft.world.entity.ExperienceOrb orb
+                    : player.level().getEntitiesOfClass(net.minecraft.world.entity.ExperienceOrb.class, box))
+            {
+                if (done++ >= ArmorSkillEngine.MAGNET_MAX_PER_TICK)
+                {
+                    break;
+                }
+                pullTowards(player, orb);
+            }
+        }
+
+        // ② 脉动：杀戮领域（伤害）/ 虚空诛灭（处决）/ 回春妙手（治疗）/ 汲灵之环（经验）
+        int interval = ArmorSkillEngine.auraInterval(levels);
+        if ((player.level().getGameTime() + player.getId()) % interval == 0)
+        {
+            pulseAura(player, levels);
+        }
+
+        // ③ 净化领域：每 60 tick 清一个负面效果
+        if (tick % ArmorSkillEngine.PURIFY_INTERVAL == 0
+                && ArmorSkillEngine.isOn(levels, ArmorSkills.PURIFY_FIELD))
+        {
+            AABB box = player.getBoundingBox().inflate(ArmorSkillEngine.PURIFY_RADIUS);
+            purgeOne(player);
+            for (ServerPlayer other : player.level().getEntitiesOfClass(ServerPlayer.class, box))
+            {
+                if (other != player)
+                {
+                    purgeOne(other);
+                }
+            }
+        }
+
+        // ④ 搬运术：每 20 tick 把背包物品送入绑定容器
+        if (tick % 20 == 0 && ArmorSkillEngine.isOn(levels, ArmorSkills.CONTAINER_HAUL))
+        {
+            net.minecraft.core.BlockPos pos = haulPos(player);
+            if (pos != null)
+            {
+                var inv = player.getInventory();
+                for (int slot = 0; slot < inv.getContainerSize(); slot++)
+                {
+                    var stack = inv.getItem(slot);
+                    if (!stack.isEmpty())
+                    {
+                        insertIntoHaul(player, stack);
+                    }
+                }
+            }
+        }
+    }
+
+    /** 把实体拉向玩家（保留少量速度，避免瞬移感） */
+    private static void pullTowards(ServerPlayer player, net.minecraft.world.entity.Entity entity)
+    {
+        net.minecraft.world.phys.Vec3 delta = player.position().subtract(entity.position());
+        double d = delta.length();
+        if (d < 0.6)
+        {
+            return; // 已经贴到身上了，交给原版拾取
+        }
+        entity.setDeltaMovement(delta.normalize().scale(0.55));
+        entity.hurtMarked = true;
+    }
+
+    /** 把物品堆塞进绑定的容器（塞不进去就留在原地） */
+    private static void insertIntoHaul(ServerPlayer player, net.minecraft.world.item.ItemStack stack)
+    {
+        net.minecraft.core.BlockPos pos = haulPos(player);
+        if (pos == null || stack.isEmpty() || !player.serverLevel().isLoaded(pos))
+        {
+            return;
+        }
+        if (!(player.serverLevel().getBlockEntity(pos) instanceof net.minecraft.world.Container container))
+        {
+            return;
+        }
+        net.minecraft.world.item.ItemStack remaining = stack.copy();
+        for (int slot = 0; slot < container.getContainerSize() && !remaining.isEmpty(); slot++)
+        {
+            if (!container.canPlaceItem(slot, remaining))
+            {
+                continue;
+            }
+            net.minecraft.world.item.ItemStack existing = container.getItem(slot);
+            if (existing.isEmpty())
+            {
+                container.setItem(slot, remaining.copy());
+                remaining.setCount(0);
+            }
+            else if (net.minecraft.world.item.ItemStack.isSameItemSameComponents(existing, remaining))
+            {
+                int space = Math.min(container.getMaxStackSize(), existing.getMaxStackSize()) - existing.getCount();
+                if (space > 0)
+                {
+                    int move = Math.min(space, remaining.getCount());
+                    existing.grow(move);
+                    remaining.shrink(move);
+                }
+            }
+        }
+        container.setChanged();
+        stack.setCount(remaining.getCount());
+    }
+
+    /** 每隔一段时间对周围造成的范围效果（杀戮领域 / 虚空诛灭 / 回春妙手 / 汲灵之环） */
+    private static void pulseAura(ServerPlayer player, Map<String, Integer> levels)
+    {
+        boolean damageOn = ArmorSkillEngine.isOn(levels, ArmorSkills.AURA_DAMAGE);
+        boolean voidOn = ArmorSkillEngine.isOn(levels, ArmorSkills.AURA_VOID);
+        if (damageOn || voidOn)
+        {
+            double radius = voidOn ? ArmorSkillEngine.AURA_VOID_RADIUS : ArmorSkillEngine.AURA_ATTACK_RADIUS;
+            AABB box = player.getBoundingBox().inflate(radius);
+            float damage = (float) (player.getAttributeValue(
+                    net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)
+                    * ArmorSkillEngine.auraDamageMultiplier(levels));
+            double executeRatio = ArmorSkillEngine.voidExecuteRatio(levels);
+            for (LivingEntity target : player.level().getEntitiesOfClass(LivingEntity.class, box))
+            {
+                if (target == player || target instanceof Player || target.isAlliedTo(player))
+                {
+                    continue;
+                }
+                boolean hostile = target instanceof net.minecraft.world.entity.monster.Monster;
+                if (voidOn && target.getMaxHealth() > 0
+                        && target.getHealth() / target.getMaxHealth() < executeRatio)
+                {
+                    target.hurt(player.damageSources().playerAttack(player), Float.MAX_VALUE / 2.0F);
+                    continue;
+                }
+                if (damageOn && hostile)
+                {
+                    target.hurt(player.damageSources().playerAttack(player), damage);
+                }
+            }
+        }
+        // 回春妙手：治疗自己 + 半径内友方玩家
+        double healRatio = ArmorSkillEngine.auraHealRatio(levels);
+        if (healRatio > 0)
+        {
+            AABB box = player.getBoundingBox().inflate(ArmorSkillEngine.AURA_HEAL_RADIUS);
+            heal(player, healRatio);
+            for (ServerPlayer other : player.level().getEntitiesOfClass(ServerPlayer.class, box))
+            {
+                if (other != player)
+                {
+                    heal(other, healRatio);
+                }
+            }
+        }
+        // 汲灵之环：直接给经验
+        int xp = ArmorSkillEngine.auraXpPerPulse(levels);
+        if (xp > 0)
+        {
+            player.giveExperiencePoints(xp);
+        }
+    }
+
+    private static void heal(ServerPlayer player, double ratio)
+    {
+        float amount = (float) (player.getMaxHealth() * ratio);
+        if (amount > 0 && player.getHealth() < player.getMaxHealth())
+        {
+            player.setHealth(Math.min(player.getMaxHealth(), player.getHealth() + amount));
+        }
+    }
+
+    /** 定身神域：免疫击退（在 onKnockBack 中调用） */
+    private static boolean auraLockOn(net.minecraft.world.entity.LivingEntity entity)
+    {
+        return entity instanceof ServerPlayer player && isActive(player)
+                && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.AURA_LOCK);
+    }
+
+    /** 定身神域：免疫击退 */
+    @SubscribeEvent
+    public static void onAuraKnockBack(net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent event)
+    {
+        if (auraLockOn(event.getEntity()))
+        {
+            event.setCanceled(true);
+        }
+    }
+
+    /** 定身神域：免疫传送（末影珍珠 / 末影人 / 指令传送等） */
+    @SubscribeEvent
+    public static void onAuraTeleport(net.neoforged.neoforge.event.entity.EntityTeleportEvent event)
+    {
+        if (auraLockOn(event.getEntity()))
+        {
+            event.setCanceled(true);
+        }
     }
 }

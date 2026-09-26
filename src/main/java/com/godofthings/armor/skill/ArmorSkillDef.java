@@ -115,6 +115,28 @@ public record ArmorSkillDef(
         UNLIMITED_TRADES,
         /** 村民大师 */
         VILLAGER_MASTER,
+        /** 光环：杀戮领域（范围脉动伤害） */
+        AURA_DAMAGE,
+        /** 光环：修罗杀域（光环伤害增幅） */
+        AURA_EMPOWER,
+        /** 光环：疾攻之势（缩短光环脉动间隔） */
+        AURA_SPEED,
+        /** 光环：回春妙手（范围脉动治疗） */
+        AURA_HEAL,
+        /** 光环：汲灵之环（脉动给经验） */
+        AURA_XP,
+        /** 光环：吸星大法（吸取周围掉落物/经验球） */
+        AURA_MAGNET,
+        /** 光环：定身神域（免疫传送与击退） */
+        AURA_LOCK,
+        /** 光环：虚空诛灭（远处低血目标直接处决） */
+        AURA_VOID,
+        /** 光环：挪移术（掉落物直入绑定容器） */
+        AURA_LOOT_VACUUM,
+        /** 光环：搬运术（背包物品定期送入绑定容器） */
+        CONTAINER_HAUL,
+        /** 光环：净化领域（范围清除负面效果） */
+        PURIFY_FIELD,
         /** 碧波清眸：水下/岩浆清晰视野（客户端雾效） */
         UNDERWATER_VISION,
         /** 机械共鸣：允许模拟玩家机器继承对应效果 */

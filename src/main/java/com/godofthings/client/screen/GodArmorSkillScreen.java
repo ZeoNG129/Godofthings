@@ -82,6 +82,7 @@ public class GodArmorSkillScreen extends Screen
             { 0xFF503A27, 0xFF674A30 }, // AMPLIFY 特殊增幅
             { 0xFF512B34, 0xFF693641 }, // ULTIMATE 终极节点
             { 0xFF4C3B27, 0xFF625035 }, // SPECIAL 特殊被动
+            { 0xFF3A2B4A, 0xFF4E3A63 }, // AURA 光环（紫）
             { 0xFF3E4248, 0xFF515760 }, // MACHINE 机械共鸣（沿用参考模组配色）
             { 0xFF2B3A2E, 0xFF3A4E3E }, // 套装功能
     };
@@ -89,20 +90,23 @@ public class GodArmorSkillScreen extends Screen
     /** 标签页顺序：前 4 个技能分类 + 最后套装功能 */
     private static final ArmorSkillCategory[] TAB_CATEGORIES = {
             ArmorSkillCategory.BASE, ArmorSkillCategory.AMPLIFY,
-            ArmorSkillCategory.ULTIMATE, ArmorSkillCategory.SPECIAL, ArmorSkillCategory.MACHINE };
+            ArmorSkillCategory.ULTIMATE, ArmorSkillCategory.SPECIAL, ArmorSkillCategory.AURA,
+            ArmorSkillCategory.MACHINE };
 
     private static final int[] TAB_ACCENT = {
-            C_ACCENT_BASE, C_ACCENT_AMPLIFY, 0xFFFF6B6B, 0xFFFFD166, 0xFFAFC4D6, C_ACCENT_FEATURE };
+            C_ACCENT_BASE, C_ACCENT_AMPLIFY, 0xFFFF6B6B, 0xFFFFD166, 0xFFC79BFF, 0xFFAFC4D6,
+            C_ACCENT_FEATURE };
 
     /** 标签页索引（O 键 → 套装功能页；K 键 → 基础属性页） */
     public static final int TAB_BASE = 0;
     public static final int TAB_AMPLIFY = 1;
     public static final int TAB_ULTIMATE = 2;
     public static final int TAB_SPECIAL = 3;
-    public static final int TAB_MACHINE = 4;
-    public static final int TAB_FEATURE = 5;
-    /** 标签页总数（前 5 个是技能分类，最后一个是套装功能） */
-    private static final int TAB_COUNT = 6;
+    public static final int TAB_AURA = 4;
+    public static final int TAB_MACHINE = 5;
+    public static final int TAB_FEATURE = 6;
+    /** 标签页总数（前 6 个是技能分类，最后一个是套装功能） */
+    private static final int TAB_COUNT = 7;
 
     /** 标签页：0 = 基础属性，1 = 特殊增幅，2 = 套装功能 */
     private int tab;
