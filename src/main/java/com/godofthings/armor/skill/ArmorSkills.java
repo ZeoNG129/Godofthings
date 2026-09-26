@@ -61,6 +61,25 @@ public final class ArmorSkills
     public static final String AMP_THORNS = "amp_thorns";
     public static final String AMP_ARMOR_PEN = "amp_armor_pen";
 
+    // ---- 终极节点（阶段 2 第一批：属性型 / 收益型 / 常驻效果型） ----
+    public static final String ULT_BLOOD = "ult_blood";
+    public static final String ULT_MASTER = "ult_master";
+    public static final String ULT_KB_RESIST = "ult_kb_resist";
+    public static final String ULT_SWEEP = "ult_sweep";
+    public static final String ULT_FAVOR = "ult_favor";
+    public static final String LOOT_BOMB = "loot_bomb";
+    public static final String MOB_DROP = "mob_drop";
+    public static final String BLOCK_DROP = "block_drop";
+    public static final String XP_GAIN = "xp_gain";
+
+    // ---- 特殊被动（阶段 2 第一批） ----
+    public static final String REACH = "reach";
+    public static final String NIGHT_VISION = "night_vision";
+    public static final String SATURATION = "saturation";
+    public static final String WATER_BREATHING = "water_breathing";
+    public static final String DARK_VISION = "dark_vision";
+    public static final String VILLAGE_HERO = "village_hero";
+
     /** 基础/增幅类每项等级上限（原 mod 压缩后的上限） */
     public static final int BASE_MAX_LEVEL = 100;
     public static final int AMPLIFY_MAX_LEVEL = 50;
@@ -128,6 +147,57 @@ public final class ArmorSkills
         reg(AMP_LIFESTEAL, ArmorSkillCategory.AMPLIFY, AMPLIFY_MAX_LEVEL, ArmorSkillDef.EffectKind.LIFESTEAL);
         reg(AMP_THORNS, ArmorSkillCategory.AMPLIFY, AMPLIFY_MAX_LEVEL, ArmorSkillDef.EffectKind.THORNS);
         reg(AMP_ARMOR_PEN, ArmorSkillCategory.AMPLIFY, AMPLIFY_MAX_LEVEL, ArmorSkillDef.EffectKind.ARMOR_PEN);
+
+        // ══════════ 终极节点（阶段 2 第一批） ══════════
+        // 浴血奋战：常驻攻击与生命 +50%（1 级，等级无关；数值取自参考模组 bloodAttackBonus/bloodHealthBonus）
+        reg(ULT_BLOOD, ArmorSkillCategory.ULTIMATE, 1, ATTR,
+                mult(Attributes.ATTACK_DAMAGE, 0.5),
+                mult(Attributes.MAX_HEALTH, 0.5));
+        // 全能精通：全属性 +25%（1 级；数值取自参考模组 masterBonus）
+        reg(ULT_MASTER, ArmorSkillCategory.ULTIMATE, 1, ATTR,
+                mult(Attributes.MAX_HEALTH, 0.25),
+                mult(Attributes.ARMOR, 0.25),
+                mult(Attributes.ARMOR_TOUGHNESS, 0.25),
+                mult(Attributes.ATTACK_DAMAGE, 0.25),
+                mult(Attributes.ATTACK_SPEED, 0.25),
+                mult(Attributes.MINING_EFFICIENCY, 0.25),
+                mult(Attributes.MOVEMENT_SPEED, 0.25),
+                mult(Attributes.LUCK, 0.25),
+                mult(Attributes.JUMP_STRENGTH, 0.25),
+                mult(Attributes.FLYING_SPEED, 0.25),
+                mult(NeoForgeMod.SWIM_SPEED, 0.25));
+        // 稳如泰山：每级 +10% 击退抗性（上限 10 级 = 100% 免疫击退）
+        reg(ULT_KB_RESIST, ArmorSkillCategory.ULTIMATE, 10, ATTR,
+                add(Attributes.KNOCKBACK_RESISTANCE, 0.1));
+        // 横扫千军：每级 +1 格攻击距离（上限 10）
+        reg(ULT_SWEEP, ArmorSkillCategory.ULTIMATE, 10, ATTR,
+                add(Attributes.ENTITY_INTERACTION_RANGE, 1.0));
+        // 财源滚滚：战利品爆炸（每级掉落翻一倍，上限 100）
+        reg(LOOT_BOMB, ArmorSkillCategory.ULTIMATE, 100, ArmorSkillDef.EffectKind.LOOT_BOMB);
+        // 猎魂丰收：生物掉落倍率（每级 +1 倍，上限 10）
+        reg(MOB_DROP, ArmorSkillCategory.ULTIMATE, 10, ArmorSkillDef.EffectKind.MOB_DROP);
+        // 点石成金：方块掉落倍率（每级 +1 倍，上限 10）
+        reg(BLOCK_DROP, ArmorSkillCategory.ULTIMATE, 10, ArmorSkillDef.EffectKind.BLOCK_DROP);
+        // 经验飞涨：经验倍率（每级 +2 倍，上限 10）
+        reg(XP_GAIN, ArmorSkillCategory.ULTIMATE, 10, ArmorSkillDef.EffectKind.XP_GAIN);
+        // 宇宙的青睐：真创造飞行（1 级）
+        reg(ULT_FAVOR, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.FLIGHT);
+
+        // ══════════ 特殊被动（阶段 2 第一批） ══════════
+        // 长臂善舞：每级 +1 格触摸/攻击距离（上限 50）
+        reg(REACH, ArmorSkillCategory.SPECIAL, 50, ATTR,
+                add(Attributes.ENTITY_INTERACTION_RANGE, 1.0),
+                add(Attributes.BLOCK_INTERACTION_RANGE, 1.0));
+        // 星瞳夜视：夜视（1 级）
+        reg(NIGHT_VISION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.NIGHT_VISION);
+        // 饱食无忧：饱食（1 级）
+        reg(SATURATION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.SATURATION);
+        // 鲛人之息：水下呼吸（1 级）
+        reg(WATER_BREATHING, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.WATER_BREATHING);
+        // 破暗之瞳：免疫黑暗（1 级，持续清除黑暗效果）
+        reg(DARK_VISION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.DARK_VISION);
+        // 万民敬仰：村庄英雄（每级 1 级效果，上限 10）
+        reg(VILLAGE_HERO, ArmorSkillCategory.SPECIAL, 10, ArmorSkillDef.EffectKind.VILLAGE_HERO);
     }
 
     private ArmorSkills()
@@ -173,6 +243,7 @@ public final class ArmorSkills
     /** 该分类在当前阶段是否已开放（阶段 1 只有基础 / 增幅） */
     public static boolean isAvailable(ArmorSkillCategory category)
     {
-        return category == ArmorSkillCategory.BASE || category == ArmorSkillCategory.AMPLIFY;
+        return category == ArmorSkillCategory.BASE || category == ArmorSkillCategory.AMPLIFY
+                || category == ArmorSkillCategory.ULTIMATE || category == ArmorSkillCategory.SPECIAL;
     }
 }

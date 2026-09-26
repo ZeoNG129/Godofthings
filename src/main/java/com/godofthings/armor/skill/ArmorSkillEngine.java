@@ -31,7 +31,7 @@ public final class ArmorSkillEngine
     {
         for (ArmorSkillDef def : ArmorSkills.all())
         {
-            int level = ArmorSkillData.level(levels, def.id());
+            int level = ArmorSkillData.effectiveLevel(levels, def.id());
             for (ArmorSkillDef.AttrEffect effect : def.attrs())
             {
                 double amount = level * effect.perLevel();
@@ -73,61 +73,129 @@ public final class ArmorSkillEngine
     /** 每秒回血（生生不息 × (1 + 生生真解)）；每 UI 级基础 +2/秒，增幅每 UI 级 +100% */
     public static double regenPerSecond(Map<String, Integer> levels)
     {
-        double base = ArmorSkillData.level(levels, ArmorSkills.REGEN) * 2.0;
+        double base = ArmorSkillData.effectiveLevel(levels, ArmorSkills.REGEN) * 2.0;
         if (base <= 0)
         {
             return 0;
         }
-        double amp = ArmorSkillData.level(levels, ArmorSkills.AMP_REGEN) * 1.0;
+        double amp = ArmorSkillData.effectiveLevel(levels, ArmorSkills.AMP_REGEN) * 1.0;
         return base * (1 + amp);
     }
 
     /** 暴击几率（0~1，100% 封顶）：暴击要害每 UI 级 +1% */
     public static double critChance(Map<String, Integer> levels)
     {
-        return Math.min(1.0, ArmorSkillData.level(levels, ArmorSkills.CRIT) * 0.01);
+        return Math.min(1.0, ArmorSkillData.effectiveLevel(levels, ArmorSkills.CRIT) * 0.01);
     }
 
     /** 暴击伤害倍率：基础 1.5 × (1 + 暴击真解 × 50%) */
     public static double critMultiplier(Map<String, Integer> levels)
     {
-        double amp = ArmorSkillData.level(levels, ArmorSkills.AMP_CRIT) * 0.5;
+        double amp = ArmorSkillData.effectiveLevel(levels, ArmorSkills.AMP_CRIT) * 0.5;
         return 1.5 * (1 + amp);
     }
 
     /** 吸血率：min(1, 噬血之刃 × 1%) × (1 + 噬血真解 × 40%) */
     public static double lifestealRate(Map<String, Integer> levels)
     {
-        double rate = Math.min(1.0, ArmorSkillData.level(levels, ArmorSkills.LIFESTEAL) * 0.01);
+        double rate = Math.min(1.0, ArmorSkillData.effectiveLevel(levels, ArmorSkills.LIFESTEAL) * 0.01);
         if (rate <= 0)
         {
             return 0;
         }
-        double amp = ArmorSkillData.level(levels, ArmorSkills.AMP_LIFESTEAL) * 0.4;
+        double amp = ArmorSkillData.effectiveLevel(levels, ArmorSkills.AMP_LIFESTEAL) * 0.4;
         return rate * (1 + amp);
     }
 
     /** 荆棘反伤值：荆棘护体 × 0.5 × (1 + 荆棘真解 × 40%) */
     public static double thornsDamage(Map<String, Integer> levels)
     {
-        double base = ArmorSkillData.level(levels, ArmorSkills.THORNS) * 0.5;
+        double base = ArmorSkillData.effectiveLevel(levels, ArmorSkills.THORNS) * 0.5;
         if (base <= 0)
         {
             return 0;
         }
-        double amp = ArmorSkillData.level(levels, ArmorSkills.AMP_THORNS) * 0.4;
+        double amp = ArmorSkillData.effectiveLevel(levels, ArmorSkills.AMP_THORNS) * 0.4;
         return base * (1 + amp);
     }
 
     /** 破甲增伤比例：破甲利刃 × 1.5% × (1 + 破甲真解 × 40%) */
     public static double armorPenPercent(Map<String, Integer> levels)
     {
-        double base = ArmorSkillData.level(levels, ArmorSkills.ARMOR_PEN) * 0.015;
+        double base = ArmorSkillData.effectiveLevel(levels, ArmorSkills.ARMOR_PEN) * 0.015;
         if (base <= 0)
         {
             return 0;
         }
-        double amp = ArmorSkillData.level(levels, ArmorSkills.AMP_ARMOR_PEN) * 0.4;
+        double amp = ArmorSkillData.effectiveLevel(levels, ArmorSkills.AMP_ARMOR_PEN) * 0.4;
         return base * (1 + amp);
+    }
+
+    // ══════════ 阶段 2：收益倍率 / 常驻效果 / 飞行 ══════════
+
+    /** 生物掉落倍率（猎魂丰收）：1 + 等级（每级 +1 倍） */
+    public static double mobDropMultiplier(Map<String, Integer> levels)
+    {
+        return 1 + ArmorSkillData.effectiveLevel(levels, ArmorSkills.MOB_DROP);
+    }
+
+    /** 方块掉落倍率（点石成金）：1 + 等级 */
+    public static double blockDropMultiplier(Map<String, Integer> levels)
+    {
+        return 1 + ArmorSkillData.effectiveLevel(levels, ArmorSkills.BLOCK_DROP);
+    }
+
+    /** 战利品爆炸（财源滚滚）：1 + 等级（每级掉落翻一倍） */
+    public static double lootBombMultiplier(Map<String, Integer> levels)
+    {
+        return 1 + ArmorSkillData.effectiveLevel(levels, ArmorSkills.LOOT_BOMB);
+    }
+
+    /** 经验倍率（经验飞涨）：1 + 等级 × 2 */
+    public static double xpMultiplier(Map<String, Integer> levels)
+    {
+        return 1 + ArmorSkillData.effectiveLevel(levels, ArmorSkills.XP_GAIN) * 2.0;
+    }
+
+    /** 真创造飞行（宇宙的青睐）：已开启即 true */
+    public static boolean hasFlight(Map<String, Integer> levels)
+    {
+        return ArmorSkillData.isEnabled(levels, ArmorSkills.ULT_FAVOR);
+    }
+
+    /** 一条常驻药水效果 */
+    public record EffectSpec(net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> effect, int amplifier) {}
+
+    /**
+     * 常驻药水效果（阶段 2 的特殊被动）：由 tick 周期性刷新。
+     * <p>「破暗之瞳」不在这里——它是"持续清除黑暗"，见 {@link #removesDarkness}。
+     */
+    public static java.util.List<EffectSpec> passiveEffects(Map<String, Integer> levels)
+    {
+        java.util.List<EffectSpec> out = new java.util.ArrayList<>();
+        if (ArmorSkillData.isEnabled(levels, ArmorSkills.NIGHT_VISION))
+        {
+            out.add(new EffectSpec(net.minecraft.world.effect.MobEffects.NIGHT_VISION, 0));
+        }
+        if (ArmorSkillData.isEnabled(levels, ArmorSkills.SATURATION))
+        {
+            out.add(new EffectSpec(net.minecraft.world.effect.MobEffects.SATURATION, 0));
+        }
+        if (ArmorSkillData.isEnabled(levels, ArmorSkills.WATER_BREATHING))
+        {
+            out.add(new EffectSpec(net.minecraft.world.effect.MobEffects.WATER_BREATHING, 0));
+        }
+        int hero = ArmorSkillData.effectiveLevel(levels, ArmorSkills.VILLAGE_HERO);
+        if (hero > 0)
+        {
+            out.add(new EffectSpec(net.minecraft.world.effect.MobEffects.HERO_OF_THE_VILLAGE, hero - 1));
+        }
+        return out;
+    }
+
+    /** 破暗之瞳：是否持续清除黑暗效果 */
+    public static boolean removesDarkness(Map<String, Integer> levels)
+    {
+        return ArmorSkillData.isEnabled(levels, ArmorSkills.DARK_VISION);
     }
 }

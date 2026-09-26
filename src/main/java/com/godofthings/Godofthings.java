@@ -543,6 +543,8 @@ public class Godofthings
         // 神之机器参数配置（矿机/资源机/掉落机，godofthings-machines.toml）
         // 显式指定文件名，避免依赖默认命名规则（默认 godofthings-server.toml）。
         modContainer.registerConfig(ModConfig.Type.SERVER, MachinesConfig.SPEC, "godofthings-machines.toml");
+        // 客户端配置：记住配置界面上次停留的标签页（见 ClientConfig）
+        modContainer.registerConfig(ModConfig.Type.CLIENT, com.godofthings.config.ClientConfig.SPEC, "godofthings-client.toml");
 
         modEventBus.addListener(this::commonSetup);
 

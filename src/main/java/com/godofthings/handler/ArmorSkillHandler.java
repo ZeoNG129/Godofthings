@@ -33,6 +33,10 @@ public class ArmorSkillHandler
     private static final int CHECK_INTERVAL = 10;
     /** 回血每 20 tick（1 秒）一次 */
     private static final int REGEN_INTERVAL = 20;
+    /** 常驻药水效果刷新间隔（tick） */
+    private static final int EFFECT_INTERVAL = 40;
+    /** 常驻效果持续时间（tick）：比刷新间隔长，避免闪烁 */
+    private static final int EFFECT_DURATION = 100;
 
     /** 上次重挂时的状态指纹（避免每 tick 重复挂修饰符） */
     private static final Map<UUID, Integer> LAST_SIGNATURE = new HashMap<>();
@@ -123,6 +127,26 @@ public class ArmorSkillHandler
                 player.heal((float) regen);
             }
         }
+
+        // 常驻药水效果 + 创造飞行（阶段 2）；每 40 tick 刷一次，持续 100 tick 不会闪烁
+        if (tickCounter % EFFECT_INTERVAL == 0 && isActive(player))
+        {
+            Map<String, Integer> levels = ArmorSkillData.get(player);
+            for (ArmorSkillEngine.EffectSpec spec : ArmorSkillEngine.passiveEffects(levels))
+            {
+                player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                        spec.effect(), EFFECT_DURATION, spec.amplifier(), true, false, false));
+            }
+            if (ArmorSkillEngine.removesDarkness(levels) && player.hasEffect(net.minecraft.world.effect.MobEffects.DARKNESS))
+            {
+                player.removeEffect(net.minecraft.world.effect.MobEffects.DARKNESS);
+            }
+            if (ArmorSkillEngine.hasFlight(levels) && !player.getAbilities().mayfly)
+            {
+                player.getAbilities().mayfly = true;
+                player.onUpdateAbilities();
+            }
+        }
     }
 
     // ---- 攻击侧：暴击 / 破甲 ----
@@ -184,6 +208,77 @@ public class ArmorSkillHandler
         if (heal > 0 && attacker.getHealth() < attacker.getMaxHealth())
         {
             attacker.heal(heal);
+        }
+    }
+
+    // ---- 收益侧：掉落倍率 / 战利品爆炸 / 经验倍率（阶段 2） ----
+
+    /** 生物掉落：猎魂丰收 × 财源滚滚（把每个掉落物的数量按倍率放大） */
+    @SubscribeEvent
+    public static void onLivingDrops(net.neoforged.neoforge.event.entity.living.LivingDropsEvent event)
+    {
+        if (!(event.getSource().getEntity() instanceof ServerPlayer player) || !isActive(player))
+        {
+            return;
+        }
+        Map<String, Integer> levels = ArmorSkillData.get(player);
+        double mult = ArmorSkillEngine.mobDropMultiplier(levels) * ArmorSkillEngine.lootBombMultiplier(levels);
+        if (mult <= 1.0)
+        {
+            return;
+        }
+        for (net.minecraft.world.entity.item.ItemEntity drop : event.getDrops())
+        {
+            growStack(drop.getItem(), mult);
+        }
+    }
+
+    /** 方块掉落：点石成金 × 财源滚滚 */
+    @SubscribeEvent
+    public static void onBlockDrops(net.neoforged.neoforge.event.level.BlockDropsEvent event)
+    {
+        if (!(event.getBreaker() instanceof ServerPlayer player) || !isActive(player))
+        {
+            return;
+        }
+        Map<String, Integer> levels = ArmorSkillData.get(player);
+        double mult = ArmorSkillEngine.blockDropMultiplier(levels) * ArmorSkillEngine.lootBombMultiplier(levels);
+        if (mult <= 1.0)
+        {
+            return;
+        }
+        for (net.minecraft.world.entity.item.ItemEntity drop : event.getDrops())
+        {
+            growStack(drop.getItem(), mult);
+        }
+    }
+
+    /** 经验掉落：经验飞涨 */
+    @SubscribeEvent
+    public static void onExperienceDrop(net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent event)
+    {
+        if (!(event.getAttackingPlayer() instanceof ServerPlayer player) || !isActive(player))
+        {
+            return;
+        }
+        double mult = ArmorSkillEngine.xpMultiplier(ArmorSkillData.get(player));
+        if (mult > 1.0)
+        {
+            event.setDroppedExperience((int) Math.min(Integer.MAX_VALUE, Math.round(event.getDroppedExperience() * mult)));
+        }
+    }
+
+    /** 按倍率放大一个掉落堆叠（数量上限 6400，防止爆栈） */
+    private static void growStack(net.minecraft.world.item.ItemStack stack, double mult)
+    {
+        if (stack.isEmpty())
+        {
+            return;
+        }
+        int target = (int) Math.min(6400L, Math.round(stack.getCount() * mult));
+        if (target > stack.getCount())
+        {
+            stack.setCount(target);
         }
     }
 }

@@ -129,9 +129,17 @@ public final class ArmorSkillMessages
                     case ACTION_LEVEL_UP_10 -> current <= 0 ? ArmorSkills.UNLOCK_LEVEL
                             : Math.min(def.maxLevel(), current + 10);
                     case ACTION_SET_LEVEL -> Math.max(0, Math.min(def.maxLevel(), msg.value()));
-                    default -> current > 0 ? 0 : ArmorSkills.UNLOCK_LEVEL; // 开/关
+                    default -> current; // 开/关：等级不变，只翻开关状态（下面单独处理）
                 };
-                ArmorSkillData.setLevel(player, def.id(), next);
+                if (msg.action() == ACTION_TOGGLE)
+                {
+                    // 用户要求：关闭后再打开必须保留等级，所以只翻开关、不碰等级
+                    ArmorSkillData.setEnabled(player, def.id(), !ArmorSkillData.isEnabled(player, def.id()));
+                }
+                else
+                {
+                    ArmorSkillData.setLevel(player, def.id(), next);
+                }
                 com.godofthings.handler.ArmorSkillHandler.refresh(player);
                 sendSync(player);
             });
@@ -162,7 +170,9 @@ public final class ArmorSkillMessages
                 {
                     return;
                 }
-                int level = Math.max(0, Math.min(ArmorSkills.BASE_MAX_LEVEL, msg.level()));
+                // >0 = 设为该等级；<0 = 只关闭（保留等级）；0 = 清除该列（重置）
+                int raw = msg.level();
+                int level = raw == 0 ? 0 : (raw < 0 ? -1 : Math.min(ArmorSkills.BASE_MAX_LEVEL, raw));
                 ArmorSkillCategory[] categories = ArmorSkillCategory.values();
                 if (msg.categoryOrdinal() == CATEGORY_ALL)
                 {

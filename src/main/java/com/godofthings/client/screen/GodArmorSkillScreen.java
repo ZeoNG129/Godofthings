@@ -6,6 +6,7 @@ import com.godofthings.armor.skill.ArmorSkillCategory;
 import com.godofthings.armor.skill.ArmorSkillData;
 import com.godofthings.armor.skill.ArmorSkillDef;
 import com.godofthings.armor.skill.ArmorSkills;
+import com.godofthings.config.ClientConfig;
 import com.godofthings.network.ArmorMessages;
 import com.godofthings.network.ArmorSkillMessages;
 import net.minecraft.client.gui.GuiGraphics;
@@ -77,15 +78,29 @@ public class GodArmorSkillScreen extends Screen
     private static final int C_ACCENT_FEATURE = 0xFF7FD48A;
 
     private static final int[][] CAT_BG = {
-            { 0xFF203A55, 0xFF2B4B6D }, // BASE
-            { 0xFF503A27, 0xFF674A30 }, // AMPLIFY
+            { 0xFF203A55, 0xFF2B4B6D }, // BASE 基础属性
+            { 0xFF503A27, 0xFF674A30 }, // AMPLIFY 特殊增幅
+            { 0xFF512B34, 0xFF693641 }, // ULTIMATE 终极节点
+            { 0xFF4C3B27, 0xFF625035 }, // SPECIAL 特殊被动
             { 0xFF2B3A2E, 0xFF3A4E3E }, // 套装功能
     };
+
+    /** 标签页顺序：前 4 个技能分类 + 最后套装功能 */
+    private static final ArmorSkillCategory[] TAB_CATEGORIES = {
+            ArmorSkillCategory.BASE, ArmorSkillCategory.AMPLIFY,
+            ArmorSkillCategory.ULTIMATE, ArmorSkillCategory.SPECIAL };
+
+    private static final int[] TAB_ACCENT = {
+            C_ACCENT_BASE, C_ACCENT_AMPLIFY, 0xFFFF6B6B, 0xFFFFD166, C_ACCENT_FEATURE };
 
     /** 标签页索引（O 键 → 套装功能页；K 键 → 基础属性页） */
     public static final int TAB_BASE = 0;
     public static final int TAB_AMPLIFY = 1;
-    public static final int TAB_FEATURE = 2;
+    public static final int TAB_ULTIMATE = 2;
+    public static final int TAB_SPECIAL = 3;
+    public static final int TAB_FEATURE = 4;
+    /** 标签页总数（前 4 个是技能分类，最后一个是套装功能） */
+    private static final int TAB_COUNT = 5;
 
     /** 标签页：0 = 基础属性，1 = 特殊增幅，2 = 套装功能 */
     private int tab;
@@ -108,14 +123,15 @@ public class GodArmorSkillScreen extends Screen
 
     public GodArmorSkillScreen()
     {
-        this(0);
+        // 默认回到上次离开的那一页（用户要求：不要每次都跳回第一页）
+        this(ClientConfig.getLastTab());
     }
 
     /** @param initialTab 0=基础属性 1=特殊增幅 2=套装功能（O 键直接进套装功能页） */
     public GodArmorSkillScreen(int initialTab)
     {
         super(Component.translatable("gui.godofthings.armor.skill.title"));
-        this.tab = Math.max(0, Math.min(2, initialTab));
+        this.tab = Math.max(0, Math.min(TAB_COUNT - 1, initialTab));
     }
 
     // ══════════════════ 布局 ══════════════════
@@ -140,12 +156,12 @@ public class GodArmorSkillScreen extends Screen
 
     private int rowCount()
     {
-        return tab == 2 ? GodArmorFeatures.COUNT : ArmorSkills.of(categoryOfTab()).size();
+        return tab == TAB_FEATURE ? GodArmorFeatures.COUNT : ArmorSkills.of(categoryOfTab()).size();
     }
 
     private ArmorSkillCategory categoryOfTab()
     {
-        return tab == 1 ? ArmorSkillCategory.AMPLIFY : ArmorSkillCategory.BASE;
+        return tab >= 0 && tab < TAB_CATEGORIES.length ? TAB_CATEGORIES[tab] : ArmorSkillCategory.BASE;
     }
 
     // ══════════════════ 渲染 ══════════════════
@@ -165,14 +181,14 @@ public class GodArmorSkillScreen extends Screen
         drawScrollbar(gui, mouseX, mouseY);
         drawBottom(gui, mouseX, mouseY);
 
-        ArmorSkillDef hoveredSkill = (tab == 2) ? null : skillAt(mouseX, mouseY);
+        ArmorSkillDef hoveredSkill = (tab == TAB_FEATURE) ? null : skillAt(mouseX, mouseY);
         if (hoveredSkill != null)
         {
             renderSkillTooltip(gui, hoveredSkill, mouseX, mouseY);
         }
         else
         {
-            int hoveredFeature = (tab == 2) ? featureAt(mouseX, mouseY) : -1;
+            int hoveredFeature = (tab == TAB_FEATURE) ? featureAt(mouseX, mouseY) : -1;
             if (hoveredFeature >= 0)
             {
                 gui.renderTooltip(this.font, List.of(
@@ -202,18 +218,19 @@ public class GodArmorSkillScreen extends Screen
     private void drawTabs(GuiGraphics gui, int mouseX, int mouseY)
     {
         int y = py0 + TITLE_H + 2;
-        int tabW = (listW - 8) / 3;
-        Component[] labels = {
-                Component.translatable("gui.godofthings.armor.skill.cat.base"),
-                Component.translatable("gui.godofthings.armor.skill.cat.amplify"),
-                Component.translatable("gui.godofthings.armor.skill.tab.feature"),
-        };
-        for (int i = 0; i < 3; i++)
+        int tabW = (listW - (TAB_COUNT - 1) * 4) / TAB_COUNT;
+        Component[] labels = new Component[TAB_COUNT];
+        for (int i = 0; i < TAB_CATEGORIES.length; i++)
+        {
+            labels[i] = Component.translatable(TAB_CATEGORIES[i].getLangKey());
+        }
+        labels[TAB_FEATURE] = Component.translatable("gui.godofthings.armor.skill.tab.feature");
+        for (int i = 0; i < TAB_COUNT; i++)
         {
             int x = listX0 + i * (tabW + 4);
             boolean selected = tab == i;
             boolean hovered = mouseX >= x && mouseX < x + tabW && mouseY >= y && mouseY < y + 18;
-            int accent = i == 0 ? C_ACCENT_BASE : (i == 1 ? C_ACCENT_AMPLIFY : C_ACCENT_FEATURE);
+            int accent = TAB_ACCENT[i];
             int bg = selected ? (accent & 0x00FFFFFF) | 0x55000000 : (hovered ? C_BTN_HOVER : C_SUB_BG);
             fillRound(gui, x, y, x + tabW, y + 18, R_SUB - 2, C_SUB_EDGE);
             fillRound(gui, x + 1, y + 1, x + tabW - 1, y + 17, R_SUB - 3, bg);
@@ -239,7 +256,7 @@ public class GodArmorSkillScreen extends Screen
             boolean hovered = mouseX >= listX0 && mouseX < listX0 + listW
                     && mouseY >= ry && mouseY < ry + ROW_H
                     && mouseY >= listY0 && mouseY < listY0 + listH;
-            if (tab == 2)
+            if (tab == TAB_FEATURE)
             {
                 drawFeatureRow(gui, i, ry, hovered);
             }
@@ -254,9 +271,9 @@ public class GodArmorSkillScreen extends Screen
     private void drawSkillRow(GuiGraphics gui, ArmorSkillDef def, int ry, boolean hovered)
     {
         int lv = ArmorSkillData.clientLevel(def.id());
-        boolean on = lv > 0;
-        int[] pal = CAT_BG[tab == 1 ? 1 : 0];
-        int accent = tab == 1 ? C_ACCENT_AMPLIFY : C_ACCENT_BASE;
+        boolean on = ArmorSkillData.clientEnabled(def.id());
+        int[] pal = CAT_BG[Math.max(0, Math.min(CAT_BG.length - 1, tab))];
+        int accent = TAB_ACCENT[Math.max(0, Math.min(TAB_ACCENT.length - 1, tab))];
 
         int rowW = listW - 6;
         fillRound(gui, listX0 + 3, ry, listX0 + 3 + rowW, ry + ROW_H, R_ROW, hovered ? pal[1] : pal[0]);
@@ -269,9 +286,20 @@ public class GodArmorSkillScreen extends Screen
         // 第一行：技能名 + 右侧等级
         gui.drawString(this.font, Component.translatable(def.nameKey()),
                 listX0 + 12, ry + 4, on ? C_TEXT : C_TEXT_OFF, false);
-        Component lvText = on
-                ? Component.translatable("gui.godofthings.armor.skill.lv_max", lv, def.maxLevel())
-                : Component.translatable("gui.godofthings.armor.skill.off");
+        // 关闭时把记住的等级也显示出来，让「关掉不会丢等级」一目了然
+        Component lvText;
+        if (on)
+        {
+            lvText = Component.translatable("gui.godofthings.armor.skill.lv_max", lv, def.maxLevel());
+        }
+        else if (lv > 0)
+        {
+            lvText = Component.translatable("gui.godofthings.armor.skill.off_lv", lv);
+        }
+        else
+        {
+            lvText = Component.translatable("gui.godofthings.armor.skill.off");
+        }
         gui.drawString(this.font, lvText, listX0 + 3 + rowW - 8 - this.font.width(lvText), ry + 4,
                 on ? C_LV : C_LV_OFF, false);
 
@@ -387,7 +415,7 @@ public class GodArmorSkillScreen extends Screen
     private ArmorSkillDef skillAt(int mouseX, int mouseY)
     {
         int idx = rowIndexAt(mouseX, mouseY);
-        return idx < 0 || tab == 2 ? null : ArmorSkills.of(categoryOfTab()).get(idx);
+        return idx < 0 || tab == TAB_FEATURE ? null : ArmorSkills.of(categoryOfTab()).get(idx);
     }
 
     private int featureAt(int mouseX, int mouseY)
@@ -400,7 +428,7 @@ public class GodArmorSkillScreen extends Screen
     private boolean overBar(int mouseX, int mouseY, ArmorSkillDef def)
     {
         int idx = rowIndexAt(mouseX, mouseY);
-        if (idx < 0 || tab == 2)
+        if (idx < 0 || tab == TAB_FEATURE)
         {
             return false;
         }
@@ -425,8 +453,8 @@ public class GodArmorSkillScreen extends Screen
 
         // 标签行
         int ty = py0 + TITLE_H + 2;
-        int tabW = (listW - 8) / 3;
-        for (int i = 0; i < 3; i++)
+        int tabW = (listW - (TAB_COUNT - 1) * 4) / TAB_COUNT;
+        for (int i = 0; i < TAB_COUNT; i++)
         {
             int x = listX0 + i * (tabW + 4);
             if (inRect(mx, my, x, ty, tabW, 18))
@@ -449,7 +477,7 @@ public class GodArmorSkillScreen extends Screen
         }
 
         // 列表内容
-        if (tab == 2)
+        if (tab == TAB_FEATURE)
         {
             int f = featureAt(mx, my);
             if (f >= 0)
@@ -496,7 +524,7 @@ public class GodArmorSkillScreen extends Screen
                 switch (i)
                 {
                     case 0 -> bulk(1);
-                    case 1 -> bulk(0);
+                    case 1 -> bulk(-1);    // 全部关闭（只关，保留等级）
                     case 2 -> resetAll();
                     default -> this.onClose();
                 }
@@ -508,12 +536,13 @@ public class GodArmorSkillScreen extends Screen
 
     private void bulk(int level)
     {
-        if (tab == 2)
+        if (tab == TAB_FEATURE)
         {
             GodArmorState.setClientMask(level > 0 ? GodArmorFeatures.ALL : 0);
             ArmorMessages.sendMask(GodArmorState.getClientMask());
             return;
         }
+        // level > 0 = 全部开启；level = -1 = 全部关闭但保留等级
         ArmorSkillMessages.sendBulk(categoryOfTab().ordinal(), level);
     }
 
@@ -521,6 +550,7 @@ public class GodArmorSkillScreen extends Screen
     {
         GodArmorState.setClientMask(0);
         ArmorMessages.sendMask(0);
+        // 0 = 真重置：连等级一起清除
         ArmorSkillMessages.sendBulk(ArmorSkillMessages.CATEGORY_ALL, 0);
     }
 
@@ -563,7 +593,7 @@ public class GodArmorSkillScreen extends Screen
         int mx = (int) mouseX;
         int my = (int) mouseY;
         // 悬停在进度条上 → 调等级；否则滚动列表
-        if (tab != 2)
+        if (tab != TAB_FEATURE)
         {
             ArmorSkillDef def = skillAt(mx, my);
             if (def != null && overBar(mx, my, def))
@@ -582,6 +612,13 @@ public class GodArmorSkillScreen extends Screen
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+    }
+
+    @Override
+    public void onClose()
+    {
+        ClientConfig.setLastTab(tab); // 记住这一页，下次打开直接回来
+        super.onClose();
     }
 
     @Override

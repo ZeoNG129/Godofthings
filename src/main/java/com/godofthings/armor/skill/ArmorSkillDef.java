@@ -41,7 +41,28 @@ public record ArmorSkillDef(
         /** 荆棘反伤（荆棘护体 / 荆棘真解） */
         THORNS,
         /** 破甲增伤（破甲利刃 / 破甲真解） */
-        ARMOR_PEN
+        ARMOR_PEN,
+
+        /** 夜视（星瞳夜视） */
+        NIGHT_VISION,
+        /** 饱食（饱食无忧） */
+        SATURATION,
+        /** 水下呼吸（鲛人之息） */
+        WATER_BREATHING,
+        /** 免疫黑暗（破暗之瞳） */
+        DARK_VISION,
+        /** 村庄英雄（万民敬仰） */
+        VILLAGE_HERO,
+        /** 真创造飞行（宇宙的青睐） */
+        FLIGHT,
+        /** 生物掉落倍率（猎魂丰收） */
+        MOB_DROP,
+        /** 方块掉落倍率（点石成金） */
+        BLOCK_DROP,
+        /** 战利品爆炸（财源滚滚） */
+        LOOT_BOMB,
+        /** 经验倍率（经验飞涨） */
+        XP_GAIN
     }
 
     /**

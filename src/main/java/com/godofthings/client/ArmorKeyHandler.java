@@ -37,12 +37,12 @@ public final class ArmorKeyHandler
         while (WandKeyBindings.OPEN_ARMOR_CONFIG_KEY.get().consumeClick())
         {
             requestAll();
-            mc.setScreen(new GodArmorSkillScreen(GodArmorSkillScreen.TAB_FEATURE));
+            mc.setScreen(new GodArmorSkillScreen());
         }
         while (WandKeyBindings.OPEN_ARMOR_SKILL_KEY.get().consumeClick())
         {
             requestAll();
-            mc.setScreen(new GodArmorSkillScreen(GodArmorSkillScreen.TAB_BASE));
+            mc.setScreen(new GodArmorSkillScreen());
         }
     }
 

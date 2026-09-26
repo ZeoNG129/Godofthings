@@ -3,7 +3,9 @@
   "minVersion": "0.8",
   "package": "com.godofthings.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": [
+    "RangedAttributeMixin"
+  ],
   "client": [
     "GuiHeartsCompressMixin"
   ],
