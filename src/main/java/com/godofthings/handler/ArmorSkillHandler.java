@@ -1093,7 +1093,7 @@ public class ArmorSkillHandler
     }
 
     /** 定身神域：免疫击退（在 onKnockBack 中调用） */
-    private static boolean auraLockOn(net.minecraft.world.entity.LivingEntity entity)
+    private static boolean auraLockOn(net.minecraft.world.entity.Entity entity)
     {
         return entity instanceof ServerPlayer player && isActive(player)
                 && ArmorSkillEngine.isOn(ArmorSkillData.get(player), ArmorSkills.AURA_LOCK);
