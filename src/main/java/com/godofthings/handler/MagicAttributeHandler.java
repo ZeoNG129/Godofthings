@@ -18,6 +18,10 @@ public final class MagicAttributeHandler
 {
     private MagicAttributeHandler() {}
 
+    /** 自检日志只打一次 */
+    private static boolean LOGGED = false;
+    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
+
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event)
     {
@@ -27,6 +31,16 @@ public final class MagicAttributeHandler
         }
         try
         {
+            if (!LOGGED)
+            {
+                LOGGED = true;
+                java.util.List<String> ok = MagicAttributeBridge.availableSkills();
+                java.util.List<String> all = MagicAttributeBridge.allSkills();
+                java.util.List<String> missing = new java.util.ArrayList<>(all);
+                missing.removeAll(ok);
+                LOGGER.info("[Godofthings] 魔法增幅属性自检：已匹配 {} / {} 个技能；未匹配（对应 mod 未提供该属性，技能将不生效）：{}",
+                        ok.size(), all.size(), missing);
+            }
             if (GodArmorHandler.isFullSetWorn(player))
             {
                 MagicAttributeBridge.ensure(player, ArmorSkillData.get(player));

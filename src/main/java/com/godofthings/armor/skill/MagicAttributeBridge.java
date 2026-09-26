@@ -225,7 +225,13 @@ public final class MagicAttributeBridge
         }
     }
 
-    /** 当前能解析到属性的技能数量（用于日志/自检） */
+    /** 全部魔法增幅技能 id（自检用） */
+    public static List<String> allSkills()
+    {
+        return new ArrayList<>(BOOSTS.keySet());
+    }
+
+    /** 当前能解析到属性的技能（用于日志自检） */
     public static List<String> availableSkills()
     {
         List<String> out = new ArrayList<>();
