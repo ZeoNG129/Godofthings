@@ -97,3 +97,7 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 技能总数 **72**（基础 15 / 增幅 15 / 终极 21 / 特殊 **21**），语言键 470×2、差异 0。
   - **特殊被动未做的 3 个（说明原因）**：**寻宝大师**（需要客户端方块发光轮廓渲染）、**御风止步**（无飞行惯性，需改客户端移动输入）、**凌空采掘**（本模组的"穿齐全套"本身已提供飞行挖掘无惩罚，做技能会重复）。**闪现**按用户要求不做。**法力虹吸**依赖 Ars Nouveau / Iron's Spells 的魔力系统，与魔法增幅一起留到最后一批。
   - **额外修复（用户反馈）**：配置界面右上角"是否穿齐全套"改为**缓存 + 每 5 tick 刷新，且只在界面打开期间计算**（原先每帧扫一次背包——实测 4 次数组读取 + 4 次 instanceof，开销可忽略，但按用户要求改成更省的方案）。
+- 2.11.0 → **2.11.1（补齐遗漏的「碧波清眸」）**：用户指出特殊被动漏了**碧波清眸（`underwater_vision`，水下视野）**。已补：水下与岩浆中**雾效完全消除**，视野与空气中一致。
+  - **为什么必须用 Mixin 而不是 ViewportEvent**（参考模组踩过的坑）：`ViewportEvent.RenderFog` 在 `setupFog` 内部设置完 shader 之后才触发，而**水下是球体指数雾**——只改 start/end 玩家仍只能看一两格。故新增客户端 `FogRendererMixin`，在 `setupFog` **入口直接拦截**：等价于原版 `setupNoFog`（`RenderSystem.setShaderFogStart/End(Float.MAX_VALUE)` + `setShaderFogShape(CYLINDER)` + `ci.cancel()`）。
+  - 生效条件（全满足才拦截，零误伤）：①相机浸没在水或岩浆 ②相机实体是**本地玩家**（多人下不影响别人视角）③碧波清眸已开启**且穿齐全套**。`require = 0`，注入失败只降级（雾照旧）不崩。
+  - 技能总数 **73**（基础 15 / 增幅 15 / 终极 21 / 特殊 **22**），语言键 442×2、差异 0。Mixin 总数 4 个（RangedAttribute / BlockState / GuiHeartsCompress / **FogRenderer**）。

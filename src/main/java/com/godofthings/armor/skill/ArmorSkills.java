@@ -110,6 +110,7 @@ public final class ArmorSkills
     public static final String ENCHANT_OVER = "enchant_over";
     public static final String UNLIMITED_TRADES = "unlimited_trades";
     public static final String VILLAGER_MASTER = "villager_master";
+    public static final String UNDERWATER_VISION = "underwater_vision";
 
     /** 基础/增幅类每项等级上限（原 mod 压缩后的上限） */
     public static final int BASE_MAX_LEVEL = 100;
@@ -288,6 +289,8 @@ public final class ArmorSkills
         reg(UNLIMITED_TRADES, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.UNLIMITED_TRADES);
         // 村民大师：右键村民使其成为大师级
         reg(VILLAGER_MASTER, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.VILLAGER_MASTER);
+        // 碧波清眸：水下/岩浆清晰视野（客户端雾效完全禁用，见 FogRendererMixin）
+        reg(UNDERWATER_VISION, ArmorSkillCategory.SPECIAL, 1, ArmorSkillDef.EffectKind.UNDERWATER_VISION);
     }
 
     private ArmorSkills()

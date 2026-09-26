@@ -438,5 +438,7 @@
   "gui.godofthings.armor.skill.enchant_break.desc": "Anvil: 2 lapis blocks + 4 levels, +1 to each enchantment (cap 20)",
   "gui.godofthings.armor.skill.enchant_over.desc": "Anvil: 2 nether stars + 10 levels, +1 to each enchantment (cap 100)",
   "gui.godofthings.armor.skill.unlimited_trades.desc": "Villager trades never run out",
-  "gui.godofthings.armor.skill.villager_master.desc": "Right-click a villager to make it a master"
+  "gui.godofthings.armor.skill.villager_master.desc": "Right-click a villager to make it a master",
+  "gui.godofthings.armor.skill.underwater_vision": "Clear Sight",
+  "gui.godofthings.armor.skill.underwater_vision.desc": "Crystal-clear vision underwater and in lava (fog removed)"
 }

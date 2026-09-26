@@ -438,5 +438,7 @@
   "gui.godofthings.armor.skill.enchant_break.desc": "铁砧：右槽 2 青金石块 + 4 级经验 → 已有附魔各 +1（上限 20）",
   "gui.godofthings.armor.skill.enchant_over.desc": "铁砧：右槽 2 下界之星 + 10 级经验 → 已有附魔各 +1（上限 100）",
   "gui.godofthings.armor.skill.unlimited_trades.desc": "村民交易不消耗次数",
-  "gui.godofthings.armor.skill.villager_master.desc": "右键村民使其成为大师级"
+  "gui.godofthings.armor.skill.villager_master.desc": "右键村民使其成为大师级",
+  "gui.godofthings.armor.skill.underwater_vision": "碧波清眸",
+  "gui.godofthings.armor.skill.underwater_vision.desc": "水下与岩浆中拥有清晰视野（雾效完全消除）"
 }

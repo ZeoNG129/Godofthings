@@ -114,7 +114,9 @@ public record ArmorSkillDef(
         /** 无限交易 */
         UNLIMITED_TRADES,
         /** 村民大师 */
-        VILLAGER_MASTER
+        VILLAGER_MASTER,
+        /** 碧波清眸：水下/岩浆清晰视野（客户端雾效） */
+        UNDERWATER_VISION
     }
 
     /**
