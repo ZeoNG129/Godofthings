@@ -1,15 +1,6 @@
 package com.godofthings.block.entity;
 
-import appeng.api.AECapabilities;
-import appeng.api.config.Actionable;
-import appeng.api.networking.IManagedGridNode;
-import appeng.api.networking.security.IActionSource;
-import appeng.api.networking.storage.IStorageService;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.storage.MEStorage;
-import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.AeGridNode;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodFurnaceMenu;
 import net.minecraft.core.BlockPos;
@@ -45,8 +36,15 @@ import java.util.Optional;
  * - 无燃料，3 输入 + 3 输出，每个输入槽每 tick 最多把一整组(64)熔炼完毕
  * - 六个面各自可配置 NONE / INPUT(自动抽入) / OUTPUT(自动推出)，见 {@link FaceMode}
  * - 每 tick 先自动传输补料，再熔炼
+ *
+ * <p><b>v5.1.3：本机的 AE 功能已按用户要求整体删除</b> —— 不再实现
+ * {@code IGridConnectedBlockEntity}、不再注册 {@code AECapabilities.IN_WORLD_GRID_NODE_HOST}
+ * 能力、没有网格节点、没有「AE 接入开关」、产物不再推入 ME 网络。
+ * 因此它**既接不了 AE 线缆，也不可能被无线并网**（荒辰移晷之杖的「AE 网络连接」模式
+ * 要先取到目标方块的这个能力，取不到就会直接拒绝，见 {@code AeDeviceLinker}）。
+ * 其余 6 台（矿机 / 资源机 / 掉落机 / 砍杀 / 合成台 / 吸收）的 AE 并网不受影响。</p>
  */
-public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
 {
     public static final int INPUT_SLOT_COUNT = 6;
     public static final int OUTPUT_SLOT_COUNT = 6;
@@ -120,13 +118,6 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
 
     private final IItemHandler[] sideHandlers = new IItemHandler[6];
 
-    /** 是否接入 AE（并网后产物自动输出进 AE 网络，占一个频道）。 */
-    private boolean aeEnabled = true;
-
-    /** AE 网格节点（线缆直连并网）。 */
-    private final AeGridNode aeNode = new AeGridNode(this);
-    private int aeTick = 0;
-
     public GodFurnaceBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.GOD_FURNACE_BE.get(), pos, state);
@@ -140,54 +131,6 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     public ItemStackHandler getItemHandler()
     {
         return itemHandler;
-    }
-
-    public boolean isAeEnabled()
-    {
-        return aeEnabled;
-    }
-
-    public void toggleAeEnabled()
-    {
-        this.aeEnabled = !this.aeEnabled;
-        setChanged();
-    }
-
-    // ---- AE 网格节点（线缆直连并网，产物自动输出进 AE） ----
-
-    @Override
-    public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
-
-    @Override
-    public void saveChanges() { setChanged(); }
-
-    /** 把输出槽产物推入 AE 网络（节流由 tick 控制）。 */
-    private void pushOutputToAe()
-    {
-        if (!aeEnabled || !aeNode.isActive())
-        {
-            return;
-        }
-        IStorageService storage = aeNode.getStorage();
-        if (storage == null)
-        {
-            return;
-        }
-        MEStorage inv = storage.getInventory();
-        IActionSource source = aeNode.actionSource();
-        for (int slot = OUTPUT_SLOT_START; slot < OUTPUT_SLOT_START + OUTPUT_SLOT_COUNT; slot++)
-        {
-            ItemStack stack = itemHandler.getStackInSlot(slot);
-            if (stack.isEmpty())
-            {
-                continue;
-            }
-            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
-            if (inserted > 0)
-            {
-                itemHandler.extractItem(slot, (int) inserted, false);
-            }
-        }
     }
 
     /** 神之加速槽（只接受神之加速，最多 64 个） */
@@ -262,8 +205,8 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_FURNACE_BE.get(),
                     (be, side) -> be.getSideCapability(side));
-            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_FURNACE_BE.get(),
-                    (be, side) -> be);
+            // v5.1.3：不再注册 AECapabilities.IN_WORLD_GRID_NODE_HOST —— 神之熔炉不能接 AE 网络。
+            // （线缆与荒辰移晷之杖的无线并网都要求这个能力，撤掉后两条路同时失效。）
         }
     }
 
@@ -337,20 +280,6 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
 
     // ---- tick：先自动传输，再熔炼 ----
 
-    @Override
-    public void onLoad()
-    {
-        super.onLoad();
-        aeNode.create(level, worldPosition);
-    }
-
-    @Override
-    public void setRemoved()
-    {
-        aeNode.destroy();
-        super.setRemoved();
-    }
-
     public static void tick(Level level, BlockPos pos, BlockState state, GodFurnaceBlockEntity be)
     {
         if (level.isClientSide)
@@ -359,13 +288,6 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
         }
         be.autoTransfer();
         be.smelt();
-        // AE 产物输出节流：每 20 tick（1 秒）推一次
-        be.aeTick++;
-        if (be.aeTick >= 20)
-        {
-            be.aeTick = 0;
-            be.pushOutputToAe();
-        }
     }
 
     private void autoTransfer()
@@ -623,7 +545,6 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
         tag.put("Inventory", itemHandler.serializeNBT(registries));
         tag.put("AccelSlot", accelSlot.serializeNBT(registries));
         tag.putIntArray("FaceModes", faceModes);
-        tag.putBoolean("AeEnabled", aeEnabled);
     }
 
     // 1.21.1（1.20.5+ 破坏性变更）：load(CompoundTag) → loadAdditional(CompoundTag, HolderLookup.Provider)
@@ -631,7 +552,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries)
     {
         super.loadAdditional(tag, registries);
-        this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
+        // v5.1.3：AE 已移除，旧存档里的 "AeEnabled" 键直接忽略（不再读取）。
         if (tag.contains("AccelSlot"))
         {
             accelSlot.deserializeNBT(registries, tag.getCompound("AccelSlot"));

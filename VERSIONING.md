@@ -528,3 +528,27 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 >   原件经哈希核对**仍是未改的原版**，等他自行替换。
 > · **未验证**：45 槽的界面滚动手感（aeind 的界面继承 AE2 的 `PatternProviderMenu`，槽位按库存容量
 >   动态创建，AE2 样式里样板槽是 `"grid": "HORIZONTAL"` 横向滚动面，理论上可滚动显示）。
+- 5.1.2 → **5.1.3（删除神之熔炉的 AE 功能，且让它连不上 AE 网络）** —— 以删除功能为主，按规则**末位 +1**。
+  - **用户需求**：「删除神之熔炉的 ae 功能，且不能连接 ae 网络。」
+  - **先查清「能连上 AE」到底有几条路**（这是本次的关键，只删一半会留下漏洞）：
+    · **线缆直连**：AE2 靠能力 `AECapabilities.IN_WORLD_GRID_NODE_HOST` 找网格节点宿主；
+    · **无线并网**：本模组荒辰移晷之杖的「AE 网络连接」模式（`beef/compat/ae/AeDeviceLinker`）——
+      它在第 110-116 行**同样先取这个能力**，取不到就提示「该方块还没有可用的 AE 网络节点」并直接返回。
+    结论：**撤掉这一个能力注册，两条路同时失效** —— 不需要额外改 linker。
+  - **删除清单（三处，共 3 个文件）**：
+    · `GodFurnaceBlockEntity`：不再 `implements IGridConnectedBlockEntity`；删掉 `aeEnabled` / `aeNode(AeGridNode)` /
+      `aeTick` 三个字段，`isAeEnabled` / `toggleAeEnabled` / `getMainNode` / `saveChanges` / `pushOutputToAe` 五个方法，
+      `onLoad`/`setRemoved` 里 `aeNode.create/destroy`（两个覆写因此整段删除）、tick 里每 20 tick 的产物推送、
+      NBT 的 `AeEnabled` 读写、以及 **`AECapabilities.IN_WORLD_GRID_NODE_HOST` 的注册**（只留 `ItemHandler.BLOCK`）；
+      清理 9 个 `appeng.*` 与 `AeGridNode` 的 import，类注释里写明本机为何与另外 6 台不同。
+    · `GodFurnaceMenu`：删掉 AE 同步 `DataSlot`、`cachedAeEnabled`、`isAeEnabled()`、`clickMenuButton` 里的 `buttonId == 7` 分支。
+    · `GodFurnaceScreen`：删掉 AE 按钮的常量、绘制与点击分支（buttonId 7）。
+  - **保留不动**：其余 6 台（矿机 / 资源机 / 掉落机 / 砍杀 / 合成台 / 吸收）的 AE 并网、`AeGridNode` 类、
+    `AeDeviceLinker` 与杖的「AE 网络连接」模式全部照旧。
+  - **旧存档兼容**：`loadAdditional` 里不再读 `AeEnabled` 键（旧数据留着不读，不报错）。
+    · 已知小尾巴：若某台熔炉**在本次改动前**已被无线并网过，`AeConnectLinkSavedData` 里那条链接记录仍在，
+    会变成无效残留（不会有任何功能，只是高亮线可能还画着）；需要的话可以下次顺手清。
+  - README「内容一览」的 AE2 兼容一行按约定同步：**7 台 → 6 台**，并标注熔炉已删除 AE。
+  - **验证**：编译 0 错误；全仓 grep `appeng|AECapabilities|AeGridNode|IGridConnected|aeEnabled|AeEnabled|aeNode|aeTick`
+    在熔炉三个文件里**只剩说明性注释**；熔炉的能力注册只剩 `Capabilities.ItemHandler.BLOCK` ✓；
+    专用服务器实跑（含数据包在工作世界放下熔炉并让 tick 正常跑）确认无异常。
