@@ -369,3 +369,8 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **创造物品栏**：按上一版要求保持精简，只加杖本体与范围回收器各一格。
   - **未做**：AE2 手册（`assets/ae2/ae2guide/useless_stretcher/*`，index + 6 页）未照抄——它是扩展模组的整本手册，其中 `myriad.md` / `stretcher.md` 讲的是未移植的模具与担架，只抄 `staff.md` / `range.md` 会让索引指向不存在的页面。需要的话可以单独做一份只含杖与范围加速的精简手册。
   - `gradlew build` SUCCESS，jar 含 105 个 `com/godofthings/beef/stretcher` class 与 8 个 stretcher Mixin，已自动部署到两个测试实例。
+- 4.0.0 → **4.0.1（修复 Mixin 方法描述符里的旧包名）** —— 修复，按规则**末位 +1**。
+  - **问题**：`BeefToolVariantsMixin` 里 `@Inject(method = "createForToolMode(...)")` 用的是 **JVM 描述符字符串**，其中类型是**斜杠形式** `Lcom/sorrowmist/useless/api/enums/tool/ToolTypeMode;`。照抄时的机械改写只覆盖了点号形式 `com.sorrowmist.useless`，**没有覆盖斜杠形式** → 该注入的目标方法签名对不上，静默失效（`injectors.defaultRequire=0`），症状是杖无法接入造化杖的工具变体系统（模式轮盘里切形态时不会保持杖的身份）。
+  - **修复**：把该描述符改成 `Lcom/godofthings/beef/api/enums/tool/ToolTypeMode;`。
+  - **全仓复查**：`grep com/sorrowmist` 与 `grep com\.sorrowmist` 覆盖整个 `src/`，确认**仅此一处**功能性残留（其余全部是 shim 与接线类里的说明性注释）。同时复核了另外 3 个带 `method = "..."` 的 stretcher Mixin（`StaffMiningDispatcherMixin` / `StaffMiningDropsMixin` / `BeefTimeAccelerationMixin`），它们的目标类型都由 import 解析，描述符里只有原版/NeoForge 类型，无遗留。
+  - **教训**：照抄含 Mixin 的模组时，包名改写必须同时覆盖**点号形式**（`a.b.C`）与 **JVM 斜杠描述符形式**（`La/b/C;`）——后者只在 `@Inject/@Redirect/@WrapMethod` 的 `method = "..."` 字面量里出现，grep 点号形式查不到。

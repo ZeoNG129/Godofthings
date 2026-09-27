@@ -46,7 +46,7 @@ public abstract class BeefToolVariantsMixin {
     }
 
     @Inject(
-            method = "createForToolMode(Lnet/minecraft/world/item/ItemStack;Lcom/sorrowmist/useless/api/enums/tool/ToolTypeMode;)Lnet/minecraft/world/item/ItemStack;",
+            method = "createForToolMode(Lnet/minecraft/world/item/ItemStack;Lcom/godofthings/beef/api/enums/tool/ToolTypeMode;)Lnet/minecraft/world/item/ItemStack;",
             at = @At("HEAD"),
             cancellable = true)
     private static void uselessStretcher$keepStaffIdentity(ItemStack source, ToolTypeMode mode,
