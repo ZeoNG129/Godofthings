@@ -35,14 +35,12 @@ import com.godofthings.energy.CreativeEnergyCubeBlock;
 import com.godofthings.energy.CreativeEnergyCubeEntity;
 import com.godofthings.energy.CreativeEnergyCubeMenu;
 import com.godofthings.handler.AdAstraCompat;
-import com.godofthings.handler.GodFavorWandAe2Helper;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.item.GodArmorItem;
 import com.godofthings.item.GodBinderItem;
 import com.godofthings.item.GodBlackBoxItem;
 import com.godofthings.item.GodCannonItem;
 import com.godofthings.item.GodChangeItem;
-import com.godofthings.item.GodFavorWandItem;
 import com.godofthings.item.GodInviteItem;
 import com.godofthings.item.GodMinerItem;
 import com.godofthings.item.GodSwordItem;
@@ -244,19 +242,7 @@ public class Godofthings
             ITEMS.registerItem("god_binder", GodBinderItem::new);
 
     // ---- 神之工具 ----
-    public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND =
-            ITEMS.registerItem("god_favor_wand", GodFavorWandItem::new);
     // GT 扳手模式子类（通过模式轮盘切换，不直接出现在创造标签）
-    public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND_WRENCH =
-            ITEMS.registerItem("god_favor_wand_wrench", GodFavorWandItem::new);
-    public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND_SCREWDRIVER =
-            ITEMS.registerItem("god_favor_wand_screwdriver", GodFavorWandItem::new);
-    public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND_MALLET =
-            ITEMS.registerItem("god_favor_wand_mallet", GodFavorWandItem::new);
-    public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND_CROWBAR =
-            ITEMS.registerItem("god_favor_wand_crowbar", GodFavorWandItem::new);
-    public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND_HAMMER =
-            ITEMS.registerItem("god_favor_wand_hammer", GodFavorWandItem::new);
 
     // ---- 维度传送器（方块）----
     public static final DeferredBlock<DimensionTeleporterBlock> SUPERFLAT_TELEPORTER =
@@ -506,7 +492,6 @@ public class Godofthings
                         output.accept(GOD_CHESTPLATE.get());
                         output.accept(GOD_LEGGINGS.get());
                         output.accept(GOD_BOOTS.get());
-                        output.accept(GOD_FAVOR_WAND.get());
                         output.accept(GOD_UNBREAKABLE.get());
                         output.accept(GOD_ACCELERATOR.get());
                         output.accept(GOD_SWORD.get());
@@ -531,16 +516,6 @@ public class Godofthings
 
     public Godofthings(IEventBus modEventBus, ModContainer modContainer)
     {
-        // 照抄的荒辰移晷子系统：注册实体类型与数据组件
-        com.godofthings.wand.init.StretcherComponents.init(modEventBus);
-
-        // ── 照抄自万象担架主类 UselessStretcherMod 的初始化清单 ──
-        com.godofthings.wand.init.ModEntities.ENTITIES.register(modEventBus);
-        com.godofthings.wand.init.ModCreativeTabs.CREATIVE_TAB.register(modEventBus);
-        // 配置文件：不注册它，照抄代码读配置时会抛
-        // IllegalStateException: Cannot get config value before config is loaded.
-        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON,
-                com.godofthings.wand.config.StretcherConfig.COMMON_SPEC);
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
@@ -578,12 +553,6 @@ public class Godofthings
         }
         try
         {
-            appeng.api.features.GridLinkables.register(GOD_FAVOR_WAND.get(), GodFavorWandAe2Helper.LINKABLE_HANDLER);
-            appeng.api.features.GridLinkables.register(GOD_FAVOR_WAND_WRENCH.get(), GodFavorWandAe2Helper.LINKABLE_HANDLER);
-            appeng.api.features.GridLinkables.register(GOD_FAVOR_WAND_SCREWDRIVER.get(), GodFavorWandAe2Helper.LINKABLE_HANDLER);
-            appeng.api.features.GridLinkables.register(GOD_FAVOR_WAND_MALLET.get(), GodFavorWandAe2Helper.LINKABLE_HANDLER);
-            appeng.api.features.GridLinkables.register(GOD_FAVOR_WAND_CROWBAR.get(), GodFavorWandAe2Helper.LINKABLE_HANDLER);
-            appeng.api.features.GridLinkables.register(GOD_FAVOR_WAND_HAMMER.get(), GodFavorWandAe2Helper.LINKABLE_HANDLER);
         }
         catch (Exception e)
         {

@@ -87,7 +87,7 @@ public final class WandItemUtils
     public static void tryCaptureSpawnEgg(LivingEntity killedEntity, ItemStack stack, Player player)
     {
         if (killedEntity.level().isClientSide()
-                || !(stack.getItem() instanceof GodFavorWandItem)
+                || true /* 神之工具已删除：捕捉功能停用 */
                 || !WandModes.isBeefCaptureEnabled(stack))
         {
             return;
@@ -113,7 +113,7 @@ public final class WandItemUtils
     {
         List<ItemStack> list = new ArrayList<>();
         list.add(drop);
-        GodFavorWandItem.handleDrops(list, player, tool);
+        // 神之工具已删除：AE 存储优先由采矿机自身处理
         return list.isEmpty();
     }
 

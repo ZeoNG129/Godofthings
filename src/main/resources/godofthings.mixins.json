@@ -4,13 +4,9 @@
   "package": "com.godofthings.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-      "wand.mixin.RandomizableContainerLootMemoryMixin",
-      "wand.mixin.MinecartContainerLootMemoryMixin",
-      "wand.mixin.BlockEntityChangedMixin",
     "RangedAttributeMixin"
   ],
   "client": [
-      "wand.mixin.LevelRendererCloudMixin",
     "GuiHeartsCompressMixin",
     "FogRendererMixin",
     "ScreenEffectRendererMixin"

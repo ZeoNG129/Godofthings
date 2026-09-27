@@ -159,7 +159,6 @@ public class WandKeyBindings
         event.register(OPEN_WAYPOINT_KEY.get());
         event.register(SWORD_MODE_KEY.get());
         // 照抄的荒辰移晷配置界面按键（X 键）
-        event.register(com.godofthings.wand.client.StretcherKeyBindings.WONDROUS_STAFF_MODE);
         event.register(OPEN_ARMOR_CONFIG_KEY.get());
         event.register(OPEN_ARMOR_SKILL_KEY.get());
     }

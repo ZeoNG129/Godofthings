@@ -302,3 +302,16 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 语言键 **487 → 557**（zh/en 差异 0）。
   - **教训**：照抄一个模块时，**必须连它的语言文件一起抄** —— 代码里的 `Component.translatable("...")` 只是键名，
     值在 `assets/<modid>/lang/*.json` 里；不搬值 = 界面全是键名。
+- 2.20.4 → **2.21.0（按用户要求删除「神之工具」）**
+  - **删除内容**：
+    · **物品本体** `GodFavorWandItem`（922 行）与其 **6 个变体**注册（`god_favor_wand` / `_wrench` / `_screwdriver` / `_mallet` / `_crowbar` / `_hammer`）；
+    · **照抄来的荒辰移晷子系统** `com.godofthings/wand/` **65 个文件 / 7,038 行**（上一版刚抄进来的那套）；
+    · 神之工具专属类：`GodFavorWandAe2Helper`、`ModeWheelHandler`、`ModeWheelScreen`、`WandMessages`、`WandClientHooks`、`WandKeyInputHandler`、`WandDamageTypes`；
+    · 主类里 27 行（6 变体注册 + 上一版加的 4 行照抄子系统接线）；
+    · `godofthings.mixins.json` 里照抄的 4 个 Mixin 注册（现为 mixins=1 / client=3）；
+    · **资源**：7 个物品模型 + 材质 + 配方 + 配方进度 + 语言键 16 个（zh/en 各 549，差异 0）；
+    · **标签**：22 个标签文件里的 `god_favor_wand*` 条目（`c:tools/*`、`gtceu:tools/*`、`c:shears` 等）。
+  - **刻意保留（重要）**：`WandItemUtils` / `WandConfig` / `WandModes` / `MiningUtils` / `ModeManager` / `ToolMode` / `WandKeyBindings` ——
+    这些**被神之采矿机（`GodMinerBlock`）与连锁挖掘策略（`ChainMiningStrategy` 等）共用**，删掉会连带弄坏机器；
+    其中 `WandItemUtils` 里两处对神之工具的引用已**中性化**（捕捉刷怪蛋功能停用、AE 存储优先交回采矿机自身处理）。
+  - 全仓扫描 `GodFavorWandItem|god_favor_wand|com.godofthings.wand`：**零残留**，`compileJava` SUCCESS。
