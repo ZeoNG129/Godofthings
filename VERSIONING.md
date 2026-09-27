@@ -552,3 +552,33 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **验证**：编译 0 错误；全仓 grep `appeng|AECapabilities|AeGridNode|IGridConnected|aeEnabled|AeEnabled|aeNode|aeTick`
     在熔炉三个文件里**只剩说明性注释**；熔炉的能力注册只剩 `Capabilities.ItemHandler.BLOCK` ✓；
     专用服务器实跑（含数据包在工作世界放下熔炉并让 tick 正常跑）确认无异常。
+- 5.1.3 → **5.1.4（按键设置里显示的是上游模组的名字）** —— 修复，按规则**末位 +1**。
+  - **用户反馈**：「杖的配置按键界面为什么用的是无用之物的名字。」
+  - **根因（照抄的必然副作用）**：按键的「分类键」也是照抄的字符串，只改了命名空间、**没改它的显示名**：
+    · 荒辰移晷之杖的 X 键（`key.godofthings.wondrous_staff_mode` = 打开手杖加速配置）由
+      `StretcherKeyBindings.CATEGORY = "key.categories.godofthings"` 归类 —— 这个键来自上游
+      `key.categories.useless_stretcher`，语言文件里的值就是上游的模组名「**万象担架** / Useless Stretcher」；
+    · 造化杖那 15 个按键（连锁挖掘 / 时运 / 模式轮盘 / 无线物流…）由
+      `beef/core/common/KeyBindings.CATEGORY = "key.category.godofthings.useless"` 归类 —— 来自上游
+      `key.category.useless_mod.useless`，值是「**无用模组** / Useless Mod」。
+    合并上游语言文件时我按「命名空间替换」处理，**键名换了、值里的上游模组名跟着一起搬了过来**，
+    于是按键设置里就出现了别人的名字。同类漏网还有 3 处：创造栏 `itemGroup.godofthings`（万象担架，实际未被使用）、
+    配置界面标题 `godofthings.configuration.title`（万象担架配置）、范围回收器提示里的「万象担架创造标签」，
+    以及一条日志前缀 `Useless Mod optional CPU reflection failed…`。
+  - **修法**：
+    · **把两个分类合并成一个** —— 造化杖那 15 个键改用 `key.categories.godofthings`（与杖的 X 键同一分类），
+      按键设置里本模组移植来的 16 个键只出现**一个分组**，不再分成两半；
+    · 该分类的显示名改为本模组自己的名字：**神之物 / God of Things**（与本模组 `mod_name` 一致）；
+      删除已无引用的 `key.category.godofthings.useless`；
+    · 另外三处一并改：删掉未使用的 `itemGroup.godofthings`、`godofthings.configuration.title` → 「神之物配置」、
+      范围回收器提示 → 「…可在 JEI 或神之物创造标签中找到」；日志前缀改成 `God of Things:`。
+    · **保留不动**：`key.category.godofthings.wand` =「神之工具」（本模组自己的 4 个按键，不是漏网）；
+      以及语言文件里「**无用维度**」系列（`godofthings.configuration.useless_dimension*`、
+      `menu.godofthings.dimension_config` = 无用维度配置）—— 那是被移植的那个**维度子系统本身的名字**
+      （奇数 / 偶数 / 三维度），属于内容命名而非模组名泄漏，用户未提出异议故不动。
+    · **代码注释里保留**上游项目名（`Useless Stretcher` 等）—— 那是移植来源与署名的记录，必须留着。
+  - **验证**：编译 0 错误；代码里出现的 2 个分类键逐个在 zh/en 语言文件里核对**全部解析成功**
+    （`key.categories.godofthings` = 神之物 / God of Things、`key.category.godofthings.wand` = 神之工具 / God Tool，
+    旧的无用模组分类键已不存在）；全仓 grep 确认代码中残留的 `无用/Useless` 只剩注释与「无用维度」内容命名；
+    **zh/en 各 1273 键，双向差异 0**。
+    · 按键界面是纯客户端显示，需要真人进游戏看：**按键设置 → 神之物** 分组下应能看到 16 个键。

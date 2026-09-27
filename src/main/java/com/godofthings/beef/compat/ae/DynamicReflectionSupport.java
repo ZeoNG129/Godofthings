@@ -107,7 +107,8 @@ public final class DynamicReflectionSupport {
 
     private static void logOnce(String action, Throwable exception) {
         if (LOGGED_FAILURES.add(action)) {
-            LOGGER.warn("Useless Mod optional CPU reflection failed while trying to {}.", action, exception);
+            // v5.1.4：日志前缀原本写着上游模组名（Useless Mod），改成本模组自己的名字。
+            LOGGER.warn("God of Things: optional AE crafting-CPU reflection failed while trying to {}.", action, exception);
         }
     }
 }

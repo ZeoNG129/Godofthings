@@ -9,12 +9,20 @@ import net.neoforged.neoforge.common.util.Lazy;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Useless Mod 的所有按键绑定定义
+ * 造化杖（及荒辰移晷之杖）的全部按键绑定定义。
+ *
+ * <p><b>v5.1.4 修正</b>：本类原来用的是上游 useless_mod 的分类键
+ * {@code key.category.godofthings.useless}（照抄时只改了命名空间，分类键与它的中文名
+ * 「无用模组」一起带了过来），导致按键设置里这些键被归到别人的名字下。
+ * 现统一改用 {@code key.categories.godofthings}（与 {@code StretcherKeyBindings} 同一个分类），
+ * 显示名在语言文件里是「神之物」。</p>
  */
 public class KeyBindings {
 
     // ==================== 按键分类和翻译键 ====================
-    private static final String CATEGORY = "key.category.godofthings.useless";
+    // 与 StretcherKeyBindings.CATEGORY 保持一致：本模组移植来的杖系按键全部归入同一分类，
+    // 按键设置里只出现一个「神之物」分组，不再出现上游的名字。
+    private static final String CATEGORY = "key.categories.godofthings";
 
     // 精准 (Silk Touch)
     private static final String SWITCH_SILK_TOUCH = "key.godofthings.switch_silk_touch";
