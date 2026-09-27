@@ -207,3 +207,12 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     · **物品提示**：`appendHoverText` 追加「荒辰移晷」能力表（加速/刷新/生物/农务四行 + 当前倍率），**悬停即见**；
     · **持握 HUD**：新增 `com.godofthings.client.WandHud`，`RenderGuiEvent.Post` 绘制右下角常驻面板（距底 30px、右缘 4px、行高 10、底色 `0xAA000000`，与参考模组同款布局），显示能力与当前加速倍率；界面打开或隐藏 HUD 时不绘制。
   - 新增语言键 470 → **480**（zh/en 差异 0）。
+- 2.19.1 → **2.19.2（神之工具加速配置界面：H 键打开，可调倍率与持续模式）**
+  - **对照上游** {@code WondrousStaffConfigScreen}：新增客户端界面 `WandConfigScreen`，**H 键打开**。
+  - **可调项**：加速倍率 10 档（2 / 4 / 8 / 16 / 32 / 64 / 128 / 256 / 512 / 1024×，◀ ▶ 切换）、**持续模式**（关 = 只加速 30 秒；开 = 永久加速）。
+  - **数据落地**：界面改动经新增的 C2S 包 `WandConfigPayload` 发到服务端，写入手持神之工具的 `CUSTOM_DATA`（键 `godofthings:wand_speed` / `godofthings:wand_permanent`）。
+    **为什么必须发包**：`ItemStack` 的修改是服务端权威的，客户端改不会同步；而加速标记建立在服务端，必须由客户端把配置发上来。
+  - `WandFeatureHandler` 的方块加速已读取「持续模式」：开启时标记为永久（不自动结束）。
+  - 新增按键 **H**（`key.godofthings.wand_config`，默认 H，可在原版按键设置里改）。
+  - 新增语言键 480 → **488**（zh/en 差异 0）。
+  - **踩坑**：以现有按键常量为模板批量生成新按键时，`event.register(X)` 需要写成 `event.register(X.get())`（`Lazy<KeyMapping>` 要解包），漏了 `.get()` 会报 `Lazy<KeyMapping> 无法转换为 KeyMapping`。

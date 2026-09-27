@@ -54,6 +54,14 @@ public class WandKeyBindings
             GLFW.GLFW_KEY_G,
             CATEGORY
     ));
+
+public static final Lazy<KeyMapping> OPEN_CONFIG_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.wand_config",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_H,
+            CATEGORY
+    ));
     /** 强制挖掘模式 */
     public static final Lazy<KeyMapping> SWITCH_FORCE_MINING_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.switch_force_mining",
@@ -159,5 +167,6 @@ public class WandKeyBindings
         event.register(SWORD_MODE_KEY.get());
         event.register(OPEN_ARMOR_CONFIG_KEY.get());
         event.register(OPEN_ARMOR_SKILL_KEY.get());
+                event.register(OPEN_CONFIG_KEY.get());
     }
 }

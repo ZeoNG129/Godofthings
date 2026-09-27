@@ -87,6 +87,17 @@ public final class WandFeatureHandler
                 .withStyle(ChatFormatting.AQUA), true);
     }
 
+    /** 是否「持续模式」（永久加速，不自动结束） */
+    public static boolean isPermanent(ItemStack stack)
+    {
+        if (stack.isEmpty())
+        {
+            return false;
+        }
+        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
+                .getBoolean("godofthings:wand_permanent");
+    }
+
     /** 右键方块：战利品容器优先刷新，其次才是加速 */
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event)
@@ -108,7 +119,7 @@ public final class WandFeatureHandler
             event.setCanceled(true);
             return;
         }
-        int speed = WandAcceleration.mark(level, pos, getSpeed(wandOf(player)), false);
+        int speed = WandAcceleration.mark(level, pos, getSpeed(wandOf(player)), isPermanent(wandOf(player)));
         player.displayClientMessage(Component.translatable("chat.godofthings.wand.accel",
                 pos.getX(), pos.getY(), pos.getZ(), speed,
                 WandAcceleration.DEFAULT_DURATION_TICKS / 20).withStyle(ChatFormatting.AQUA), true);

@@ -18,6 +18,7 @@ public class WandKeyInputHandler
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event)
     {
+        // H 键：打开神之工具的加速配置界面（纯客户端，无需联网）         if (event.getKey() == WandKeyBindings.OPEN_CONFIG_KEY.get().getKey().getValue()                 && net.minecraft.client.Minecraft.getInstance().screen == null)         {             net.minecraft.client.Minecraft.getInstance()                     .setScreen(new com.godofthings.client.WandConfigScreen());             return;         }
         int key = event.getKey();
         int action = event.getAction();
 
