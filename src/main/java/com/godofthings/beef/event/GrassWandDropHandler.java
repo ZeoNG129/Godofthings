@@ -5,7 +5,6 @@ import com.godofthings.beef.api.enums.tool.EnchantMode;
 import com.godofthings.beef.content.items.EndlessBeafItem;
 import com.godofthings.beef.core.component.UComponents;
 import com.godofthings.beef.core.config.ConfigManager;
-import com.godofthings.beef.init.ModItems;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -72,7 +71,10 @@ public final class GrassWandDropHandler {
 
         COMPLETED_PLAYERS.add(player.getUUID());
 
-        ItemStack wand = new ItemStack(ModItems.ENDLESS_BEAF_ITEM.get());
+        // v5.1.2：造化杖的 7 个物品已移除，本模组只剩荒辰移晷之杖一个杖物品，
+        // 打草彩蛋改为发放它（它同样继承 EndlessBeafItem，附魔刷新走同一套逻辑）。
+        ItemStack wand = new ItemStack(
+                com.godofthings.beef.stretcher.init.ModItems.WONDROUS_STAFF.get());
         wand.set(UComponents.EnchantModeComponent.get(), EnchantMode.FORTUNE);
         wand.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(0));
         EndlessBeafItem.refreshEnchantments(wand, event.getLevel());

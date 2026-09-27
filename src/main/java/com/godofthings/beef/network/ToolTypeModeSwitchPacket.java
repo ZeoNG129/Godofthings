@@ -4,7 +4,6 @@ import com.godofthings.beef.UselessMod;
 import com.godofthings.beef.api.enums.tool.ToolTypeMode;
 import com.godofthings.beef.content.items.BeefToolVariants;
 import com.godofthings.beef.core.component.UComponents;
-import com.godofthings.beef.init.ModItems;
 import com.godofthings.beef.utils.UselessItemUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
@@ -49,7 +48,9 @@ public record ToolTypeModeSwitchPacket(ToolTypeMode mode) implements CustomPacke
                     if (toolItem != Items.AIR) {
                         yield new ItemStack(toolItem);
                     } else {
-                        yield new ItemStack(ModItems.ENDLESS_BEAF_WRENCH.get());
+                        // 本项目只保留荒辰移晷之杖一个物品：未装「全能工具」时保持原物品不变
+                        // （上游此处会换成 endless_beaf_wrench，该物品已随造化杖一并移除）
+                        yield BeefToolVariants.createForToolMode(targetItem, ToolTypeMode.NONE_MODE);
                     }
                 }
             };

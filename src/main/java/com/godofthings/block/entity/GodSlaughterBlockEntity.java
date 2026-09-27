@@ -10,7 +10,7 @@ import appeng.api.storage.MEStorage;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
-import com.godofthings.item.GodSwordItem;
+import com.godofthings.item.LootingHelper;
 import com.godofthings.menu.GodSlaughterMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -563,7 +563,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
             sword = new ItemStack(Items.NETHERITE_SWORD);
             if (power > 0)
             {
-                GodSwordItem.applyLooting(sword, level, power);
+                LootingHelper.applyLooting(sword, level, power);
             }
             swordPower = power;
         }

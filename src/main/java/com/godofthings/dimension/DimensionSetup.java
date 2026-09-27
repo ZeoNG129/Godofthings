@@ -9,15 +9,15 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 
 /**
  * 维度初始化处理。
- * 1.21.1 NeoForge：没有维度注册事件——superflat / void 维度改由数据包 JSON 定义
- * （data/godofthings/dimension/superflat.json 与 void.json，其中 chunk_generator 引用
- * godofthings:superflat_gen）；代码侧仅保留出生点设置与虚空维度传送方块逻辑。
+ * 1.21.1 NeoForge：没有维度注册事件——void 维度由数据包 JSON 定义
+ * （data/godofthings/dimension/void.json）；代码侧仅保留虚空维度的出生点设置
+ * 与出生点下方那块传送方块的放置。
+ * <p>超平坦维度（superflat）与其传送方块「神之平坦」已在 v5.1.2 按用户要求整体删除，
+ * 连同区块生成器 godofthings:superflat_gen 一起移除。</p>
  */
 @EventBusSubscriber(modid = Godofthings.MODID)
 public class DimensionSetup
 {
-    // 神之平坦平台顶部 Y=5（基岩 -64 + 69 层填充），站立在 Y=6
-    private static final BlockPos FLAT_SPAWN = new BlockPos(8, 6, 8);
     // 神之虚空重生点（脚下放置传送方块，便于重生后传送回主世界）
     private static final BlockPos VOID_SPAWN = new BlockPos(8, 70, 8);
 
@@ -26,10 +26,6 @@ public class DimensionSetup
     {
         if (event.getLevel() instanceof ServerLevel serverLevel)
         {
-            if (serverLevel.dimension() == Godofthings.SUPERFLAT_DIMENSION)
-            {
-                serverLevel.setDefaultSpawnPos(FLAT_SPAWN, 0.0F);
-            }
             if (serverLevel.dimension() == Godofthings.VOID_DIMENSION)
             {
                 serverLevel.setDefaultSpawnPos(VOID_SPAWN, 0.0F);

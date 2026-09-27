@@ -1,7 +1,7 @@
 package com.godofthings.network;
 
 import com.godofthings.Godofthings;
-import com.godofthings.item.GodSwordItem;
+import com.godofthings.beef.stretcher.content.item.WondrousStaffItem;
 import com.godofthings.item.SwordModes;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -33,9 +33,6 @@ public class SwordMessages
 
     public enum SwordMode
     {
-        BEHEAD,
-        CAPTURE,
-        LOOTING,
         STAR_ABSORB,
         SOUL_ABSORB,
         AURA
@@ -85,14 +82,6 @@ public class SwordMessages
                 }
                 switch (msg.mode())
                 {
-                    case BEHEAD -> SwordModes.setBeheadEnabled(sword, !SwordModes.isBeheadEnabled(sword));
-                    case CAPTURE -> SwordModes.setCaptureEnabled(sword, !SwordModes.isCaptureEnabled(sword));
-                    case LOOTING ->
-                    {
-                        boolean enabled = !SwordModes.isLootingEnabled(sword);
-                        SwordModes.setLootingEnabled(sword, enabled);
-                        GodSwordItem.applyLooting(sword, sender.serverLevel(), enabled ? SwordModes.getLootingPower(sword) : 0);
-                    }
                     case STAR_ABSORB -> SwordModes.setStarAbsorbEnabled(sword, !SwordModes.isStarAbsorbEnabled(sword));
                     case SOUL_ABSORB -> SwordModes.setSoulAbsorbEnabled(sword, !SwordModes.isSoulAbsorbEnabled(sword));
                     case AURA -> SwordModes.setAuraEnabled(sword, !SwordModes.isAuraEnabled(sword));
@@ -135,15 +124,6 @@ public class SwordMessages
                     case STAR_ABSORB -> SwordModes.setStarRange(sword, SwordModes.getStarRange(sword) + msg.delta());
                     case SOUL_ABSORB -> SwordModes.setSoulRange(sword, SwordModes.getSoulRange(sword) + msg.delta());
                     case AURA -> SwordModes.setAuraRange(sword, SwordModes.getAuraRange(sword) + msg.delta());
-                    case LOOTING ->
-                    {
-                        int power = SwordModes.getLootingPower(sword) + msg.delta();
-                        SwordModes.setLootingPower(sword, power);
-                        if (SwordModes.isLootingEnabled(sword))
-                        {
-                            GodSwordItem.applyLooting(sword, sender.serverLevel(), power);
-                        }
-                    }
                     default -> { }
                 }
             });
@@ -190,12 +170,12 @@ public class SwordMessages
     private static ItemStack findSword(ServerPlayer player)
     {
         ItemStack stack = player.getMainHandItem();
-        if (stack.getItem() instanceof GodSwordItem)
+        if (stack.getItem() instanceof WondrousStaffItem)
         {
             return stack;
         }
         stack = player.getOffhandItem();
-        if (stack.getItem() instanceof GodSwordItem)
+        if (stack.getItem() instanceof WondrousStaffItem)
         {
             return stack;
         }

@@ -2,7 +2,7 @@ package com.godofthings.handler;
 
 import com.godofthings.Godofthings;
 import com.godofthings.item.BlackBoxData;
-import com.godofthings.item.GodSwordItem;
+import com.godofthings.beef.stretcher.content.item.WondrousStaffItem;
 import com.godofthings.item.SwordModes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,13 +21,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 神之剑「吸星 / 吸魂」的服务端逐 tick 处理。
+ * 荒辰移晷之杖「吸星 / 吸魂 / 杀戮光环」的服务端逐 tick 处理
+ * （这三项原属神之剑，v5.1.2 按用户要求移到杖上，神之剑本体已删除）。
  * <ul>
- *   <li>吸星：手持神之剑时，把附近（可调半径）掉落物吸收；若玩家同时携带已开启的神之黑盒，
+ *   <li>吸星：手持荒辰移晷之杖时，把附近（可调半径）掉落物吸收；若玩家同时携带已开启的神之黑盒，
  *       掉落物按黑盒白名单/黑名单判定（命中入黑盒、未命中销毁），否则直接进背包（满则拉到脚下）；并吸收经验。</li>
- *   <li>吸魂：手持神之剑时，把附近（可调半径）非玩家生物吸到玩家面前一格。</li>
+ *   <li>吸魂：手持荒辰移晷之杖时，把附近（可调半径）非玩家生物吸到玩家面前一格。</li>
+ *   <li>杀戮光环：自动杀戮范围内选定目标类型（敌对/友好/全部）的生物。</li>
  * </ul>
- * 两者独立开关、独立半径（3~300），见 {@link SwordModes}，由神之剑功能面板（J 键）经网络在服务端切换。
+ * 三者独立开关、独立半径（3~1600），见 {@link SwordModes}，由手杖功能面板（J 键）经网络在服务端切换。
  */
 @EventBusSubscriber(modid = Godofthings.MODID)
 public class SwordEffectHandler
@@ -165,7 +167,7 @@ public class SwordEffectHandler
         }
     }
 
-    /** 杀戮光环：自动杀戮范围内选定目标类型（敌对/友好/全部）的生物，复用 GodSwordItem.killEntity 兼容斩首/捕捉/抢劫。 */
+    /** 杀戮光环：自动杀戮范围内选定目标类型（敌对/友好/全部）的生物。 */
     private static void killAura(ServerPlayer player, ItemStack sword)
     {
         double range = SwordModes.getAuraRange(sword);
@@ -182,7 +184,13 @@ public class SwordEffectHandler
             {
                 continue;
             }
-            GodSwordItem.killEntity(sword, mob, player);
+            // v5.1.2：神之剑已删除，这里不再复用 GodSwordItem.killEntity（斩首 / 捕捉随剑一并移除），
+            // 改用带玩家攻击者的伤害源一击必杀：掉落与经验照常记在玩家头上，
+            // 且 playerAttack 的掉落表会读取玩家手持物品的抢夺附魔。
+            if (mob.isAlive())
+            {
+                mob.hurt(player.level().damageSources().playerAttack(player), Float.MAX_VALUE);
+            }
         }
     }
 
@@ -201,12 +209,12 @@ public class SwordEffectHandler
     private static ItemStack findSword(ServerPlayer player)
     {
         ItemStack stack = player.getMainHandItem();
-        if (stack.getItem() instanceof GodSwordItem)
+        if (stack.getItem() instanceof WondrousStaffItem)
         {
             return stack;
         }
         stack = player.getOffhandItem();
-        if (stack.getItem() instanceof GodSwordItem)
+        if (stack.getItem() instanceof WondrousStaffItem)
         {
             return stack;
         }

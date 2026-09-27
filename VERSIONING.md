@@ -471,3 +471,31 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     否则会像这次一样把整块功能连同理由一起误删。
   - `gradlew build` SUCCESS，已自动部署到两个测试实例。
   - **未验证**：JEI 拖拽是纯客户端交互，需要真人进游戏拖一次；已确认的是编译通过、处理器已注册、面板侧方法齐全、收包链路已就位。
+- 5.1.1 → **5.1.2（只保留荒辰移晷之杖 / 删除神之平坦与超平坦维度 / 神之剑三项功能移到杖上并删除神之剑与神之炮）** —— 以删除功能为主，按规则**末位 +1**。
+  - **用户需求**：① 两个杖只保留荒辰移晷之杖 ② 删除神之平坦 ③ 神之剑的「吸星 / 吸魂 / 杀戮光环」移到荒辰移晷之杖上，然后删除神之剑与神之炮。
+  - **动手前发现的结构性问题（已与用户确认）**：`WondrousStaffItem extends EndlessBeafItem` —— 荒辰移晷之杖是**继承**造化杖基类的，它的采集 / 时运 / 无敌 / 连锁能力全部来自基类。所以「删掉造化杖」只能是删掉那 7 个**物品注册**，基类必须留作内部父类。真正需要决策的是**5 种工具形态**（扳手 / 螺丝刀 / 软锤 / 撬棍 / 铁锤）：上游靠「换成另一个物品」实现。
+  - **三个决策点与用户选择**：
+    · 工具形态 → **保留 5 种形态能力，都作用在同一个杖上**；
+    · 三项功能的界面 → **保留 J 键面板（改名「手杖功能面板」），只留这 3 项**；
+    · 神之平坦 → **方块 + 超平坦维度一起删**。
+    · 另外告知并确认过：神之剑的**斩首 / 捕捉 / 抢劫 / 秒杀**随剑一起消失（用户点名只移 3 项）。其中「抢劫强度」（`GodSwordItem.applyLooting`）被**神之砍杀**内部调用，故迁为独立工具类保留，否则砍杀会坏。
+  - **① 只保留荒辰移晷之杖**：
+    · `BeefToolVariants` 改为**不换物品**：`createForToolMode` / `withWrenchTag` 改成 `source.copy()` + 写 `CurrentToolTypeComponent` / `WrenchTagEnabledComponent` 组件（工具形态的能力本来就由该组件决定），`isBaseVariant` 改成 `instanceof EndlessBeafItem`；`ToolTypeModeSwitchPacket` 的「全能工具缺席」回退同步改为「保持原物品」。
+    · 删除 7 个物品注册（`endless_beaf_item`、`_no_wrench`、扳手 / 螺丝刀 / 软锤 / 撬棍 / 铁锤）+ 创造栏条目 + 8 个物品模型 + 2 张贴图 + 配方 + 配方解锁进度。
+    · **贴图 `endless_beaf_time_item.png` 保留** —— 它正是荒辰移晷之杖自己的贴图（模型 `wondrous_staff.json` 引用它）。
+    · 荒辰移晷之杖的**合成配方**：上游是「万象担架 + 工具标签」，上次移植时代入的是造化杖；造化杖没了，锚点改为**下界之星 + `#c:tools/tools`**（无序）—— 下界之星是本模组所有「神之X」机器的招牌材料（8 个配方在用）。
+    · **工具标签整批改写**：`c:tools/*`（13 个）、`gtceu:crafting_tools/*`（10 个）、`minecraft:{axes,hoes,pickaxes,shovels,swords,breaks_decorated_pots,cluster_max_harvestables}`、`malum:soul_shatter_capable_weapon` 里原本列着那 7 个变体 → 全部替换为 **`godofthings:wondrous_staff`**（上游是把 7 个变体都列进每个标签，换成单一杖即行为等价）。
+    · 打草彩蛋（`GrassWandDropHandler`）改为发放荒辰移晷之杖；其进度 `grass_wand_drop` 图标同步。
+    · `EndlessBeafItem.getName` 原本用 `item.godofthings.endless_beaf_item.{fortune,silk_touch}` 两个**旧物品名**（造化垂青之杖 / 太初洞见之杖）——那两个键随物品一起删了，若不改会显示原始键名。改为 `item.godofthings.wondrous_staff.{fortune,silk_touch}` = 「荒辰移晷之杖（时运）」「荒辰移晷之杖（精准采集）」。
+  - **② 删除神之平坦 + 超平坦维度**：方块与物品注册、创造栏、`SUPERFLAT_DIMENSION` 维度键、`DimensionSetup` 里超平坦的出生点逻辑、区块生成器 `GodFlatDimGen` 与 `SUPERFLAT_GEN_CODEC`（`GodFlatDimension` 整个文件）、`data/godofthings/dimension|dimension_type/superflat.json`、`worldgen/biome/superflat_biome.json`、方块状态 / 模型 / 两张贴图 / 配方 / 配方解锁进度 / 战利品表、`minecraft:mineable/pickaxe` 标签里那一项。**神之虚空不受影响**（它用原版 `minecraft:flat` 生成器，与 superflat_gen 无关）。
+    · 进度 `advancement/dimension.json` 原本专为「进入超平坦维度」而写 → **改为进入虚空维度**（图标换成神之虚空传送器、条件 `to: godofthings:void`、`enter_superflat` → `enter_void`），保住这个成就而不是删掉。
+  - **③ 三项功能移到杖上 + 删除神之剑与神之炮**：
+    · `SwordEffectHandler`：`findSword` 的判定从 `GodSwordItem` 改为 `WondrousStaffItem`（主手优先，副手兜底）；杀戮光环里原本复用 `GodSwordItem.killEntity`（为兼容斩首 / 捕捉 / 抢劫），现改为**直接用带玩家攻击者的伤害源一击必杀**（`playerAttack`，掉落与经验照常记在玩家头上，掉落表也能读到手持物的抢夺附魔）。
+    · J 键面板 `SwordModeScreen` 裁到 3 行（吸星 / 吸魂 / 杀戮光环），行号位移、面板高度 176 → 116、点击命中判定同步；`SwordMessages.SwordMode` 枚举删掉 `BEHEAD/CAPTURE/LOOTING`，两个 switch 与 `findSword` 同步。
+    · **保留**私下仍在服务的 `SwordModes` 存储类（含 3 项功能的开关与半径 / 目标类型；另外 3 项功能的存取器已成为惰性代码，未删以免牵动更多文件）。
+    · `GodSwordItem` 的 `lootingLevel` / `applyLooting` 迁到新类 **`com.godofthings.item.LootingHelper`**（逐字搬运），神之砍杀的调用改为它 —— 否则砍杀会编译不过。
+    · 删除：`GodSwordItem`、`GodCannonItem`、`CannonMessages`、`CannonClientHandler` 四个类 + 两个物品注册 + 创造栏 + 模型 / 贴图 / 配方 / 配方解锁进度 + `minecraft:swords` 里的神之剑 + 其语言键（含 `message.godofthings.cannon.charge_*`）。
+  - **语言键**：删 15 条（3 个旧杖名、神之剑 / 神之炮 / 神之平坦 / 超平坦维度 / 蓄力提示 / 超平坦传送提示、斩首·捕捉·抢劫三项），并把**全部文案里残留的「造化杖」批量改成「荒辰移晷之杖」**（19 处，主要是 `godofthings.configuration.beef_*` 配置项说明与工具提示），`gui./key.godofthings.sword_mode` 改为「手杖功能面板」，新增 2 条杖名变体键。**zh/en 各 1275 键，双向差异 0**。
+  - README「内容一览」按约定同步：删掉神之剑 / 神之炮 / 造化杖三行，把荒辰移晷之杖改写为唯一杖并写清三项新功能与工具形态的新实现方式，维度行与 J 键说明、目录结构注释一并更新。
+  - `gradlew build` SUCCESS，已自动部署到两个测试实例。
+  - **未验证**：工具形态切换、J 面板三项功能的实际生效、打草彩蛋——都需要真人进游戏点；已确认编译通过、注册项与标签无悬挂引用（全仓扫描 `endless_beaf_*` / `god_sword` / `god_cannon` / `superflat*` 仅剩说明性注释）。

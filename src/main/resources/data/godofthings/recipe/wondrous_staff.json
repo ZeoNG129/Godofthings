@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "godofthings:endless_beaf_item"
+      "item": "minecraft:nether_star"
     },
     {
       "tag": "c:tools/tools"

@@ -9,7 +9,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * 神之剑功能切换面板：五个开关（斩首 / 捕捉 / 抢劫 / 吸星 / 吸魂）可单独或同时启用。
+ * 杖功能切换面板：三个开关（吸星 / 吸魂 / 杀戮光环）可单独或同时启用。
+ * 这三项原属神之剑，v5.1.2 按用户要求移到荒辰移晷之杖上；神之剑的另外三项
+ * （斩首 / 捕捉 / 抢劫）随剑本体一并删除，故本面板不再有对应行。
  * 纯 Screen（非容器界面），按 J 键打开，点击行切换，Esc 关闭。
  */
 public class SwordModeScreen extends Screen
@@ -17,7 +19,7 @@ public class SwordModeScreen extends Screen
     private final ItemStack sword;
 
     private static final int PANEL_W = 176;
-    private static final int PANEL_H = 176;
+    private static final int PANEL_H = 116;
     private static final int ROW_X = 8;
     private static final int ROW_W = PANEL_W - 16;
     private static final int ROW_H = 18;
@@ -41,20 +43,13 @@ public class SwordModeScreen extends Screen
 
         graphics.drawCenteredString(this.font, this.title, this.width / 2, y0 + 8, 0xFFFFFF);
 
-        drawRow(graphics, x0, y0 + ROW_Y_0, mouseX, mouseY,
-                Component.translatable("gui.godofthings.sword_behead"), SwordModes.isBeheadEnabled(sword));
-        drawRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP, mouseX, mouseY,
-                Component.translatable("gui.godofthings.sword_capture"), SwordModes.isCaptureEnabled(sword));
-        drawRangeRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 2, mouseX, mouseY,
-                Component.translatable("gui.godofthings.sword_looting"),
-                SwordModes.isLootingEnabled(sword), SwordModes.getLootingPower(sword));
-        drawRangeRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 3, mouseX, mouseY,
+        drawRangeRow(graphics, x0, y0 + ROW_Y_0, mouseX, mouseY,
                 Component.translatable("gui.godofthings.sword_star_absorb"),
                 SwordModes.isStarAbsorbEnabled(sword), SwordModes.getStarRange(sword));
-        drawRangeRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 4, mouseX, mouseY,
+        drawRangeRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP, mouseX, mouseY,
                 Component.translatable("gui.godofthings.sword_soul_absorb"),
                 SwordModes.isSoulAbsorbEnabled(sword), SwordModes.getSoulRange(sword));
-        drawAuraRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 5, mouseX, mouseY,
+        drawAuraRow(graphics, x0, y0 + ROW_Y_0 + ROW_GAP * 2, mouseX, mouseY,
                 Component.translatable("gui.godofthings.sword_aura"),
                 SwordModes.isAuraEnabled(sword), SwordModes.getAuraTarget(sword), SwordModes.getAuraRange(sword));
     }
@@ -159,31 +154,7 @@ public class SwordModeScreen extends Screen
             int y0 = (this.height - PANEL_H) / 2;
             int rowX = x0 + ROW_X;
 
-            if (isHovering(rowX, y0 + ROW_Y_0, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
-            {
-                toggle(SwordMessages.SwordMode.BEHEAD);
-                return true;
-            }
-            if (isHovering(rowX, y0 + ROW_Y_0 + ROW_GAP, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
-            {
-                toggle(SwordMessages.SwordMode.CAPTURE);
-                return true;
-            }
-            int lootingY = y0 + ROW_Y_0 + ROW_GAP * 2;
-            if (isHovering(rowX, lootingY, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
-            {
-                int d = rangeDelta(x0, lootingY, SwordModes.getLootingPower(sword), (int) mouseX, (int) mouseY);
-                if (d != 0)
-                {
-                    adjustRange(SwordMessages.SwordMode.LOOTING, d);
-                }
-                else
-                {
-                    toggle(SwordMessages.SwordMode.LOOTING);
-                }
-                return true;
-            }
-            int starY = y0 + ROW_Y_0 + ROW_GAP * 3;
+            int starY = y0 + ROW_Y_0;
             if (isHovering(rowX, starY, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
             {
                 int d = rangeDelta(x0, starY, SwordModes.getStarRange(sword), (int) mouseX, (int) mouseY);
@@ -197,7 +168,7 @@ public class SwordModeScreen extends Screen
                 }
                 return true;
             }
-            int soulY = y0 + ROW_Y_0 + ROW_GAP * 4;
+            int soulY = y0 + ROW_Y_0 + ROW_GAP;
             if (isHovering(rowX, soulY, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
             {
                 int d = rangeDelta(x0, soulY, SwordModes.getSoulRange(sword), (int) mouseX, (int) mouseY);
@@ -211,7 +182,7 @@ public class SwordModeScreen extends Screen
                 }
                 return true;
             }
-            int auraY = y0 + ROW_Y_0 + ROW_GAP * 5;
+            int auraY = y0 + ROW_Y_0 + ROW_GAP * 2;
             if (isHovering(rowX, auraY, ROW_W, ROW_H, (int) mouseX, (int) mouseY))
             {
                 int d = auraRangeDelta(x0, auraY, SwordModes.getAuraRange(sword), (int) mouseX, (int) mouseY);
@@ -238,9 +209,6 @@ public class SwordModeScreen extends Screen
         // 客户端乐观更新本地 CUSTOM_DATA（即时反馈），服务端经 C2S 处理最终收敛
         switch (mode)
         {
-            case BEHEAD -> SwordModes.setBeheadEnabled(sword, !SwordModes.isBeheadEnabled(sword));
-            case CAPTURE -> SwordModes.setCaptureEnabled(sword, !SwordModes.isCaptureEnabled(sword));
-            case LOOTING -> SwordModes.setLootingEnabled(sword, !SwordModes.isLootingEnabled(sword));
             case STAR_ABSORB -> SwordModes.setStarAbsorbEnabled(sword, !SwordModes.isStarAbsorbEnabled(sword));
             case SOUL_ABSORB -> SwordModes.setSoulAbsorbEnabled(sword, !SwordModes.isSoulAbsorbEnabled(sword));
             case AURA -> SwordModes.setAuraEnabled(sword, !SwordModes.isAuraEnabled(sword));
@@ -277,7 +245,6 @@ public class SwordModeScreen extends Screen
             case STAR_ABSORB -> SwordModes.setStarRange(sword, SwordModes.getStarRange(sword) + delta);
             case SOUL_ABSORB -> SwordModes.setSoulRange(sword, SwordModes.getSoulRange(sword) + delta);
             case AURA -> SwordModes.setAuraRange(sword, SwordModes.getAuraRange(sword) + delta);
-            case LOOTING -> SwordModes.setLootingPower(sword, SwordModes.getLootingPower(sword) + delta);
             default -> { return; }
         }
         SwordMessages.sendRange(mode, delta);

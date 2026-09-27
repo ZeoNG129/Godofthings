@@ -1,7 +1,6 @@
 {
   "replace": false,
   "values": [
-    "godofthings:superflat_teleporter",
     "godofthings:void_teleporter",
     "godofthings:god_furnace",
     "godofthings:god_miner",

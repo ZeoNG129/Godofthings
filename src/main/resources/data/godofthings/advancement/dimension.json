@@ -1,6 +1,6 @@
 {
   "display": {
-    "icon": { "item": "godofthings:superflat_teleporter" },
+    "icon": { "item": "godofthings:void_teleporter" },
     "title": { "translate": "advancements.godofthings.dimension.title" },
     "description": { "translate": "advancements.godofthings.dimension.description" },
     "frame": "goal",
@@ -10,10 +10,10 @@
   },
   "parent": "godofthings:root",
   "criteria": {
-    "enter_superflat": {
+    "enter_void": {
       "trigger": "minecraft:changed_dimension",
       "conditions": {
-        "to": "godofthings:superflat"
+        "to": "godofthings:void"
       }
     }
   },

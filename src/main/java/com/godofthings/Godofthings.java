@@ -30,7 +30,6 @@ import com.godofthings.block.entity.GodTransmitterBlockEntity;
 import com.godofthings.block.entity.SpaceTimeEternityBlockEntity;
 import com.godofthings.armor.GodArmorFeatures;
 import com.godofthings.config.MachinesConfig;
-import com.godofthings.dimension.GodFlatDimension;
 import com.godofthings.energy.CreativeEnergyCubeBlock;
 import com.godofthings.energy.CreativeEnergyCubeEntity;
 import com.godofthings.energy.CreativeEnergyCubeMenu;
@@ -39,11 +38,9 @@ import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.item.GodArmorItem;
 import com.godofthings.item.GodBinderItem;
 import com.godofthings.item.GodBlackBoxItem;
-import com.godofthings.item.GodCannonItem;
 import com.godofthings.item.GodChangeItem;
 import com.godofthings.item.GodInviteItem;
 import com.godofthings.item.GodMinerItem;
-import com.godofthings.item.GodSwordItem;
 import com.godofthings.item.GodUnbreakableItem;
 import com.godofthings.menu.GodBlackBoxMenu;
 import com.godofthings.menu.GodChangeMenu;
@@ -111,8 +108,6 @@ public class Godofthings
     private static final Logger LOGGER = LogUtils.getLogger();
 
     // ---- 维度 ----
-    public static final ResourceKey<Level> SUPERFLAT_DIMENSION =
-            ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(MODID, "superflat"));
     public static final ResourceKey<Level> VOID_DIMENSION =
             ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(MODID, "void"));
 
@@ -224,12 +219,8 @@ public class Godofthings
             ITEMS.registerItem("god_accelerator", GodAcceleratorItem::new);
 
     // ---- 神之剑（代码层面秒杀）----
-    public static final DeferredItem<GodSwordItem> GOD_SWORD =
-            ITEMS.registerItem("god_sword", GodSwordItem::new);
 
     // ---- 神之炮（电磁炮：左键贯穿光束 / 右键三层蓄力范围炮）----
-    public static final DeferredItem<GodCannonItem> GOD_CANNON =
-            ITEMS.registerItem("god_cannon", GodCannonItem::new);
 
     // ---- 请神（对生物右键使用，使其无限血量）----
     public static final DeferredItem<GodInviteItem> GOD_INVITE =
@@ -243,18 +234,6 @@ public class Godofthings
 
     // ---- 神之工具 ----
     // GT 扳手模式子类（通过模式轮盘切换，不直接出现在创造标签）
-
-    // ---- 维度传送器（方块）----
-    public static final DeferredBlock<DimensionTeleporterBlock> SUPERFLAT_TELEPORTER =
-            BLOCKS.registerBlock("superflat_teleporter",
-                    props -> new DimensionTeleporterBlock(SUPERFLAT_DIMENSION, "message.godofthings.tp_superflat", props),
-                    BlockBehaviour.Properties.of()
-                            .mapColor(MapColor.STONE)
-                            .strength(2.0F, 65536.0F)
-                            .requiresCorrectToolForDrops()
-                            .sound(SoundType.STONE));
-    public static final DeferredItem<BlockItem> SUPERFLAT_TELEPORTER_ITEM =
-            ITEMS.registerSimpleBlockItem(SUPERFLAT_TELEPORTER, new Item.Properties());
 
     public static final DeferredBlock<DimensionTeleporterBlock> VOID_TELEPORTER =
             BLOCKS.registerBlock("void_teleporter",
@@ -494,12 +473,9 @@ public class Godofthings
                         output.accept(GOD_BOOTS.get());
                         output.accept(GOD_UNBREAKABLE.get());
                         output.accept(GOD_ACCELERATOR.get());
-                        output.accept(GOD_SWORD.get());
-                        output.accept(GOD_CANNON.get());
                         output.accept(GOD_INVITE.get());
                         output.accept(GOD_CHANGE.get());
                         output.accept(GOD_CRAFT_ITEM.get());
-                        output.accept(SUPERFLAT_TELEPORTER_ITEM.get());
                         output.accept(VOID_TELEPORTER_ITEM.get());
                         output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
                         output.accept(SPACE_TIME_ETERNITY_ITEM.get());
@@ -514,7 +490,6 @@ public class Godofthings
                         // 造化杖（太初洞见之杖）：创造栏只放本体一项。另外 6 个形态
                         // （关闭扳手 + 扳手/螺丝刀/软锤/撬棍/铁锤）仍已注册，由模式轮盘
                         // 在运行时切换生成，不必在创造栏里各占一格。
-                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_ITEM.get());
                         // 荒辰移晷之杖（时间加速杖，照抄 useless_stretcher）
                         output.accept(com.godofthings.beef.stretcher.init.ModItems.WONDROUS_STAFF.get());
                         output.accept(com.godofthings.beef.stretcher.init.ModItems.RANGE_RECLAIMER.get());
@@ -537,7 +512,6 @@ public class Godofthings
         RECIPE_SERIALIZERS.register(modEventBus);
         ATTACHMENT_TYPES.register(modEventBus);
         com.godofthings.armor.skill.ModAttributes.ATTRIBUTES.register(modEventBus); // 自定义属性：物理减伤（金身真解）
-        GodFlatDimension.CHUNK_GENERATORS.register(modEventBus);
 
         // 神之机器参数配置（矿机/资源机/掉落机，godofthings-machines.toml）
         // 显式指定文件名，避免依赖默认命名规则（默认 godofthings-server.toml）。

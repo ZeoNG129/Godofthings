@@ -1,7 +1,7 @@
 package com.godofthings.client;
 
 import com.godofthings.Godofthings;
-import com.godofthings.item.GodSwordItem;
+import com.godofthings.beef.stretcher.content.item.WondrousStaffItem;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
@@ -38,11 +38,11 @@ public class SwordModeHandler
 
     private static ItemStack findSword(ItemStack main, ItemStack off)
     {
-        if (main.getItem() instanceof GodSwordItem)
+        if (main.getItem() instanceof WondrousStaffItem)
         {
             return main;
         }
-        if (off.getItem() instanceof GodSwordItem)
+        if (off.getItem() instanceof WondrousStaffItem)
         {
             return off;
         }
