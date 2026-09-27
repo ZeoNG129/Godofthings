@@ -187,3 +187,15 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **倍率配置**：倍率存在物品自身的 `CUSTOM_DATA`（键 `godofthings:wand_speed`）；**潜行 + 右键同一方块会刷新并翻倍**（2→4→…→1024→回到 2）。
   - 新增语言键 461 → **469**（zh/en 差异 0）。
   - **未做（如实说明）**：上游的三个**图形界面**没有移植 —— 召唤模式 GUI（`WondrousStaffSummonScreen` 选生物召唤）、加速配置 GUI（`WondrousStaffConfigScreen`）、范围加速存档与预览（`RangeAccelerationSavedData` 37KB + `RangeAccelerationPreview`）。功能层面已由上面的交互覆盖；这三个是纯 UI/存档层。
+- 2.18.0 → **2.19.0（神之工具去掉前置 mod 依赖，改为独立实现）**
+  - **用户要求**：不要前置 mod。原 v2.17.0 让 `GodFavorWandItem extends` 上游 `EndlessBeafItem`，等于把「无用之物」变成**必需依赖**（缺了 `NoClassDefFoundError`）。
+  - **撤销继承**：类声明还原为 `extends DiggerItem`，构造还原为 `GodFavorWandItem(Item.Properties)`（恢复 `stacksTo(1)` / `EPIC` / `UNBREAKABLE(false)`）；6 个变体注册还原为 `ITEMS.registerItem(name, GodFavorWandItem::new)`。
+  - **依赖清理**：`neoforge.mods.toml` 的 `[[dependencies.godofthings]] modId = "useless_mod"` 整块删除；`build.gradle` 的两个 `compileOnly files(libs/useless*)` 删除；`libs/` 下两个上游 jar 删除。
+  - **多工具便利功能改为自实现**（不再借用上游）：
+    · **成熟作物** → 右键收割并自动补种（`Block.getDrops` + `CropBlock.getStateForAge(0)`）
+    · **未成熟作物** → 右键催熟到满级
+    · **泥土 / 草方块**（上方为空）→ 右键开垦为耕地
+    · 工具挖掘能力（镐/斧/铲/锄/剪/打火石）仍由本类原有的 `canPerformAction` 提供 —— 那本来就是自实现的。
+  - 自研功能全部保留（互不依赖上游）：**时间加速**（方块 / AE 机器 / 避雷针 / 随机刻 / 时间）、**战利品箱刷新**、**生物加速**、**树叶掉落**、**倍率配置**。
+  - 语言键 469 → **472**（zh/en 差异 0）。
+  - **与上游的差异（如实说明）**：上游 `EndlessBeafItem` 里的「传送 / 手杖链接 / 自动点击 / 附魔刷新 / 剪刀 / 打火石开关」等模块**没有逐个重写**；需要哪个再单独补。

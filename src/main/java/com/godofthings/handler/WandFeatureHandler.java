@@ -133,6 +133,63 @@ public final class WandFeatureHandler
         event.setCanceled(true);
     }
 
+    /**
+     * 普通右键（非潜行）：神之工具自带的三项农务便利 —— 我们自己实现的，
+     * <b>不依赖任何前置 mod</b>（上游那套同类功能在 {@code EndlessBeafItem} 里，本模组已解耦）。
+     * <ul>
+     *   <li>成熟作物 → 收割并自动补种</li>
+     *   <li>未成熟作物 → 直接催熟到满级</li>
+     *   <li>泥土 / 草方块（上方为空）→ 变耕地</li>
+     * </ul>
+     * 潜行时不抢（潜行 + 右键是加速与战利品刷新）。
+     */
+    @SubscribeEvent
+    public static void onWandUse(PlayerInteractEvent.RightClickBlock event)
+    {
+        if (!(event.getEntity() instanceof ServerPlayer player)
+                || player.isShiftKeyDown()
+                || !holdingWand(player)
+                || !(player.level() instanceof ServerLevel level))
+        {
+            return;
+        }
+        BlockPos pos = event.getPos().immutable();
+        var state = level.getBlockState(pos);
+
+        // ① 作物：成熟则收割并补种，未熟则催熟
+        if (state.getBlock() instanceof net.minecraft.world.level.block.CropBlock crop)
+        {
+            if (crop.isMaxAge(state))
+            {
+                for (ItemStack drop : net.minecraft.world.level.block.Block.getDrops(state, level, pos, null))
+                {
+                    level.addFreshEntity(new net.minecraft.world.entity.item.ItemEntity(
+                            level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, drop));
+                }
+                level.setBlock(pos, crop.getStateForAge(0), 3);
+                player.displayClientMessage(
+                        Component.translatable("chat.godofthings.wand.harvest").withStyle(ChatFormatting.GREEN), true);
+            }
+            else
+            {
+                level.setBlock(pos, crop.getStateForAge(crop.getMaxAge()), 3);
+                player.displayClientMessage(
+                        Component.translatable("chat.godofthings.wand.ripen").withStyle(ChatFormatting.GREEN), true);
+            }
+            event.setCanceled(true);
+            return;
+        }
+
+        // ② 泥土 / 草方块 → 耕地（上方需为空，避免破坏已有作物）
+        if (state.is(BlockTags.DIRT) && level.getBlockState(pos.above()).isAir())
+        {
+            level.setBlock(pos, net.minecraft.world.level.block.Blocks.FARMLAND.defaultBlockState(), 3);
+            player.displayClientMessage(
+                    Component.translatable("chat.godofthings.wand.farmland").withStyle(ChatFormatting.GREEN), true);
+            event.setCanceled(true);
+        }
+    }
+
     /** 破坏树叶时极小概率掉出神之工具 */
     @SubscribeEvent
     public static void onBlockDrops(BlockDropsEvent event)
@@ -152,7 +209,6 @@ public final class WandFeatureHandler
         event.getDrops().add(new net.minecraft.world.entity.item.ItemEntity(
                 (ServerLevel) event.getLevel(),
                 event.getPos().getX() + 0.5, event.getPos().getY() + 0.5, event.getPos().getZ() + 0.5,
-                new ItemStack(event.getLevel().getRandom().nextBoolean()
-                        ? Godofthings.GOD_FAVOR_WAND.get() : Godofthings.GOD_FAVOR_WAND.get())));
+                new ItemStack(Godofthings.GOD_FAVOR_WAND.get())));
     }
 }

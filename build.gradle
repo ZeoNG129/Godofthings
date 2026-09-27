@@ -65,11 +65,7 @@ dependencies {
     compileOnly files('libs/emi-1.1.24+1.21.1+neoforge.jar')
 
     // AE2 (应用能源2) —— 神之工具的“AE存储优先”模式（掉落优先存入ME网络）
-    compileOnly files('libs/ae2-1.21.1-neoforge.jar')
-    // 无用之物（上游蕈体）+ 万象担架（addon）—— 神之工具「荒辰移晷之杖」完整移植所需
-    // 神之工具直接继承上游的 EndlessBeafItem 以取得全部多工具能力；运行时两个 mod 必须存在
-    compileOnly files('libs/useless_mod-1.21.1-2.4.0.jar', 'libs/useless_stretcher-1.21.1-1.4.8.jar')
-}
+    compileOnly files('libs/ae2-1.21.1-neoforge.jar')}
 
 // This block of code expands all declared replace properties in the specified resource targets.
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
