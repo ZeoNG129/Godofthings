@@ -270,3 +270,24 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     配置注册、DeferredRegister 挂载、事件监听器注册都在那里，漏掉任何一项都是"编译通过、运行崩溃"。
   - 日志里另有两条**无害**残留（来自之前装过真 mod 的存档）：`useless_stretcher:wondrous_staff` 旧物品失效、
     `useless_stretcher:*`/`useless_mod:*` 维度条目解码失败 —— 都不影响游戏。
+- 2.20.2 → **2.20.3（G 键改为打开照抄的手杖配置界面；模式轮盘让位到 X）**
+  - **用户反馈**："人家原版按 G 能打开配置界面"。
+  - **实测结论（关键数据）**：按 G 打开的界面是**上游本体的** `ModeWheelScreen`（「模式配置」）——
+    **1512 行**，而它只是冰山一角：
+    ```
+    以 ModeWheelScreen + ModeWheelHandler 为根做传递闭包（BFS 逐级解析上游 import）：
+      需要照抄的上游类 = 339 个
+      总行数          = 62,802 行
+      还牵扯 5 个外部 mod 的深层 API：AE2 / 工业先驱 Industrial Foregoing /
+                                       新生魔艺 / JEI / AdvancedAE
+    ```
+    → **照抄这个界面在物理上不成立**：它不是"一个屏幕"，而是整个无用之物本体的
+    **工具模块系统 / 机器系统 / 配方系统**的总入口（`EndlessBeafItem` 1469 行 +
+    `BeefToolLayout` 475 + `BeefToolModuleRegistry` 389 + `UComponents` 403 +
+    熔炉/合成/被动合成仓等 6 万行）。这正是当初判定"抄上游本体不可行"的同一个问题。
+  - **本轮改动**（让"按 G 打开配置界面"立刻成立）：
+    · **G 键 = 打开照抄来的手杖配置界面**（`WondrousStaffConfigScreen`，260 行，上一轮已照抄）
+      —— 改 `StretcherKeyBindings.WONDROUS_STAFF_MODE` 与 `WondrousStaffClient` 里硬编码的
+      `GLFW_KEY_X` 为 `GLFW_KEY_G`（共 3 处）；
+    · **模式轮盘（我们自己的 370 行 `ModeWheelScreen`）键位 G → X**，功能不丢。
+  - 最终键位：**G** = 手杖加速配置界面；**X** = 工具模式轮盘；其余不变。

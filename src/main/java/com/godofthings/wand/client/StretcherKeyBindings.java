@@ -12,7 +12,7 @@ public final class StretcherKeyBindings {
     public static final KeyMapping WONDROUS_STAFF_MODE = new KeyMapping(
             "key.useless_stretcher.wondrous_staff_mode",
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_X,
+            GLFW.GLFW_KEY_G,
             CATEGORY);
 
 

@@ -76,11 +76,11 @@ public final class WondrousStaffClient {
     public static void onKeyInput(InputEvent.Key event) {
         Minecraft mc = Minecraft.getInstance();
         if (event.getAction() != org.lwjgl.glfw.GLFW.GLFW_PRESS || mc.screen != null) return;
-        if (event.getKey() != org.lwjgl.glfw.GLFW.GLFW_KEY_X) return;
+        if (event.getKey() != org.lwjgl.glfw.GLFW.GLFW_KEY_G) return;
         // The raw X fallback is only a conflict-priority path for the default X binding.
         // Once the player rebinds the action, X must be left to its new owner.
         if (StretcherKeyBindings.WONDROUS_STAFF_MODE.getKey().getValue()
-                != org.lwjgl.glfw.GLFW.GLFW_KEY_X) return;
+                != org.lwjgl.glfw.GLFW.GLFW_KEY_G) return;
         Player player = mc.player;
         InteractionHand hand = player == null ? null : findStaffHand(player);
         if (hand == null) return;

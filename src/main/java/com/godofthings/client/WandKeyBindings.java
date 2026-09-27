@@ -51,7 +51,7 @@ public class WandKeyBindings
             "key.godofthings.switch_mode_wheel",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_G,
+            GLFW.GLFW_KEY_X,
             CATEGORY
     ));
 
