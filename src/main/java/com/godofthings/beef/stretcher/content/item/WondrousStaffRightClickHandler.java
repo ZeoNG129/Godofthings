@@ -1,5 +1,6 @@
 package com.godofthings.beef.stretcher.content.item;
 
+import com.godofthings.beef.content.items.EndlessBeafItem;
 import com.godofthings.beef.stretcher.UselessStretcherMod;
 import com.godofthings.beef.stretcher.content.entity.WondrousStaffAcceleration;
 import com.godofthings.beef.stretcher.content.range.RangeAccelerationSettings;
@@ -48,7 +49,25 @@ public final class WondrousStaffRightClickHandler {
         // without Shift so the upstream staff cannot run its lightning-collector action first.
         if (RangeAccelerationSettings.placementMode(stack) && !player.isShiftKeyDown()) return;
         if (!player.isShiftKeyDown() && !lightningRod) return;
-        if (!WondrousStaffAcceleration.isEnabled(stack)) return;
+        if (!WondrousStaffAcceleration.isEnabled(stack)) {
+            // 加速关闭：保留上游手杖「右键避雷针 = 一次性自然引雷」的行为。
+            //
+            // 上游这条逻辑在 useless_mod 的 UselessMod.onRightClickBlock（HIGHEST 事件监听器）里，
+            // 扩展模组再用 UselessModLightningRodMixin 划线：加速开启时由加速路径接管（不引雷），
+            // 标记 / 放置模式下由手杖自己的处理器接管（也不引雷），只有加速关闭时才走这一次性引雷。
+            // 本模组两条逻辑都在自己手里，所以在同一个监听器里直接分叉，效果与那套 mixin 一致。
+            //
+            // 必须放在事件层而不是只靠物品链：物品链里那一步（EndlessBeafItem.useOn）会被
+            // 更早的 onItemUseFirst / 其它右键处理器抢先消费，右键就什么都不会发生。
+            if (RangeAccelerationSettings.placementMode(stack)) return;
+            InteractionResult summon = EndlessBeafItem.trySummonLightningForCollector(
+                    event.getLevel(), event.getPos(), event.getEntity());
+            if (summon != InteractionResult.PASS) {
+                event.setCanceled(true);
+                event.setCancellationResult(summon);
+            }
+            return;
+        }
         if (RangeAccelerationSettings.placementMode(stack)) {
             // The client sends a dedicated placement packet. The server side of this event only
             // suppresses the machine's normal use and tool actions.

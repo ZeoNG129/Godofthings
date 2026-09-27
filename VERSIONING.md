@@ -582,3 +582,32 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     旧的无用模组分类键已不存在）；全仓 grep 确认代码中残留的 `无用/Useless` 只剩注释与「无用维度」内容命名；
     **zh/en 各 1273 键，双向差异 0**。
     · 按键界面是纯客户端显示，需要真人进游戏看：**按键设置 → 神之物** 分组下应能看到 16 个键。
+- 5.1.4 → **5.1.5（手杖右键避雷针引雷失效）** —— 修复，按规则**末位 +1**。
+  - **用户反馈**：「手杖的右键避雷针引雷功能失效了，这个原版手杖右键避雷针引雷是自然雷。」
+  - **排查过程（逐层排除，最后定位到缺了一段事件监听）**：
+    · 先把整条链路与上游**逐行对比**：`BeefTimeAcceleration`（141 行）、`WondrousStaffRightClickHandler`（107 行）、
+      `WondrousStaffItem`（222 行）、`EndlessBeafItem.useOn` **全部与上游一致**，只差包名与语言键命名空间
+      —— 所以不是这几处被改坏，而是**某一段根本没移植**。
+    · 上游这条链的入口有两个：① `UselessMod.onRightClickBlock`（`EventPriority.HIGHEST` + `receiveCanceled = true`
+      的**事件监听器**，末尾对任何 `EndlessBeafItem` 调 `trySummonLightningForCollector` 并取消事件）；
+      ② `EndlessBeafItem.useOn` 里的同名调用（物品链回退）。**我们只移植了 ②，① 没有。**
+    · 上游扩展模组的 `UselessModLightningRodMixin` 恰好说明了这条分界线（照抄时被我跳过，且跳过的判断是对的
+      —— 它拦的是 useless_mod 自己的监听器，我们的杖不继承它的物品类，不冲突）：其注释写明
+      「加速关闭时保留上游手杖的一次性引雷」，即**加速开启时由加速路径接管、标记/放置模式下由手杖处理器接管**，
+      只有**加速关闭**时才走这次性引雷。
+    · 另核对过：`LightningRodBlock` **没有** `useItemOn`（不会在方块层吃掉右键）、
+      `WondrousStaffAcceleration` 的 `isValidTarget` 对避雷针显式返回 true 且 `tickTargetWithinBudget`
+      对避雷针调 `tickLightningRod`（`setVisualOnly(false)`，即自然雷）—— 加速那条路本身是好的。
+  - **修复**：在 `WondrousStaffRightClickHandler.onRightClickBlock`（HIGHEST + receiveCanceled）里，
+    把原来「加速关闭 → 直接 return」改成**加速关闭就地在事件层做一次性引雷**（`placementMode` 时让位）：
+    `EndlessBeafItem.trySummonLightningForCollector(...)` → 取消事件并回填结果。
+    这样右键避雷针不再依赖物品链（物品链那一步会被更早的 `onItemUseFirst` / 其它右键处理器抢先消费），
+    与上游「事件层保证」一致。引雷本体仍走上游原样代码：真实 `LightningBolt`、`setCause(玩家)`、
+    并打上 `ae2lt.natural_weather_lightning` 标记（上游自己就有这个 ae2lt 互操作标记，不是我们加的）。
+  - **行为对照（修复后）**：加速**关闭** → 右键避雷针 = 一次性自然雷（1 道）；
+    加速**开启** → 右键避雷针 = 进入加速，`tickLightningRod` 每 tick 按档位产出自然雷（与上游一致，不叠加一次性引雷）；
+    标记 / 放置模式 → 由手杖自己的处理器接管，不引雷（与上游 mixin 一致）。
+  - **验证**：编译 0 错误；链路四方逐行对比已确认与上游一致；修改点落在事件层且复用上游原函数。
+    · **待用户实机确认**：右键避雷针是否出雷（这是纯玩家交互，无头环境无法自动点击）。
+      若仍不出，需回报「加速开关是开还是关、档位数值」——`WondrousStaffAcceleration.tryUse` 在档位为 **×0** 时
+      会主动丢弃加速标记（等于什么都不做），那是上游设计而非 bug。
