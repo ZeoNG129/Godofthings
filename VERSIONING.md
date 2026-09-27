@@ -374,3 +374,31 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **修复**：把该描述符改成 `Lcom/godofthings/beef/api/enums/tool/ToolTypeMode;`。
   - **全仓复查**：`grep com/sorrowmist` 与 `grep com\.sorrowmist` 覆盖整个 `src/`，确认**仅此一处**功能性残留（其余全部是 shim 与接线类里的说明性注释）。同时复核了另外 3 个带 `method = "..."` 的 stretcher Mixin（`StaffMiningDispatcherMixin` / `StaffMiningDropsMixin` / `BeefTimeAccelerationMixin`），它们的目标类型都由 import 解析，描述符里只有原版/NeoForge 类型，无遗留。
   - **教训**：照抄含 Mixin 的模组时，包名改写必须同时覆盖**点号形式**（`a.b.C`）与 **JVM 斜杠描述符形式**（`La/b/C;`）——后者只在 `@Inject/@Redirect/@WrapMethod` 的 `method = "..."` 字面量里出现，grep 点号形式查不到。
+- 4.0.1 → **4.0.2（与 useless_mod / useless_stretcher 同时安装会启动崩溃：共享 Mixin 冲突）** —— 修复，按规则**末位 +1**。
+  - **用户反馈**：同时装 godofthings + useless_mod + useless_stretcher 三个模组时游戏报错崩溃（错误报告见 `D:\下载\错误报告-2026-9-27_17.02.41.zip`）。
+  - **崩溃现场**（错误报告 `游戏崩溃前的输出.txt`）：
+    ```
+    @Redirect conflict. Skipping useless_mod.mixins.json:EntityGetterMixin from mod useless_mod
+      ->@Redirect::useless_mod$filterProtectedPlayers(...) with priority 1000,
+      already redirected by godofthings.beef.mixins.json:EntityGetterMixin from mod godofthings
+      ->@Redirect::godofthings$filterProtectedPlayers(...) with priority 1000
+    ...
+    Caused by: org.spongepowered.asm.mixin.injection.throwables.InjectionError:
+      Critical injection failure: Redirector useless_mod$filterProtectedPlayers(...) in
+      useless_mod.mixins.json:EntityGetterMixin from mod useless_mod failed injection check, (0/1) succeeded.
+    ```
+  - **根因**：本模组的造化杖移植是逐字照抄 useless_mod 的，两边的 `EntityGetterMixin` 都是 `@Redirect` 打在同一批 `EntityGetter#players()` 调用点上。一个指令上只能留一个 `@Redirect`，优先级相同（都是默认 1000）时**先注册的先赢** —— 本模组赢了，于是 useless_mod 的重定向被跳过。而 **useless_mod 的 mixin 配置是 `injectors.defaultRequire = 1`**，被跳过的注入算致命失败 → 直接崩在启动阶段。本模组自己的配置是 `defaultRequire = 0`，所以「被跳过」对本模组无害，对原版是致命的。
+  - **修复（确定性让位）**：给 `com.godofthings.beef.mixin.EntityGetterMixin` 加 **`priority = 500`**（低于默认 1000）。这样原版 useless_mod 在场时它的重定向**必胜**、本模组被跳过（只记一条警告）；原版不在场时本模组照常生效。同类问题一并处理：`com.godofthings.beef.stretcher.mixin.LevelRendererCloudMixin` 也加 `priority = 500` —— 扩展模组自带一个打在 `LevelRenderer.ticks` 上的同款 `@Redirect`，两边都写了 `require = 0`（不会崩），压低优先级只是把「谁赢看加载顺序」变成「原版稳赢」，避免云层加速时有时无。
+  - **为什么不干脆在检测到原版时整体禁用本模组的 Mixin**：那样确实更「干净」，但会让本模组自己的那把杖**重新失去背包飞行与无敌保护**（3.0.0 的原始 bug，见上一条）—— 因为 useless_mod 的 Mixin 只保护它自己命名空间下的物品。压优先级的方案两头都保住：原版完好，本模组独立安装时功能完整。
+  - **全仓排查确认只此一处硬冲突**：扫描本模组全部 21 个 Mixin 的注入类型，只有 `EntityGetterMixin` 用 `@Redirect`（`LevelRendererCloudMixin` 那个两边都 `require=0`）；upstream useless_mod 的 mixin 里同样只有它一个用 `@Redirect`、没有 `@Overwrite`；扩展模组那边用 `@Redirect/@Overwrite/@WrapMethod` 的三个 Mixin 目标分别是 `LevelRenderer`（上面已处理）、`ConfigManager`（上游的类，与本模组同名类不同，且被扩展模组自己的插件在 2.3.7+ 上禁用）、上游的 `MiningDispatcher`（本模组的同名类不同）——均无硬冲突。
+  - **运行时实测（关键）**：起了专用服务器，`run-server/mods` 放入 **useless_mod 2.4.4 + useless_stretcher 1.4.8 + AE2 19.2.17 + guideme**，与本模组一起加载（`gradlew runServer`，Gradle 需要代理时用 `JAVA_TOOL_OPTIONS` 传 `-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=7890` 走 NBVPN，**不改任何配置文件**）。结果：
+    · 冲突方向已反转：`Skipping godofthings.beef.mixins.json:EntityGetterMixin from mod godofthings ... with priority 500, already redirected by useless_mod... with priority 1000`；
+    · **无 `InjectionError` / `Critical injection failure`**；
+    · 四个模组全部加载（God of Things 4.0.2 / Useless Mod 1.21.1-2.4.4 / Useless Stretcher 1.21.1-1.4.7 / AE2 19.2.17），服务器 `Done (6.931s)! For help, type "help"` 正常开服；
+    · 日志里与本模组相关的 ERROR/FATAL：**0 条**（仅剩 useless_mod 自己那 3 条 `useless_compact_l9/f9/c9` 战利品表解析错误，与本次无关）。
+  - **同时安装时仍存在的无害干扰（已知，不崩）**：
+    · `Method overwrite conflict for shouldProtectFromRemoval / isUnsafePosition in useless_mod.mixins.json:EntityMixin ... previously written by com.godofthings.beef.mixin.EntityMixin` —— 两个 `EntityMixin` 的私有辅助方法同名，Mixin 跳过后者；因为两边是同一份逐字代码，跳过的那个调用点仍会解析到本模组合并进去的同名方法，行为一致。只是警告。
+    · 两边都有 `@Inject` 的钩子（飞行/隐身/存活保护等）会**各自都执行**；但若本模组先取消（`cancellable`），原版同点的处理器可能不再运行 —— 各自只认自己命名空间下的物品，实际互不影响各自的杖。
+    · **X 键被绑三次**（本模组造化杖、本模组荒辰移晷之杖、扩展模组自己的杖各注册一次默认 X），按键设置里会标红冲突，需要玩家手动改键；不影响启动。
+    · 三个模组各注册一份同名物品（`godofthings:endless_beaf_item` 与 `useless_mod:endless_beaf_item` 等），创造栏里会看到重复的杖 —— 这是命名空间不同导致的正常现象。
+  - `gradlew build` SUCCESS，已自动部署到两个测试实例。
