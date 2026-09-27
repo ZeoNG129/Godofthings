@@ -383,6 +383,11 @@
   "gui.godofthings.waypoint.tp": "传送",
   "hud.godofthings.health.absorption": "吸收 %s",
   "hud.godofthings.health.value": "%s / %s",
+  "hud.godofthings.wand.accel": "潜行+右键方块  加速 %s×",
+  "hud.godofthings.wand.farm": "右键作物/泥土  催熟·收割·耕地",
+  "hud.godofthings.wand.loot": "潜行+右键箱子  刷新战利品",
+  "hud.godofthings.wand.mob": "潜行+右键生物  加速生物",
+  "hud.godofthings.wand.title": "神之工具 · 荒辰移晷",
   "item.godofthings.god_accelerator": "神之加速",
   "item.godofthings.god_binder": "神之绑定器",
   "item.godofthings.god_black_box": "神之黑盒",
@@ -468,5 +473,10 @@
   "tooltip.godofthings.parallel": "当前并行：×%s",
   "tooltip.godofthings.screwdriver_mode": "螺丝刀模式",
   "tooltip.godofthings.silk_touch_mode": "精准采集模式",
+  "tooltip.godofthings.wand.accel": "潜行+右键方块：时间加速（当前 %s 倍，再按翻倍）",
+  "tooltip.godofthings.wand.farm": "右键作物：催熟 / 收割补种；右键泥土：开垦耕地",
+  "tooltip.godofthings.wand.header": "—— 荒辰移晷 ——",
+  "tooltip.godofthings.wand.loot": "潜行+右键战利品箱：重刷战利品",
+  "tooltip.godofthings.wand.mob": "潜行+右键生物：加速该生物",
   "tooltip.godofthings.wrench_mode": "扳手模式"
 }

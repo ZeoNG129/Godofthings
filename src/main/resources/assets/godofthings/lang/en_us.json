@@ -383,6 +383,11 @@
   "gui.godofthings.waypoint.tp": "TP",
   "hud.godofthings.health.absorption": "Absorb %s",
   "hud.godofthings.health.value": "%s / %s",
+  "hud.godofthings.wand.accel": "Sneak+RMB block  accel x%s",
+  "hud.godofthings.wand.farm": "RMB crops/dirt  ripen harvest till",
+  "hud.godofthings.wand.loot": "Sneak+RMB chest  refresh loot",
+  "hud.godofthings.wand.mob": "Sneak+RMB mob  accelerate",
+  "hud.godofthings.wand.title": "God Tool - Chronoshift",
   "item.godofthings.god_accelerator": "God Accelerator",
   "item.godofthings.god_binder": "God Binder",
   "item.godofthings.god_black_box": "God Black Box",
@@ -468,5 +473,10 @@
   "tooltip.godofthings.parallel": "Parallelism: ×%s",
   "tooltip.godofthings.screwdriver_mode": "Screwdriver Mode",
   "tooltip.godofthings.silk_touch_mode": "Silk Touch Mode",
+  "tooltip.godofthings.wand.accel": "Sneak+Right-click block: time acceleration (x%s, click again to double)",
+  "tooltip.godofthings.wand.farm": "Right-click crops: ripen / harvest+replant; dirt: till",
+  "tooltip.godofthings.wand.header": "-- Chronoshift --",
+  "tooltip.godofthings.wand.loot": "Sneak+Right-click loot chest: refresh loot",
+  "tooltip.godofthings.wand.mob": "Sneak+Right-click mob: accelerate it",
   "tooltip.godofthings.wrench_mode": "Wrench Mode"
 }
