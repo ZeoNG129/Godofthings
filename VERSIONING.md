@@ -291,3 +291,14 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
       `GLFW_KEY_X` 为 `GLFW_KEY_G`（共 3 处）；
     · **模式轮盘（我们自己的 370 行 `ModeWheelScreen`）键位 G → X**，功能不丢。
   - 最终键位：**G** = 手杖加速配置界面；**X** = 工具模式轮盘；其余不变。
+- 2.20.3 → **2.20.4（补齐照抄代码的 70 个语言键，否则界面显示原始键名）**
+  - **问题**：照抄进来的 65 个文件用了 **69 个语言键**（`gui.useless_stretcher.*` 等），而我们一个都没有 ——
+    打开界面看到的全是 `gui.useless_stretcher.staff_config.title` 这种**原始键名**，这也是"看起来还是不一样"的一部分。
+  - **修法**：从两个来源按 key 取值合并进本模组语言文件（addon 1.4.8 + 上游 2.4.0 的 `assets/*/lang/`，
+    两边合计 1328 个键可查）：
+    · `gui.useless_stretcher.*` / `tooltip.useless_stretcher.*` / `entity.*` / `itemGroup.*` / `key.*` → addon 语言文件；
+    · `tooltip.useless_mod.*`（9 个，上游工具键位提示）→ 上游语言文件；
+    · 唯一两边都没有的 `gui.useless_stretcher.staff_summon.mode` 手工补（召唤模式 / Summon mode）。
+  - 语言键 **487 → 557**（zh/en 差异 0）。
+  - **教训**：照抄一个模块时，**必须连它的语言文件一起抄** —— 代码里的 `Component.translatable("...")` 只是键名，
+    值在 `assets/<modid>/lang/*.json` 里；不搬值 = 界面全是键名。
