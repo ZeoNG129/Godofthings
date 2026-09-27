@@ -40,7 +40,7 @@ public class EntityMixin {
     @Inject(method = "setPos(DDD)V", at = @At("HEAD"), cancellable = true)
     private void godofthings$protectBeefPlayerFromUnsafeSetPos(double x, double y, double z, CallbackInfo ci) {
         Entity entity = (Entity) (Object) this;
-        if (entity instanceof Player player && EventHandler.hasBeefInvulnerabilityItem(player) && isUnsafePosition(player, x, y, z)) {
+        if (entity instanceof Player player && EventHandler.hasBeefInvulnerabilityItem(player) && godofthings$isUnsafePosition(player, x, y, z)) {
             EventHandler.restoreBeefProtectedPlayer(player);
             ci.cancel();
         }
@@ -49,7 +49,7 @@ public class EntityMixin {
     @Inject(method = "setRemoved", at = @At("HEAD"), cancellable = true)
     private void godofthings$protectBeefPlayerFromSetRemoved(Entity.RemovalReason reason, CallbackInfo ci) {
         Entity entity = (Entity) (Object) this;
-        if (entity instanceof Player player && shouldProtectFromRemoval(reason) && EventHandler.shouldApplyBeefInvulnerability(player)) {
+        if (entity instanceof Player player && godofthings$shouldProtectFromRemoval(reason) && EventHandler.shouldApplyBeefInvulnerability(player)) {
             EventHandler.restoreBeefProtectedPlayer(player);
             ci.cancel();
         }
@@ -58,17 +58,17 @@ public class EntityMixin {
     @Inject(method = "remove", at = @At("HEAD"), cancellable = true)
     private void godofthings$protectBeefPlayerFromRemove(Entity.RemovalReason reason, CallbackInfo ci) {
         Entity entity = (Entity) (Object) this;
-        if (entity instanceof Player player && shouldProtectFromRemoval(reason) && EventHandler.shouldApplyBeefInvulnerability(player)) {
+        if (entity instanceof Player player && godofthings$shouldProtectFromRemoval(reason) && EventHandler.shouldApplyBeefInvulnerability(player)) {
             EventHandler.restoreBeefProtectedPlayer(player);
             ci.cancel();
         }
     }
 
-    private static boolean shouldProtectFromRemoval(Entity.RemovalReason reason) {
+    private static boolean godofthings$shouldProtectFromRemoval(Entity.RemovalReason reason) {
         return reason == Entity.RemovalReason.DISCARDED;
     }
 
-    private static boolean isUnsafePosition(Player player, double x, double y, double z) {
+    private static boolean godofthings$isUnsafePosition(Player player, double x, double y, double z) {
         if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) {
             return true;
         }

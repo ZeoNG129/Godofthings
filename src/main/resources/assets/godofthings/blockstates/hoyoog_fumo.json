@@ -1,0 +1,19 @@
+{
+    "variants": {
+        "facing=north": {
+            "model": "godofthings:block/hoyoog_fumo"
+        },
+        "facing=south": {
+            "model": "godofthings:block/hoyoog_fumo",
+            "y": 180
+        },
+        "facing=west": {
+            "model": "godofthings:block/hoyoog_fumo",
+            "y": 270
+        },
+        "facing=east": {
+            "model": "godofthings:block/hoyoog_fumo",
+            "y": 90
+        }
+    }
+}

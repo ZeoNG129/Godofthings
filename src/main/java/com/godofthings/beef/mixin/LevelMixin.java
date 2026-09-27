@@ -63,7 +63,7 @@ public class LevelMixin {
     // ==== 以下三个注入随「无用维度」子系统一同补回（v4.1.0）====
     // 之前只移植造化杖时被裁掉，因为那时无用维度没带进来；现在维度已照抄，
     // 这层「无用维度永远晴天」的表现也必须一起回来。
-    // 注意 isUselessDimension() 只认 UselessDimensions 里那三个维度键（uselessdim/2/3），
+    // 注意 godofthings$isUselessDimension() 只认 UselessDimensions 里那三个维度键（uselessdim/2/3），
     // 不会误伤本模组自己的超平坦 / 虚空维度。
 
     @Inject(
@@ -72,7 +72,7 @@ public class LevelMixin {
             cancellable = true
     )
     private void injectIsDay(CallbackInfoReturnable<Boolean> cir) {
-        if (this.isUselessDimension()) {
+        if (this.godofthings$isUselessDimension()) {
             cir.setReturnValue(true);
         }
     }
@@ -83,7 +83,7 @@ public class LevelMixin {
             cancellable = true
     )
     private void uselessDimAlwaysClear_rain(CallbackInfoReturnable<Boolean> cir) {
-        if (this.isUselessDimension()) {
+        if (this.godofthings$isUselessDimension()) {
             cir.setReturnValue(false);
         }
     }
@@ -94,12 +94,12 @@ public class LevelMixin {
             cancellable = true
     )
     private void uselessDimAlwaysClear_thunder(CallbackInfoReturnable<Boolean> cir) {
-        if (this.isUselessDimension()) {
+        if (this.godofthings$isUselessDimension()) {
             cir.setReturnValue(false);
         }
     }
 
-    private boolean isUselessDimension() {
+    private boolean godofthings$isUselessDimension() {
         Level level = (Level) (Object) this;
         return UselessDimensions.isUselessDimension(level.dimension());
     }
