@@ -245,3 +245,28 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     → 现在**加速/战利品刷新/生物加速/HUD/配置界面/召唤界面/树叶掉落/范围加速**全部由照抄来的原版代码承担。
   - `gradlew compileJava` **BUILD SUCCESSFUL**。
   - **操作方式（与原 mod 一致）**：**潜行 + 右键方块** = 时间加速；**潜行 + 右键生物** = 生物加速；**潜行 + 右键战利品箱** = 刷新战利品；**X 键** = 打开加速配置界面。
+- 2.20.1 → **2.20.2（修闪退：照抄代码的配置文件没注册）**
+  - **崩溃现场**（`crash-2026-09-27_15.00.59-client.txt`）：
+    ```
+    java.lang.IllegalStateException: Cannot get config value before config is loaded.
+      at com.godofthings.wand.config.StretcherConfig.highlightSeeThrough(StretcherConfig.java:122)
+      at com.godofthings.wand.client.WondrousStaffHighlight.onRender(WondrousStaffHighlight.java:53)
+      at net.neoforged.neoforge.client.ClientHooks.dispatchRenderStage
+    ```
+  - **根因**：原 mod 是在它自己的主类构造里注册配置的
+    `container.registerConfig(ModConfig.Type.COMMON, StretcherConfig.COMMON_SPEC);`
+    —— 而我们的垫片 `UselessStretcherMod` 只是个提供 `MODID` 的空壳，**配置文件从未注册**，
+    于是照抄的客户端渲染代码一读配置就抛异常。**编译期完全看不出来，只有运行到那一行才炸。**
+  - **修法**：把原版主类构造里的初始化清单**照抄**到本模组主类（只取我们抄了的那些）：
+    ```java
+    com.godofthings.wand.init.StretcherComponents.init(modEventBus);
+    com.godofthings.wand.init.ModEntities.ENTITIES.register(modEventBus);
+    com.godofthings.wand.init.ModCreativeTabs.CREATIVE_TAB.register(modEventBus);
+    modContainer.registerConfig(ModConfig.Type.COMMON, StretcherConfig.COMMON_SPEC);
+    ```
+    原版还有 `ModBlocks`/`ModBlockEntities`/`ModMenuTypes`/`DimensionCompat`/`Network::register`/`ModItemDefaults`
+    这 6 项属于**未引入的万象方块与维度子系统**，不需要。
+  - **教训（重要）**：照抄一个子系统时，**必须把它主类构造里的初始化清单一起照抄** ——
+    配置注册、DeferredRegister 挂载、事件监听器注册都在那里，漏掉任何一项都是"编译通过、运行崩溃"。
+  - 日志里另有两条**无害**残留（来自之前装过真 mod 的存档）：`useless_stretcher:wondrous_staff` 旧物品失效、
+    `useless_stretcher:*`/`useless_mod:*` 维度条目解码失败 —— 都不影响游戏。

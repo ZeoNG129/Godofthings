@@ -533,6 +533,14 @@ public class Godofthings
     {
         // 照抄的荒辰移晷子系统：注册实体类型与数据组件
         com.godofthings.wand.init.StretcherComponents.init(modEventBus);
+
+        // ── 照抄自万象担架主类 UselessStretcherMod 的初始化清单 ──
+        com.godofthings.wand.init.ModEntities.ENTITIES.register(modEventBus);
+        com.godofthings.wand.init.ModCreativeTabs.CREATIVE_TAB.register(modEventBus);
+        // 配置文件：不注册它，照抄代码读配置时会抛
+        // IllegalStateException: Cannot get config value before config is loaded.
+        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON,
+                com.godofthings.wand.config.StretcherConfig.COMMON_SPEC);
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
