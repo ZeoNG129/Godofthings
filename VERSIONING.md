@@ -435,3 +435,39 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     `isUselessDimension`、`shouldProtectFromRemoval`、`isUnsafePosition`。Mixin 只能保留一个，被跳过后**两个模组的注入处理器会共用剩下的那一个**：由于两者实现不同（各自查自己命名空间的物品/维度），等于有一方在用错逻辑。修复方式是把**本模组这三个辅助方法**按 Mixin 的私有成员命名惯例加 `godofthings$` 前缀（上游的注入处理器本来就带 `useless_mod$` 前缀，只有这三个辅助方法漏了），两边即可各自保留、互不干扰。
     · 实测（专用服务器 + useless_mod 2.4.4 + useless_stretcher 1.4.8 + AE2）：`Method overwrite conflict` 警告**从 3 条降到 0 条**；仅剩 6 条**刻意为之**的 `@Redirect conflict. Skipping godofthings...EntityGetterMixin with priority 500`（4.0.2 的让位设计，保持不变）。
   - `gradlew build` SUCCESS，jar 内含 7 个 `com/godofthings/fumo` class 与全部玩偶资源，已自动部署到两个测试实例。
+- 5.1.0 → **5.1.1（维度配置界面两处缺失：运行时拼出来的语言键、JEI 拖拽）** —— 修复，按规则**末位 +1**。
+  - **用户反馈**：无用维度传送方块的配置界面里 ①「马路 / 多联」显示成英文（实际是原始键名）②没有和原版一样「从 JEI 把物品拖进配置界面」的能力。
+  - **问题 ① 根因**：这两个名字的键是**运行时拼出来的** —— `DimensionConfigScreen` 里写的是
+    `Component.translatable("gui.godofthings.dimension_config.mode." + key)`，
+    真正的键是 `...mode.road` / `...mode.multi`。而我在 5.0.0 合并语言键时，是按「**代码里出现的字面量**」提取键名的，
+    这种 `前缀 + 变量` 的键只会提取到那个**带尾点的前缀**，真实键名一个都没提 → 缺键 → 界面回落显示原始键名。
+  - **一次性审计（顺手把同类问题全找出来）**：写脚本扫遍全部照抄代码，抓出所有 `"...前缀." + 变量` 形式的键前缀
+    （共 5 个：`godofthings.configuration.`、`gui.godofthings.dimension_config.mode.`、
+    `gui.godofthings.dimension_config.preview.role.`、`gui.godofthings.wireless_logistics.`、
+    `gui.godofthings.wireless_logistics.side.`），再把上游语言文件里**命中这些前缀的全部键**取出来比对，
+    结果**共缺 303 条**，分三组：
+    · **维度配置界面 10 条**（`mode.road` / `mode.multi` + `preview.role.*` 8 条）——用户报的这条；
+    · **无线物流界面 35 条**（`side.*` 六面 + `medium.*` 九种介质 + `flow.*` + `trigger.*` + 各种 `*_label`）——
+      **同一个 bug，只是荒辰移晷之杖那套界面用户还没点到**；
+    · **配置界面 258 条**（`godofthings.configuration.*`：catalyst/coil/furnace 各阶并行与耗时、各 mod 配方转换开关等）——
+      因为 `ConfigManager` 在 v3.0.0 是**整份照抄**的，这些配置项在本模组的配置文件里真实存在，
+      界面上就会显示原始键名（此前只补了 144 条，漏了动态拼接与 `.comment`/`.tooltip` 变体）。
+    三组共 303 条全部从上游补齐，**zh/en 各 1288 键，双向差异 0**。抽查：`mode.road`=马路、`mode.multi`=多联、
+    `preview.role.road`=道路主体、`wireless_logistics.side.north`=北面、`medium.ae_item`=AE 物品。
+  - **问题 ② 根因（判断失误，非疏漏）**：v3.0.0 我把上游 `compat/jei/JEIPlugin`（363 行）裁剪成「只有运行时持有器」，
+    理由写的是「上游该类里与造化杖有关的只有这个运行时持有器」。**那个判断漏看了 `registerGuiHandlers`** ——
+    它注册的**三个** JEI 拖拽处理器（`IGhostIngredientHandler`）分别服务于：
+    · `DimensionConfigScreen`（无用维度配置界面，用户报的这条）、
+    · `StaffLinkScreen`（无线物流过滤槽）、
+    · `ChainGroupScreen`（连锁等价组拖方块）。
+    三者都属于已移植子系统，因此是**三个一起丢**。现按上游逐字补回三个处理器（连注释一起照抄），
+    挂到现有的 `com.godofthings.beef.compat.jei.JEIPlugin`（保留运行时持有器）上。
+    所需的面板公开方法经核对全部已随界面照抄存在（`getMenu().isGhostSlotActive/getGhostSlot/setGhostSlotFromClient`、
+    `filterSlotCount/filterSlotScreenX/filterSlotScreenY/filterSlotSize`、`chainGroupCount/isGroupRowVisible/groupDropZoneScreenX/groupDropZoneScreenY/dropZoneSize/addEntryFromBlock`），
+    服务端收包链路（`DimensionConfigGhostSlotPacket`）在 5.0.0 已注册。
+  - **教训**：① 合并语言键时，**不能只按代码里的完整字面量提取** —— 凡 `前缀 + 变量` 拼出来的键都要单独审计
+    （做法：抓 `"...前缀." +` 形态的前缀，再把上游语言文件里命中该前缀的键全量取回比对）；
+    ② 裁掉上游某个类之前，要**通读该类的每个 @Override 方法**再判断「哪部分与本次移植有关」，
+    否则会像这次一样把整块功能连同理由一起误删。
+  - `gradlew build` SUCCESS，已自动部署到两个测试实例。
+  - **未验证**：JEI 拖拽是纯客户端交互，需要真人进游戏拖一次；已确认的是编译通过、处理器已注册、面板侧方法齐全、收包链路已就位。
