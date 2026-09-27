@@ -1,0 +1,390 @@
+package com.godofthings.beef.utils;
+
+import com.godofthings.beef.api.enums.tool.ToolTypeMode;
+import com.godofthings.beef.compat.productivebees.ProductiveBeesCaptureCompat;
+import com.godofthings.beef.content.items.EndlessBeafItem;
+import com.godofthings.beef.core.component.UComponents;
+import com.godofthings.beef.core.config.ConfigManager;
+import com.godofthings.beef.utils.mining.MiningUtils;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.Level;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+public class UselessItemUtils {
+    private static final String PRODUCTIVE_BEES_MOD_ID = "productivebees";
+    private static final ResourceLocation COGNIZANT_DUST_ID = ResourceLocation.fromNamespaceAndPath(
+            "mysticalagriculture", "cognizant_dust");
+
+    public static void applyEndlessBeafEffects(Player player) {
+        if (player == null) return;
+
+        // 检查是否启用药水效果
+        if (ConfigManager.shouldEnablePotionEffects()) {
+            List<String> customEffects = ConfigManager.getCustomPotionEffects();
+            
+            for (String effectConfig : customEffects) {
+                applyPotionEffectFromConfig(player, effectConfig);
+            }
+        }
+    }
+
+    private static final int POTION_DURATION = 20000;
+
+    /**
+     * 从配置条目解析并应用药水效果
+     * 格式: "modid:effect_name,amplifier"
+     */
+    private static void applyPotionEffectFromConfig(Player player, String effectConfig) {
+        try {
+            if (effectConfig == null) {
+                return;
+            }
+
+            String[] parts = effectConfig.split(",", -1);
+            if (parts.length != 2) {
+                return;
+            }
+
+            String effectId = parts[0].trim();
+            int amplifier = Integer.parseInt(parts[1].trim()) - 1;
+            if (amplifier < 0) {
+                return;
+            }
+
+            ResourceLocation location = ResourceLocation.tryParse(effectId);
+            if (location == null) {
+                return;
+            }
+            MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(location);
+
+            if (effect == null) {
+                return;
+            }
+
+            Holder<MobEffect> effectHolder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
+            MobEffectInstance currentEffect = player.getEffect(effectHolder);
+            if (currentEffect == null || currentEffect.getDuration() < 200) {
+                player.addEffect(new MobEffectInstance(effectHolder, POTION_DURATION, Math.max(0, amplifier), true, false, true));
+            }
+        } catch (Exception e) {
+            // 静默处理配置解析错误，避免每tick输出日志
+        }
+    }
+
+    public static void onLivingDrops(LivingDropsEvent event, ItemStack stack, Player player) {
+        if (player == null) return;
+
+        // 根据配置的概率判断是否触发
+        int chance = ConfigManager.getFestiveDropChance();
+        if (!(Math.random() * 100 < chance)) {
+            return;
+        }
+
+        LivingEntity killedEntity = event.getEntity();
+        Level level = killedEntity.level();
+
+        if (level.isClientSide()) return;
+
+        sendFestiveMessage(player);
+
+        Collection<ItemEntity> drops = event.getDrops();
+        List<ItemEntity> remainingDrops = new ArrayList<>(); // 保留原样掉落的（可损坏物品）
+
+        for (ItemEntity itemEntity : drops) {
+            ItemStack dropStack = itemEntity.getItem();
+
+            if (dropStack.isDamageableItem()) {
+                // 可损坏物品（如剑、弓、护甲）保持原版掉落行为
+                remainingDrops.add(itemEntity);
+            } else {
+                // 非可损坏物品：数量 ×20，直接尝试进玩家背包
+                ItemStack amplifiedStack = dropStack.copy();
+                amplifiedStack.setCount(dropStack.getCount() * 20);
+
+                // 原版 API：优先进背包，满了自动掉落在玩家脚下
+                player.getInventory().placeItemBackInInventory(amplifiedStack);
+            }
+        }
+
+        // 清空原掉落物，重新添加只需掉在地上的部分（主要是可损坏物品）
+        drops.clear();
+        drops.addAll(remainingDrops);
+    }
+
+    public static void tryAddCognizantDustDrop(LivingDropsEvent event, ItemStack stack) {
+        if (!(stack.getItem() instanceof EndlessBeafItem)
+                || !stack.getOrDefault(UComponents.BeefMysticalAgricultureEnabledComponent.get(), false)) {
+            return;
+        }
+
+        LivingEntity killedEntity = event.getEntity();
+        Level level = killedEntity.level();
+        if (level.isClientSide() || !level.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+            return;
+        }
+
+        int count = killedEntity.getType() == EntityType.WITHER ? 4
+                : killedEntity.getType() == EntityType.ENDER_DRAGON ? 6 : 0;
+        if (count == 0) {
+            return;
+        }
+
+        Item cognizantDust = BuiltInRegistries.ITEM.get(COGNIZANT_DUST_ID);
+        if (cognizantDust != Items.AIR) {
+            event.getDrops().add(new ItemEntity(
+                    level,
+                    killedEntity.getX(),
+                    killedEntity.getY(),
+                    killedEntity.getZ(),
+                    new ItemStack(cognizantDust, count)
+            ));
+        }
+    }
+
+    public static void tryAddBeheadingDrop(LivingDropsEvent event, ItemStack stack) {
+        if (!(stack.getItem() instanceof EndlessBeafItem)
+                || !stack.getOrDefault(UComponents.BeefBeheadingEnabledComponent.get(), false)) {
+            return;
+        }
+
+        LivingEntity killedEntity = event.getEntity();
+        Level level = killedEntity.level();
+        if (event.isCanceled() || level.isClientSide()
+                || !level.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+            return;
+        }
+
+        ItemStack head = beheadingDrop(killedEntity);
+        if (!head.isEmpty()) {
+            event.getDrops().add(new ItemEntity(
+                    level,
+                    killedEntity.getX(),
+                    killedEntity.getY(),
+                    killedEntity.getZ(),
+                    head
+            ));
+        }
+    }
+
+    private static ItemStack beheadingDrop(LivingEntity entity) {
+        if (entity instanceof Player player) {
+            ItemStack head = new ItemStack(Items.PLAYER_HEAD);
+            head.set(DataComponents.PROFILE, new ResolvableProfile(player.getGameProfile()));
+            return head;
+        }
+
+        EntityType<?> type = entity.getType();
+        if (type == EntityType.SKELETON || type == EntityType.STRAY || type == EntityType.BOGGED) {
+            return new ItemStack(Items.SKELETON_SKULL);
+        }
+        if (type == EntityType.WITHER_SKELETON) {
+            return new ItemStack(Items.WITHER_SKELETON_SKULL);
+        }
+        if (type == EntityType.ZOMBIE || type == EntityType.ZOMBIE_VILLAGER
+                || type == EntityType.HUSK || type == EntityType.DROWNED) {
+            return new ItemStack(Items.ZOMBIE_HEAD);
+        }
+        if (type == EntityType.CREEPER) {
+            return new ItemStack(Items.CREEPER_HEAD);
+        }
+        if (type == EntityType.PIGLIN || type == EntityType.PIGLIN_BRUTE) {
+            return new ItemStack(Items.PIGLIN_HEAD);
+        }
+        if (type == EntityType.ENDER_DRAGON) {
+            return new ItemStack(Items.DRAGON_HEAD);
+        }
+        return ItemStack.EMPTY;
+    }
+
+    public static void tryCaptureSpawnEgg(LivingEntity killedEntity, ItemStack stack, Player player) {
+        if (killedEntity.level().isClientSide()
+                || !(stack.getItem() instanceof EndlessBeafItem)
+                || !stack.getOrDefault(UComponents.BeefCaptureEnabledComponent.get(), false)) {
+            return;
+        }
+
+        ItemStack spawnEggStack = null;
+        if (ModList.get().isLoaded(PRODUCTIVE_BEES_MOD_ID)) {
+            spawnEggStack = ProductiveBeesCaptureCompat.tryCreateSpawnEgg(killedEntity);
+        }
+
+        if (spawnEggStack == null) {
+            SpawnEggItem spawnEgg = SpawnEggItem.byId(killedEntity.getType());
+            if (spawnEgg == null) {
+                return;
+            }
+            spawnEggStack = new ItemStack(spawnEgg);
+        }
+
+        if (spawnEggStack.isEmpty()) {
+            return;
+        }
+
+        MiningUtils.handleDrops(player, java.util.List.of(spawnEggStack), stack, killedEntity.position());
+    }
+
+    // 显示触发提示
+    private static void sendFestiveMessage(Player player) {
+        if (player != null) {
+            player.displayClientMessage(
+                    Component.translatable("gui.godofthings.festive_triggered"),
+                    true
+            );
+        }
+    }
+
+    /**
+     * 检查物品是否是目标工具（牛排或特定模式的omnitools扳手）
+     */
+    private static boolean isTargetTool(ItemStack itemStack) {
+        if (itemStack.isEmpty()) {
+            return false;
+        }
+
+        // 检查是否是永恒牛排工具
+        if (itemStack.getItem() instanceof EndlessBeafItem) {
+            return true;
+        }
+
+        // 检查是否是omnitools扳手且处于正确模式
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
+        return itemId.getNamespace().equals("omnitools")
+                && itemStack.get(UComponents.CurrentToolTypeComponent) == ToolTypeMode.OMNITOOL_MODE;
+    }
+
+    /**
+     * 从玩家的主手和副手中查找目标工具
+     * 返回包含目标物品和对应手的Optional
+     */
+    public static Optional<SimpleImmutableEntry<ItemStack, InteractionHand>> findTargetToolInHands(Player player) {
+        if (player == null) {
+            return Optional.empty();
+        }
+
+        ItemStack mainHandItem = player.getMainHandItem();
+        ItemStack offHandItem = player.getOffhandItem();
+
+        // 检查主手
+        if (isTargetTool(mainHandItem)) {
+            return Optional.of(new SimpleImmutableEntry<>(mainHandItem, InteractionHand.MAIN_HAND));
+        }
+
+        // 检查副手
+        if (isTargetTool(offHandItem)) {
+            return Optional.of(new SimpleImmutableEntry<>(offHandItem, InteractionHand.OFF_HAND));
+        }
+
+        return Optional.empty();
+    }
+
+    public static boolean hasTargetToolInInventory(Player player) {
+        if (player == null || player.getInventory() == null) {
+            return false;
+        }
+
+        return isTargetTool(player.getMainHandItem())
+                || isTargetTool(player.getOffhandItem())
+                || player.getInventory().items.stream().anyMatch(UselessItemUtils::isTargetTool);
+    }
+
+    /**
+     * 玩家身上是否带着指定物品（主手 / 副手 / 主背包）。
+     * <p>
+     * 注意 {@code player.getInventory().items} 只有主背包那 36 格，<b>不含副手</b>
+     * （副手在 {@code getInventory().offhand} 里）。凡是「玩家是否携带」的判定都必须走这里，
+     * 否则造化杖放进副手就会失效。
+     */
+    public static boolean hasItemInInventory(Player player, Item item) {
+        if (player == null || player.getInventory() == null || item == null) {
+            return false;
+        }
+
+        return player.getMainHandItem().is(item)
+                || player.getOffhandItem().is(item)
+                || player.getInventory().items.stream().anyMatch(stack -> stack.is(item));
+    }
+
+    public static boolean hasInvulnerabilityEnabledTargetToolInInventory(Player player) {
+        if (player == null || player.getInventory() == null) {
+            return false;
+        }
+
+        return isInvulnerabilityEnabledTargetTool(player.getMainHandItem())
+                || isInvulnerabilityEnabledTargetTool(player.getOffhandItem())
+                || player.getInventory().items.stream().anyMatch(UselessItemUtils::isInvulnerabilityEnabledTargetTool);
+    }
+
+    public static boolean hasAdvancedStealthEnabledTargetToolInInventory(Player player) {
+        if (player == null || player.getInventory() == null) {
+            return false;
+        }
+
+        return isAdvancedStealthEnabledTargetTool(player.getMainHandItem())
+                || isAdvancedStealthEnabledTargetTool(player.getOffhandItem())
+                || player.getInventory().items.stream().anyMatch(UselessItemUtils::isAdvancedStealthEnabledTargetTool);
+    }
+
+    public static boolean enableInvulnerabilityForAdvancedStealth(Player player) {
+        if (player == null || player.getInventory() == null) {
+            return false;
+        }
+
+        boolean changed = enableInvulnerabilityForAdvancedStealth(player.getMainHandItem());
+        changed |= enableInvulnerabilityForAdvancedStealth(player.getOffhandItem());
+        for (ItemStack itemStack : player.getInventory().items) {
+            changed |= enableInvulnerabilityForAdvancedStealth(itemStack);
+        }
+        if (changed) {
+            player.getInventory().setChanged();
+            player.containerMenu.broadcastChanges();
+        }
+        return changed;
+    }
+
+    private static boolean isInvulnerabilityEnabledTargetTool(ItemStack itemStack) {
+        if (!isTargetTool(itemStack)) {
+            return false;
+        }
+
+        Boolean enabled = itemStack.get(UComponents.BeefInvulnerabilityEnabledComponent.get());
+        return enabled != null ? enabled : itemStack.getItem() instanceof EndlessBeafItem;
+    }
+
+    private static boolean isAdvancedStealthEnabledTargetTool(ItemStack itemStack) {
+        return isTargetTool(itemStack)
+                && itemStack.getOrDefault(UComponents.BeefAdvancedStealthEnabledComponent.get(), false);
+    }
+
+    private static boolean enableInvulnerabilityForAdvancedStealth(ItemStack itemStack) {
+        if (!isAdvancedStealthEnabledTargetTool(itemStack)
+                || itemStack.getOrDefault(UComponents.BeefInvulnerabilityEnabledComponent.get(), false)) {
+            return false;
+        }
+        itemStack.set(UComponents.BeefInvulnerabilityEnabledComponent.get(), true);
+        return true;
+    }
+}

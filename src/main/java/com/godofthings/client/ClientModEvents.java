@@ -57,6 +57,9 @@ public class ClientModEvents
         event.register(Godofthings.GOD_SLAUGHTER_CONFIG_MENU.get(), GodSlaughterConfigScreen::new);
         event.register(Godofthings.GOD_ABSORBER_MENU.get(), GodAbsorberScreen::new);
         event.register(Godofthings.GOD_ABSORBER_CONFIG_MENU.get(), GodAbsorberConfigScreen::new);
+        // 无线物流配置界面（照抄 useless_mod 的 StaffLinkScreen）
+        event.register(com.godofthings.beef.init.ModMenuType.STAFF_LINK_MENU.get(),
+                com.godofthings.beef.client.gui.StaffLinkScreen::new);
     }
 
     @SubscribeEvent

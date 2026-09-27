@@ -511,6 +511,14 @@ public class Godofthings
                         output.accept(GOD_TRANSMITTER_ITEM.get());
                         output.accept(GOD_SLAUGHTER_ITEM.get());
                         output.accept(GOD_ABSORBER_ITEM.get());
+                        // 造化杖（太初洞见之杖）：照抄 useless_mod 的 7 个变体
+                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_ITEM.get());
+                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_ITEM_NO_WRENCH.get());
+                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_WRENCH.get());
+                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_SCREWDRIVER.get());
+                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_MALLET.get());
+                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_CROWBAR.get());
+                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_HAMMER.get());
                     })
                     .build());
 
@@ -533,6 +541,22 @@ public class Godofthings
         modContainer.registerConfig(ModConfig.Type.CLIENT, com.godofthings.config.ClientConfig.SPEC, "godofthings-client.toml");
 
         modEventBus.addListener(this::commonSetup);
+
+        // ===== 造化杖（太初洞见之杖）：照抄 useless_mod 的子系统，注册处一一对应上游 UselessMod 的接线 =====
+        com.godofthings.beef.core.component.UComponents.init(modEventBus);
+        com.godofthings.beef.init.ModItems.ITEMS.register(modEventBus);
+        com.godofthings.beef.init.ModEntities.ENTITY_TYPES.register(modEventBus);
+        com.godofthings.beef.init.ModMenuType.register(modEventBus);
+        modEventBus.addListener(com.godofthings.beef.init.ModNetwork::registerPayloadHandlers);
+        // 造化杖的配置（链挖范围/磁力范围/飞行速度/连点速率等，上游 ConfigManager）
+        // 上游文件名是 useless_mod-{common,client,server}.toml；这里加 beef 前缀，
+        // 避免与上面已有的 godofthings-client.toml 撞名。
+        modContainer.registerConfig(ModConfig.Type.COMMON,
+                com.godofthings.beef.core.config.ConfigManager.COMMON_SPEC, "godofthings-beef-common.toml");
+        modContainer.registerConfig(ModConfig.Type.CLIENT,
+                com.godofthings.beef.core.config.ConfigManager.CLIENT_SPEC, "godofthings-beef-client.toml");
+        modContainer.registerConfig(ModConfig.Type.SERVER,
+                com.godofthings.beef.core.config.ConfigManager.SERVER_SPEC, "godofthings-beef-server.toml");
 
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
     }

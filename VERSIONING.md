@@ -316,3 +316,24 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     这些**被神之采矿机（`GodMinerBlock`）与连锁挖掘策略（`ChainMiningStrategy` 等）共用**，删掉会连带弄坏机器；
     其中 `WandItemUtils` 里两处对神之工具的引用已**中性化**（捕捉刷怪蛋功能停用、AE 存储优先交回采矿机自身处理）。
   - 全仓扫描 `GodFavorWandItem|god_favor_wand|com.godofthings.wand`：**零残留**，`compileJava` SUCCESS。
+- 2.20.5 → **3.0.0（照抄 useless_mod 的「太初洞见之杖」＝造化杖整体子系统）** —— 属于「系统性新增（大系统）」，按规则**首位 +1、后两位归零**。
+  - **目标澄清**：「太初洞见之杖」不是独立物品，而是 useless_mod 里 `endless_beaf_item`（造化杖）在**精准采集附魔形态下的显示名**（时运形态显示为「造化垂青之杖」）。上游共注册 7 个形态物品（本体 / `_no_wrench` / `_wrench` / `_screwdriver` / `_mallet` / `_crowbar` / `_hammer`），约 30 个模式开关与 3 套界面。因此本次移植的是**整个造化杖子系统**。
+  - **移植方式：逐字照抄 + 最小接线**（用户要求「可以复制粘贴、不要过多修改、和原版一模一样」）。落入新包 `com.godofthings.beef`，全量 **286 个 class**（约 8,300 行上游源码）。
+    · 唯一的机械改写只有两处：包名前缀 `com.sorrowmist.useless` → `com.godofthings.beef`，命名空间 `useless_mod` → `godofthings`（含字符串字面量里的反射类名）。
+    · 为不动任何一行照抄代码，新增垫片 `com.godofthings.beef.UselessMod`（只提供上游代码引用的 `MODID` / `id()` / `LOGGER`）。
+  - **为什么不能真「全量粘贴」**：该物品的 import 闭包是 **408 个文件 / 68,454 行**（含万象合金炉机器树、40+ 个外部 mod 编译依赖）。实测剔除机器子系统后仍 242 文件，故按「照抄工具本体 + 局部裁剪」执行。
+  - **局部裁剪清单（全部有注释标注）**：
+    · `UComponents`：去掉 10 个机器专用物品组件（熔炉数据 / 全能样板 / 多方块恢复等）；
+    · `EventHandler`：去掉维度配置、合金炉自动搭建、配方索引重建（4 处）；
+    · `ClientEventBusSubscriber`：去掉维度传送方块 / 合金炉核心的交互让位判定；
+    · `EndlessBeafItem`：去掉「按万象炉配方数放大攻击力」（改为基础值）与「荧光塑料 / 无用玻璃潜行让位」；
+    · `ClientPacketHandlers`：去掉 AE 任务进度（机器）处理；
+    · `compat/jei/JEIPlugin`：上游 321 行里与造化杖有关的只有 JEI 运行时持有器，故只保留该部分（连锁等价组界面要用它查物品）；
+    · 未照抄：`ExternalInventoryStore`（仅机器引用）、`compat/mekanism` 里 4 个机器耦合类、`ArsSourceCompat` / `MiEnergyCompat` / `AeSourceCompat`（需要 19.8MB 新生魔艺 / 6.8MB 现代工业化 / arseng 三个 mod 才能编译，其**反射加载器与桥接口已照抄**，这些 mod 在场时对应端点会走「加载失败」日志分支，其余功能不受影响）。
+  - **配套接线**（我们自己的注册处，对应上游 `UselessMod` 的 5 行）：`beef/init/ModItems`（7 个物品）、`ModEntities`、`ModMenuType`、`ModNetwork`（30 个网络包）、`UComponents.init`、3 个配置规格（`godofthings-beef-{common,client,server}.toml`，避开已有的 `godofthings-client.toml`）、`StaffLinkScreen` 菜单界面注册、创造标签新增 7 项。
+    · 网络通道版本沿用本模组既有的 `event.registrar("1")`（上游是 `.versioned("13")`；通道版本是模组级设置，非工具逻辑）。
+    · 访问转换器 `META-INF/accesstransformer.cfg`（14 条）随源码带入并在 `build.gradle` 声明——造化杖的强制击杀要直接读写 `LivingEntity.dead/deathScore/dropAllDeathLoot` 与 `ServerLevel.entityManager` 等成员。
+  - **资源**：8 个物品模型 + 2 张材质（命名空间改写）；语言键从上游合并 **197 条新增 / 20 条覆盖**，并清理 96 条旧工具（已删除的「神之工具」与 useless_stretcher）遗留死键；**zh/en 各 651 键，双向差异 0**。
+  - **旧遗留清理（推翻 2.20.5 条目里「刻意保留」的结论）**：全仓核查确认 `ToolMode` / `ModeManager` / `WandModes` / `WandItemUtils` / `WandConfig` / `utils/mining/*` **只被彼此引用**，与采矿机共用一说不成立（`GodMinerBlock` 只用到 `WandItemUtils.enchantHolder` 一个 3 行工具方法，已内联）。故整包删除 14 个文件，`WandKeyBindings` 收窄为只留 4 个非工具按键。
+  - **代价与依赖**：`libs/` 新增 14 个 compile-only jar（约 **42 MB**），仅为让上游 `compat/*` 类**逐字编译**；它们全部是可选集成，运行时缺失即自动跳过，不影响造化杖本体。若不需要这些可选集成，可删除对应 jar 与 compat 源码。
+  - `gradlew build` SUCCESS，jar 含 885 条目（其中 `com/godofthings/beef` 286 个 class），已自动部署到两个测试实例。

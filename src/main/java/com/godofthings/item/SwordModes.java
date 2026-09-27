@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 /**
  * 神之剑的功能开关存储。
- * 与 {@link WandModes} 同构：用 DataComponents.CUSTOM_DATA 承载独立布尔开关，
+ * 与 {@code SwordModes} 同构的写法：用 DataComponents.CUSTOM_DATA 承载独立布尔开关，
  * 斩首 / 捕捉 / 抢劫 / 吸星 / 吸魂可单独或同时生效。
  */
 public final class SwordModes

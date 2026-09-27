@@ -2,16 +2,20 @@ package com.godofthings.block;
 
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodMinerBlockEntity;
-import com.godofthings.item.WandItemUtils;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
@@ -92,13 +96,19 @@ public class GodMinerBlock extends BaseEntityBlock
         {
             // 1.21.1：附魔存于 ENCHANTMENTS 数据组件（键为 Holder<Enchantment>），替换旧 getItemEnchantmentLevel
             ItemEnchantments stackEnchants = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
-            int efficiency = stackEnchants.getLevel(WandItemUtils.enchantHolder(Enchantments.EFFICIENCY, level.registryAccess()));
-            int fortune = stackEnchants.getLevel(WandItemUtils.enchantHolder(Enchantments.FORTUNE, level.registryAccess()));
-            boolean silkTouch = stackEnchants.getLevel(WandItemUtils.enchantHolder(Enchantments.SILK_TOUCH, level.registryAccess())) > 0;
+            int efficiency = stackEnchants.getLevel(enchantHolder(Enchantments.EFFICIENCY, level.registryAccess()));
+            int fortune = stackEnchants.getLevel(enchantHolder(Enchantments.FORTUNE, level.registryAccess()));
+            boolean silkTouch = stackEnchants.getLevel(enchantHolder(Enchantments.SILK_TOUCH, level.registryAccess())) > 0;
             be.setEnchants(efficiency, fortune, silkTouch);
             be.resetDigging();
         }
     }
 
     // 挖掉矿机时物品一并消失，不掉落（避免大量掉落物造成卡顿）
+
+    /** Enchantments.X 常量（ResourceKey）转 Holder（附魔为数据驱动注册表，需 RegistryAccess）。 */
+    private static Holder<Enchantment> enchantHolder(ResourceKey<Enchantment> key, RegistryAccess access)
+    {
+        return access.registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(key);
+    }
 }
