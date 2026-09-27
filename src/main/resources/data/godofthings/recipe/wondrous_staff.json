@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "godofthings:endless_beaf_item"
+    },
+    {
+      "tag": "c:tools/tools"
+    }
+  ],
+  "result": {
+    "id": "godofthings:wondrous_staff",
+    "count": 1
+  }
+}

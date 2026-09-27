@@ -1,0 +1,21 @@
+{
+  "required": false,
+  "minVersion": "0.8.5",
+  "package": "com.godofthings.beef.stretcher.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "StaffMiningDispatcherMixin",
+    "StaffMiningDropsMixin",
+    "BeefTimeAccelerationMixin",
+    "BeefToolVariantsMixin",
+    "ItemStackToolTagsMixin",
+    "RandomizableContainerLootMemoryMixin",
+    "MinecartContainerLootMemoryMixin"
+  ],
+  "client": [
+    "LevelRendererCloudMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

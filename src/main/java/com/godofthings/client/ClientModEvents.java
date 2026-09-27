@@ -27,6 +27,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 @EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientModEvents
@@ -60,11 +61,26 @@ public class ClientModEvents
         // 无线物流配置界面（照抄 useless_mod 的 StaffLinkScreen）
         event.register(com.godofthings.beef.init.ModMenuType.STAFF_LINK_MENU.get(),
                 com.godofthings.beef.client.gui.StaffLinkScreen::new);
+
+    }
+
+    /** 荒辰移晷之杖（照抄 useless_stretcher）的 3 个实体渲染器。 */
+    @SubscribeEvent
+    public static void onRegisterEntityRenderers(EntityRenderersEvent.RegisterRenderers event)
+    {
+        event.registerEntityRenderer(com.godofthings.beef.stretcher.init.ModEntities.WONDROUS_STAFF_ACCELERATION.get(),
+                com.godofthings.beef.stretcher.client.render.WondrousStaffAccelerationRenderer::new);
+        event.registerEntityRenderer(com.godofthings.beef.stretcher.init.ModEntities.STAFF_LEAF_REWARD.get(),
+                com.godofthings.beef.stretcher.client.render.StaffLeafRewardRenderer::new);
+        event.registerEntityRenderer(com.godofthings.beef.stretcher.init.ModEntities.TIME_FLOW.get(),
+                com.godofthings.beef.stretcher.client.render.TimeFlowRenderer::new);
     }
 
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event)
     {
         WandKeyBindings.register(event);
+        // 荒辰移晷之杖：X 键打开加速配置面板
+        event.register(com.godofthings.beef.stretcher.client.StretcherKeyBindings.WONDROUS_STAFF_MODE);
     }
 }

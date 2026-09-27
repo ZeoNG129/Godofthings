@@ -351,3 +351,21 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **创造物品栏收窄**：按用户要求，7 个形态只保留本体 `endless_beaf_item` 一格（其余 6 个仍已注册，由模式轮盘运行时切换生成）。
   - **新增配方**（用户要求按下界合金锭自制）：`data/godofthings/recipe/endless_beaf_item.json`，沿用上游原版的 3×3 布局 `ABC/DEF/IGH`，只把上游那 5 个「无用锭（1~5 阶，属机器子系统）」换成**下界合金锭**——即 6 个下界合金锭 + 钻石镐 + 下界合金镐 + 金胡萝卜 + 恶魂之泪；配套 `advancement/recipes/misc/endless_beaf_item.json` 解锁进度（判据改为持有下界合金锭）。
   - `gradlew build` SUCCESS，jar 含 13 个 `com/godofthings/beef/mixin` class 与两个 mixin 配置。
+- 3.0.1 → **4.0.0（照抄 useless_stretcher 扩展模组的「荒辰移晷之杖」）** —— 属于「系统性新增（大系统）」，按规则**首位 +1、后两位归零**。
+  - **目标**：`D:\下载` 新放入的 `UselessStretcher-main.zip`（扩展模组源码，`mod_id=useless_stretcher`，包 `com.sorrowmist.useless.stretcher`，130 文件 / 12,419 行）+ `useless_stretcher-1.21.1-1.4.8.jar`。该扩展模组里的「杖」是 **`WondrousStaffItem`＝荒辰移晷之杖**（`useless_stretcher:wondrous_staff`），一个**时间加速杖**，且 `extends EndlessBeafItem` —— 即它继承的正是上一版照抄进来的造化杖。
+  - **移植方法沿用上一版**：落到 `com.godofthings.beef.stretcher`（因为扩展模组的包本身就是 `com.sorrowmist.useless` 的子包，同一套前缀改写即可让它对核心类的引用**自动指向本模组已照抄的造化杖**）。机械改写仍只有命名空间/包名：`com.sorrowmist.useless` → `com.godofthings.beef`、`useless_stretcher` → `godofthings`、`useless_mod` → `godofthings`。垫片 `UselessStretcherMod` 保留同名类型提供 `MODID`（去掉 `@Mod` 与构造器——同一 modid 不允许两个 `@Mod` 类），注册由新增的 `stretcher/init/StretcherRegistration` 接线。
+  - **照抄范围（杖及其全部配套）53 个源文件**：物品 6（杖本体 / 右键处理 / 战利品刷新 / 连锁挖矿上下文 / 教学数据 / 范围回收器）、实体 6（加速实体 + 加速逻辑 + 召唤 + 时间流逝实体 + 树叶奖励实体 + ChangedTick 访问器）、树叶掉落数据、加速预算、范围设置与存档数据（751 行）、客户端 17（HUD / 高亮 / 云层时钟 / 加速配置界面 / 召唤界面 / 范围配置·历史·编辑三界面 / 范围预览 / 交互 / 快捷键 / 界面样式与 AE2 风格控件 / 3 个实体渲染器）、配置 1、事件 3、网络 3（含裁剪版 `Network` 与 `ClientStateReceiver`）、Mixin 8。
+  - **Mixin 8 个**（上一版教训：不能再漏）：`StaffMiningDispatcherMixin` / `StaffMiningDropsMixin`（杖的连锁挖掘与掉落）、`BeefTimeAccelerationMixin` / `BeefToolVariantsMixin`（杖接入造化杖的时间加速与工具变体系统）、`ItemStackToolTagsMixin`（杖跟随扳手标签开关，含 Mekanism 配置器）、`RandomizableContainerLootMemoryMixin` / `MinecartContainerLootMemoryMixin`（战利品箱/矿车战利品表记忆，战利品刷新用）、`LevelRendererCloudMixin`（客户端云层时间加速）。独立配置 `godofthings.beef.stretcher.mixins.json` + `mods.toml` 第三段 `[[mixins]]`。
+  - **裁剪清单（全部有注释标注）**：
+    · 未照抄「万象模具」整条线：`OmniversalMyriadBlock/BlockEntity/Menu/Screen`、`content/mold/*`（5 个）、`event/MyriadWorkQueue`、`MyriadSelectionBatches` 及其 5 个 Mixin（`MoldHubMultiMold` / `MoldMatcherPreparedMolds` / `AdapterUtils*` / `EmptyMyriadMold` / `MyriadContainerMigration`）；
+    · 未照抄维度子系统：`dimension/*`（12 文件）+ 4 个维度 Mixin + 维度方块物品；
+    · 未照抄「万象担架」本体物品与 `content/ae/AeBindingStore`、`AeMaterialContext`（前者仅被模具方块实体与担架物品使用，后者被模具 `PatternFetcher` 与机器 Mixin 使用）；
+    · `client/StretcherHighlight` 照抄后发现它其实是**机器方块高亮**（引用 `MePatternAssemblyBlockEntity` / `PassiveCraftingHatchBlockEntity` / `AdvancedAlloyFurnaceBlockEntity` / 担架物品），与杖无关 → 删除；
+    · `Network.java` 裁掉模具三方包（`MyriadStatePayload` / `MyriadActionPayload` / `FullSlotsPayload` 及其处理器），保留杖与范围加速的全部包；`ClientStateReceiver` 同理裁掉 `accept(MyriadStatePayload)` 与 `handleFullSlots`；
+    · `UselessModLightningRodMixin` 未照抄：它 `@Mixin(UselessMod.class)` 注入的是**上游主类**的 `onRightClickBlock`（用于抢回被上游最高优先级监听器吃掉的避雷针点击）。本模组没有那个监听器（照抄后 `EventHandler.onBlockInteract` 对避雷针会直接 return，不抢交互），故该 Mixin 无对象可注入。
+  - **依赖**：只新增 AE2（时间加速可作用于 AE 机器与 ME 网络端点；AE2 jar 之前已在 `libs/`）。**无需任何新 jar**。
+  - **资源与文案**：3 个物品模型（杖本体 / 精准采集变体 / 范围回收器）+ 2 张材质（杖用的是 `endless_beaf_time_item.png`，模型里引用的就是它）；`data/godofthings/advancement/staff_leaf_drop.json`（树叶掉落彩蛋进度）；`c:tools/wrench` 标签并入 `godofthings:wondrous_staff`（共 3 项）。语言键新增 **117 条**（含 59 个配置项），**zh/en 各 914 键，双向差异 0**。
+  - **配方（唯一自主设计处）**：上游是 `无序合成(useless_stretcher:useless_stretcher + #c:tools/tools)`，而「万象担架」本体属未移植子系统 → 保持上游的**无序合成结构**不变，只把那个拿不到的原料换成本模组已有的**造化杖**：`godofthings:endless_beaf_item` + `#c:tools/tools` → `godofthings:wondrous_staff`。语义上正好对应「造化杖升级成荒辰移晷之杖」。范围回收器沿用上游设定：无配方，仅 /give。
+  - **创造物品栏**：按上一版要求保持精简，只加杖本体与范围回收器各一格。
+  - **未做**：AE2 手册（`assets/ae2/ae2guide/useless_stretcher/*`，index + 6 页）未照抄——它是扩展模组的整本手册，其中 `myriad.md` / `stretcher.md` 讲的是未移植的模具与担架，只抄 `staff.md` / `range.md` 会让索引指向不存在的页面。需要的话可以单独做一份只含杖与范围加速的精简手册。
+  - `gradlew build` SUCCESS，jar 含 105 个 `com/godofthings/beef/stretcher` class 与 8 个 stretcher Mixin，已自动部署到两个测试实例。

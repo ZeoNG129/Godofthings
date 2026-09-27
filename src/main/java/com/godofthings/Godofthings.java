@@ -515,6 +515,9 @@ public class Godofthings
                         // （关闭扳手 + 扳手/螺丝刀/软锤/撬棍/铁锤）仍已注册，由模式轮盘
                         // 在运行时切换生成，不必在创造栏里各占一格。
                         output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_ITEM.get());
+                        // 荒辰移晷之杖（时间加速杖，照抄 useless_stretcher）
+                        output.accept(com.godofthings.beef.stretcher.init.ModItems.WONDROUS_STAFF.get());
+                        output.accept(com.godofthings.beef.stretcher.init.ModItems.RANGE_RECLAIMER.get());
                     })
                     .build());
 
@@ -544,6 +547,8 @@ public class Godofthings
         com.godofthings.beef.init.ModEntities.ENTITY_TYPES.register(modEventBus);
         com.godofthings.beef.init.ModMenuType.register(modEventBus);
         modEventBus.addListener(com.godofthings.beef.init.ModNetwork::registerPayloadHandlers);
+        // 荒辰移晷之杖（照抄 useless_stretcher 扩展模组）：物品/实体/数据组件/网络包/配置
+        com.godofthings.beef.stretcher.init.StretcherRegistration.register(modEventBus, modContainer);
         // 造化杖的配置（链挖范围/磁力范围/飞行速度/连点速率等，上游 ConfigManager）
         // 上游文件名是 useless_mod-{common,client,server}.toml；这里加 beef 前缀，
         // 避免与上面已有的 godofthings-client.toml 撞名。
