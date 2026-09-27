@@ -36,9 +36,3 @@ config="${mod_id}.beef.mixins.json"
 # 工具/扳手标签、战利品箱与矿车战利品表记忆、云层时间加速。
 [[mixins]]
 config="${mod_id}.beef.stretcher.mixins.json"
-
-# 第三方兼容补丁：Applied Industrialization（modId=aeind）「样板输入仓」的样板槽位 ×5
-# （9 → 45，「高级扩展样板输入仓」36 → 180）。该模组没有任何配置文件，槽位数是编译期常量，
-# 因此只能在运行时改它对 AE2 构造器的传参；未安装 aeind 时由 AeindMixinPlugin 整体跳过。
-[[mixins]]
-config="${mod_id}.aeind.mixins.json"
