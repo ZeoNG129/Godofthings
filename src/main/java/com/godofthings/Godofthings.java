@@ -43,6 +43,7 @@ import com.godofthings.item.GodBlackBoxItem;
 import com.godofthings.item.GodCannonItem;
 import com.godofthings.item.GodChangeItem;
 import com.godofthings.item.GodFavorWandItem;
+import com.sorrowmist.useless.api.enums.tool.ToolTypeMode;
 import com.godofthings.item.GodInviteItem;
 import com.godofthings.item.GodMinerItem;
 import com.godofthings.item.GodSwordItem;
@@ -245,18 +246,18 @@ public class Godofthings
 
     // ---- 神之工具 ----
     public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND =
-            ITEMS.registerItem("god_favor_wand", GodFavorWandItem::new);
+            ITEMS.register("god_favor_wand", () -> new GodFavorWandItem(ToolTypeMode.OMNITOOL_MODE));
     // GT 扳手模式子类（通过模式轮盘切换，不直接出现在创造标签）
     public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND_WRENCH =
-            ITEMS.registerItem("god_favor_wand_wrench", GodFavorWandItem::new);
+            ITEMS.register("god_favor_wand_wrench", () -> new GodFavorWandItem(ToolTypeMode.WRENCH_MODE));
     public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND_SCREWDRIVER =
-            ITEMS.registerItem("god_favor_wand_screwdriver", GodFavorWandItem::new);
+            ITEMS.register("god_favor_wand_screwdriver", () -> new GodFavorWandItem(ToolTypeMode.SCREWDRIVER_MODE));
     public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND_MALLET =
-            ITEMS.registerItem("god_favor_wand_mallet", GodFavorWandItem::new);
+            ITEMS.register("god_favor_wand_mallet", () -> new GodFavorWandItem(ToolTypeMode.MALLET_MODE));
     public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND_CROWBAR =
-            ITEMS.registerItem("god_favor_wand_crowbar", GodFavorWandItem::new);
+            ITEMS.register("god_favor_wand_crowbar", () -> new GodFavorWandItem(ToolTypeMode.CROWBAR_MODE));
     public static final DeferredItem<GodFavorWandItem> GOD_FAVOR_WAND_HAMMER =
-            ITEMS.registerItem("god_favor_wand_hammer", GodFavorWandItem::new);
+            ITEMS.register("god_favor_wand_hammer", () -> new GodFavorWandItem(ToolTypeMode.HAMMER_MODE));
 
     // ---- 维度传送器（方块）----
     public static final DeferredBlock<DimensionTeleporterBlock> SUPERFLAT_TELEPORTER =

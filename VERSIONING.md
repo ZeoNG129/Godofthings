@@ -172,3 +172,10 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **操作**：潜行 + 右键方块挂加速（默认 **2×**，持续 **600 tick = 30 秒**）；**对同一方块再按一次倍率翻倍**（2→4→8→…→1024→回到 2）；潜行 + 右键避雷针 = 引雷；**看向天空**（`getXRot() < -40°`）潜行 + 右键空气 = 推进时间 100 tick。仅在**主手或副手拿着神之工具**时生效。
   - 语言键 461 → **463**（zh/en 差异 0）。
   - **尚未移植（需确认是否要）**：召唤模式 GUI（`WondrousStaffSummonScreen` 选生物召唤）、战利品箱刷新（`WondrousStaffLootRefresh`）、加速配置 GUI（倍率/持续模式/附加功能面板）、生物加速（需反复驱动实体 tick，风险较高）、范围加速存档（`RangeAccelerationSavedData` 37KB）。
+- 2.16.0 → **2.17.0（神之工具完整移植：直接继承上游「造化垂青之杖」）**
+  - **做法**：把 `[无用之物] useless_mod-1.21.1-2.4.0.jar` 与 `useless_stretcher-1.21.1-1.4.8.jar` 以 `compileOnly files(...)` 接入（与本项目既有的 JEI/EMI/AE2 同一模式），然后 **`GodFavorWandItem` 的父类从 `DiggerItem` 换成上游的 `EndlessBeafItem`** —— 一个继承即取得上游全部多工具能力（传送 / 耕地 / 作物收割 / 剪刀 / 打火石 / 催熟 / 强制生长 / 自动点击 / 手杖链接 / 附魔刷新 / 工具模式轮盘 …）。
+  - **6 个模式变体一一对应上游 `ToolTypeMode`**：`god_favor_wand`→`OMNITOOL_MODE`、`_wrench`→`WRENCH_MODE`、`_screwdriver`→`SCREWDRIVER_MODE`、`_mallet`→`MALLET_MODE`、`_crowbar`→`CROWBAR_MODE`、`_hammer`→`HAMMER_MODE`；注册由 `registerItem(name, GodFavorWandItem::new)` 改为 `register(name, () -> new GodFavorWandItem(模式))`（因为上游构造不接收 `Item.Properties`）。
+  - **名字保持「神之工具」**：上游 `getName` 会返回「造化垂青之杖」，本类原有的 `getName` 覆写继续生效并优先返回我们自己的语言键，因此 6 个变体仍显示「神之工具」系列。
+  - **必需依赖**：`neoforge.mods.toml` 新增 `[[dependencies.godofthings]] modId = "useless_mod" type = "required"` —— 我们继承了它的类，缺上游会 `NoClassDefFoundError`。
+  - **代价（如实说明）**：上游构造内部用 `createProperties` 生成属性，**不再接收 `Item.Properties`**，因此原先的 `stacksTo(1)` / `EPIC` / `UNBREAKABLE(false)` 改由上游决定。
+  - **坑**：PowerShell 里带 `[ ]` 的文件名必须用 **`-LiteralPath`**（`Copy-Item -Path` 会把 `[无用之物]` 当通配符字符组 → **静默不复制**，而且后续 `gradlew compileJava` 因为没有代码引用它依然 BUILD SUCCESSFUL，形成"三重假成功"）。

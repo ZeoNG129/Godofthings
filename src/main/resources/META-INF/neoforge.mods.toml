@@ -11,6 +11,14 @@ authors="${mod_authors}"
 description='''${mod_description}'''
 
 [[dependencies.${mod_id}]]
+
+# 神之工具完整继承了无用之物的 EndlessBeafItem（造化垂青之杖），缺少上游会 NoClassDefFoundError
+[[dependencies.godofthings]]
+modId = "useless_mod"
+type = "required"
+versionRange = "[1.21.1-2.4.0,)"
+ordering = "AFTER"
+side = "BOTH"
     modId="neoforge"
     type="required"
     versionRange="${neoforge_version_range}"

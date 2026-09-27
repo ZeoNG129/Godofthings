@@ -97,7 +97,7 @@ import java.util.stream.Collectors;
  * - doesSneakBypassUse / Item#isDamageable / Item#setDamage / getEnchantmentValue(ItemStack) 已移除。
  * - 附魔走 ItemEnchantments 组件（WandItemUtils.switchEnchant），模式标记走 CUSTOM_DATA（WandModes）。
  */
-public class GodFavorWandItem extends DiggerItem
+public class GodFavorWandItem extends com.sorrowmist.useless.content.items.EndlessBeafItem
 {
     private static final String AE2LT_NATURAL_LIGHTNING_TAG = "ae2lt.natural_weather_lightning";
     private static final String TAG_ACCESS_POINT_POS = "accessPoint";
@@ -105,13 +105,25 @@ public class GodFavorWandItem extends DiggerItem
     /** 模式管理器实例（精准/时运/连锁/扳手等）。 */
     private final ModeManager modeManager = new ModeManager();
 
-    public GodFavorWandItem(Item.Properties properties)
+    /** 本物品对应的上游工具模式（本体=万能工具，其余 4 个变体各对应一种模式）。 */
+    private final com.sorrowmist.useless.api.enums.tool.ToolTypeMode toolTypeMode;
+
+    /**
+     * 完整移植：直接继承上游「造化垂青之杖」{@code EndlessBeafItem} 以取得全部多工具能力。
+     * <p><b>注意</b>：上游构造不接收 {@code Item.Properties}（属性由它内部 {@code createProperties} 生成），
+     * 因此原来的 stacksTo(1)/EPIC/UNBREAKABLE(false) 等属性不再由本模组控制 —— 这是"完整移植"的必然代价。
+     */
+    public GodFavorWandItem(com.sorrowmist.useless.api.enums.tool.ToolTypeMode mode)
     {
-        super(Tiers.NETHERITE, BlockTags.MINEABLE_WITH_PICKAXE,
-                properties
-                        .stacksTo(1)
-                        .rarity(Rarity.EPIC)
-                        .component(DataComponents.UNBREAKABLE, new Unbreakable(false)));
+        super(mode, true);
+        this.toolTypeMode = mode;
+    }
+
+
+    /** 当前工具模式 */
+    public com.sorrowmist.useless.api.enums.tool.ToolTypeMode toolTypeMode()
+    {
+        return this.toolTypeMode;
     }
 
     @Override
