@@ -509,3 +509,22 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 >
 > **教训**：「修改某个模组的功能」有两种完全不同的落点 —— ① 在自己的模组里写兼容补丁（需要双方都装），
 > ② 直接改写对方产物并重新打包（对方可原样替换）。动手前必须先问清是哪一种，不要自行假定。
+>
+> **实际改法（改对方 jar，未纳入本仓库版本控制）**：aeind 没有公开源码、也没有任何配置文件，
+> 槽位数是编译期常量 `PATTERN_SLOTS`（javac 会内联），唯一可改点是它调用 AE2 的
+> `PatternProviderLogic(节点, 宿主, 槽位数)` 构造器的那一个实参。做法：
+> · 工具 `AeindSlotPatcher`（ASM 9.10.1，两遍扫描）：定位「AE2 构造器调用之前的那一条整数压栈指令」
+>   再改写，**只动这一个实参**；扩展类构造器里那个无关的 `new List[36]`（隔离房间数组）保持 36 不动。
+> · 结果：`HatchPatternProviderLogic` 9 → 45；`ExtendedHatchPatternProviderLogic` 36 → 180。
+>   整包 182 个条目中**只有这 2 个 class 内容变化**，其余逐字节一致，modId/版本号/文件名不变 → 可直接覆盖替换。
+> · **运行验证**：改后的 jar 放进测试专用服务器（同时装 MI 2.5.8 / ExtendedAE / AE2 19.2.17），
+>   开服 `Done (5.9s)`；再用数据包 `forceload add 0 0` + `schedule` 延后 3 秒 `setblock`，
+>   在世界上**真正放下这两种方块并回读确认**，两个方块实体的构造器都成功执行 ——
+>   日志 `[aeind-test] base-hatch OK (slots 9->45)` / `extended-hatch OK (slots 36->180)`，
+>   **零报错、零 VerifyError/ClassFormatError**。（坑：加载函数在区块加载前执行，`setblock` 会静默失败；
+>   且该存档出生点不在 (0,0)，必须先 `forceload` 才能放。）
+> · 交付物：`.ref/aeind/delivery/`（改好的同名 jar + `原始备份/` + `说明.txt` + `补丁工具/`），
+>   同一份已复制到 `D:\下载\aeind-样板槽位5倍\`。用户两个包（客户端整合包 / 服务端全量包）里的
+>   原件经哈希核对**仍是未改的原版**，等他自行替换。
+> · **未验证**：45 槽的界面滚动手感（aeind 的界面继承 AE2 的 `PatternProviderMenu`，槽位按库存容量
+>   动态创建，AE2 样式里样板槽是 `"grid": "HORIZONTAL"` 横向滚动面，理论上可滚动显示）。
