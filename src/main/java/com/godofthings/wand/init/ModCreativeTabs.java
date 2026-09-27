@@ -1,0 +1,48 @@
+package com.godofthings.wand.init;
+
+import com.godofthings.wand.UselessStretcherMod;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+/**
+ * Registers a small creative tab so the handheld tools are visible and searchable in JEI,
+ * including the omniversal myriad block and the non-craftable range reclaimer. The block is safe to show
+ * as an item: its wildcard mold entry is de-duplicated by the shared recipe catalog and does not
+ * multiply alloy-furnace recipe pages.
+ *
+ * <p>This was verified against Useless Mod 2.3.6:
+ * <ul>
+ *   <li>{@code JEIPlugin.registerRecipeCatalysts} hard-codes the alloy-furnace catalysts to
+ *       {@code advanced_alloy_furnace_block} and {@code multiblock_alloy_furnace_core} only, so a
+ *       block of ours can never become a recipe catalyst (we ship no JEI plugin at all).</li>
+ *   <li>Recipe pages come from {@code AlloyFurnaceRecipeCatalog} and are de-duplicated by
+ *       {@code Entry#identity()}, so extra items cannot multiply them.</li>
+ *   <li>Being in {@code useless_mod:molds} only makes it appear as a mold catalyst <i>slot inside</i>
+ *       existing recipe pages, not as an extra page.</li>
+ * </ul>
+ */
+public final class ModCreativeTabs {
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB =
+            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, UselessStretcherMod.MODID);
+
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = CREATIVE_TAB.register(
+            "main",
+            () -> CreativeModeTab.builder()
+                    .icon(() -> new ItemStack(ModItems.USELESS_STRETCHER.get()))
+                    .title(Component.translatable("itemGroup.useless_stretcher"))
+                    .displayItems((parameters, output) -> {
+                        output.accept(ModItems.USELESS_STRETCHER.get());
+                        output.accept(ModItems.WONDROUS_STAFF.get());
+                        output.accept(ModItems.OMNIVERSAL_MYRIAD.get());
+                        output.accept(ModItems.RANGE_RECLAIMER.get());
+                    })
+                    .build()
+    );
+
+    private ModCreativeTabs() {
+    }
+}

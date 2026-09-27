@@ -216,3 +216,18 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 新增按键 **H**（`key.godofthings.wand_config`，默认 H，可在原版按键设置里改）。
   - 新增语言键 480 → **488**（zh/en 差异 0）。
   - **踩坑**：以现有按键常量为模板批量生成新按键时，`event.register(X)` 需要写成 `event.register(X.get())`（`Lazy<KeyMapping>` 要解包），漏了 `.get()` 会报 `Lazy<KeyMapping> 无法转换为 KeyMapping`。
+- 2.19.2 → **2.20.0（照抄万象担架的荒辰移晷之杖子系统，共 65 个文件 / 7,038 行）**
+  - **用户要求**：不要自创，完整照抄别人的代码。
+  - **前期误判的纠正**：我先前判断"抄不了"是因为只看了**本体物品**（`EndlessBeafItem` 依赖上游 25 个类）。实测荒辰移晷相关 **32 个文件里 24 个完全不依赖上游 mod**（`✅ 0` import），只有 8 个用到极少数符号。因此**加速/配置界面/召唤界面/树叶掉落/HUD/范围加速存档等约 4,500 行可以逐字照抄**。
+  - **照抄方式**（保持原代码不动，只做最小适配）：
+    1. 从 `.ref/useless/UselessStretcher-main` 复制 75 个零上游依赖文件到 `com/godofthings/wand/`，**仅改包名** `com.sorrowmist.useless.stretcher` → `com.godofthings.wand`；
+    2. 从上游源码照抄 2 个小枚举 `ToolTypeMode`(24 行) / `EnchantMode`(15 行) 到 `com.godofthings.wand.api.enums.tool`；
+    3. 为个别上游符号写**垫片**，让照抄的代码一个字不改：
+       · `WandComponents` —— 顶替 `UComponents.BeefTimeAccelerationEnabledComponent`（读 CUSTOM_DATA）；
+       · `Network` / `com.godofthings.wand.network.Network` —— 顶替原 mod 的网络类，按**原签名**留空实现；
+       · `ModItems` —— 顶替原物品注册表，字段**全部指向本模组的「神之工具」**；
+       · `UselessStretcherMod` —— 顶替原主类，`MODID` 指向本项目；
+    4. 手杖本体的引用 `WondrousStaffItem` → 本项目的 `GodFavorWandItem`；
+    5. 与手杖无关的子系统（万象方块 / 模具 / 图案装配 / 维度传送方块 / 9 连区块维度）**不引入**，相关文件删除（14+5+3 个）。
+  - **结果**：`com.godofthings.wand` 包 **65 个文件 / 7,038 行**，`gradlew compileJava` **BUILD SUCCESSFUL**，且**完全不依赖无用之物 mod**。
+  - **尚待接线**（下一步）：注册照抄来的按键（`StretcherKeyBindings`）、网络包（`RangeNetwork`）、客户端事件（`WondrousStaffHud` / `RangeAccelerationPreview` / `WondrousStaffClient`），并把神之工具的交互改为调用照抄来的 `WondrousStaffAcceleration.tryUse(...)`；同时**退役我先前自创的 `WandAcceleration` / `WandConfigScreen` / `WandHud` / `WandFeatureHandler`**（已被照抄版本取代）。
