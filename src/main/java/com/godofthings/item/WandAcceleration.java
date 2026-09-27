@@ -108,6 +108,38 @@ public final class WandAcceleration
         return speed;
     }
 
+    /** 用指定倍率落标记（倍率超过上限则夹紧） */
+    public static int mark(ServerLevel level, BlockPos pos, int speed, boolean permanent)
+    {
+        int s = Math.max(1, Math.min(speed, MAX_SPEED));
+        Map<BlockPos, Mark> map = MARKS.computeIfAbsent(level.dimension(), k -> new HashMap<>());
+        Mark existing = map.get(pos);
+        if (existing == null)
+        {
+            map.put(pos.immutable(), new Mark(s, permanent ? -1 : DEFAULT_DURATION_TICKS));
+        }
+        else
+        {
+            existing.speed = s;
+            existing.remaining = permanent ? -1 : DEFAULT_DURATION_TICKS;
+        }
+        return s;
+    }
+
+    /** 实体加速标记：UUID → (倍率, 剩余 tick) */
+    private static final Map<ResourceKey<Level>, Map<java.util.UUID, Mark>> ENTITY_MARKS = new HashMap<>();
+    /** 单个实体每服务器 tick 最多额外驱动几次（防失控） */
+    public static final int MAX_EXTRA_ENTITY_TICKS = 8;
+
+    /** 给生物挂加速（反复驱动它的 tick，让 AI/生长/繁殖等按倍率推进） */
+    public static int markEntity(ServerLevel level, net.minecraft.world.entity.Entity entity, int speed)
+    {
+        int s = Math.max(1, Math.min(speed, MAX_SPEED));
+        ENTITY_MARKS.computeIfAbsent(level.dimension(), k -> new HashMap<>())
+                .put(entity.getUUID(), new Mark(s, -1));
+        return s;
+    }
+
     /** 移除某坐标的标记 */
     public static boolean clear(ServerLevel level, BlockPos pos)
     {
@@ -172,7 +204,53 @@ public final class WandAcceleration
         {
             MARKS.remove(level.dimension());
         }
+        executed += tickEntities(level, deadline);
         return executed;
+    }
+
+    /** 驱动被加速的生物：每 tick 额外调用 entity.tick() 若干次（上限 MAX_EXTRA_ENTITY_TICKS） */
+    private static int tickEntities(ServerLevel level, long deadline)
+    {
+        Map<java.util.UUID, Mark> marks = ENTITY_MARKS.get(level.dimension());
+        if (marks == null || marks.isEmpty())
+        {
+            return 0;
+        }
+        int extra = 0;
+        var it = marks.entrySet().iterator();
+        while (it.hasNext())
+        {
+            var entry = it.next();
+            net.minecraft.world.entity.Entity entity = level.getEntity(entry.getKey());
+            if (entity == null || entity.isRemoved() || entity instanceof net.minecraft.world.entity.player.Player)
+            {
+                it.remove();
+                continue;
+            }
+            if (System.nanoTime() >= deadline)
+            {
+                break;
+            }
+            int times = Math.min(entry.getValue().speed - 1, MAX_EXTRA_ENTITY_TICKS);
+            for (int i = 0; i < times && System.nanoTime() < deadline; i++)
+            {
+                try
+                {
+                    entity.tick();
+                    extra++;
+                }
+                catch (RuntimeException ignored)
+                {
+                    it.remove();
+                    break;
+                }
+            }
+        }
+        if (marks.isEmpty())
+        {
+            ENTITY_MARKS.remove(level.dimension());
+        }
+        return extra;
     }
 
     /** 清空某维度的全部标记（换维度/卸载时用） */

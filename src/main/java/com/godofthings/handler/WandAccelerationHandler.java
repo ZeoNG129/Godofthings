@@ -39,27 +39,6 @@ public final class WandAccelerationHandler
     }
 
     @SubscribeEvent
-    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event)
-    {
-        if (!(event.getEntity() instanceof ServerPlayer player)
-                || !player.isShiftKeyDown()
-                || !holdingWand(player))
-        {
-            return;
-        }
-        if (!(player.level() instanceof ServerLevel level))
-        {
-            return;
-        }
-        BlockPos pos = event.getPos().immutable();
-        int speed = WandAcceleration.mark(level, pos, false);
-        player.displayClientMessage(Component.translatable("chat.godofthings.wand.accel",
-                pos.getX(), pos.getY(), pos.getZ(), speed,
-                WandAcceleration.DEFAULT_DURATION_TICKS / 20).withStyle(ChatFormatting.AQUA), true);
-        event.setCanceled(true);
-    }
-
-    @SubscribeEvent
     public static void onRightClickEmpty(PlayerInteractEvent.RightClickEmpty event)
     {
         if (!(event.getEntity() instanceof ServerPlayer player)

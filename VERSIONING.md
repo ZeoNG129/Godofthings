@@ -179,3 +179,11 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **必需依赖**：`neoforge.mods.toml` 新增 `[[dependencies.godofthings]] modId = "useless_mod" type = "required"` —— 我们继承了它的类，缺上游会 `NoClassDefFoundError`。
   - **代价（如实说明）**：上游构造内部用 `createProperties` 生成属性，**不再接收 `Item.Properties`**，因此原先的 `stacksTo(1)` / `EPIC` / `UNBREAKABLE(false)` 改由上游决定。
   - **坑**：PowerShell 里带 `[ ]` 的文件名必须用 **`-LiteralPath`**（`Copy-Item -Path` 会把 `[无用之物]` 当通配符字符组 → **静默不复制**，而且后续 `gradlew compileJava` 因为没有代码引用它依然 BUILD SUCCESSFUL，形成"三重假成功"）。
+- 2.17.0 → **2.18.0（荒辰移晷之杖附加功能收尾：战利品箱刷新 / 生物加速 / 树叶掉落 / 倍率配置）**
+  - **战利品箱刷新**（移植万象担架 `WondrousStaffLootRefresh` 190 行）：潜行 + 右键战利品容器 → `clearContent()` → `setLootTable(源表, 随机种子)` → `unpackLootTable(player)`（上游同款三件套），**双联箱两半一起刷**。
+    - ⚠️ **与上游的差异**：上游用一个 Mixin 在"容器首次打开、原版即将丢弃战利品表之前"把表记进持久数据；我们**没有加那个 Mixin**，改为**在玩家手拿神之工具右键容器的瞬间记账**（那时表还在，存进方块实体的持久数据 `godofthings:wand_source_loot_table`）。因此行为是：**第一次右键 = 记住并刷新；之后每次右键 = 按记住的表重刷**。
+  - **生物加速**：潜行 + 右键生物（非玩家）→ 该生物被反复驱动 `entity.tick()`（倍率-1 次，**单实体每 tick 上限 8 次**），受同一个 3ms 时间预算约束；实体消失/异常自动摘除标记。
+  - **树叶掉落**：破坏**树叶**（`BlockTags.LEAVES`）时，若手持神之工具则有概率掉出神之工具本体。上游默认概率是 `0.00001`（十万分之一，实际几乎见不到），这里**调到 1/2000** 让它真的能被玩家见到。
+  - **倍率配置**：倍率存在物品自身的 `CUSTOM_DATA`（键 `godofthings:wand_speed`）；**潜行 + 右键同一方块会刷新并翻倍**（2→4→…→1024→回到 2）。
+  - 新增语言键 461 → **469**（zh/en 差异 0）。
+  - **未做（如实说明）**：上游的三个**图形界面**没有移植 —— 召唤模式 GUI（`WondrousStaffSummonScreen` 选生物召唤）、加速配置 GUI（`WondrousStaffConfigScreen`）、范围加速存档与预览（`RangeAccelerationSavedData` 37KB + `RangeAccelerationPreview`）。功能层面已由上面的交互覆盖；这三个是纯 UI/存档层。
