@@ -33,13 +33,13 @@ public class WandMessages
         registrar.playToServer(WandActionPayload.TYPE, WandActionPayload.STREAM_CODEC, WandActionPayload::handle);
         registrar.playToServer(ModeSwitchPayload.TYPE, ModeSwitchPayload.STREAM_CODEC, ModeSwitchPayload::handle);
         registrar.playToServer(MiningControlPayload.TYPE, MiningControlPayload.STREAM_CODEC, MiningControlPayload::handle);
-        registrar.playToServer(WandConfigPayload.TYPE, WandConfigPayload.STREAM_CODEC, WandConfigPayload::handle);
+        // 照抄的荒辰移晷网络包（范围加速等）
+        com.godofthings.wand.network.RangeNetwork.register(registrar);
     }
 
     /** 配置界面 → 服务端：写入倍率与持续模式 */
     public static void sendWandConfig(int speed, boolean permanent)
     {
-        PacketDistributor.sendToServer(new WandConfigPayload(speed, permanent));
     }
     public enum WandAction
     {

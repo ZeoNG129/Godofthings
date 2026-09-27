@@ -531,6 +531,8 @@ public class Godofthings
 
     public Godofthings(IEventBus modEventBus, ModContainer modContainer)
     {
+        // 照抄的荒辰移晷子系统：注册实体类型与数据组件
+        com.godofthings.wand.init.StretcherComponents.init(modEventBus);
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);

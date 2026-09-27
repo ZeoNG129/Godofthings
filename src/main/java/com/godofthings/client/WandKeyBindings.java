@@ -55,13 +55,6 @@ public class WandKeyBindings
             CATEGORY
     ));
 
-public static final Lazy<KeyMapping> OPEN_CONFIG_KEY = Lazy.of(() -> new KeyMapping(
-            "key.godofthings.wand_config",
-            KeyConflictContext.IN_GAME,
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_H,
-            CATEGORY
-    ));
     /** 强制挖掘模式 */
     public static final Lazy<KeyMapping> SWITCH_FORCE_MINING_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.switch_force_mining",
@@ -165,8 +158,9 @@ public static final Lazy<KeyMapping> OPEN_CONFIG_KEY = Lazy.of(() -> new KeyMapp
         event.register(TOGGLE_INVULNERABILITY_KEY.get());
         event.register(OPEN_WAYPOINT_KEY.get());
         event.register(SWORD_MODE_KEY.get());
+        // 照抄的荒辰移晷配置界面按键（X 键）
+        event.register(com.godofthings.wand.client.StretcherKeyBindings.WONDROUS_STAFF_MODE);
         event.register(OPEN_ARMOR_CONFIG_KEY.get());
         event.register(OPEN_ARMOR_SKILL_KEY.get());
-                event.register(OPEN_CONFIG_KEY.get());
     }
 }

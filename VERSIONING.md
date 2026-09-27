@@ -231,3 +231,17 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     5. 与手杖无关的子系统（万象方块 / 模具 / 图案装配 / 维度传送方块 / 9 连区块维度）**不引入**，相关文件删除（14+5+3 个）。
   - **结果**：`com.godofthings.wand` 包 **65 个文件 / 7,038 行**，`gradlew compileJava` **BUILD SUCCESSFUL**，且**完全不依赖无用之物 mod**。
   - **尚待接线**（下一步）：注册照抄来的按键（`StretcherKeyBindings`）、网络包（`RangeNetwork`）、客户端事件（`WondrousStaffHud` / `RangeAccelerationPreview` / `WondrousStaffClient`），并把神之工具的交互改为调用照抄来的 `WondrousStaffAcceleration.tryUse(...)`；同时**退役我先前自创的 `WandAcceleration` / `WandConfigScreen` / `WandHud` / `WandFeatureHandler`**（已被照抄版本取代）。
+- 2.20.0 → **2.20.1（把照抄的荒辰移晷子系统接上电，并退役我自创的版本）**
+  - **接线**（4 处）：
+    1. `Godofthings` 构造里调用 `StretcherComponents.init(modEventBus)` —— 注册照抄来的实体类型与数据组件；
+    2. `WandMessages.onRegisterPayloads` 里调用 `RangeNetwork.register(registrar)` —— 注册照抄来的全部网络包（范围加速 C2S/S2C）；
+    3. `WandKeyBindings.register` 里注册照抄来的按键 `StretcherKeyBindings.WONDROUS_STAFF_MODE`（**X 键** = 打开加速配置界面）；
+    4. `godofthings.mixins.json` 注册照抄来的 4 个 Mixin：`RandomizableContainerLootMemoryMixin`（战利品表记忆，刷新战利品的关键）、`MinecartContainerLootMemoryMixin`、`BlockEntityChangedMixin`、`LevelRendererCloudMixin`（客户端）。
+  - **自动生效、无需接线的部分**（因为垫片 `UselessStretcherMod.MODID = "godofthings"`）：
+    · `WondrousStaffRightClickHandler` —— 潜行右键方块/生物即走照抄的 `WondrousStaffAcceleration.tryUse/tryUseEntity`（它判定 `ModItems.WONDROUS_STAFF.get()`，经垫片正好是**神之工具**）；
+    · `WondrousStaffClient` / `RangeAccelerationInteraction` / `RangeAccelerationPreview` / `WondrousStaffHighlight` / `WondrousStaffHud` / `RangeAccelerationTicker` / `WondrousStaffFeatureEvents` / `MyriadItemMigration` —— 客户端渲染、输入、HUD、tick 全部自动订阅；
+    · `UselessStretcherClient`（`@Mod(dist=CLIENT)`）—— 自动加载并注册配置界面扩展点。
+  - **退役我自创的 7 个类**：`WandAcceleration`、`WandLootRefresh`、`WandFeatureHandler`、`WandAccelerationHandler`、`WandConfigScreen`、`WandHud`、`WandConfigPayload`；同时移除我加的 H 键、物品提示能力表、`getAccelSpeed`。
+    → 现在**加速/战利品刷新/生物加速/HUD/配置界面/召唤界面/树叶掉落/范围加速**全部由照抄来的原版代码承担。
+  - `gradlew compileJava` **BUILD SUCCESSFUL**。
+  - **操作方式（与原 mod 一致）**：**潜行 + 右键方块** = 时间加速；**潜行 + 右键生物** = 生物加速；**潜行 + 右键战利品箱** = 刷新战利品；**X 键** = 打开加速配置界面。

@@ -817,17 +817,6 @@ public class GodFavorWandItem extends DiggerItem
                         .withStyle(beefCaptureEnabled ? ChatFormatting.GREEN : ChatFormatting.GRAY))
                 .withStyle(ChatFormatting.DARK_GREEN));
 
-        // 荒辰移晷能力表（潜行 + 右键系）—— 让玩家一眼看到本工具能做什么
-        tooltipComponents.add(Component.translatable("tooltip.godofthings.wand.header")
-                .withStyle(ChatFormatting.GOLD));
-        tooltipComponents.add(Component.translatable("tooltip.godofthings.wand.accel", getAccelSpeed(stack))
-                .withStyle(ChatFormatting.AQUA));
-        tooltipComponents.add(Component.translatable("tooltip.godofthings.wand.loot")
-                .withStyle(ChatFormatting.GOLD));
-        tooltipComponents.add(Component.translatable("tooltip.godofthings.wand.mob")
-                .withStyle(ChatFormatting.LIGHT_PURPLE));
-        tooltipComponents.add(Component.translatable("tooltip.godofthings.wand.farm")
-                .withStyle(ChatFormatting.GREEN));
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 
@@ -842,13 +831,6 @@ public class GodFavorWandItem extends DiggerItem
         return Component.translatable("item.godofthings.god_favor_wand.fortune");
     }
 
-    /** 读取该物品上配置的加速倍率（存于 CUSTOM_DATA，见 WandFeatureHandler） */
-    public int getAccelSpeed(ItemStack stack)
-    {
-        var data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        int v = data.getInt("godofthings:wand_speed");
-        return v <= 0 ? 2 : v;
-    }
     @Override
     public boolean isFoil(@NotNull ItemStack stack)
     {
