@@ -2,6 +2,7 @@ package com.godofthings.beef.init;
 
 import com.godofthings.beef.UselessMod;
 import com.godofthings.beef.content.menus.ChainGroupMenu;
+import com.godofthings.beef.content.menus.DimensionConfigMenu;
 import com.godofthings.beef.content.menus.StaffLinkMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -31,6 +32,11 @@ public final class ModMenuType {
     public static final Supplier<MenuType<ChainGroupMenu>> CHAIN_GROUP_MENU =
             MENU_TYPES.register("chain_group_menu",
                     () -> IMenuTypeExtension.create(ChainGroupMenu::new));
+
+    /** 无用维度配置界面（潜行右键传送方块打开）。照抄上游 ModMenuType 的同名项。 */
+    public static final Supplier<MenuType<DimensionConfigMenu>> DIMENSION_CONFIG_MENU =
+            MENU_TYPES.register("dimension_config_menu",
+                    () -> IMenuTypeExtension.create(DimensionConfigMenu::new));
 
     private ModMenuType() {}
 

@@ -518,6 +518,10 @@ public class Godofthings
                         // 荒辰移晷之杖（时间加速杖，照抄 useless_stretcher）
                         output.accept(com.godofthings.beef.stretcher.init.ModItems.WONDROUS_STAFF.get());
                         output.accept(com.godofthings.beef.stretcher.init.ModItems.RANGE_RECLAIMER.get());
+                        // 无用维度传送方块（奇数 / 偶数 / 三维度）
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
                     })
                     .build());
 
@@ -546,6 +550,10 @@ public class Godofthings
         com.godofthings.beef.init.ModItems.ITEMS.register(modEventBus);
         com.godofthings.beef.init.ModEntities.ENTITY_TYPES.register(modEventBus);
         com.godofthings.beef.init.ModMenuType.register(modEventBus);
+        // 无用维度（奇数 / 偶数 / 三维度）：传送方块 + 方块物品 + POI + 区块生成器
+        com.godofthings.beef.init.ModBlocks.BLOCKS.register(modEventBus);
+        com.godofthings.beef.init.ModPOIs.POI_TYPES.register(modEventBus);
+        com.godofthings.beef.world.dimension.UselessDimensions.init(modEventBus);
         modEventBus.addListener(com.godofthings.beef.init.ModNetwork::registerPayloadHandlers);
         // 荒辰移晷之杖（照抄 useless_stretcher 扩展模组）：物品/实体/数据组件/网络包/配置
         com.godofthings.beef.stretcher.init.StretcherRegistration.register(modEventBus, modContainer);

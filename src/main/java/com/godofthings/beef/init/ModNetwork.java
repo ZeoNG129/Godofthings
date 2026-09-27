@@ -11,6 +11,8 @@ import com.godofthings.beef.network.BeefToolLayoutUpdatePacket;
 import com.godofthings.beef.network.ConstructionWandCorePacket;
 import com.godofthings.beef.network.ConstructionWandPreviewPacket;
 import com.godofthings.beef.network.ConstructionWandPreviewRequestPacket;
+import com.godofthings.beef.network.DimensionConfigGhostSlotPacket;
+import com.godofthings.beef.network.DimensionConfigSubmitPacket;
 import com.godofthings.beef.network.EnchantmentSwitchPacket;
 import com.godofthings.beef.network.ForceBreakKeyPacket;
 import com.godofthings.beef.network.MiningDataSyncPacket;
@@ -106,6 +108,13 @@ public class ModNetwork {
         registrar.playToServer(RitualSatchelPlacePacket.TYPE,
                                RitualSatchelPlacePacket.STREAM_CODEC,
                                RitualSatchelPlacePacket::handle);
+        // 无用维度配置界面（照抄上游 ModNetwork 的同名两项）
+        registrar.playToServer(DimensionConfigGhostSlotPacket.TYPE,
+                               DimensionConfigGhostSlotPacket.STREAM_CODEC,
+                               DimensionConfigGhostSlotPacket::handle);
+        registrar.playToServer(DimensionConfigSubmitPacket.TYPE,
+                               DimensionConfigSubmitPacket.STREAM_CODEC,
+                               DimensionConfigSubmitPacket::handle);
         registrar.playToServer(StaffLinkOpenPacket.TYPE,
                                StaffLinkOpenPacket.STREAM_CODEC,
                                StaffLinkOpenPacket::handle);

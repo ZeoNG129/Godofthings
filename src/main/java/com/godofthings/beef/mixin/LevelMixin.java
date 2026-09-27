@@ -1,6 +1,7 @@
 package com.godofthings.beef.mixin;
 
 import com.godofthings.beef.event.EventHandler;
+import com.godofthings.beef.world.dimension.UselessDimensions;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -59,7 +60,47 @@ public class LevelMixin {
         return filtered;
     }
 
-    // 上游此处还有 isDay / isRaining / isThundering 三个注入，用来让「无用维度」永远晴天。
-    // 那套维度属于上游的维度子系统，未随本次造化杖照抄带入；若保留，改成 godofthings
-    // 命名空间后会反过来把本模组自己的超平坦 / 虚空维度变成永昼无雨，故一并裁掉。
+    // ==== 以下三个注入随「无用维度」子系统一同补回（v4.1.0）====
+    // 之前只移植造化杖时被裁掉，因为那时无用维度没带进来；现在维度已照抄，
+    // 这层「无用维度永远晴天」的表现也必须一起回来。
+    // 注意 isUselessDimension() 只认 UselessDimensions 里那三个维度键（uselessdim/2/3），
+    // 不会误伤本模组自己的超平坦 / 虚空维度。
+
+    @Inject(
+            method = "isDay",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void injectIsDay(CallbackInfoReturnable<Boolean> cir) {
+        if (this.isUselessDimension()) {
+            cir.setReturnValue(true);
+        }
+    }
+
+    @Inject(
+            method = "isRaining",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void uselessDimAlwaysClear_rain(CallbackInfoReturnable<Boolean> cir) {
+        if (this.isUselessDimension()) {
+            cir.setReturnValue(false);
+        }
+    }
+
+    @Inject(
+            method = "isThundering",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void uselessDimAlwaysClear_thunder(CallbackInfoReturnable<Boolean> cir) {
+        if (this.isUselessDimension()) {
+            cir.setReturnValue(false);
+        }
+    }
+
+    private boolean isUselessDimension() {
+        Level level = (Level) (Object) this;
+        return UselessDimensions.isUselessDimension(level.dimension());
+    }
 }

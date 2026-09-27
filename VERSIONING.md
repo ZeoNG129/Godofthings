@@ -402,3 +402,19 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     · **X 键被绑三次**（本模组造化杖、本模组荒辰移晷之杖、扩展模组自己的杖各注册一次默认 X），按键设置里会标红冲突，需要玩家手动改键；不影响启动。
     · 三个模组各注册一份同名物品（`godofthings:endless_beaf_item` 与 `useless_mod:endless_beaf_item` 等），创造栏里会看到重复的杖 —— 这是命名空间不同导致的正常现象。
   - `gradlew build` SUCCESS，已自动部署到两个测试实例。
+- 4.0.2 → **5.0.0（照抄 useless_mod 的「无用维度」子系统：奇数 / 偶数 / 三维度 + 传送方块）** —— 属于「系统性新增（大系统）」，按规则**首位 +1、后两位归零**。
+  - **用户需求**：把「奇数维度方块也移植进来」。先澄清了歧义——两个上游模组都有名字相近的方块：useless_mod 的 `block.useless_mod.teleport_block`＝**「奇数维度传送方块」**（维度名为「奇数维度」），扩展模组的是「四联/九连区块·奇数中心维度传送方块」。用户确认要 **useless_mod 那个**（名字对得上，且本模组的 `ConfigManager` 是整份照抄的，`godofthings.configuration.useless_dimension*`（地板方块黑白名单）等配置键早已存在、但维度本体在 3.0.0 时被我裁掉了，属于悬空配置）。
+  - **照抄范围（23 个源文件 / 约 3,400 行，全部逐字照抄，仅改包名与命名空间）**：
+    · `world/dimension/` 10 个：`UselessDimensions`（3 个维度键 + 3 个区块生成器注册）、`UselessDimGen{,2,3}`、`AbstractPlasticPlatformGenerator`（179）、`DimensionGenerationConfig`（586，平台/道路/边界/中心标记的完整数据结构 + JSON 序列化）、`PlatformLayout`（233）、`PlatformStyle`（144）、`UselessDimensionConfigManager`（44）、`UselessDimensionConfigSavedData`（73，SavedData 持久化）；
+    · `world/teleport/` 4 个：`AbstractDimensionTeleporter`（168，POI 找最近传送点 → 螺旋搜索找安全落点 → 落地自动铺一块传送方块 → 传送）、`UselessDimTeleporter{,2,3}`；
+    · `content/blocks/TeleportPadBlock`（58，右键传送 / 潜行右键开配置界面）、`content/menus/DimensionConfigMenu`（479）、`client/gui/DimensionConfigScreen`（754）、`client/gui/PlatformPreview`（588，顶视/剖面预览渲染）、`content/blocks/IColoredBlock`、`api/enums/EnumColor`；
+    · `network/DimensionConfigGhostSlotPacket` + `DimensionConfigSubmitPacket`、`init/ModPOIs`（3 个传送方块 POI）。
+  - **之前裁掉的维度相关代码随本次一并补回**（这次维度本体进来了，那些裁剪就不再成立）：
+    · `EventHandler`：恢复 `onLevelLoad`（维度载入时把已保存的地形配置灌进区块生成器）与 `onServerStarted` 里的 `UselessDimensionConfigManager.applyAll(server)`；
+    · `Mixin/LevelMixin`：恢复 `isDay` / `isRaining` / `isThundering` 三个注入（无用维度永远晴天）。`isUselessDimension()` 改为调用 `UselessDimensions.isUselessDimension(level.dimension())`，只认那三个维度键，**不会误伤本模组自己的超平坦 / 虚空维度**（这正是 3.0.0 当初裁掉它的理由，现在用精确判定解决）。
+  - **接线**：新建 `beef/init/ModBlocks`（3 个 `TeleportPadBlock`，属性照抄 `.strength(2.0f, 65536.0f).requiresCorrectToolForDrops()`）、`beef/init/ModItems` 追加 3 个方块物品、`ModMenuType` 追加 `DIMENSION_CONFIG_MENU`、`ModNetwork` 追加 2 个包、`ClientModEvents` 注册 `DimensionConfigScreen`、主类注册 `ModBlocks.BLOCKS` / `ModPOIs.POI_TYPES` / `UselessDimensions.init`，创造栏加 3 个传送方块。
+  - **资源与数据（全部照抄并改写命名空间）**：3 个 `dimension` JSON + 3 个 `dimension_type` JSON（奇数/偶数/三维度的区别在传送方块与生成器，维度类型同为无天气、固定时间 5000、384 高、overworld 效果）+ 自定义生物群系 `useless_biome`（无特征、无刷怪）+ 3 个方块 state/model/材质 + 3 个战利品表 + 3 个配方 + 3 个配方解锁进度。
+  - **配方（用户要求，且上游本来就有）**：上游自带配方，故**照抄上游**而非自行设计——`teleport_block`（奇数）= `AAA/ABA/AAA`（A=木板标签、B=泥土）；`teleport_block_2`（偶数）= `BBB/BAB/BBB`（B=泥土、A=木板）；`teleport_block_3`（三维度）= `BBB/AAA/BBB`（B=木板、A=泥土）。三者用料相同、排布不同，很便宜——与上游一致。
+  - **语言键**：新增 69 条（含 62 条维度配置界面键 + 3 个方块名 + 3 个维度名 + 菜单标题），**zh/en 各 983 键，双向差异 0**。名称：奇数维度传送方块 / 偶数维度传送方块 / 三维度传送方块；维度名：奇数维度 / 偶数维度 / 三维度。
+  - **运行时实测**：再次起专用服务器（`run-server/mods` 仍放 useless_mod 2.4.4 + useless_stretcher 1.4.8 + AE2 19.2.17 + guideme），结果 `Done (6.708s)!`；**维度 / 维度类型 / 生物群系 / 区块生成器全部零报错**（`dimension_type` 或 `dimension` JSON 若不合法，Minecraft 会像 useless_mod 那 3 条战利品表那样刷 ERROR —— 这里一条都没有）；Mixin 冲突仍是「本模组让位」的正确方向。**未验证**：实际进入维度后的地形生成与传送流程（需要真人玩家操作）。
+  - `gradlew build` SUCCESS，jar 含 19 个 `world/dimension` class + 5 个 `world/teleport` class 与全部维度数据/资源，已自动部署到两个测试实例。

@@ -3,6 +3,8 @@ package com.godofthings.beef.init;
 import com.godofthings.beef.UselessMod;
 import com.godofthings.beef.api.enums.tool.ToolTypeMode;
 import com.godofthings.beef.content.items.EndlessBeafItem;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -51,6 +53,21 @@ public final class ModItems {
     public static final DeferredItem<EndlessBeafItem> ENDLESS_BEAF_ITEM_NO_WRENCH = ITEMS.register(
             "endless_beaf_item_no_wrench",
             () -> new EndlessBeafItem(ToolTypeMode.NONE_MODE, false)
+    );
+
+    // 无用维度（奇数 / 偶数 / 三维度）的三个传送方块对应物品。
+    // 注册名与上游 ModItems 里这三项一致（上游字段是包级私有，这里提为 public 供创造栏引用）。
+    public static final DeferredItem<BlockItem> TELEPORT_BLOCK_ITEM = ITEMS.register(
+            "teleport_block",
+            () -> new BlockItem(ModBlocks.TELEPORT_BLOCK.get(), new Item.Properties())
+    );
+    public static final DeferredItem<BlockItem> TELEPORT_BLOCK_ITEM_2 = ITEMS.register(
+            "teleport_block_2",
+            () -> new BlockItem(ModBlocks.TELEPORT_BLOCK_2.get(), new Item.Properties())
+    );
+    public static final DeferredItem<BlockItem> TELEPORT_BLOCK_ITEM_3 = ITEMS.register(
+            "teleport_block_3",
+            () -> new BlockItem(ModBlocks.TELEPORT_BLOCK_3.get(), new Item.Properties())
     );
 
     private ModItems() {}

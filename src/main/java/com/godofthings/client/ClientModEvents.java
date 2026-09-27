@@ -61,6 +61,9 @@ public class ClientModEvents
         // 无线物流配置界面（照抄 useless_mod 的 StaffLinkScreen）
         event.register(com.godofthings.beef.init.ModMenuType.STAFF_LINK_MENU.get(),
                 com.godofthings.beef.client.gui.StaffLinkScreen::new);
+        // 无用维度配置界面（潜行右键传送方块打开；照抄 useless_mod 的 DimensionConfigScreen）
+        event.register(com.godofthings.beef.init.ModMenuType.DIMENSION_CONFIG_MENU.get(),
+                com.godofthings.beef.client.gui.DimensionConfigScreen::new);
 
     }
 

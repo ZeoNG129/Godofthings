@@ -1,0 +1,10 @@
+{
+  "type": "godofthings:uselessdim",
+  "generator": {
+    "type": "godofthings:uselessdim_gen",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "godofthings:useless_biome"
+    }
+  }
+}

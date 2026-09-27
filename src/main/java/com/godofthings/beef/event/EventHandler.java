@@ -24,6 +24,8 @@ import com.godofthings.beef.network.StaffLinkBindPacket;
 import com.godofthings.beef.network.StaffLinkStatusPacket;
 import com.godofthings.beef.utils.UselessItemUtils;
 import com.godofthings.beef.utils.mining.MiningDispatcher;
+import com.godofthings.beef.world.dimension.UselessDimensionConfigManager;
+import com.godofthings.beef.world.dimension.UselessDimensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
@@ -630,6 +632,18 @@ public class EventHandler {
         );
     }
 
+    /**
+     * 无用维度载入时把玩家/数据包配置好的地形设置灌进区块生成器。
+     * <p>照抄自上游 EventHandler 的同名方法（此前裁掉，随无用维度子系统一同补回）。</p>
+     */
+    @SubscribeEvent
+    public static void onLevelLoad(LevelEvent.Load event) {
+        if (event.getLevel() instanceof ServerLevel level
+                && UselessDimensions.isUselessDimension(level.dimension())) {
+            UselessDimensionConfigManager.apply(level);
+        }
+    }
+
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         BEEF_PROTECTED_PLAYERS.remove(event.getEntity().getUUID());
@@ -821,6 +835,8 @@ public class EventHandler {
     @SubscribeEvent
     public static void onServerStarted(ServerStartedEvent event) {
         GrassWandDropHandler.clearCache();
+        // 无用维度：开服时把 3 个维度已保存的地形配置全部应用一遍
+        UselessDimensionConfigManager.applyAll(event.getServer());
         event.getServer().getPlayerList().getPlayers().forEach(EndlessBeafItem::refreshAttackDamage);
     }
 

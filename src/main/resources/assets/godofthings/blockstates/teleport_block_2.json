@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "godofthings:block/teleport_block_2"
+    }
+  }
+}
