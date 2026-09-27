@@ -26,6 +26,8 @@
   "block.godofthings.void_teleporter": "Void Teleporter",
   "chat.godofthings.armor.haul.bound": "Haul container bound: %s, %s, %s",
   "chat.godofthings.armor.undying": "Undying power triggered, available again in %s s",
+  "chat.godofthings.wand.accel": "Time acceleration: %s, %s, %s - x%s (%s s, click again to double)",
+  "chat.godofthings.wand.time": "Advanced time by %s ticks",
   "container.godofthings.creative_energy_cube": "Creative Energy Cube",
   "container.godofthings.god_absorber": "God Absorber",
   "container.godofthings.god_change": "God Change",

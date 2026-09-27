@@ -160,3 +160,15 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **技能总数 118 → 79**（基础 15 / 增幅 15 / 魔法增幅 26 / 终极 16 / 机械共鸣 7；光环与特殊被动两栏清空）；**套装功能 12 → 18 项**；界面标签页 **8 → 6**（基础属性 / 特殊增幅 / 终极节点 / 机械共鸣 / 魔法增幅 / 套装功能）；语言键 533 → **461**（zh/en 差异 0）。
   - **实现手法（可复用）**：删除技能时，**把对已删技能常量的判定统一替换为常量**（`ArmorSkillData.isEnabled(..., ArmorSkills.X)` → `false`、`effectiveLevel(...)` → `0`、`ArmorSkillEngine.isOn(...)` → `false`），既保证编译通过、又让对应功能立即失效，风险远低于逐块删代码。
   - **踩坑**：正则里用 `$` 锚点匹配行尾在 CRLF 文件上会失败（行尾是 `\r`），要用 `[ \t]*\r?$`；另外 **PowerShell 的 `-match` 默认不区分大小写**，用 `village_hero` 去检查 `VILLAGE_HERO` 会得到假阳性，必须用 `-cmatch` 或 `[regex]::Matches`。
+- 2.15.0 → **2.16.0（神之工具获得「时间加速」—— 移植自万象担架的荒辰移晷之杖）**
+  - **来源与判断**：`D:\下载\UselessStretcher-main.zip`（万象担架 1.4.8，130 个 Java 文件 / 12,419 行）。荒辰移晷之杖 `WondrousStaffItem` **继承上游「造化垂青之杖」`EndlessBeafItem`**（来自 Useless Mod 本体，**本机并未安装**），它自己的增量是**时间加速 / 生物加速 / 天地加速 / 召唤 / 战利品箱刷新**。因此可移植且值得移植的是**加速子系统**；"多工具"部分我们神之工具本来就有（模式轮盘 / 精准采集 / 连锁挖掘 / AE 联动）。
+  - **移植的核心机制**（`WandAcceleration`）：对一个方块连续驱动 N 次"它一 tick 该做的事"——
+    · **避雷针**：直接生成真实落雷（不依赖天气，等价 `/summon lightning_bolt`），**单次上限 8 道**防 1024 倍刷爆实体；
+    · **AE 机器**：走 AE 自己的网格刻 —— `GridHelper.getNodeHost(level,pos)` → `IGridNode.getService(IGridTickable.class)` → `tickingRequest(node, 1)`，返回 `SLEEP` 的端点当次摘除；同一节点多面重复要按**身份去重**（`IdentityHashMap`）。**我们本来就是 AE2 硬依赖，这条直接可用**；
+    · **有方块实体的方块**：取 `BlockState.getTicker(...)` 反复调用；方块被替换/移除立即停手；
+    · **随机刻方块**（作物/树苗）：反复 `randomTick`。**一次虚拟刻 = 一次 randomTick**——上游注释特别强调：再乘一次原版 1/1365 的区块抽样概率会让作物慢 1365 倍，这个坑必须避开。
+  - **与上游的实现差异（刻意）**：上游为每个被加速目标生成一个自定义实体 `WondrousStaffAccelerationEntity` 托管计时（25KB + 22KB）；这里改为**纯服务端坐标标记表**（`Map<维度, Map<坐标, {速度,剩余tick}>>`）——不需要自定义实体、渲染器与额外网络包，语义等价而实现更轻。
+  - **时间预算**：每个服务器 tick 加速总耗时上限 **3ms**（`BUDGET_NANOS`），超预算立即停止本轮、余下下个 tick 继续 —— **1024 倍也不会拖崩服务器**。
+  - **操作**：潜行 + 右键方块挂加速（默认 **2×**，持续 **600 tick = 30 秒**）；**对同一方块再按一次倍率翻倍**（2→4→8→…→1024→回到 2）；潜行 + 右键避雷针 = 引雷；**看向天空**（`getXRot() < -40°`）潜行 + 右键空气 = 推进时间 100 tick。仅在**主手或副手拿着神之工具**时生效。
+  - 语言键 461 → **463**（zh/en 差异 0）。
+  - **尚未移植（需确认是否要）**：召唤模式 GUI（`WondrousStaffSummonScreen` 选生物召唤）、战利品箱刷新（`WondrousStaffLootRefresh`）、加速配置 GUI（倍率/持续模式/附加功能面板）、生物加速（需反复驱动实体 tick，风险较高）、范围加速存档（`RangeAccelerationSavedData` 37KB）。

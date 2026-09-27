@@ -26,6 +26,8 @@
   "block.godofthings.void_teleporter": "神之虚空",
   "chat.godofthings.armor.haul.bound": "已绑定搬运容器：%s, %s, %s",
   "chat.godofthings.armor.undying": "不死之力触发，%s 秒后可再次触发",
+  "chat.godofthings.wand.accel": "时间加速：%s, %s, %s —— %s 倍（持续 %s 秒，再按一次翻倍）",
+  "chat.godofthings.wand.time": "时间推进 %s tick",
   "container.godofthings.creative_energy_cube": "创造能量立方",
   "container.godofthings.god_absorber": "神之吸收",
   "container.godofthings.god_change": "神之更改",
