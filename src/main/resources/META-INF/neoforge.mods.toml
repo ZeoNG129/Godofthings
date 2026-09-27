@@ -27,3 +27,8 @@ description='''${mod_description}'''
 # 声明 Mixin 配置：血条压缩（GuiHeartsCompressMixin）由 FML 加载
 [[mixins]]
 config="${mod_id}.mixins.json"
+
+# 造化杖（太初洞见之杖）的 Mixin：背包带杖即可创造飞行（5 个）、
+# 无敌模式与高级隐身的玩家保护（7 个）。照抄自 useless_mod 的 mixin 包。
+[[mixins]]
+config="${mod_id}.beef.mixins.json"

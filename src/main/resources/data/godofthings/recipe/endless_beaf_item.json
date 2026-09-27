@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "B": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "C": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "D": {
+      "item": "minecraft:diamond_pickaxe"
+    },
+    "E": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "F": {
+      "item": "minecraft:netherite_pickaxe"
+    },
+    "G": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "H": {
+      "item": "minecraft:golden_carrot"
+    },
+    "I": {
+      "item": "minecraft:ghast_tear"
+    }
+  },
+  "pattern": [
+    "ABC",
+    "DEF",
+    "IGH"
+  ],
+  "result": {
+    "count": 1,
+    "id": "godofthings:endless_beaf_item"
+  }
+}

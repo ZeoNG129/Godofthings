@@ -337,3 +337,17 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **旧遗留清理（推翻 2.20.5 条目里「刻意保留」的结论）**：全仓核查确认 `ToolMode` / `ModeManager` / `WandModes` / `WandItemUtils` / `WandConfig` / `utils/mining/*` **只被彼此引用**，与采矿机共用一说不成立（`GodMinerBlock` 只用到 `WandItemUtils.enchantHolder` 一个 3 行工具方法，已内联）。故整包删除 14 个文件，`WandKeyBindings` 收窄为只留 4 个非工具按键。
   - **代价与依赖**：`libs/` 新增 14 个 compile-only jar（约 **42 MB**），仅为让上游 `compat/*` 类**逐字编译**；它们全部是可选集成，运行时缺失即自动跳过，不影响造化杖本体。若不需要这些可选集成，可删除对应 jar 与 compat 源码。
   - `gradlew build` SUCCESS，jar 含 885 条目（其中 `com/godofthings/beef` 286 个 class），已自动部署到两个测试实例。
+- 3.0.0 → **3.0.1（补上整层漏抄的 Mixin：背包带杖创造飞行等）** —— 修复，按规则**末位 +1**。
+  - **用户反馈**：3.0.0 里「背包里放着造化杖就有创造飞行」失效（原版有）。
+  - **根因**：3.0.0 只照抄了 Java 代码，**漏掉了上游 `mixin/` 整层**。飞行不是纯事件驱动的——服务端每 tick 授予 `mayfly` 的那部分（`EventHandler.updateBeefToolFlight`）确实抄到了，但让飞行「挂得住」的 5 个 Mixin 全缺：
+    · `ServerGamePacketListenerImplFlightMixin`（通用段）：记录客户端自己上报的飞行意图，区分「玩家主动关飞行」与「别的 mod 偷偷清飞行」；
+    · `ClientPacketListenerMixin`（客户端）：记录服务端确实授予过飞行，作为拦截闸门；
+    · `LocalPlayerMixin`（客户端）：拦掉外部 mod（实测 Re-Avaritia）伪装成玩家操作的 `mayfly` 清除上报；
+    · `MultiPlayerGameModeMixin`（客户端）：切游戏模式时原版会本地重置 abilities，这里在重置前后保住飞行；
+    · `ServerPlayerGameModeMixin`（通用段）：切换游戏模式后重新授予造化杖飞行。
+  - **同时补抄的另外 7 个**（同属造化杖，一并补齐）：`EntityMixin` / `EntityGetterMixin` / `LivingEntityMixin` / `PlayerMixin` / `ServerLevelMixin` / `LevelMixin` / `ClientLevelMixin`（无敌模式与高级隐身的玩家保护：不可选取/不可攻击/不被投射物锁定/不被 `/kill` 清掉/从实体查询与渲染列表里隐藏），以及 `ServerGamePacketListenerImplMixin`（独立服务端段：高级隐身时拦下他人对自己的交互包）。
+  - **裁剪**：`LevelMixin` 里让「无用维度」永昼无雨的 3 个注入（`isDay` / `isRaining` / `isThundering`）去掉——那套维度属上游维度子系统，未移植；保留会被改成 godofthings 命名空间，反过来把本模组自己的超平坦/虚空维度变成永昼无雨。
+  - **接线**：新增独立配置 `godofthings.beef.mixins.json`（`package: com.godofthings.beef.mixin`），并在 `neoforge.mods.toml` 追加 `[[mixins]]` 块。`injectors.defaultRequire` 沿用本仓库既有的 `0`（注入失败退化为功能缺失而不错杀启动；失败仍会在日志里报 Mixin 错误）。
+  - **创造物品栏收窄**：按用户要求，7 个形态只保留本体 `endless_beaf_item` 一格（其余 6 个仍已注册，由模式轮盘运行时切换生成）。
+  - **新增配方**（用户要求按下界合金锭自制）：`data/godofthings/recipe/endless_beaf_item.json`，沿用上游原版的 3×3 布局 `ABC/DEF/IGH`，只把上游那 5 个「无用锭（1~5 阶，属机器子系统）」换成**下界合金锭**——即 6 个下界合金锭 + 钻石镐 + 下界合金镐 + 金胡萝卜 + 恶魂之泪；配套 `advancement/recipes/misc/endless_beaf_item.json` 解锁进度（判据改为持有下界合金锭）。
+  - `gradlew build` SUCCESS，jar 含 13 个 `com/godofthings/beef/mixin` class 与两个 mixin 配置。

@@ -511,14 +511,10 @@ public class Godofthings
                         output.accept(GOD_TRANSMITTER_ITEM.get());
                         output.accept(GOD_SLAUGHTER_ITEM.get());
                         output.accept(GOD_ABSORBER_ITEM.get());
-                        // 造化杖（太初洞见之杖）：照抄 useless_mod 的 7 个变体
+                        // 造化杖（太初洞见之杖）：创造栏只放本体一项。另外 6 个形态
+                        // （关闭扳手 + 扳手/螺丝刀/软锤/撬棍/铁锤）仍已注册，由模式轮盘
+                        // 在运行时切换生成，不必在创造栏里各占一格。
                         output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_ITEM.get());
-                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_ITEM_NO_WRENCH.get());
-                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_WRENCH.get());
-                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_SCREWDRIVER.get());
-                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_MALLET.get());
-                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_CROWBAR.get());
-                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_HAMMER.get());
                     })
                     .build());
 

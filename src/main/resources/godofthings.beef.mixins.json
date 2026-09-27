@@ -1,0 +1,28 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.godofthings.beef.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "EntityMixin",
+    "EntityGetterMixin",
+    "LivingEntityMixin",
+    "PlayerMixin",
+    "ServerLevelMixin",
+    "LevelMixin",
+    "ServerPlayerGameModeMixin",
+    "ServerGamePacketListenerImplFlightMixin"
+  ],
+  "server": [
+    "ServerGamePacketListenerImplMixin"
+  ],
+  "client": [
+    "ClientLevelMixin",
+    "ClientPacketListenerMixin",
+    "LocalPlayerMixin",
+    "MultiPlayerGameModeMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
