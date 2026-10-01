@@ -41,6 +41,10 @@
 - **README「内容一览」提交更新时就要同步更新**（新增/删除物品、方块、功能都要改那张表格）
 - git 分支：本项目用 `1.21.1` 分支（GitHub 仓库默认分支已设为 `1.21.1`）；1.20.1 Forge 版在 `main` 分支（本地 `E:\MC\Mod\1.20.1\Godofthings`），两仓库 remote 指向同一 GitHub 仓库 `ZeoNG129/Godofthings`
 - GitHub Release 按**首位大版本**归类（1.x / 2.x / 3.x / 4.x / 5.x …各一个 release，tag 取该大版本下的一个具体版本，如 v2.6.0）；1.20.1 保留 v2.0.5；每个大版本 release 下挂该大版本**所有小版本 jar**（新小版本 jar 追加为 asset，不删除旧 asset）
-- **当前同步状态（2026-10-01 核对）**：本地 `mod_version=5.1.6`，但远程 `origin/1.21.1` 落后 18 个提交、最新 tag 仍是 **v2.6.0** —— 即 2.20.5 / 3.x / 4.x / 5.x 的提交与 release **都还没上 GitHub**。发版时先确认这批是否已补推送，不要假设远程是最新的；建 release 前用 `git ls-remote --tags origin` 核对远程实际 tag
+- **当前同步状态（2026-10-01 核对，已全部补齐）**：远程 `origin/1.21.1` 与本地**一致**，tag **v3.0.1 / v4.0.2 / v5.1.7** 已推送；GitHub Releases 共 **6 个**：
+  v1.9.0（1.x，24 个 jar）、v2.0.5（1.20.1 Forge）、v2.4.1（2.x，20 个 jar，已补 2.20.5）、**v3.0.1（3.x，2 个 jar）**、**v4.0.2（4.x，3 个 jar）**、**v5.1.7（5.x，9 个 jar）**。
+  · **发小版本**（末位变化）：build → commit → `git push origin 1.21.1` → 建 tag 并把 jar **追加到该首位大版本已有的 release** 下（不新建 release）；例如 5.1.8 传到 v5.1.7 那个 release 里。新增首位大版本才建新 release。
+  · 现成脚本：`.ref/release/publish-majors.ps1`（`git credential fill` 取 token + 自动探测 7890 代理 + 建 tag/release/上传资产，ASCII-only 免受 PS 5.1 中文解析问题影响）。注意 `release.ps1` 是**无 BOM 的 UTF-8 且含中文注释**，PS 5.1 直接执行有解析风险，建议用 pwsh 或上面的脚本。
+  · `libs/` 下 19 个预下载依赖 jar 在版本库里（约 45MB，供离线构建），首次推送时有一次较大的上传。
 - 提交信息用中文一句话
 - 已知非阻塞警告：约 20-30 条 `@EventBusSubscriber bus()` [removal] 警告（`RegisterCapabilitiesEvent`/`RegisterPayloadHandlersEvent` 是 IModBusEvent 必须保留 `bus=Bus.MOD`，NeoForge 21.1 过渡标记，无替代 API）
