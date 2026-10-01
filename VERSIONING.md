@@ -611,3 +611,51 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     · **待用户实机确认**：右键避雷针是否出雷（这是纯玩家交互，无头环境无法自动点击）。
       若仍不出，需回报「加速开关是开还是关、档位数值」——`WondrousStaffAcceleration.tryUse` 在档位为 **×0** 时
       会主动丢弃加速标记（等于什么都不做），那是上游设计而非 bug。
+- 5.1.5 → **5.1.6（删除套装的村民交易两项功能 + 神之掉落改为与原版生物掉落物同步）** —— 修复，按规则**末位 +1**。
+  - **用户需求原文**：
+    · 「神之套装的与村民相关功能：可能是村民大师（不管是否开启）在和村民交易都是直接大师，然后只有两个交易选项
+      还不会刷新。你删除无限交易和村民大师这两个功能吧。」
+    · 「神之掉落的资源生成机制不对，比如：我放入鸡刷怪蛋就只会生成羽毛，应该是和原版生物掉落物同步生成羽毛和生鸡肉。
+      其他坚守者刷怪蛋也只会生成一种物资，你看一下所有的生成资源匹不匹配。」
+  - **一、删除套装的两项村民功能**：
+    · 现象成因（顺带查清，即使删掉也值得记录）：`ArmorExtraFeatures.onInteractVillager` 在**右键村民**时
+      直接 `setVillagerData(level=5)` 并把 `setVillagerXp(0)` —— 等级硬拉满 + 经验清零，交易表因此异常
+      （选项变少、且不再按经验刷新）；`onTrade` 则在每次交易后 `resetUses()`（无限交易）。
+      两项都受 `GodArmorState.active(...)` 开关判定，但**开关默认全开**（`GodArmorFeatures.ALL`），
+      所以「不管是否开启」实际是「没在套装功能界面里手动关过」。
+    · 删除清单（4 处，共 4 个文件）：
+      `handler/ArmorExtraFeatures.java` —— 删掉 `onTrade` 与 `onInteractVillager` 两个监听器及随之无用的 import
+      （`TradeWithVillagerEvent` / `Villager` / `PlayerInteractEvent`），类注释改为「4 项」并写明删除原因；
+      `armor/GodArmorFeatures.java` —— 删掉 `UNLIMITED_TRADES = 15` / `VILLAGER_MASTER = 16` 两个开关位与
+      `LANG_KEYS` 里对应两项，`COUNT` 18 → 16，原 `UNDERWATER_VISION` 17 → 15；
+      `armor/skill/ArmorSkillDef.java` —— 删掉 `EffectKind` 里的 `UNLIMITED_TRADES` / `VILLAGER_MASTER`
+      （这两个只是效果类型枚举的遗留项：**没有任何技能注册它们、也没有引擎引用**，删掉不影响技能树；
+      技能等级是按**字符串 id** 存在数据附件里的，所以枚举顺序变化不会串档）；
+      两个语言文件 —— 删 `gui.godofthings.armor.unlimited_trades` / `...villager_master`（各 1 对）。
+    · **注意（存档位）**：开关位是 bitmask 存在玩家数据附件里，重编号后旧存档里 bit 15/16 的残留含义会变
+      （变成 UNDERWATER_VISION 的位、另一个被忽略）。因为**默认就是全开**，最坏情况只是某项"看起来是开着的"，
+      不会导致功能错乱。
+    · README：技能数 **79 个不受影响**（这两项从来不在技能表里，只在套装功能开关表里）；占位无需改。
+  - **二、神之掉落改为与原版同步**：
+    · 根因：`GodDropBlockEntity` 里有一张**手写的 `EGG_DROPS`（实体 → 单个物品）**表，命中就只产那一种物品；
+      未命中的才走战利品表，而那条路也只 `findFirst()` 取一种 —— **两条路都只产一种**，所以鸡只出羽毛。
+    · 修法：**整张手写表删除**，一律走**原版战利品表**，并把「只取第一种」改成「**全部产物都产出**」：
+      同种物品先按物品合并（战利品表会把羽毛拆成 0-2 份），每种产物每周期 64 个（沿用旧产量口径），
+      产出循环本来就有 `for (ItemStack out : outputs)`，所以多产物无需改消费端。
+      仍保留 `isBannedDrop`（武器/工具/盔甲不进产出）—— 刻意的平衡取舍，已在代码注释里写明。
+    · 附带说明：**坚守者（Warden）原版只掉 1 个幽匿催发体**，所以它「只生成一种」其实是**与原版一致**的，
+      不是 bug；而旧表把凋灵骷髅强行改成只掉头颅、烈焰人只掉烈焰棒之类才是真正的"不匹配"，现已一并纠正。
+  - **验证**：编译 0 错误；语言文件 zh/en 各 1271 键、双向差异 0；手写表与 `produceByMapping` 全仓已无引用。
+    · **专用服务器实机验证**（数据包在真实世界放置 3 台神之掉落，用 `data modify block ... InputSlot` 塞入刷怪蛋，
+      跑过工作周期后用 `execute if data block ... Inventory.Items[...] run say` 把结果打到日志里）：
+      **鸡 → 羽毛 = YES + 生鸡肉 = YES**（用户报的那个 case）、牛 → 牛肉 + 皮革 = YES、
+      凋灵骷髅 → 煤炭 + 骨头 = YES；反向对照「牛机里不该有羽毛」= CORRECT。
+      期间还临时打过产出函数的诊断，实测 `roll -> 2 stacks: [minecraft:feather x2, minecraft:chicken x1]`、
+      `insert ... leftover=0`，确认多产物都落进内部存储、无丢失（诊断代码验证后已全部删除）。
+    · **验证过程中的两个坑（记下来省下次时间）**：
+      ① `forceload add 0 0` 只覆盖区块 (0,0)（x/z 0-15），把机器放在 x=20+ 会 **静默不放置**（setblock 在未加载区块
+         里失败且函数不广播失败信息）；数据包里的 `setblock` 必须落在已加载区块内。
+      ② 函数里执行 `data get block ...` **不会有任何输出**（函数的命令反馈被抑制，`say` 才有）；
+         而且这个机器的「无限储存」序列化格式**不是**原版的 `{Slot,id,count}`，而是
+         `{Items:[{Count:9728,Item:{count:1,id:"minecraft:leather"}}]}` —— 查询路径必须写成
+         `Inventory.Items[{Item:{id:"..."}}]`。这两种写法我都先写错过一次。

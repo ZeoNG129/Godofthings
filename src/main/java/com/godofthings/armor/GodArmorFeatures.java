@@ -11,7 +11,7 @@ package com.godofthings.armor;
 public final class GodArmorFeatures
 {
     /** 开关总数（= 下面的常量个数） */
-    public static final int COUNT = 18;
+    public static final int COUNT = 16;
 
     public static final int FLIGHT = 0;
     public static final int FLIGHT_INERTIA = 1;
@@ -28,9 +28,7 @@ public final class GodArmorFeatures
     public static final int VILLAGE_HERO = 12;
     public static final int GLOW = 13;
     public static final int GLUTTONY = 14;
-    public static final int UNLIMITED_TRADES = 15;
-    public static final int VILLAGER_MASTER = 16;
-    public static final int UNDERWATER_VISION = 17;
+    public static final int UNDERWATER_VISION = 15;
 
     /** 全部开启（默认值） */
     public static final int ALL = (1 << COUNT) - 1;
@@ -52,8 +50,6 @@ public final class GodArmorFeatures
             "gui.godofthings.armor.village_hero",
             "gui.godofthings.armor.glow",
             "gui.godofthings.armor.gluttony",
-            "gui.godofthings.armor.unlimited_trades",
-            "gui.godofthings.armor.villager_master",
             "gui.godofthings.armor.underwater_vision",
     };
 

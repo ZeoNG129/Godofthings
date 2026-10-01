@@ -64,6 +64,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,7 +72,9 @@ import java.util.Set;
 /**
  * 神之掉落生物掉落物生产机方块实体。
  * - 无需能源，9 个输入槽（3×3）并行生产；每 20 tick 处理一轮所有非空刷怪蛋
- * - 放入刷怪蛋 → 按原版生物战利品表概率产出该生物的掉落物
+ * - 放入刷怪蛋 → 按原版生物战利品表产出该生物**被击杀时的全部掉落物**
+ *   （v5.1.6 起与原版同步：鸡 = 羽毛 + 生鸡肉，不再是固定的一种物品）
+ * - 每种产物每周期 64 个（神之加速按并行倍率乘）
  * - 不消耗刷怪蛋（生产模板，按时间持续产出）
  * - 向下自动输出，内置无限储存；打掉不掉落
  */
@@ -83,87 +86,6 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
     /** 可放置输入槽数量（3×3 共 9 个） */
     public static final int INPUT_SLOTS = 9;
 
-    /**
-     * 刷怪蛋 -> 对应生物的代表性掉落物。
-     * 覆盖常见生物，避免原版战利品表给出预期之外的物品（如凋灵骷髅只掉煤炭、烈焰人掉烈焰粉）。
-     */
-    private static final Map<EntityType<?>, Item> EGG_DROPS = Map.ofEntries(
-            Map.entry(EntityType.BLAZE, Items.BLAZE_ROD),
-            Map.entry(EntityType.CREEPER, Items.GUNPOWDER),
-            Map.entry(EntityType.SKELETON, Items.BONE),
-            Map.entry(EntityType.WITHER_SKELETON, Items.WITHER_SKELETON_SKULL),
-            Map.entry(EntityType.ZOMBIE, Items.ROTTEN_FLESH),
-            Map.entry(EntityType.ZOMBIE_VILLAGER, Items.ROTTEN_FLESH),
-            Map.entry(EntityType.HUSK, Items.ROTTEN_FLESH),
-            Map.entry(EntityType.DROWNED, Items.ROTTEN_FLESH),
-            Map.entry(EntityType.SPIDER, Items.STRING),
-            Map.entry(EntityType.CAVE_SPIDER, Items.STRING),
-            Map.entry(EntityType.CHICKEN, Items.FEATHER),
-            Map.entry(EntityType.PIG, Items.PORKCHOP),
-            Map.entry(EntityType.COW, Items.BEEF),
-            Map.entry(EntityType.MOOSHROOM, Items.BEEF),
-            Map.entry(EntityType.SHEEP, Items.MUTTON),
-            Map.entry(EntityType.RABBIT, Items.RABBIT),
-            Map.entry(EntityType.GHAST, Items.GHAST_TEAR),
-            Map.entry(EntityType.MAGMA_CUBE, Items.MAGMA_CREAM),
-            Map.entry(EntityType.SLIME, Items.SLIME_BALL),
-            Map.entry(EntityType.ENDERMAN, Items.ENDER_PEARL),
-            Map.entry(EntityType.PHANTOM, Items.PHANTOM_MEMBRANE),
-            Map.entry(EntityType.SHULKER, Items.SHULKER_SHELL),
-            Map.entry(EntityType.WITCH, Items.GLOWSTONE_DUST),
-            Map.entry(EntityType.HOGLIN, Items.PORKCHOP),
-            Map.entry(EntityType.PIGLIN, Items.GOLD_NUGGET),
-            Map.entry(EntityType.PIGLIN_BRUTE, Items.GOLD_NUGGET),
-            Map.entry(EntityType.ZOMBIFIED_PIGLIN, Items.ROTTEN_FLESH),
-            Map.entry(EntityType.STRIDER, Items.STRING),
-            Map.entry(EntityType.BEE, Items.HONEYCOMB),
-            Map.entry(EntityType.SILVERFISH, Items.AIR),
-            Map.entry(EntityType.ENDERMITE, Items.AIR),
-            Map.entry(EntityType.BAT, Items.AIR),
-            Map.entry(EntityType.VEX, Items.AIR),
-            Map.entry(EntityType.ALLAY, Items.AIR),
-            Map.entry(EntityType.SQUID, Items.INK_SAC),
-            Map.entry(EntityType.GLOW_SQUID, Items.GLOW_INK_SAC),
-            // 1.21.1：原 minecraft:scute 已更名为 minecraft:turtle_scute
-            Map.entry(EntityType.TURTLE, Items.TURTLE_SCUTE),
-            Map.entry(EntityType.PUFFERFISH, Items.PUFFERFISH),
-            Map.entry(EntityType.COD, Items.COD),
-            Map.entry(EntityType.SALMON, Items.SALMON),
-            Map.entry(EntityType.TROPICAL_FISH, Items.TROPICAL_FISH),
-            Map.entry(EntityType.DOLPHIN, Items.COD),
-            Map.entry(EntityType.GUARDIAN, Items.PRISMARINE_SHARD),
-            Map.entry(EntityType.ELDER_GUARDIAN, Items.PRISMARINE_SHARD),
-            Map.entry(EntityType.SNOW_GOLEM, Items.SNOWBALL),
-            Map.entry(EntityType.IRON_GOLEM, Items.IRON_INGOT),
-            Map.entry(EntityType.WARDEN, Items.SCULK_CATALYST),
-            Map.entry(EntityType.CAMEL, Items.AIR),
-            Map.entry(EntityType.SNIFFER, Items.AIR),
-            Map.entry(EntityType.FROG, Items.AIR),
-            Map.entry(EntityType.TADPOLE, Items.AIR),
-            Map.entry(EntityType.AXOLOTL, Items.AIR),
-            Map.entry(EntityType.GOAT, Items.AIR),
-            Map.entry(EntityType.WOLF, Items.AIR),
-            Map.entry(EntityType.CAT, Items.AIR),
-            Map.entry(EntityType.OCELOT, Items.AIR),
-            Map.entry(EntityType.PARROT, Items.FEATHER),
-            Map.entry(EntityType.LLAMA, Items.LEATHER),
-            Map.entry(EntityType.TRADER_LLAMA, Items.LEATHER),
-            Map.entry(EntityType.HORSE, Items.LEATHER),
-            Map.entry(EntityType.DONKEY, Items.LEATHER),
-            Map.entry(EntityType.MULE, Items.LEATHER),
-            Map.entry(EntityType.SKELETON_HORSE, Items.BONE),
-            Map.entry(EntityType.ZOMBIE_HORSE, Items.ROTTEN_FLESH),
-            Map.entry(EntityType.POLAR_BEAR, Items.COD),
-            Map.entry(EntityType.PANDA, Items.BAMBOO),
-            Map.entry(EntityType.FOX, Items.SWEET_BERRIES),
-            Map.entry(EntityType.RAVAGER, Items.SADDLE),
-            Map.entry(EntityType.EVOKER, Items.TOTEM_OF_UNDYING),
-            Map.entry(EntityType.PILLAGER, Items.AIR),
-            Map.entry(EntityType.VINDICATOR, Items.AIR),
-            Map.entry(EntityType.WANDERING_TRADER, Items.AIR),
-            Map.entry(EntityType.VILLAGER, Items.AIR),
-            Map.entry(EntityType.PLAYER, Items.AIR)
-    );
 
     /** 明确不允许产出的物品类别（武器/工具/装备/盔甲）。
      *  TieredItem 已兜底剑斧镐铲锄；以下额外覆盖不继承 TieredItem 的武器与装备。 */
@@ -412,29 +334,22 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
         {
             return List.of();
         }
-        return produceByMapping(type);
-    }
-
-    /** 优先使用手动映射；未映射的生物回退到安全 loot-table 解析。 */
-    private List<ItemStack> produceByMapping(EntityType<?> type)
-    {
-        Item mapped = EGG_DROPS.get(type);
-        if (mapped == Items.AIR)
-        {
-            return List.of();
-        }
-        if (mapped != null)
-        {
-            ItemStack stack = new ItemStack(mapped, 64);
-            // 双保险：即便未来映射表误加工具/装备，也在此拦截，杜绝产出
-            return isBannedDrop(stack) ? List.of() : List.of(stack);
-        }
         return produceFromLootTable(type);
     }
 
     /**
-     * 对未在 EGG_DROPS 中显式映射的生物，从原版战利品表取掉落物。
-     * 过滤掉装备/武器/工具/盔甲，并优先返回第一个非空、非禁止掉落物；若全被过滤则空。
+     * 按<b>原版战利品表</b>产出：该生物被击杀时会掉什么，这里就产出什么，<b>而且全部产物都会产出</b>。
+     *
+     * <p>例：鸡 → 羽毛 + 生鸡肉；凋灵骷髅 → 煤炭 + 骨头（头颅按原版概率）；猪 → 生猪排 + 皮革；
+     * 深海守卫者 → 海晶碎片 + 海晶砂粒 + 生鳕鱼…（此前每种生物只会产出固定的一种物品，
+     * 例如鸡只出羽毛、坚守者只出一种，与「和原版生物掉落物同步」不符。）</p>
+     *
+     * <p>做法：建一个该生物的临时实例、取它的战利品表，用与「被玩家击杀」一致的上下文掷表
+     * （有玩家在附近时把玩家作为 {@code LAST_DAMAGE_PLAYER} 传入，于是抢夺等条件与原版一致）。
+     * 每周期<b>每种</b>产物给 64 个（沿用旧的产量口径，神之加速再按并行倍率乘）。</p>
+     *
+     * <p>仍会过滤掉武器 / 工具 / 盔甲（见 {@link #isBannedDrop}）—— 避免刷怪蛋变成免费装备机；
+     * 这是刻意的平衡取舍，不是原版同步的遗漏。</p>
      */
     private List<ItemStack> produceFromLootTable(EntityType<?> type)
     {
@@ -477,15 +392,20 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
             {
                 return List.of();
             }
-            ItemStack chosen = drops.stream()
-                    .filter(stack -> !stack.isEmpty() && !isBannedDrop(stack))
-                    .findFirst()
-                    .orElse(ItemStack.EMPTY);
-            if (chosen.isEmpty())
+
+            // v5.1.6：原来这里只取 findFirst（整只生物只产一种物品），现改为**全部产物都产出**。
+            // 战利品表可能把同种物品拆成多份（例如羽毛 0-2 根），先按物品合并，避免出现多份同名产物。
+            // 每种产物按 64 个产出（沿用旧口径），并过滤掉武器/工具/盔甲。
+            Map<Item, ItemStack> merged = new LinkedHashMap<>();
+            for (ItemStack stack : drops)
             {
-                return List.of();
+                if (stack.isEmpty() || isBannedDrop(stack))
+                {
+                    continue;
+                }
+                merged.computeIfAbsent(stack.getItem(), item -> new ItemStack(item, 64));
             }
-            return List.of(new ItemStack(chosen.getItem(), 64));
+            return merged.isEmpty() ? List.of() : List.copyOf(merged.values());
         }
         catch (Exception e)
         {
