@@ -40,6 +40,7 @@
 - 语言文件 `zh_cn.json` 与 `en_us.json` 键集必须双向一致
 - **README「内容一览」提交更新时就要同步更新**（新增/删除物品、方块、功能都要改那张表格）
 - git 分支：本项目用 `1.21.1` 分支（GitHub 仓库默认分支已设为 `1.21.1`）；1.20.1 Forge 版在 `main` 分支（本地 `E:\MC\Mod\1.20.1\Godofthings`），两仓库 remote 指向同一 GitHub 仓库 `ZeoNG129/Godofthings`
-- GitHub Release 按大版本归类：1.21.1 只有「1.x」和「2.x」两个 release（1.x 的 tag 是 v1.9.0、2.x 的 tag 是 v2.4.1），1.20.1 保留 v2.0.5；每个大版本 release 下挂该大版本**所有小版本 jar**（新小版本 jar 追加为 asset，不删除旧 asset）
+- GitHub Release 按**首位大版本**归类（1.x / 2.x / 3.x / 4.x / 5.x …各一个 release，tag 取该大版本下的一个具体版本，如 v2.6.0）；1.20.1 保留 v2.0.5；每个大版本 release 下挂该大版本**所有小版本 jar**（新小版本 jar 追加为 asset，不删除旧 asset）
+- **当前同步状态（2026-10-01 核对）**：本地 `mod_version=5.1.6`，但远程 `origin/1.21.1` 落后 18 个提交、最新 tag 仍是 **v2.6.0** —— 即 2.20.5 / 3.x / 4.x / 5.x 的提交与 release **都还没上 GitHub**。发版时先确认这批是否已补推送，不要假设远程是最新的；建 release 前用 `git ls-remote --tags origin` 核对远程实际 tag
 - 提交信息用中文一句话
 - 已知非阻塞警告：约 20-30 条 `@EventBusSubscriber bus()` [removal] 警告（`RegisterCapabilitiesEvent`/`RegisterPayloadHandlersEvent` 是 IModBusEvent 必须保留 `bus=Bus.MOD`，NeoForge 21.1 过渡标记，无替代 API）

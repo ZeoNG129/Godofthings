@@ -29,3 +29,9 @@ run-server/
 
 # Windows literal dir accidentally created during build
 %SystemDrive%/
+
+# 反编译/提取第三方模组时误落到项目根目录的 class（反编译输出请放 .ref/）
+# 以 / 开头只匹配根目录，不影响 src/main/java/com、src/main/java/io
+/com/
+/io/
+*.class
