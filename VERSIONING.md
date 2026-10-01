@@ -659,3 +659,22 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
          而且这个机器的「无限储存」序列化格式**不是**原版的 `{Slot,id,count}`，而是
          `{Items:[{Count:9728,Item:{count:1,id:"minecraft:leather"}}]}` —— 查询路径必须写成
          `Inventory.Items[{Item:{id:"..."}}]`。这两种写法我都先写错过一次。
+- 5.1.6 → **5.1.7（全项目体检：补 5 个缺失语言键 + gitignore）** —— 修复，按规则**末位 +1**。
+  - **背景**：用户要求「检查当前项目」，做了一次完整体检（构建 / 版本一致性 / 语言键 / 悬空引用 / 仓库整洁度 /
+    远程发布状态）。**体检结论：项目健康**——构建 0 错误、版本三处一致（gradle.properties = jar 内 mods.toml = 部署 jar）、
+    语言文件 zh/en 双向零差异、79 个技能的名称与说明键**一个不缺**、8 个运行时拼接前缀**全部有对应键**、
+    代码里零调试残留、已删功能零悬空引用、README 声称的技能数（79）与 `ArmorSkills.reg(...)` 实际登记数一致。
+  - **本次修的问题（体检发现 5 个真缺失语言键，界面会直接显示原始键名）**：
+    · `menu.godofthings.wireless_logistics` —— **无线物流界面的标题**。它在 `StaffLinkOpenPacket` 里作为
+      `MenuProvider.getDisplayName()` 返回，而 `StaffLinkScreen` 是 `AbstractContainerScreen`，且在重写的
+      `renderLabels`（第 697-698 行）里**直接画了 `title`** —— 所以标题栏会显示成 `menu.godofthings.wireless_logistics`
+      这串原始键名。→ 补「无线物流网络 / Wireless Logistics Network」。
+    · `gui.godofthings.wireless_logistics.batch_bound` / `.batch_unbound` / `.batch_none_bound` / `.batch_none_unbound`
+      —— `StaffLinkBinding` 批量绑定/解绑的 4 条提示（前两条带 `%s` 台数参数）→ 按现有 `.bound` / `.unbound` 的措辞补全。
+    · 体检还报出 `tooltip.godofthings.enhanced_chain_description`，但它出现在 `EndlessBeafItem:1620` 的**注释行**里，
+      不是真引用，故未补。
+  - **顺带**：`.gitignore` 增加 `.workbuddy/`（本机 AI 工作目录，此前一直以"未跟踪"出现在 `git status` 里）。
+  - README：本次没有新增/删除内容，表格无需改动。
+  - **验证**：语言文件 zh/en 各 **1276** 键、双向差异 0；5 个键的 zh/en 文案均已回读确认；构建 0 错误并已部署。
+  - **随后一并处理（同一轮）**：把本地累积的提交推送到远程，并按「每个首位大版本一个 release」的规则
+    **新建 3.x / 4.x / 5.x 三个 release**，每个挂上该大版本的全部小版本 jar（此前远程 tag 最高只到 v2.6.0）。

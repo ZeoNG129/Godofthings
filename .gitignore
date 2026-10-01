@@ -27,6 +27,9 @@ run-server/
 # Reference sources (decompiled NeoForge/Minecraft, not part of the mod)
 .ref/
 
+# AI/agent 工作目录（会话记忆等本机产物，不属于模组）
+.workbuddy/
+
 # Windows literal dir accidentally created during build
 %SystemDrive%/
 
