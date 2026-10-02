@@ -71,6 +71,15 @@ public class WandKeyBindings
             CATEGORY
     ));
 
+    /** 打开神之手册（P） */
+    public static final Lazy<KeyMapping> OPEN_MANUAL_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.open_manual",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_P,
+            CATEGORY
+    ));
+
     private WandKeyBindings() {}
 
     public static void register(RegisterKeyMappingsEvent event)
@@ -81,5 +90,6 @@ public class WandKeyBindings
         event.register(OPEN_ARMOR_SKILL_KEY.get());
         event.register(OPEN_NOTE_KEY.get());
         event.register(EDIT_NOTE_HUD_KEY.get());
+        event.register(OPEN_MANUAL_KEY.get());
     }
 }

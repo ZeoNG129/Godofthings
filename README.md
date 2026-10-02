@@ -38,6 +38,7 @@
 | 血量数字显示 | 最大生命超过原版 20 点后，血条自动压缩为**最多 10 颗心**（只压缩显示，真实生命值不变），并在血条左侧显示**真实血量数字**（`当前 / 上限`，伤害吸收另起一行）；其他血条 mod 不受影响，未超阈值时零干预 |
 | AE2 兼容 | 矿机/资源机/掉落机/砍杀/合成台/吸收 **6 台**会生产资源的机器可作为 AE 网格节点直接并网（线缆直连、占一个频道），产物自动输出进 AE 网络；每台 UI 有「AE」接入开关（只控制是否把产物推进 AE，不改变机器本身的并网状态）。**神之熔炉已在 v5.1.3 按用户要求删除全部 AE 功能：既不接线缆、也不能被无线并网（它连 `IN_WORLD_GRID_NODE_HOST` 能力都不再注册）**。⚠ 这几个方块实体是**直接 implements AE2 接口**的，所以运行期必须有 AE2，否则模组加载阶段会崩（不是「没装就跳过」） |
 | 成就树 | **33 个成就**：`root`（神之熔炉）往下分机器线（资源机 / 掉落机 / 附魔台 / 合成台 / 加速 / 砍杀 / 吸收 / 无线能量）、套装线、工具线（杖 / 回收器）、便签线、维度线（虚空 + 三个无用维度）与彩蛋，另有「神之机器全家桶」等挑战；其中 3 个是**行为成就**（打开记事本 / 开悬浮窗 / 开自动更名，由代码授予） |
+| 神之手册 God Manual | **游戏内手册**：忘了哪个物品干嘛用的就翻它。**每个注册物品 / 方块都有条目**（条目直接从注册表生成，漏写会被 `check-lang.ps1` 挡下），另有 10 条系统条目（入门 / 按键与指令速查 / 杖 / 套装与技能树 / 便签 / 传送点 / 维度 / AE2 并网 / 兼容与共存 / 常见问题）。四种分类页签 + **顶部搜索框**（匹配名称、说明与注册名）+ 条目列表与正文各自滚动。**三种入口**：`P` 键 / 物品右键 / `/godofthings manual`。合成：书 ×1 + 金锭 ×4 |
 | 诊断与备份 | `/godofthings doctor` 一条指令打印：装了哪些可选 mod、魔法增幅属性解析成功几项、**是否有上游 mod 覆盖本模组的 Mixin**、便签与传送点数据统计；`/godofthings export|import note|points` 把便签 / 传送点导成 SNBT 文本（落在 `<存档>/godofthings/exports/`），换存档、备份、互相分享都用得上 |
 
 ## 环境要求
@@ -72,15 +73,16 @@
 ## 测试
 
 ```powershell
-.\check-lang.ps1              # 静态校验：语言键 + 资源一致性 + 脚本纯 ASCII（见下）
-.\gradlew runGameTestServer   # 数据层回归测试：便签（多本 / 旧存档迁移 / 拖拽排序 / 自动更名 / 兜底 clamp）
-                              #   与传送点的存档、封包往返，共 7 项
+.\check-lang.ps1              # 静态校验：语言键 + 资源一致性 + 手册覆盖 + 脚本纯 ASCII（见下）
+.\gradlew runGameTestServer   # 回归测试（共 11 项）：便签（多本 / 旧存档迁移 / 拖拽排序 / 自动更名 / clamp）、
+                              #   传送点存档与封包往返、神之掉落机的原版战利品表产出与装备过滤
 ```
 
 `check-lang.ps1` 一次查完这些：zh/en 键集双向一致、无空值、代码里所有 `translatable("字面量")` 都有键、
-运行时拼接的 6 个键前缀仍能解析、**注册的 20 个方块 / 18 个物品 / 4 个实体 ↔ blockstate · item 模型 · 语言键
-全覆盖**、反向的孤儿 blockstate，以及**仓库内所有 `.ps1` 必须纯 ASCII**（UTF-8 无 BOM 又含中文的脚本
-被 PowerShell 5.1 读错编码时，注释尾字节会被当成续行符、把下一行代码吞掉 —— 这个坑真踩过一次）。
+运行时拼接的 8 个键前缀仍能解析、**注册的 20 个方块 / 19 个物品 / 4 个实体 ↔ blockstate · item 模型 · 语言键
+全覆盖**、**每个物品 / 方块都有手册条目**（`manual.godofthings.<注册名>`，系统条目另验标题与正文）、
+反向的孤儿 blockstate，以及**仓库内所有 `.ps1` 必须纯 ASCII**（UTF-8 无 BOM 又含中文的脚本
+被 PowerShell 5.1 读错编码时，注释尾字节会被当成续行符、把下一行代码吞掉 —— 这个坑已经踩过两次）。
 
 `runGameTestServer` 需要运行期有 AE2（本模组有 6 个方块实体直接 implements AE2 接口），
 `prepareGameTestMods` 任务会自动从 `libs/` 与 `run-server/mods/` 把 AE2 与 guideme 拷进 `run-gametest/mods/`。
@@ -97,7 +99,8 @@ CI（`.github/workflows/build.yml`）跑的是 fetch-libs → check-lang → bui
 | `/godnote hud on\|off` | 开关屏幕上的悬浮便签 |
 | `/godofthings doctor` | 诊断：装了哪些可选 mod、魔法增幅属性解析了几项、是否有上游 mod 覆盖本模组 Mixin、数据统计 |
 | `/godofthings export note [名称]` / `export points [名称]` | 把便签 / 传送点导成 SNBT（落在 `<存档>/godofthings/exports/`） |
-| `/godofthings import note <名称>` / `import points <名称>` | 从上述文件恢复 |
+| `/godofthings import note <名称>` / `import points <名称>` | 从上述文件恢复（导入便签前会自动把原内容备份一份） |
+| `/godofthings manual` | 打开神之手册（与 `P` 键 / 手册物品等价） |
 
 ## 版本号
 

@@ -236,6 +236,10 @@ public class Godofthings
     public static final DeferredItem<GodNoteItem> GOD_NOTE =
             ITEMS.registerItem("god_note", props -> new GodNoteItem(props.stacksTo(1)));
 
+    /** 神之手册：游戏内查「这东西是干嘛的」（条目从注册表生成，见 manual 包） */
+    public static final DeferredItem<com.godofthings.item.GodManualItem> GOD_MANUAL =
+            ITEMS.registerItem("god_manual", props -> new com.godofthings.item.GodManualItem(props.stacksTo(1)));
+
     // ---- 神之工具 ----
     // GT 扳手模式子类（通过模式轮盘切换，不直接出现在创造标签）
 

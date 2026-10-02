@@ -82,7 +82,9 @@ public class GodofthingsCommand
                                         .executes(ctx -> importNote(ctx.getSource(), arg(ctx, "name")))))
                         .then(Commands.literal("points")
                                 .then(Commands.argument("name", StringArgumentType.word())
-                                        .executes(ctx -> importPoints(ctx.getSource(), arg(ctx, "name")))))));
+                                        .executes(ctx -> importPoints(ctx.getSource(), arg(ctx, "name"))))))
+                .then(Commands.literal("manual")
+                        .executes(GodofthingsCommand::openManual)));
     }
 
     private static String arg(CommandContext<CommandSourceStack> ctx, String key)
@@ -91,6 +93,14 @@ public class GodofthingsCommand
     }
 
     // ------------------------------------------------------------------ doctor
+
+    /** 打开神之手册：内容全在客户端，这里只要踢客户端一下（与 P 键 / 手册物品等价） */
+    private static int openManual(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException
+    {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        com.godofthings.network.ManualMessages.sendOpen(player);
+        return 1;
+    }
 
     private static int doctor(CommandContext<CommandSourceStack> ctx)
     {

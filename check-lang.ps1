@@ -33,7 +33,14 @@ $prefixAllow = @(
     'gui.godofthings.god_change.time_',
     'gui.godofthings.god_change.weather_',
     'gui.godofthings.wireless_logistics.',
-    'gui.godofthings.wireless_logistics.side.'
+    'gui.godofthings.wireless_logistics.side.',
+    # Two more runtime concatenations come from the manual:
+    #   gui.godofthings.manual.tab.<category>  (ManualCategory.label)
+    #   manual.godofthings.<registry id / system.<id>>  (ManualCatalog.make)
+    # Every concrete key under them is checked separately (see the "manual coverage" block below),
+    # so registering the bare prefixes here is enough.
+    'gui.godofthings.manual.tab.',
+    'manual.godofthings.'
 )
 
 # Item models that intentionally belong to no item id: model overrides picked by the
@@ -171,6 +178,52 @@ if ($missingEntityName.Count -gt 0) {
     Write-Host ("[FAIL] registered entities without an entity.godofthings.<id> lang key ({0}):" -f $missingEntityName.Count)
     foreach ($id in $missingEntityName) { Write-Host ("        {0}" -f $id) }
     $problems++
+}
+
+# ---------------------------------------------------------------- manual coverage
+# Every registered item / block must have a manual entry (ManualCatalog builds entries straight
+# from the registry, so a missing lang key means the entry would render as a raw key), and every
+# system entry declared in ManualCatalog.SYSTEM_IDS must have both a title and a body.
+$missingManual = New-Object System.Collections.Generic.SortedSet[string]
+$allContent = New-Object System.Collections.Generic.HashSet[string]
+foreach ($id in $blocks) { [void]$allContent.Add($id) }
+foreach ($id in $items) { [void]$allContent.Add($id) }
+foreach ($id in $allContent) {
+    if (-not $keys.ContainsKey("manual.godofthings.$id")) { [void]$missingManual.Add($id) }
+}
+if ($missingManual.Count -gt 0) {
+    Write-Host ("[FAIL] registered items/blocks without a manual entry (manual.godofthings.<id>) ({0}):" -f $missingManual.Count)
+    foreach ($id in $missingManual) { Write-Host ("        {0}" -f $id) }
+    $problems++
+}
+
+$catalogFile = Join-Path $javaDir 'com\godofthings\manual\ManualCatalog.java'
+if (Test-Path -LiteralPath $catalogFile) {
+    $catalogText = [System.IO.File]::ReadAllText($catalogFile, [System.Text.Encoding]::UTF8)
+    $listMatch = [regex]::Match($catalogText, 'SYSTEM_IDS\s*=\s*List\.of\((.*?)\);', 'Singleline')
+    if (-not $listMatch.Success) {
+        Write-Host '[FAIL] cannot find SYSTEM_IDS in ManualCatalog.java'
+        $problems++
+    } else {
+        $missingSystem = @()
+        foreach ($m in [regex]::Matches($listMatch.Groups[1].Value, '"([a-z0-9_]+)"')) {
+            $sid = $m.Groups[1].Value
+            foreach ($suffix in @('', '.title')) {
+                if (-not $keys.ContainsKey("manual.godofthings.system.$sid$suffix")) {
+                    $missingSystem += "manual.godofthings.system.$sid$suffix"
+                }
+            }
+        }
+        if ($missingSystem.Count -gt 0) {
+            Write-Host ("[FAIL] system manual entries missing a title/body key ({0}):" -f $missingSystem.Count)
+            foreach ($k in $missingSystem) { Write-Host ("        {0}" -f $k) }
+            $problems++
+        }
+        $systemCount = ([regex]::Matches($listMatch.Groups[1].Value, '"([a-z0-9_]+)"')).Count
+        Write-Host ("manual: {0} item/block entries + {1} system entries" -f $allContent.Count, $systemCount)
+    }
+} else {
+    Write-Host '[warn] ManualCatalog.java not found, manual coverage not checked'
 }
 
 $stateDir = Join-Path $resDir 'blockstates'
