@@ -11,7 +11,7 @@
 
 ## 测试 / CI
 - **回归测试（共 14 条）**：`gradlew runGameTestServer`，两个测试类共用 `data/godofthings/structure/note_data.nbt` 那个 1×1×1 空结构：
-  · `com.godofthings.gametest.NoteDataGameTest`（9 条）：便签整册的 NBT / 封包往返、多本与旧存档迁移、拖拽排序、自动更名、兜底 clamp、**子任务结构（连加 / 深度数量夹取 / 折叠状态往返）与升降级重排**，以及传送点 NBT；
+  · `com.godofthings.gametest.NoteDataGameTest`（10 条）：便签整册的 NBT / 封包往返、多本与旧存档迁移、拖拽排序、自动更名、兜底 clamp、**子任务结构（连加 / 深度数量夹取 / 折叠状态往返）与升降级重排**，以及传送点 NBT；
   · `com.godofthings.gametest.DropLootRollerGameTest`（4 条）：神之掉落机按原版战利品表产出（鸡必掉生鸡肉、每种 64 个）、刷怪蛋入口、非生物实体返回空、装备过滤名单。
   · **跑之前运行期必须有 AE2**（本模组有 6 个方块实体直接 implements AE2 接口）：`prepareGameTestMods` 任务会自动把 `libs/ae2-*.jar` 与 `guideme-*.jar` 拷进 `run-gametest/mods/`；本机 `fetch-libs.ps1 -IncludeTestMods` 会把 guideme 一起拉下来。
 - **静态校验**：`./check-lang.ps1`，一次查全部 —— zh/en 键集双向一致、无空值、代码里所有 `translatable("字面量")` 都有键、运行时拼接前缀能解析、**注册的方块/物品/实体 ↔ blockstate / item 模型 / 语言键 全覆盖**、**每个物品/方块都有手册条目**（`manual.godofthings.<id>`，系统条目另验标题+正文）、反向的孤儿 blockstate、以及**仓库内 .ps1 必须纯 ASCII**。CI 跑的就是它。
