@@ -108,7 +108,7 @@ public final class GodNoteHud
         sb.append(book.name()).append('|').append(hud.showDone ? 1 : 0).append('|').append(book.tasks().size());
         for (NoteTask task : book.tasks())
         {
-            sb.append('|').append(task.done ? 1 : 0).append(task.text);
+            sb.append('|').append(task.done ? 1 : 0).append(task.collapsed ? 'c' : 'o').append(task.text);
             for (NoteTask child : task.children())
             {
                 sb.append('>').append(child.done ? 1 : 0).append(child.text);
@@ -162,6 +162,10 @@ public final class GodNoteHud
             if (rows.size() >= MAX_ROWS)
             {
                 break;
+            }
+            if (task.collapsed)
+            {
+                break; // 折叠：只显示主任务（进度在 (n/m) 里）
             }
             if (c.done && !hud.showDone)
             {

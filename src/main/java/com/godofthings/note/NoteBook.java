@@ -258,6 +258,19 @@ public final class NoteBook
         }
     }
 
+    /** 折叠 / 展开某条主任务的子任务（视图状态，但随任务保存 —— 这样改完别的内容不会丢） */
+    public void toggleCollapsed(int parentIndex)
+    {
+        if (parentIndex >= 0 && parentIndex < tasks.size())
+        {
+            NoteTask t = tasks.get(parentIndex);
+            if (t.hasChildren())
+            {
+                t.collapsed = !t.collapsed;
+            }
+        }
+    }
+
     /** 同一个父任务下的子任务重排 */
     public void moveChild(int parentIndex, int from, int to)
     {

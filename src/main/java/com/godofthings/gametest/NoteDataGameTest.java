@@ -95,6 +95,7 @@ public class NoteDataGameTest
                 NoteTask lt = left.tasks().get(t);
                 NoteTask rt = right.tasks().get(t);
                 if (!lt.text.equals(rt.text) || lt.done != rt.done
+                        || lt.collapsed != rt.collapsed
                         || lt.childCount() != rt.childCount())
                 {
                     return false;
@@ -328,7 +329,38 @@ public class NoteDataGameTest
         }
         helper.assertTrue(big.tasks().get(0).childCount() == NoteTask.MAX_CHILDREN,
                 "子任务数没夹在 " + NoteTask.MAX_CHILDREN);
+
+        // 连续添加（用户实测「只能加一个」的回归点：连加 3 条都要成功）
+        NoteBook multi = new NoteBook();
+        multi.add("做贤者之石");
+        multi.addChild(0, "热核");
+        multi.addChild(0, "工业先锋");
+        multi.addChild(0, "第三步");
+        helper.assertTrue(multi.tasks().get(0).childCount() == 3, "连加子任务失败（应能连加多条）");
+
+        // 折叠状态：NBT 与封包往返都要保住
+        NoteBook fold = new NoteBook();
+        fold.add("主任务");
+        fold.addChild(0, "子任务");
+        fold.toggleCollapsed(0);
+        helper.assertTrue(fold.tasks().get(0).collapsed, "toggleCollapsed 应该把折叠置真");
+        NoteTask folded = fold.tasks().get(0);
+        NoteTask foldedBack = NoteTask.load(toTag(folded));
+        helper.assertTrue(foldedBack.collapsed && foldedBack.childCount() == 1,
+                "NBT 往返后折叠状态丢了");
+        NoteTask foldedBuf = readBufOf(folded, helper);
+        helper.assertTrue(foldedBuf.collapsed && foldedBuf.childCount() == 1,
+                "封包往返后折叠状态丢了");
         helper.succeed();
+    }
+
+    /** 把一条任务写进缓冲并读回（封装给折叠测试用） */
+    private static NoteTask readBufOf(NoteTask task, GameTestHelper helper)
+    {
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(
+                Unpooled.buffer(), helper.getLevel().registryAccess());
+        task.write(buf);
+        return NoteTask.read(buf);
     }
 
     private static CompoundTag toTag(NoteTask task)

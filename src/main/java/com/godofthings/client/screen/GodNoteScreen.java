@@ -37,11 +37,13 @@ public class GodNoteScreen extends Screen
 
     /** 便签册栏（切换 / 新建 / 删除） */
     private static final int BOOK_BAR_Y = 32;
-    /** 任务区 */
+    /** 任务区（7 行：第 8 行的位置让给了提示行，避免提示文字压进输入框） */
     private static final int ROWS_TOP = 52;
     private static final int ROW_H = 12;
-    private static final int VISIBLE_ROWS = 8;
+    private static final int VISIBLE_ROWS = 7;
     private static final int ROWS_BOTTOM = ROWS_TOP + VISIBLE_ROWS * ROW_H;
+    /** 任务区与输入框之间的提示行（拖拽 / 删除确认 / 子任务模式） */
+    private static final int HINT_Y = ROWS_BOTTOM + 3;
 
     private int left;
     private int top;
@@ -390,19 +392,30 @@ public class GodNoteScreen extends Screen
                 {
                     book().setText(editParent, text);
                 }
+                inputMode = MODE_ADD;
+                editParent = editChild = -1;
             }
             case MODE_SUB ->
             {
+                if (text.isBlank())
+                {
+                    return; // 空回车 = 什么都不做，继续留在子任务模式
+                }
                 if (subParent >= 0 && book().addChild(subParent, text) >= 0)
                 {
-                    // 成功后收起子任务模式，回正常的新增状态
-                    subParent = -1;
+                    // 成功后**保持子任务模式**：可以连着加「热核 / 工业先锋 / …」一串，
+                    // 加完按 Esc 或切到别处才退出 —— 之前每条都退出，才会让人以为只能加一个
+                    input.setValue("");
+                    push();
+                    refresh();
+                    return;
                 }
+                // 加不进去（父任务没了 / 子任务满）→ 退出子任务模式
+                inputMode = MODE_ADD;
+                subParent = -1;
             }
             default -> book().add(text);
         }
-        inputMode = MODE_ADD;
-        editParent = editChild = subParent = -1;
         input.setValue("");
         push();
         refresh();
@@ -693,6 +706,10 @@ public class GodNoteScreen extends Screen
             {
                 NoteTask task = tasks.get(p);
                 list.add(new RowRef(task, p, -1));
+                if (task.collapsed)
+                {
+                    continue; // 折叠的子任务不进扁平行列表（点行首三角展开）
+                }
                 List<NoteTask> children = task.children();
                 for (int c = 0; c < children.size(); c++)
                 {
@@ -757,7 +774,7 @@ public class GodNoteScreen extends Screen
             boolean editing = inputMode == MODE_EDIT && editParent == row.parent()
                     && editChild == row.child();
             boolean dragging = index == dragRow;
-            boolean deleteArmed = index == deleteArmedRow && task.hasChildren();
+            boolean deleteArmed = index == deleteArmedRow;
 
             int indent = child ? CHILD_INDENT : 0;
             if (dragging)
@@ -768,6 +785,13 @@ public class GodNoteScreen extends Screen
             {
                 gui.fill(left + 9, rowY - 1, left + PANEL_W - 9, rowY + ROW_H - 2,
                         deleteArmed ? 0x50FF6060 : 0x30FFFFFF);
+            }
+
+            // 行首三角：有子任务的主任务可以折叠 / 展开（v 展开，> 折起）
+            if (!child && task.hasChildren())
+            {
+                gui.drawString(this.font, task.collapsed ? ">" : "v", left + 1, rowY + 2,
+                        hovered ? 0xFFE8C86A : 0xFF8A929C, false);
             }
 
             // 勾选框（子任务的框随缩进右移）
@@ -804,16 +828,25 @@ public class GodNoteScreen extends Screen
                     left + PANEL_W - 118, top + 20, 0xFF6F7883, false);
         }
 
-        // 拖拽排序时给一句提示
+        // 提示行（任务区与输入框之间，独立一行，不会再压进输入框）
+        Component hint = null;
         if (dragRow >= 0)
         {
-            gui.drawString(this.font, Component.translatable("gui.godofthings.note.drag_sort_hint"),
-                    left + 10, top + ROWS_BOTTOM + 2, 0xFFE8C86A, false);
+            hint = Component.translatable("gui.godofthings.note.drag_sort_hint");
+        }
+        else if (deleteArmedRow >= 0)
+        {
+            hint = Component.translatable("gui.godofthings.note.delete_hint");
         }
         else if (inputMode == MODE_SUB)
         {
-            gui.drawString(this.font, Component.translatable("gui.godofthings.note.input_sub_hint",
-                    parentTitle(subParent)), left + 10, top + ROWS_BOTTOM + 2, 0xFFE8C86A, false);
+            hint = Component.translatable("gui.godofthings.note.input_sub_hint",
+                    parentTitle(subParent));
+        }
+        if (hint != null)
+        {
+            gui.drawString(this.font, this.font.plainSubstrByWidth(hint.getString(), PANEL_W - 20),
+                    left + 10, top + HINT_Y, 0xFFE8C86A, false);
         }
     }
 
@@ -902,7 +935,7 @@ public class GodNoteScreen extends Screen
 
     private boolean isRowHovered(int mouseX, int mouseY, int rowY)
     {
-        return mouseX >= left + 9 && mouseX <= left + PANEL_W - 9
+        return mouseX >= left + 1 && mouseX <= left + PANEL_W - 9
                 && mouseY >= rowY - 1 && mouseY < rowY + ROW_H - 2;
     }
 
@@ -941,7 +974,14 @@ public class GodNoteScreen extends Screen
                 boolean child = row.child() >= 0;
                 int indent = child ? CHILD_INDENT : 0;
                 bookDeleteArmed = false;
-                if (mouseX <= left + 24 + indent)
+                if (!child && row.task().hasChildren() && mouseX >= left + 1 && mouseX <= left + 10)
+                {
+                    // 行首三角：折叠 / 展开子任务
+                    deleteArmedRow = -1;
+                    book().toggleCollapsed(row.parent());
+                    push();
+                }
+                else if (mouseX <= left + 24 + indent)
                 {
                     // 勾选框
                     if (child)
@@ -957,8 +997,8 @@ public class GodNoteScreen extends Screen
                 }
                 else if (mouseX >= left + PANEL_W - 22)
                 {
-                    // × 删除（主任务带子任务时要点两次确认）
-                    if (row.task().hasChildren() && deleteArmedRow != index)
+                    // × 删除：所有行都点两次确认（防误触），主任务会连子任务一起删
+                    if (deleteArmedRow != index)
                     {
                         deleteArmedRow = index;
                         return true;
@@ -972,8 +1012,7 @@ public class GodNoteScreen extends Screen
                     {
                         book().remove(row.parent());
                     }
-                    if (inputMode == MODE_EDIT && editParent == row.parent()
-                            && (child || editChild < 0))
+                    if (inputMode != MODE_ADD)
                     {
                         resetInput();
                     }

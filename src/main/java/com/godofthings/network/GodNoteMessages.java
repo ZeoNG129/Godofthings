@@ -33,7 +33,8 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
  * 客户端塞垃圾数据也写不坏存档。</p>
  *
  * <p><b>协议版本</b>：v5.4.0 起载荷从「一本」变成「一册」（版本 2）；v5.6.0 起任务支持子任务、
- * 变成递归结构（版本 {@code 3}）—— 新旧两端不会静默错位（NeoForge 握手阶段就会拒掉不匹配的一侧）。</p>
+ * 变成递归结构（版本 3）；v5.6.1 起任务带折叠状态（版本 {@code 4}）——
+ * 新旧两端不会静默错位（NeoForge 握手阶段就会拒掉不匹配的一侧）。</p>
  */
 @EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class GodNoteMessages
@@ -41,7 +42,7 @@ public class GodNoteMessages
     @SubscribeEvent
     private static void onRegisterPayloads(RegisterPayloadHandlersEvent event)
     {
-        PayloadRegistrar registrar = event.registrar("3");
+        PayloadRegistrar registrar = event.registrar("4");
         registrar.playToClient(NoteSyncPayload.TYPE, NoteSyncPayload.STREAM_CODEC, NoteSyncPayload::handle);
         registrar.playToClient(NoteOpenScreenPayload.TYPE, NoteOpenScreenPayload.STREAM_CODEC, NoteOpenScreenPayload::handle);
         registrar.playToServer(NoteUpdatePayload.TYPE, NoteUpdatePayload.STREAM_CODEC, NoteUpdatePayload::handle);

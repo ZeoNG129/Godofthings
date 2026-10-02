@@ -29,6 +29,8 @@ public final class NoteTask
 
     public String text;
     public boolean done;
+    /** 折叠：有子任务的主任务可以折起来不显示子任务（界面与悬浮窗都遵循；随任务保存/同步） */
+    public boolean collapsed;
     private final List<NoteTask> children = new ArrayList<>();
 
     public NoteTask(String text, boolean done)
@@ -180,6 +182,7 @@ public final class NoteTask
     public NoteTask copy()
     {
         NoteTask t = new NoteTask(text, done);
+        t.collapsed = collapsed;
         for (NoteTask c : children)
         {
             t.children.add(c.copy());
@@ -193,6 +196,7 @@ public final class NoteTask
     {
         tag.putString("Text", text);
         tag.putBoolean("Done", done);
+        tag.putBoolean("Collapsed", collapsed);
         if (!children.isEmpty())
         {
             ListTag list = new ListTag();
@@ -215,6 +219,8 @@ public final class NoteTask
     private static NoteTask load(CompoundTag tag, int depth)
     {
         NoteTask t = new NoteTask(tag.getString("Text"), tag.getBoolean("Done"));
+        // 旧存档没有 Collapsed 字段，getBoolean 自然回落为 false
+        t.collapsed = tag.getBoolean("Collapsed");
         if (depth < MAX_DEPTH && tag.contains("Children", Tag.TAG_LIST))
         {
             ListTag list = tag.getList("Children", Tag.TAG_COMPOUND);
@@ -234,6 +240,7 @@ public final class NoteTask
     {
         buf.writeUtf(text, MAX_TEXT);
         buf.writeBoolean(done);
+        buf.writeBoolean(collapsed);
         buf.writeVarInt(children.size());
         for (NoteTask c : children)
         {
@@ -249,6 +256,7 @@ public final class NoteTask
     private static NoteTask read(RegistryFriendlyByteBuf buf, int depth)
     {
         NoteTask t = new NoteTask(buf.readUtf(MAX_TEXT), buf.readBoolean());
+        t.collapsed = buf.readBoolean();
         int n = buf.readVarInt();
         // 无论深度够不够都要把字节读完（否则后续字段错位），深度到顶时只丢弃、不写入
         for (int i = 0; i < n; i++)
