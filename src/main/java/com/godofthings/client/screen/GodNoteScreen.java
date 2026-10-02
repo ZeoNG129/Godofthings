@@ -330,9 +330,13 @@ public class GodNoteScreen extends Screen
 
     // ------------------------------------------------------------------ 数据改动
 
-    /** 把整册便签发回服务端（发副本，避免网络线程编码时主线程还在改同一份） */
+    /** 把整册便签发回服务端（发副本，避免网络线程编码时主线程还在改同一份）；内容没变就不发 */
     private void push()
     {
+        if (!ClientNoteCache.shouldPush(shelf()))
+        {
+            return;
+        }
         GodNoteMessages.sendUpdate(shelf().copy());
     }
 

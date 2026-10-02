@@ -82,7 +82,35 @@ public final class GodNoteHud
     /** 一次排版的结果：行 + 未缩放面板尺寸 */
     private record Layout(List<Row> rows, int width, int height) {}
 
+    /** 排版缓存：HUD 是每帧画的，而折行要逐字符量宽度，不缓存的话 64 条任务就是每帧几千次 font.width */
+    private static Layout cachedLayout;
+    private static String cachedSignature;
+
     private static Layout layout(Font font, NoteBook book, NoteHud hud)
+    {
+        String signature = signature(book, hud);
+        if (cachedLayout != null && signature.equals(cachedSignature))
+        {
+            return cachedLayout;
+        }
+        cachedLayout = computeLayout(font, book, hud);
+        cachedSignature = signature;
+        return cachedLayout;
+    }
+
+    /** 排版结果只取决于这些内容；签名本身只是拼字符串，比重排便宜两个数量级 */
+    private static String signature(NoteBook book, NoteHud hud)
+    {
+        StringBuilder sb = new StringBuilder(128);
+        sb.append(book.name()).append('|').append(hud.showDone ? 1 : 0).append('|').append(book.tasks().size());
+        for (NoteTask task : book.tasks())
+        {
+            sb.append('|').append(task.done ? 1 : 0).append(task.text);
+        }
+        return sb.toString();
+    }
+
+    private static Layout computeLayout(Font font, NoteBook book, NoteHud hud)
     {
         List<Row> rows = new ArrayList<>();
         for (NoteTask task : book.tasks())

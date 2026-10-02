@@ -180,6 +180,10 @@ public class GodNoteHudEditScreen extends Screen
 
     private void push()
     {
+        if (!ClientNoteCache.shouldPush(shelf()))
+        {
+            return;
+        }
         GodNoteMessages.sendUpdate(shelf().copy());
     }
 
