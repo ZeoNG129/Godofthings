@@ -493,6 +493,7 @@ public class Godofthings
                         output.accept(GOD_BLACK_BOX.get());
                         output.accept(GOD_BINDER.get());
                         output.accept(GOD_NOTE.get());
+                        output.accept(GOD_MANUAL.get());
                         output.accept(GOD_TRANSMITTER_ITEM.get());
                         output.accept(GOD_SLAUGHTER_ITEM.get());
                         output.accept(GOD_ABSORBER_ITEM.get());
