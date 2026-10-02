@@ -71,8 +71,8 @@ public final class RangeAccelerationPreview {
         ItemStack staff = heldStaff(player);
         if (staff.isEmpty()) return;
 
-        List<TimeFlowEntity> fields = minecraft.level.getEntitiesOfClass(TimeFlowEntity.class,
-                player.getBoundingBox().inflate(96.0D));
+        // [本地改动] 上游这里每帧扫一次时间流领域实体，改走 8 tick 快照
+        List<TimeFlowEntity> fields = RenderEntityScan.timeFlowEntities(minecraft.level, player);
         Camera camera = event.getCamera();
         Vec3 cameraPos = camera.getPosition();
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();

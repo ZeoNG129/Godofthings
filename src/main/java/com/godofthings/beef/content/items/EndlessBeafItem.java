@@ -1616,9 +1616,6 @@ public class EndlessBeafItem extends TieredItem {
         tooltipComponents.add(
                 Component.translatable("tooltip.godofthings.beef_auto_click_hint").withStyle(ChatFormatting.LIGHT_PURPLE));
 
-        // 可选：增强连锁说明
-        // tooltipComponents.add(Component.translatable("tooltip.godofthings.enhanced_chain_description").withStyle(ChatFormatting.BLUE));
-
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 

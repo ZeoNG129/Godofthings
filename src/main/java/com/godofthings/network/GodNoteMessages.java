@@ -2,6 +2,7 @@ package com.godofthings.network;
 
 import com.godofthings.Godofthings;
 import com.godofthings.note.GodNoteData;
+import com.godofthings.note.NoteAdvancements;
 import com.godofthings.note.NoteBook;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -53,6 +54,7 @@ public class GodNoteMessages
     /** 服务端 → 客户端：让这个客户端打开便签界面（物品右键 / 指令 / 快捷键回执都走这里） */
     public static void sendOpenScreen(ServerPlayer player)
     {
+        NoteAdvancements.award(player, NoteAdvancements.OPEN); // 「打开记事本」成就
         PacketDistributor.sendToPlayer(player, new NoteOpenScreenPayload());
     }
 
@@ -134,7 +136,21 @@ public class GodNoteMessages
                 if (ctx.player() instanceof ServerPlayer serverPlayer)
                 {
                     GodNoteData data = GodNoteData.get(serverPlayer.server);
+                    // 先看旧状态：用来判「第一次打开悬浮窗 / 第一次开自动更名」两条行为成就
+                    NoteBook previous = data.book(serverPlayer.getUUID());
+                    boolean hudWasOn = previous.hud().enabled;
+                    boolean autoWasOn = previous.autoName();
+
                     data.put(serverPlayer.getUUID(), msg.book());
+
+                    if (!hudWasOn && msg.book().hud().enabled)
+                    {
+                        NoteAdvancements.award(serverPlayer, NoteAdvancements.HUD);
+                    }
+                    if (!autoWasOn && msg.book().autoName())
+                    {
+                        NoteAdvancements.award(serverPlayer, NoteAdvancements.AUTO);
+                    }
                     // 回发一份规范化后的数据：客户端界面与悬浮窗都以这份为准
                     sendSync(serverPlayer);
                 }

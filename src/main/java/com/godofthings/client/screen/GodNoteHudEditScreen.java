@@ -20,6 +20,11 @@ import org.lwjgl.glfw.GLFW;
  */
 public class GodNoteHudEditScreen extends Screen
 {
+    /** 松手时离屏幕边 / 中线多少像素以内就吸附上去 */
+    private static final int EDGE_SNAP = 6;
+    /** 没吸到边 / 中线时对齐到的网格（像素） */
+    private static final int GRID = 4;
+
     private boolean dragging;
     /** 按下时鼠标相对便签左上角的偏移（屏幕像素，已经含缩放） */
     private double dragOffsetX;
@@ -47,6 +52,13 @@ public class GodNoteHudEditScreen extends Screen
         int hintW = this.font.width(hint);
         gui.fill(this.width / 2 - hintW / 2 - 6, 8, this.width / 2 + hintW / 2 + 6, 24, 0xC0000000);
         gui.drawString(this.font, hint, this.width / 2 - hintW / 2, 12, 0xFFE8C86A, false);
+
+        // 悬浮窗是关着的时候进编辑模式（比如按快捷键直接进来）：明确提示一句
+        if (!book().hud().enabled)
+        {
+            Component off = Component.translatable("gui.godofthings.note.drag_disabled");
+            gui.drawString(this.font, off, this.width / 2 - this.font.width(off) / 2, 30, 0xFFFF8080, false);
+        }
 
         super.render(gui, mouseX, mouseY, partialTick);
     }
@@ -95,10 +107,40 @@ public class GodNoteHudEditScreen extends Screen
         if (dragging)
         {
             dragging = false;
+            applySnap();
             push();
             return true;
         }
         return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    /** 松手时吸附：先贴屏幕四边与两条中线，都够不着再对齐到 4 像素网格 */
+    private void applySnap()
+    {
+        int[] rect = GodNoteHud.rect(this.font, book(), this.width, this.height);
+        int w = rect[2];
+        int h = rect[3];
+        int px = GodNoteHud.clampPos(snapAxis(rect[0], w, this.width), w, this.width);
+        int py = GodNoteHud.clampPos(snapAxis(rect[1], h, this.height), h, this.height);
+        GodNoteHud.storePosition(book().hud(), px, py, this.width, this.height);
+    }
+
+    private static int snapAxis(int pos, int size, int screenSize)
+    {
+        if (pos <= EDGE_SNAP)
+        {
+            return 0;
+        }
+        if (screenSize - (pos + size) <= EDGE_SNAP)
+        {
+            return screenSize - size;
+        }
+        int centered = (screenSize - size) / 2;
+        if (Math.abs(pos - centered) <= EDGE_SNAP)
+        {
+            return centered;
+        }
+        return Math.round(pos / (float) GRID) * GRID;
     }
 
     @Override

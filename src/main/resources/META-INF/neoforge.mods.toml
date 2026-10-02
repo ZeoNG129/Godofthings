@@ -9,6 +9,15 @@ version="${mod_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
 description='''${mod_description}'''
+# 模组列表图标与链接（logo.png 打包在 jar 根目录）
+logoFile="logo.png"
+displayURL="https://github.com/ZeoNG129/Godofthings"
+issueTrackerURL="https://github.com/ZeoNG129/Godofthings/issues"
+credits='''整合与维护：ZeoNG129。
+部分子系统照抄自开源项目：useless_mod、useless_stretcher（MIT）、PersonalSpace（LGPL-3.0）、
+AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁止商用）；
+神之套装技能树移植自 Zifeng Skill Tree（MIT）。
+各部分的适用范围、署名与许可全文见 THIRD_PARTY_NOTICES.md 与 jar 内 META-INF/LICENSE-*。'''
 
 [[dependencies.${mod_id}]]
     modId="neoforge"

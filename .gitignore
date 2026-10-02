@@ -16,16 +16,21 @@ mcmodsrepo/
 bin/
 eclipse/
 
-# Run directories (dev client / data / dedicated server)
+# Run directories (dev client / data / dedicated server / gametest)
 run/
 run-data/
 run-server/
+run-gametest/
 
 # Logs
 *.log
 
 # Reference sources (decompiled NeoForge/Minecraft, not part of the mod)
 .ref/
+
+# 编译期可选依赖（19 个第三方模组 jar，约 52MB，不进版本库）
+# 克隆后跑一次 fetch-libs.ps1，从本仓库 libs-1.21.1 那个 release 拉回来
+libs/
 
 # AI/agent 工作目录（会话记忆等本机产物，不属于模组）
 .workbuddy/

@@ -15,7 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -103,10 +102,10 @@ public final class WondrousStaffHud {
     // ---------------------------------------------------------------------
 
     private static void renderTimeBar(GuiGraphics g, Minecraft mc, Player player, Font font, int w, int h) {
-        List<WondrousStaffAccelerationEntity> timeAccels = mc.level.getEntitiesOfClass(
-                WondrousStaffAccelerationEntity.class,
-                new AABB(player.blockPosition()).inflate(96.0D),
-                WondrousStaffAccelerationEntity::isTimeMode);
+        // [本地改动] 上游这里每帧扫一次 96 格实体（还不看手里拿什么），改走 8 tick 快照
+        List<WondrousStaffAccelerationEntity> timeAccels =
+                RenderEntityScan.accelEntities(mc.level, player).stream()
+                        .filter(WondrousStaffAccelerationEntity::isTimeMode).toList();
         WondrousStaffAccelerationEntity accel = timeAccels.stream().findFirst().orElse(null);
         if (accel == null) return;
 

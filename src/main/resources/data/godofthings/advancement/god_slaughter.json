@@ -1,0 +1,36 @@
+{
+  "display": {
+    "icon": {
+      "item": "godofthings:god_slaughter"
+    },
+    "title": {
+      "translate": "advancements.godofthings.god_slaughter.title"
+    },
+    "description": {
+      "translate": "advancements.godofthings.god_slaughter.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "has": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_slaughter"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 500
+  },
+  "sends_telemetry_event": false
+}

@@ -1,0 +1,36 @@
+{
+  "display": {
+    "icon": {
+      "item": "godofthings:god_devourer"
+    },
+    "title": {
+      "translate": "advancements.godofthings.devourer.title"
+    },
+    "description": {
+      "translate": "advancements.godofthings.devourer.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "has": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_devourer"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 300
+  },
+  "sends_telemetry_event": false
+}

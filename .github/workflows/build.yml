@@ -1,0 +1,60 @@
+name: build
+
+# 只做两件不花钱、最快能发现回归的事：
+#   1. 语言文件校验（zh/en 键集双向一致 + 代码里所有 translatable 字面量都有键）
+#   2. 完整构建（顺带验证资源 / mixin 配置 / 数据文件都能进 jar）
+#
+# 说明：
+#  - 编译期的 19 个可选依赖 jar 不再进版本库，CI 里先跑 fetch-libs.ps1 拉回来（带缓存）。
+#  - 不跑 gametest：本模组有若干方块实体直接 implements AE2 接口，运行期需要 AE2 + guideme，
+#    CI 里没有这两个前置。本机跑法见 AGENTS.md（gradlew runGameTestServer）。
+#  - deployJars 在 CI 上找不到本机测试目录，会打印警告后跳过，不影响构建结果。
+
+on:
+  push:
+    branches: [ '1.21.1' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache compile-only deps (libs/)
+        uses: actions/cache@v4
+        with:
+          path: libs
+          key: libs-1.21.1-v1
+
+      - name: Fetch compile-only deps
+        shell: pwsh
+        run: ./fetch-libs.ps1
+
+      - name: Language file check
+        shell: pwsh
+        run: ./check-lang.ps1
+
+      - name: Build
+        # gradle.properties 里写死了本机 JDK 路径（org.gradle.java.home），CI 上用命令行覆盖掉
+        run: |
+          chmod +x gradlew
+          ./gradlew build --no-daemon -Dorg.gradle.java.home="$JAVA_HOME"
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: godofthings-jar
+          path: build/libs/godofthings-*.jar
+          if-no-files-found: warn

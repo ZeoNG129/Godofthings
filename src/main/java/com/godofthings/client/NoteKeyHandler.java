@@ -39,5 +39,14 @@ public class NoteKeyHandler
                 GodNoteMessages.sendOpen();
             }
         }
+
+        // M 键：直接进「摆放悬浮窗」编辑模式（数据本地就有镜像，不用走服务端）
+        while (WandKeyBindings.EDIT_NOTE_HUD_KEY.get().consumeClick())
+        {
+            if (mc.screen == null)
+            {
+                mc.setScreen(new com.godofthings.client.screen.GodNoteHudEditScreen());
+            }
+        }
     }
 }

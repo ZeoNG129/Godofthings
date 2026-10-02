@@ -1,0 +1,36 @@
+{
+  "display": {
+    "icon": {
+      "item": "godofthings:god_note"
+    },
+    "title": {
+      "translate": "advancements.godofthings.god_note.title"
+    },
+    "description": {
+      "translate": "advancements.godofthings.god_note.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "has": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_note"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 100
+  },
+  "sends_telemetry_event": false
+}

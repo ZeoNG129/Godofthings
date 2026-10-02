@@ -62,10 +62,13 @@ public final class WondrousStaffHighlight {
                     0.0F, 1.0F, 0.4F, 0.9F, seeThrough);
         }
 
-        List<WondrousStaffAccelerationEntity> machines = minecraft.level.getEntitiesOfClass(
-                WondrousStaffAccelerationEntity.class,
-                new AABB(player.blockPosition()).inflate(64.0D),
-                entity -> entity.getMode() == WondrousStaffAccelerationEntity.MODE_BLOCK);
+        // [本地改动] 上游这里每帧扫一次 64 格实体，改走 8 tick 快照（快照按 96 格扫，这里再按 64 格过滤）
+        AABB machineBox = new AABB(player.blockPosition()).inflate(64.0D);
+        List<WondrousStaffAccelerationEntity> machines =
+                RenderEntityScan.accelEntities(minecraft.level, player).stream()
+                        .filter(entity -> entity.getMode() == WondrousStaffAccelerationEntity.MODE_BLOCK)
+                        .filter(entity -> machineBox.contains(entity.position()))
+                        .toList();
         for (WondrousStaffAccelerationEntity machine : machines) {
             drawFlowingOutline(poseStack, quads, new AABB(machine.getTargetPos()), camPos,
                     minecraft.level.getGameTime(), machine.isIdleThrottled(), 0.9F, seeThrough);

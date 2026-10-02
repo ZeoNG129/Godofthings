@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "item": "godofthings:god_note"
+    },
+    "title": {
+      "translate": "advancements.godofthings.note_open.title"
+    },
+    "description": {
+      "translate": "advancements.godofthings.note_open.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:god_note",
+  "requirements": [
+    [
+      "main"
+    ]
+  ],
+  "criteria": {
+    "main": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "rewards": {
+    "experience": 50
+  },
+  "sends_telemetry_event": false
+}

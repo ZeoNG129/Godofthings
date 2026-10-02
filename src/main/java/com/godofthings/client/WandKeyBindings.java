@@ -62,6 +62,15 @@ public class WandKeyBindings
             CATEGORY
     ));
 
+    /** 直接进「摆放悬浮窗」编辑模式（M）：不用先开记事本 */
+    public static final Lazy<KeyMapping> EDIT_NOTE_HUD_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.edit_note_hud",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_M,
+            CATEGORY
+    ));
+
     private WandKeyBindings() {}
 
     public static void register(RegisterKeyMappingsEvent event)
@@ -71,5 +80,6 @@ public class WandKeyBindings
         event.register(OPEN_ARMOR_CONFIG_KEY.get());
         event.register(OPEN_ARMOR_SKILL_KEY.get());
         event.register(OPEN_NOTE_KEY.get());
+        event.register(EDIT_NOTE_HUD_KEY.get());
     }
 }

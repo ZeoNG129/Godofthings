@@ -33,8 +33,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -1053,21 +1051,6 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         {
             System.arraycopy(tag.getIntArray("FaceModes"), 0, faceModes, 0, 6);
         }
-    }
-
-    // ---- 液体显示名（全中文） ----
-
-    public static String fluidName(Fluid fluid)
-    {
-        if (fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER)
-        {
-            return "水";
-        }
-        if (fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA)
-        {
-            return "岩浆";
-        }
-        return "液体";
     }
 
     // ---- MenuProvider ----

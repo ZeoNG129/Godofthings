@@ -1,0 +1,84 @@
+{
+  "display": {
+    "icon": {
+      "item": "godofthings:god_miner"
+    },
+    "title": {
+      "translate": "advancements.godofthings.all_machines.title"
+    },
+    "description": {
+      "translate": "advancements.godofthings.all_machines.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "has_miner": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_miner"
+            ]
+          }
+        ]
+      }
+    },
+    "has_resource": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_resource"
+            ]
+          }
+        ]
+      }
+    },
+    "has_drop": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_drop"
+            ]
+          }
+        ]
+      }
+    },
+    "has_enchant": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_enchant"
+            ]
+          }
+        ]
+      }
+    },
+    "has_craft": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_craft"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 500
+  },
+  "sends_telemetry_event": false
+}

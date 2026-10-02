@@ -1,0 +1,48 @@
+{
+  "display": {
+    "icon": {
+      "item": "godofthings:god_transmitter"
+    },
+    "title": {
+      "translate": "advancements.godofthings.god_transmitter.title"
+    },
+    "description": {
+      "translate": "advancements.godofthings.god_transmitter.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "has_transmitter": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_transmitter"
+            ]
+          }
+        ]
+      }
+    },
+    "has_binder": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_binder"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 300
+  },
+  "sends_telemetry_event": false
+}

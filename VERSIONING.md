@@ -806,3 +806,53 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     `godofthings-5.2.1.jar`（1,799,372 字节）继续**追加到 5.x 那个 release**（tag `v5.1.7`，release id `400888984`），
     没有新建 release / tag；release notes 追加了 v5.2.1 一行，「整合 5.0.0 → 5.2.0」改成「→ 5.2.1」，jar 清单补到 5.2.1
     （现共 **12 个 asset**）；下载链路实测 `HTTP 200`、1,799,372 字节与本地 jar 一致。AGENTS.md 的同步状态段同步改为 12 个 jar。
+- 5.2.1 → **5.3.0（体检后的完善批次：诊断指令 / 数据导出导入 / 成就补全 / 悬浮窗吸附 / GameTest + CI + 仓库瘦身）** —— 一批**新增功能 + 工程完善**，按规则**第二位 +1、末位归零**（不是单个物品的小改动，走「新增」那一档）。
+  - 本轮是用户逐条确认的清单（体检报告里的风险 4/5/6/8/9/10 + 补充 2/3/4/5 + 完善 1~5），下面按条目记。
+  - **① 渲染路径实体扫描改缓存（风险 5）**：上游 useless_stretcher 有三处在**渲染路径**里每帧 `getEntitiesOfClass(..., inflate(96/64))`，
+    其中 HUD 那条还不看手里拿着什么。新增 `RenderEntityScan`（8 tick 快照，三处共用，最多 0.4 秒延迟）；三处调用点都标了 `[本地改动]`。
+  - **② 删死代码（风险 9）**：删掉无人调用的 `GodMinerBlockEntity.fluidName()`（连带 `Fluid`/`Fluids` import），
+    以及 `EndlessBeafItem` 里那行只存在于注释中的悬空 lang 键引用。
+  - **③ AGENTS.md 规则整理（风险 8 + 6）**：把与「项目约定」冲突的发版流程第 4 步改成
+    「**只有首位大版本变化才新建 release / tag，其余一律追加 asset**」；新增两条约定 —— **新功能一律独立成包**
+    （别再往 1000+ 行的老类里塞）、**对上游抄来的代码做本地改动要标 `[本地改动]`**（上游更新后继续移植是既定做法）。
+  - **④ 模组元数据（风险 10）**：`neoforge.mods.toml` 补 `logoFile` / `displayURL` / `issueTrackerURL` / `credits`；
+    新增 `logo.png`（256×256，用本模组自己的贴图拼的）。
+  - **⑤ 悬浮窗吸附 / 对齐 + 快捷键（补充 5）**：`GodNoteHudEditScreen` 松手时先贴屏幕四边与两条中线（6px 内吸附），
+    否则对齐 4px 网格；新增 **M 键**（`key.godofthings.edit_note_hud`）直接进摆放模式，不必先开记事本。
+  - **⑥ `/godofthings doctor`（补充 2）**：一条指令打印 5 组信息 —— 版本 / 装了哪些可选 mod（26 个 id 的清单）/
+    **魔法增幅属性解析成功几项、哪些没解析** / **是否有上游 mod 覆盖本模组 Mixin**（直接点名 useless_mod→EntityGetterMixin、
+    useless_stretcher→LevelRendererCloudMixin）/ 便签与传送点数据统计。控制台也能跑。
+  - **⑦ 数据导出 / 导入（补充 3）**：新增 `SaveFileIO`（SNBT 文本落盘到 `<存档>/godofthings/exports/`）+
+    `/godofthings export|import note|points`。用 SNBT 而不是自写 JSON，是为了直接复用两边已有的 save/load，不会出现两套格式跑偏；
+    文件名做了防目录穿越清洗。传送点导入按名字**合并**（同名覆盖、新名新增、不删旧条目）。
+  - **⑧ 成就补全（补充 4）**：从 6 个（root / 套装 / 矿机 / 维度 + 2 个彩蛋）补到 **33 个** —— 机器线、无线能量、便签线、
+    杖 / 回收器、玩偶、虚空、无用维度、创造能量立方、时空永恒、生物覆灭、吞噬，外加「神之机器全家桶」；
+    其中 **3 个是行为成就**（打开记事本 / 开悬浮窗 / 开自动更名），JSON 用 `minecraft:impossible`，由新增的 `NoteAdvancements`
+    在服务端对应位置授予。实机日志实测 `Loaded 2093 advancements`（比 5.2.1 的 2066 正好多 27）。
+  - **⑨ 数据层 GameTest 入库（风险 4 / 完善 1）**：新增 `com.godofthings.gametest.NoteDataGameTest`（5 个测试：便签 NBT 往返 /
+    封包往返 / 自动更名规则 / 兜底 clamp / 传送点 NBT 往返）+ 模板 `data/godofthings/structure/note_data.nbt`（1×1×1 空结构，
+    脚本生成的 gzip NBT）；build.gradle 补 `gameTestServer` run 配置，`gradlew runGameTestServer` 实测
+    **All 5 required tests passed**。跑测试需要运行期有 AE2 —— `prepareGameTestMods` 任务会自动把 `libs/ae2-*.jar` 与
+    `run-server/mods/guideme-*.jar` 拷进 `run-gametest/mods/`。
+  - **⑩ 语言键校验脚本（完善 2）**：新增根目录 `check-lang.ps1`（ASCII-only，PS 5.1 / pwsh 都能跑，用 exit code 给 CI）——
+    校验 zh/en 键集双向一致、无空值、代码里所有 `translatable("字面量")` 都有键、6 个运行时拼接前缀仍能解析到真实键。
+    **做了正反两次验证**：正常跑 OK / exit 0；临时塞一个不存在的键进去，脚本抓到并 exit 1（验证后已还原）。
+  - **⑪ GitHub Action（完善 3）**：新增 `.github/workflows/build.yml` —— fetch-libs → check-lang → `gradlew build`
+    （用 `-Dorg.gradle.java.home="$JAVA_HOME"` 覆盖本机 JDK 路径，这个覆盖行为本地做过对照实验确认有效）。
+    **不跑 gametest**（runner 上没有 AE2 / guideme）。libs 用 actions/cache 缓存。
+  - **⑫ libs 移出版本库（风险 2 / 完善 4）**：19 个第三方模组 jar（52MB）从版本库移除（`.gitignore` + `git rm --cached`，
+    本地文件保留），改挂到新 release **`libs-1.21.1`**（pre-release，不属于模组版本线，19 个 asset）；新增根目录
+    `fetch-libs.ps1`（自动探测 7890/7897 代理、已存在则跳过、并处理 EMI 那个 `+` 被 GitHub 资产名规则换成 `.` 的改名映射），
+    **实测 19 个文件下载后 SHA256 与本地逐一相同**。
+    · 诚实说明：这**只瘦身了工作树与后续提交**，历史里那 52MB 仍然在 —— 要真正缩小 clone 体积得重写历史
+      （filter-repo + force push + 重建 tag/release），风险大，本次没做。
+  - **⑬ 顺带发现的真问题（记下来）**：`GodMiner` / `GodResource` / `GodDrop` / `GodCraft` / `GodSlaughter` / `GodAbsorber`
+    这 6 个方块实体**类声明上直接 `implements` 了 AE2 的 `IGridConnectedBlockEntity`**，所以运行期**必须有 AE2**，
+    否则模组在**加载阶段**就 `NoClassDefFoundError`（这次第一次跑 gametest 的环境里没有 AE2，就是这么崩的）——
+    也就是说 README/AGENTS 里「没装对应 mod 自动跳过且绝不影响启动」只对「魔法增幅」那类字符串解析成立，对 AE2 不成立。
+    **用户明确表示不主动修**（自己的整合包始终带 AE2），已写进 AGENTS.md 的「已知运行期硬依赖」一节。
+  - **验证**：`gradlew build` 0 错误并自动部署（清理 5.2.1、落 5.3.0）；`gradlew runGameTestServer` **5/5 通过**；
+    开发专用服务端实机加载 `Done (9.727s)!`、`Loaded 2093 advancements`、无成就解析报错；
+    `check-lang.ps1` OK（1422 键 × 2）；jar 内确认含 `logo.png`、结构模板、64 个成就 json（33 个内容成就 + 31 个配方解锁）与 6 个新类。
+  - 语言文件 zh/en 各 **1422** 键（+75：成就 54 / 指令与导出 18 / 吸附与快捷键 3）；README 已同步
+    （内容一览新增「成就树」「诊断与备份」两行、神之便签行补 M 键与吸附，并新增「测试」「指令」两节）。

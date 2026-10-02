@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "item": "godofthings:god_note"
+    },
+    "title": {
+      "translate": "advancements.godofthings.note_auto.title"
+    },
+    "description": {
+      "translate": "advancements.godofthings.note_auto.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:note_hud",
+  "requirements": [
+    [
+      "main"
+    ]
+  ],
+  "criteria": {
+    "main": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "rewards": {
+    "experience": 200
+  },
+  "sends_telemetry_event": false
+}

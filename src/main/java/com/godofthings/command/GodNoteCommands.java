@@ -3,6 +3,7 @@ package com.godofthings.command;
 import com.godofthings.Godofthings;
 import com.godofthings.network.GodNoteMessages;
 import com.godofthings.note.GodNoteData;
+import com.godofthings.note.NoteAdvancements;
 import com.godofthings.note.NoteBook;
 import com.godofthings.note.NoteTask;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -155,6 +156,7 @@ public class GodNoteCommands
         if (enabled)
         {
             book.applyAutoName();
+            NoteAdvancements.award(player, NoteAdvancements.AUTO); // 「开启自动更名」成就
         }
         GodNoteData.get(source.getServer()).setDirty();
         GodNoteMessages.sendSync(player);

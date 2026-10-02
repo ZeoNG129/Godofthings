@@ -46,6 +46,13 @@ neoForge {
                     '--output', file('src/generated/resources/').getAbsolutePath(),
                     '--existing', file('src/main/resources/').getAbsolutePath()
         }
+
+        // 数据层回归测试：gradlew runGameTestServer（测试类见 com.godofthings.gametest）
+        gameTestServer {
+            type = 'gameTestServer'
+            gameDirectory = file('run-gametest')
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+        }
     }
 
     mods {
@@ -134,6 +141,22 @@ tasks.named('jar', Jar).configure {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+// ===== GameTest 运行环境准备 =====
+// 本模组有若干方块实体直接 implements 了 AE2 的接口（GodMiner/GodResource/GodDrop/GodCraft/
+// GodSlaughter/GodAbsorber），所以运行期必须有 AE2 在，否则模组加载阶段就 NoClassDefFoundError。
+// 这里在跑测试前把 libs 里的 AE2 拷进 run-gametest/mods，保证「fetch-libs 之后就能直接跑测试」，CI 同理。
+tasks.register('prepareGameTestMods', Copy) {
+    from('libs/ae2-1.21.1-neoforge.jar')
+    // AE2 的运行期前置 guideme（本机 dev 环境 run-server/mods 里有；CI 不跑 gametest，所以这里可以缺席）
+    from('run-server/mods') { include 'guideme-*.jar' }
+    into('run-gametest/mods')
+    onlyIf { file('libs/ae2-1.21.1-neoforge.jar').isFile() }
+}
+
+tasks.matching { it.name == 'prepareGameTestServerRun' }.configureEach {
+    dependsOn 'prepareGameTestMods'
 }
 
 // ===== 构建产物自动部署 =====

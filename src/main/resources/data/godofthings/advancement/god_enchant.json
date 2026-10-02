@@ -1,0 +1,48 @@
+{
+  "display": {
+    "icon": {
+      "item": "godofthings:god_enchant"
+    },
+    "title": {
+      "translate": "advancements.godofthings.god_enchant.title"
+    },
+    "description": {
+      "translate": "advancements.godofthings.god_enchant.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "has_enchant": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_enchant"
+            ]
+          }
+        ]
+      }
+    },
+    "has_heaven": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_heaven_enchant"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 500
+  },
+  "sends_telemetry_event": false
+}
