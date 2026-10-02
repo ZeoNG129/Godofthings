@@ -140,6 +140,38 @@ public final class NoteShelf
         return changed;
     }
 
+    /**
+     * 整册内容签名：客户端推送去重用它判断「这次改动和上次发出去的是否一样」。
+     *
+     * <p><b>必须覆盖所有会变的内容</b>—— 曾经漏掉子任务与折叠状态，结果加子任务的整册推送
+     * 被去重逻辑当成「没变化」吞掉，用户实测表现为「加的子任务重进界面就没了」「折叠按钮无效」。
+     * 改任务结构时记得同步改这里（有 GameTest 回归：noteSignatureCoversSubTasks）。</p>
+     */
+    public String signature()
+    {
+        StringBuilder sb = new StringBuilder(256);
+        sb.append(selected).append('|')
+                .append(hud.enabled ? 1 : 0).append(hud.showDone ? 1 : 0)
+                .append(hud.background).append('|').append(hud.color).append('|')
+                .append(Math.round(hud.x * 1000)).append(',').append(Math.round(hud.y * 1000))
+                .append(',').append(Math.round(hud.scale * 1000)).append(',')
+                .append(Math.round(hud.opacity * 1000));
+        for (NoteBook book : books)
+        {
+            sb.append('|').append(book.name()).append(book.autoName() ? '1' : '0');
+            for (NoteTask task : book.tasks())
+            {
+                sb.append('|').append(task.done ? 1 : 0)
+                        .append(task.collapsed ? 'c' : 'o').append(task.text);
+                for (NoteTask child : task.children())
+                {
+                    sb.append('>').append(child.done ? 1 : 0).append(child.text);
+                }
+            }
+        }
+        return sb.toString();
+    }
+
     public NoteShelf copy()
     {
         NoteShelf shelf = new NoteShelf();

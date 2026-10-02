@@ -1,9 +1,7 @@
 package com.godofthings.client;
 
 import com.godofthings.client.screen.GodNoteScreen;
-import com.godofthings.note.NoteBook;
 import com.godofthings.note.NoteShelf;
-import com.godofthings.note.NoteTask;
 import com.godofthings.network.GodNoteMessages;
 import net.minecraft.client.Minecraft;
 
@@ -59,38 +57,19 @@ public final class ClientNoteCache
      * 「这次改动和上次发出去的一样吗」——一样就别再发一遍包。
      *
      * <p>整册替换的包里存的是内容本身，所以内容没变时重发纯属浪费（设置页连点、界面 tick 里的
-     * 兜底提交都会走到 push）。签名只是拼字符串，比序列化整册便宜得多。</p>
+     * 兜底提交都会走到 push）。签名在 {@link NoteShelf#signature()}（公共层）里维护，
+     * **必须覆盖所有会变的内容**——曾经漏掉子任务，加子任务的推送被这里吞掉，用户实测
+     * 「子任务重进界面就没了」「折叠按钮无效」。</p>
      */
     public static boolean shouldPush(NoteShelf shelf)
     {
-        String signature = signature(shelf);
+        String signature = shelf.signature();
         if (signature.equals(lastSentSignature))
         {
             return false;
         }
         lastSentSignature = signature;
         return true;
-    }
-
-    /** 整册内容签名（书的顺序、每本的名称/自动更名开关/任务文字与勾选、当前选中、悬浮窗设置） */
-    public static String signature(NoteShelf shelf)
-    {
-        StringBuilder sb = new StringBuilder(256);
-        sb.append(shelf.selected()).append('|')
-                .append(shelf.hud().enabled ? 1 : 0).append(shelf.hud().showDone ? 1 : 0)
-                .append(shelf.hud().background).append('|')
-                .append(Math.round(shelf.hud().x * 1000)).append(',').append(Math.round(shelf.hud().y * 1000))
-                .append(',').append(Math.round(shelf.hud().scale * 1000)).append(',')
-                .append(Math.round(shelf.hud().opacity * 1000));
-        for (NoteBook book : shelf.books())
-        {
-            sb.append('|').append(book.name()).append(book.autoName() ? '1' : '0');
-            for (NoteTask task : book.tasks())
-            {
-                sb.append('|').append(task.done ? 1 : 0).append(task.text);
-            }
-        }
-        return sb.toString();
     }
 
     /** 打开便签界面（物品右键 / 指令 / 快捷键最终都落到这里） */

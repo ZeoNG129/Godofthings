@@ -102,13 +102,8 @@ public class GodNoteScreen extends Screen
     private boolean dragMoved;
     /** 删除便签本需要点两次（第一次变成「确认删除」） */
     private boolean bookDeleteArmed;
-    /** 删除「带子任务的主任务」也需要点两次：第一次点 × 后记住这一行（rows 下标） */
+    /** 删除任意一行都点两次确认：第一次点 × 后记住这一行（rows 下标） */
     private int deleteArmedRow = -1;
-
-    /** 扁平行列表：主任务与子任务按显示顺序排平，渲染与命中判定都吃这一份 */
-    private List<RowRef> rows = List.of();
-    /** rows 是从哪本书摊出来的（同步回包会整册替换对象，换了就重建） */
-    private NoteBook rowsBook;
 
     /**
      * 扁平化后的一行。主任务：{@code parent = 自己的下标、child = -1}；
@@ -694,32 +689,33 @@ public class GodNoteScreen extends Screen
         }
     }
 
-    /** 把当前书摊平成显示行（主任务 + 缩进的子任务），并缓存；书对象换了就重建 */
+    /**
+     * 把当前书摊平成显示行（主任务 + 缩进的子任务）。
+     *
+     * <p><b>不做缓存</b>：任务是在同一个书对象里原地改的（勾选 / 加子任务 / 折叠都是），按对象身份
+     * 缓存会拿到旧列表 —— 曾因此让折叠按钮看起来「完全没反应」。每帧重建一个小列表比缓存失效
+     * 出 bug 便宜，界面本身也只在打开时跑。</p>
+     */
     private List<RowRef> rows()
     {
+        List<RowRef> list = new ArrayList<>();
         NoteBook book = book();
-        if (rowsBook != book)
+        List<NoteTask> tasks = book.tasks();
+        for (int p = 0; p < tasks.size(); p++)
         {
-            List<RowRef> list = new ArrayList<>();
-            List<NoteTask> tasks = book.tasks();
-            for (int p = 0; p < tasks.size(); p++)
+            NoteTask task = tasks.get(p);
+            list.add(new RowRef(task, p, -1));
+            if (task.collapsed)
             {
-                NoteTask task = tasks.get(p);
-                list.add(new RowRef(task, p, -1));
-                if (task.collapsed)
-                {
-                    continue; // 折叠的子任务不进扁平行列表（点行首三角展开）
-                }
-                List<NoteTask> children = task.children();
-                for (int c = 0; c < children.size(); c++)
-                {
-                    list.add(new RowRef(children.get(c), p, c));
-                }
+                continue; // 折叠的子任务不进扁平行列表（点行首三角展开）
             }
-            rows = list;
-            rowsBook = book;
+            List<NoteTask> children = task.children();
+            for (int c = 0; c < children.size(); c++)
+            {
+                list.add(new RowRef(children.get(c), p, c));
+            }
         }
-        return rows;
+        return list;
     }
 
     private RowRef rowAt(int rowIndex)

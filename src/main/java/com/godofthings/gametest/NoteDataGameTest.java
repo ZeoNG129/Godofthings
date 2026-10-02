@@ -418,6 +418,40 @@ public class NoteDataGameTest
         helper.succeed();
     }
 
+    /**
+     * 用户实测回归点：加子任务 / 勾选子任务 / 折叠 / 改名，每一种改动都必须改变整册签名。
+     * 曾因签名漏了子任务，加子任务的整册推送被客户端去重吞掉（服务端根本没收到），
+     * 表现为「子任务重进界面就没了」「折叠按钮无效」。
+     */
+    @GameTest(template = TEMPLATE)
+    public static void noteSignatureCoversSubTasks(GameTestHelper helper)
+    {
+        NoteShelf shelf = new NoteShelf();
+        shelf.current().add("做贤者之石");
+        String before = shelf.signature();
+
+        shelf.current().addChild(0, "热核");
+        helper.assertTrue(!shelf.signature().equals(before), "加子任务没有改变签名（推送会被去重吞掉）");
+
+        String afterAdd = shelf.signature();
+        shelf.current().toggleChild(0, 0);
+        helper.assertTrue(!shelf.signature().equals(afterAdd), "勾选子任务没有改变签名");
+
+        String afterToggle = shelf.signature();
+        shelf.current().toggleCollapsed(0);
+        helper.assertTrue(!shelf.signature().equals(afterToggle), "折叠没有改变签名");
+
+        String afterFold = shelf.signature();
+        shelf.current().setText(0, "改个名");
+        helper.assertTrue(!shelf.signature().equals(afterFold), "改名没有改变签名");
+
+        String afterRename = shelf.signature();
+        shelf.current().addChild(0, "工业先锋");
+        helper.assertTrue(!shelf.signature().equals(afterRename), "再加一条子任务没有改变签名");
+        helper.assertTrue(shelf.current().childCount() == 2, "连加子任务应该都在");
+        helper.succeed();
+    }
+
     /** 传送点数据（顺带覆盖）：名称 / 维度 / 坐标 / 面对方向 / 置顶状态 */
     @GameTest(template = TEMPLATE)
     public static void waypointNbtRoundTrip(GameTestHelper helper)
