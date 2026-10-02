@@ -17,8 +17,22 @@ import java.util.List;
 /**
  * 神之手册：游戏内查「这东西是干嘛的」。
  *
- * <p>布局（一块 380×220 的面板）：顶部标题 + 搜索框；左列四个分类页签 + 条目列表（可滚动）；
- * 右列是选中条目的图标 + 标题 + 正文（可滚动）。鼠标滚轮按指针位置决定滚哪一列。</p>
+ * <p>布局（一块自适应大小的面板，居中）：</p>
+ * <pre>
+ * ┌──────────────────────────────────────────────┐
+ * │ 神之手册                        [ 搜索…… ] [X] │  头行 (HEADER_Y)
+ * │ [入门][物品][方块][系统]                       │  页签行 (TAB_Y)
+ * ├───────────────┬──────────────────────────────┤
+ * │ ▣ 条目 1      │  ▣ 标题                       │  列表列 (LIST_X..LIST_X+listW)
+ * │ ▣ 条目 2      │  正文……（可滚轮翻）           │  正文列 (BODY_X..)
+ * │ …             │                               │
+ * │ 共 N 条       │  滚轮翻页                      │
+ * └───────────────┴──────────────────────────────┘
+ * </pre>
+ *
+ * <p><b>坐标纪律</b>：面板左上角是 {@code (left, top)}，本文件里所有 y 都必须是
+ * {@code top + 偏移}、x 都是 {@code left + 偏移}。曾经踩过的坑：把 {@code LIST_TOP} 这个「面板内偏移」
+ * 当成绝对 Y 用，结果列表与正文画到了屏幕顶部、而页签与搜索框还在面板里 —— 看起来就是「分类跑到中间」。</p>
  *
  * <p>条目来自 {@link ManualCatalog}：物品 / 方块是<b>直接从注册表生成</b>的（漏写语言键会被
  * {@code check-lang.ps1} 挡下），系统条目是固定的一批。三种入口（快捷键 P / 神之手册物品 /
@@ -26,23 +40,34 @@ import java.util.List;
  */
 public class ManualScreen extends Screen
 {
-    private static final int PANEL_W = 380;
-    private static final int PANEL_H = 220;
+    // ---- 面板内偏移（全部相对 left/top）----
+    private static final int PAD = 8;
+    private static final int HEADER_Y = 6;
+    private static final int TAB_Y = 26;
+    private static final int TAB_H = 16;
     private static final int LIST_TOP = 46;
     private static final int ROW_H = 12;
     private static final int BODY_LINE_H = 10;
+    private static final int BOTTOM_PAD = 18;
 
+    // ---- 自适应后的实际尺寸/位置（init 里算）----
     private int left;
     private int top;
+    private int panelW;
+    private int panelH;
+    private int listX0;
+    private int listX1;
+    private int bodyX;
+    private int bodyW;
 
     private ManualCategory category = ManualCategory.START;
     private String query = "";
     private int listScroll;
     private int bodyScroll;
-    private int selected;          // 在 filtered 列表里的下标
+    private int selected;
     private List<ManualEntry> shown = List.of();
     private List<FormattedCharSequence> bodyLines = List.of();
-    private ManualEntry lastRendered; // 用来判断正文要不要重新折行
+    private ManualEntry lastRendered;
 
     private EditBox search;
     private Button[] tabs;
@@ -61,13 +86,28 @@ public class ManualScreen extends Screen
     @Override
     protected void init()
     {
-        this.left = (this.width - PANEL_W) / 2;
-        this.top = (this.height - PANEL_H) / 2;
+        // 面板自适应：给上下左右各留 16 像素，最大 420×250。
+        // 这样在很小的 GUI 尺寸（大界面缩放）下也不会顶出屏幕 —— 之前的固定 380×220 会挤成一团。
+        this.panelW = Math.max(240, Math.min(420, this.width - 32));
+        this.panelH = Math.max(160, Math.min(250, this.height - 32));
+        this.left = (this.width - panelW) / 2;
+        this.top = (this.height - panelH) / 2;
+
+        // 左列（条目列表）占 34%，右列（正文）占剩下的
+        int listW = Math.max(100, panelW * 34 / 100);
+        this.listX0 = left + PAD;
+        this.listX1 = listX0 + listW;
+        this.bodyX = listX1 + 10;
+        this.bodyW = left + panelW - PAD - bodyX - 4;
+
         this.listScroll = 0;
         this.bodyScroll = 0;
 
-        // 搜索框：输入即筛（不用回车）
-        search = new EditBox(this.font, left + 214, top + 6, 138, 16,
+        // 头行右侧：搜索框（宽度自适应）+ 关闭按钮
+        int closeSize = 16;
+        int searchW = Math.max(80, Math.min(180, panelW / 2));
+        int searchX = left + panelW - PAD - closeSize - 4 - searchW;
+        search = new EditBox(this.font, searchX, top + HEADER_Y, searchW, 16,
                 Component.translatable("gui.godofthings.manual.search"));
         search.setMaxLength(32);
         search.setHint(Component.translatable("gui.godofthings.manual.search"));
@@ -82,23 +122,25 @@ public class ManualScreen extends Screen
         addRenderableWidget(search);
 
         addRenderableWidget(Button.builder(Component.literal("X"), b -> onClose())
-                .bounds(left + PANEL_W - 22, top + 6, 16, 16).build());
+                .bounds(left + panelW - PAD - closeSize, top + HEADER_Y, closeSize, 16).build());
 
-        // 四个分类页签
+        // 页签行：四个等宽页签铺满面板宽度
         ManualCategory[] values = ManualCategory.values();
+        int tabW = Math.max(40, (panelW - PAD * 2 - (values.length - 1) * 2) / values.length);
         tabs = new Button[values.length];
-        int tabW = 62;
         for (int i = 0; i < values.length; i++)
         {
             ManualCategory cat = values[i];
-            tabs[i] = addRenderableWidget(Button.builder(cat.label(), b ->
+            Button button = Button.builder(cat.label(), b ->
             {
                 category = cat;
                 selected = 0;
                 listScroll = 0;
                 bodyScroll = 0;
                 rebuildList();
-            }).bounds(left + 8 + i * (tabW + 2), top + 26, tabW, 16).build());
+            }).bounds(left + PAD + i * (tabW + 2), top + TAB_Y, tabW, TAB_H).build();
+            tabs[i] = button;
+            addRenderableWidget(button);
         }
 
         rebuildList();
@@ -120,11 +162,36 @@ public class ManualScreen extends Screen
         return shown.isEmpty() ? null : shown.get(Mth.clamp(selected, 0, shown.size() - 1));
     }
 
+    /** 列表第一条所在的行 Y（面板内偏移 + top） */
+    private int listTop()
+    {
+        return top + LIST_TOP;
+    }
+
+    private int listBottom()
+    {
+        return top + panelH - BOTTOM_PAD;
+    }
+
+    private int visibleRows()
+    {
+        return Math.max(1, (listBottom() - listTop()) / ROW_H);
+    }
+
+    private int bodyTop()
+    {
+        return top + LIST_TOP;
+    }
+
+    private int bodyBottom()
+    {
+        return top + panelH - BOTTOM_PAD;
+    }
+
     private void rebuildBodyLines()
     {
         ManualEntry entry = selectedEntry();
-        int width = PANEL_W - 152;
-        bodyLines = entry == null ? List.of() : this.font.split(entry.body(), width);
+        bodyLines = entry == null ? List.of() : this.font.split(entry.body(), bodyW - 14);
         lastRendered = entry;
     }
 
@@ -134,20 +201,22 @@ public class ManualScreen extends Screen
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick)
     {
         gui.fill(0, 0, this.width, this.height, 0x66000000);
-        gui.fill(left - 1, top - 1, left + PANEL_W + 1, top + PANEL_H + 1, 0xFF0B0E12);
-        gui.fill(left, top, left + PANEL_W, top + PANEL_H, 0xFF1A1F26);
-        gui.fill(left, top, left + PANEL_W, top + 1, 0xFFE8C86A);
-        gui.fill(left, top + PANEL_H - 1, left + PANEL_W, top + PANEL_H, 0xFFE8C86A);
+
+        // 面板
+        gui.fill(left - 1, top - 1, left + panelW + 1, top + panelH + 1, 0xFF0B0E12);
+        gui.fill(left, top, left + panelW, top + panelH, 0xFF1A1F26);
+        gui.fill(left, top, left + panelW, top + 1, 0xFFE8C86A);
+        gui.fill(left, top + panelH - 1, left + panelW, top + panelH, 0xFFE8C86A);
 
         gui.drawString(this.font, Component.translatable("gui.godofthings.manual.title"),
-                left + 10, top + 11, 0xFFE8C86A, false);
+                left + PAD, top + HEADER_Y + 4, 0xFFE8C86A, false);
 
-        // 页签：当前分类高亮（按钮本身画字，这里只加一条下划线）
-        int active = category.ordinal();
-        if (tabs != null && active < tabs.length)
+        // 当前页签下面画一条金线（按钮自己画字）
+        if (tabs != null && category.ordinal() < tabs.length)
         {
-            gui.fill(tabs[active].getX(), tabs[active].getY() + 16, tabs[active].getX() + 62,
-                    tabs[active].getY() + 17, 0xFFE8C86A);
+            Button active = tabs[category.ordinal()];
+            gui.fill(active.getX(), active.getY() + TAB_H, active.getX() + active.getWidth(),
+                    active.getY() + TAB_H + 1, 0xFFE8C86A);
         }
 
         drawList(gui, mouseX, mouseY);
@@ -164,18 +233,18 @@ public class ManualScreen extends Screen
 
     private void drawList(GuiGraphics gui, int mouseX, int mouseY)
     {
-        int x0 = left + 8;
-        int x1 = left + 128;
-        gui.fill(x0, LIST_TOP - 2, x1, top + PANEL_H - 8, 0xFF11151A);
+        int top_ = listTop();
+        int bottom = listBottom();
+        gui.fill(listX0, top_ - 2, listX1, bottom, 0xFF11151A);
 
         if (shown.isEmpty())
         {
             gui.drawString(this.font, Component.translatable("gui.godofthings.manual.no_match"),
-                    x0 + 4, LIST_TOP + 2, 0xFF7E8794, false);
+                    listX0 + 4, top_ + 2, 0xFF7E8794, false);
             return;
         }
 
-        int rows = (top + PANEL_H - 8 - (LIST_TOP - 2)) / ROW_H;
+        int rows = visibleRows();
         int maxScroll = Math.max(0, shown.size() - rows);
         listScroll = Mth.clamp(listScroll, 0, maxScroll);
 
@@ -187,42 +256,35 @@ public class ManualScreen extends Screen
                 break;
             }
             ManualEntry entry = shown.get(index);
-            int rowY = LIST_TOP + i * ROW_H;
-            boolean hovered = mouseX >= x0 && mouseX <= x1 && mouseY >= rowY && mouseY < rowY + ROW_H;
+            int rowY = top_ + i * ROW_H;
+            boolean hovered = mouseX >= listX0 && mouseX <= listX1 && mouseY >= rowY && mouseY < rowY + ROW_H;
             if (index == selected)
             {
-                gui.fill(x0 + 1, rowY - 1, x1 - 1, rowY + ROW_H - 2, 0x50E8C86A);
+                gui.fill(listX0 + 1, rowY - 1, listX1 - 1, rowY + ROW_H - 2, 0x50E8C86A);
             }
             else if (hovered)
             {
-                gui.fill(x0 + 1, rowY - 1, x1 - 1, rowY + ROW_H - 2, 0x30FFFFFF);
+                gui.fill(listX0 + 1, rowY - 1, listX1 - 1, rowY + ROW_H - 2, 0x30FFFFFF);
             }
-            gui.renderItem(entry.icon(), x0 + 2, rowY - 2);
-            String title = this.font.plainSubstrByWidth(entry.title().getString(), 96);
-            gui.drawString(this.font, title, x0 + 18, rowY + 1, 0xFFF2F4F8, false);
+            gui.renderItem(entry.icon(), listX0 + 2, rowY - 2);
+            String title = this.font.plainSubstrByWidth(entry.title().getString(), listX1 - listX0 - 22);
+            gui.drawString(this.font, title, listX0 + 18, rowY + 1, 0xFFF2F4F8, false);
         }
 
-        if (maxScroll > 0)
-        {
-            gui.drawString(this.font, Component.translatable("gui.godofthings.manual.count_hint",
-                            shown.size(), listScroll + 1, Math.min(shown.size(), listScroll + rows)),
-                    x0 + 2, top + PANEL_H - 18, 0xFF6F7883, false);
-        }
-        else
-        {
-            gui.drawString(this.font, Component.translatable("gui.godofthings.manual.count", shown.size()),
-                    x0 + 2, top + PANEL_H - 18, 0xFF6F7883, false);
-        }
+        Component hint = maxScroll > 0
+                ? Component.translatable("gui.godofthings.manual.count_hint", shown.size(),
+                        listScroll + 1, Math.min(shown.size(), listScroll + rows))
+                : Component.translatable("gui.godofthings.manual.count", shown.size());
+        gui.drawString(this.font, hint, listX0 + 2, top + panelH - 14, 0xFF6F7883, false);
     }
 
     private void drawBody(GuiGraphics gui, int mouseX, int mouseY)
     {
-        ManualEntry entry = selectedEntry();
-        int x = left + 138;
-        int y = LIST_TOP - 2;
-        int width = PANEL_W - 152;
-        gui.fill(x - 4, y - 2, x + width + 6, top + PANEL_H - 8, 0xFF141920);
+        int top_ = bodyTop();
+        int bottom = bodyBottom();
+        gui.fill(bodyX - 5, top_ - 2, bodyX + bodyW + 6, bottom, 0xFF141920);
 
+        ManualEntry entry = selectedEntry();
         if (entry == null)
         {
             return;
@@ -232,35 +294,30 @@ public class ManualScreen extends Screen
             rebuildBodyLines();
         }
 
-        // 图标 + 标题
-        gui.renderItem(entry.icon(), x, y);
-        gui.drawString(this.font, this.font.plainSubstrByWidth(entry.title().getString(), width - 24),
-                x + 20, y + 4, 0xFFE8C86A, false);
+        // 图标 + 标题（标题超宽就截断，绝不画出面板）
+        gui.renderItem(entry.icon(), bodyX, top_);
+        gui.drawString(this.font, this.font.plainSubstrByWidth(entry.title().getString(), bodyW - 26),
+                bodyX + 20, top_ + 4, 0xFFE8C86A, false);
 
-        int textTop = y + 22;
-        int textBottom = top + PANEL_H - 12;
-        int visible = Math.max(1, (textBottom - textTop) / BODY_LINE_H);
+        int textTop = top_ + 22;
+        int visible = Math.max(1, (bottom - textTop) / BODY_LINE_H);
         int maxScroll = Math.max(0, bodyLines.size() - visible);
         bodyScroll = Mth.clamp(bodyScroll, 0, maxScroll);
 
         int lineY = textTop;
-        for (int i = bodyScroll; i < bodyLines.size() && lineY + BODY_LINE_H <= textBottom + 2; i++)
+        for (int i = bodyScroll; i < bodyLines.size() && lineY + BODY_LINE_H <= bottom + 1; i++)
         {
-            gui.drawString(this.font, bodyLines.get(i), x, lineY, 0xFFD5DAE1, false);
+            gui.drawString(this.font, bodyLines.get(i), bodyX, lineY, 0xFFD5DAE1, false);
             lineY += BODY_LINE_H;
         }
 
         if (maxScroll > 0)
         {
-            // 右侧细滚动条
-            int trackTop = textTop;
-            int trackH = textBottom - textTop;
+            int trackH = bottom - textTop;
             int barH = Math.max(8, trackH * visible / bodyLines.size());
-            int barY = trackTop + (trackH - barH) * bodyScroll / maxScroll;
-            gui.fill(x + width + 2, trackTop, x + width + 4, textBottom, 0x30FFFFFF);
-            gui.fill(x + width + 2, barY, x + width + 4, barY + barH, 0x90E8C86A);
-            gui.drawString(this.font, Component.translatable("gui.godofthings.manual.scroll_hint"),
-                    x, top + PANEL_H - 18, 0xFF6F7883, false);
+            int barY = textTop + (trackH - barH) * bodyScroll / maxScroll;
+            gui.fill(bodyX + bodyW + 2, textTop, bodyX + bodyW + 4, bottom, 0x30FFFFFF);
+            gui.fill(bodyX + bodyW + 2, barY, bodyX + bodyW + 4, barY + barH, 0x90E8C86A);
         }
     }
 
@@ -269,11 +326,10 @@ public class ManualScreen extends Screen
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button)
     {
-        int x0 = left + 8;
-        int x1 = left + 128;
-        if (button == 0 && mouseX >= x0 && mouseX <= x1 && mouseY >= LIST_TOP - 2 && mouseY < top + PANEL_H - 8)
+        if (button == 0 && mouseX >= listX0 && mouseX <= listX1
+                && mouseY >= listTop() - 2 && mouseY < listBottom())
         {
-            int row = (int) (mouseY - LIST_TOP) / ROW_H;
+            int row = (int) (mouseY - listTop()) / ROW_H;
             int index = listScroll + row;
             if (index >= 0 && index < shown.size())
             {
@@ -289,14 +345,13 @@ public class ManualScreen extends Screen
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
     {
         int dir = (int) Math.signum(scrollY);
-        if (mouseX >= left + 128)
+        if (mouseX >= listX1)
         {
             bodyScroll = Math.max(0, bodyScroll - dir);
         }
         else
         {
-            int rows = (top + PANEL_H - 8 - (LIST_TOP - 2)) / ROW_H;
-            int maxScroll = Math.max(0, shown.size() - rows);
+            int maxScroll = Math.max(0, shown.size() - visibleRows());
             listScroll = Mth.clamp(listScroll - dir, 0, maxScroll);
         }
         return true;
@@ -310,7 +365,6 @@ public class ManualScreen extends Screen
             onClose();
             return true;
         }
-        // 上下键翻条目
         if (keyCode == GLFW.GLFW_KEY_DOWN && !shown.isEmpty())
         {
             selected = Math.min(selected + 1, shown.size() - 1);
