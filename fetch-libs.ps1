@@ -53,9 +53,24 @@ $files = @(
 )
 
 # Optional local proxy (NBVPN listens on 7890 once connected; 7897 is the fallback).
+# NOTE: this script also runs on Linux (GitHub Actions), so it must not use Windows-only
+# cmdlets -- Test-NetConnection does not exist in pwsh on Linux, and 'curl.exe' is 'curl' there.
+function Test-LocalPort([int]$Port) {
+    try {
+        $client = New-Object System.Net.Sockets.TcpClient
+        $client.Connect('127.0.0.1', $Port)
+        $client.Close()
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+$curl = if ($env:OS -eq 'Windows_NT') { 'curl.exe' } else { 'curl' }
+
 $proxyArgs = @()
 foreach ($port in @(7890, 7897)) {
-    if ((Test-NetConnection -ComputerName 127.0.0.1 -Port $port -WarningAction SilentlyContinue).TcpTestSucceeded) {
+    if (Test-LocalPort $port) {
         $proxyArgs = @('-x', "http://127.0.0.1:$port")
         Write-Host "using local proxy 127.0.0.1:$port"
         break
@@ -78,7 +93,7 @@ foreach ($entry in $files) {
         continue
     }
     Write-Host "downloading $local"
-    & curl.exe -sS -L @proxyArgs -o $dest "$baseUrl/$remote"
+    & $curl -sS -L @proxyArgs -o $dest "$baseUrl/$remote"
     if ((-not (Test-Path -LiteralPath $dest)) -or ((Get-Item -LiteralPath $dest).Length -eq 0)) {
         if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Force }
         throw "download failed (empty or missing): $local  <-  $remote"
