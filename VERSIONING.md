@@ -768,3 +768,13 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     临时自检（验证后已删除，jar 内已确认无残留）在真实服务端运行时里跑通 4 项 —— **NBT 往返 = PASS、SavedData 整份存 / 取 = PASS、
     网络封包往返（且缓冲区正好读完）= PASS、越界数据 clamp = PASS**（日志实测 `nbt=true savedData=true packet=true clamp=true`）。
   - 语言文件 zh/en 各 **1338** 键（1299 + 39）、双向差异 0；README「内容一览」与键位表已同步（新增神之便签一行 + `N` 键）。
+  - **发版（已完成）**：本地提交 `9049cc8` 已推送到 `origin/1.21.1`（走 NBVPN 的 7890 代理）；
+    `godofthings-5.2.0.jar`（1,794,963 字节）按「每个首位大版本一个 release」的规则**追加到 5.x 那个 release**
+    （tag `v5.1.7`，release id `400888984`）—— **没有新建 release、也没有新建 tag**。
+    · 记一笔规矩上的冲突：AGENTS.md「发版标准流程」第 4 步写的是「大版本（第二位/首位变化）才新建 Release」，
+      而「项目约定」写的是「按首位大版本归类，新小版本 jar 追加为 asset、不删旧 asset」。5.2.0 属于第二位变化，
+      两者会给出不同答案；本次按后者执行（与该 release 现有内容一致：里面本来就放着 5.0.0…5.1.8 十个小版本）。
+      若以后想改成「第二位变化就开新 release」，需要把 5.x 现有的 11 个 jar 一并迁到新 release 下。
+    · release notes 追加了 v5.2.0 一行，「整合 5.0.0 → 5.1.8」改成「→ 5.2.0」，jar 清单补到 5.2.0（现共 **11 个 asset**）；
+      下载链路实测 `HTTP 200`、1,794,963 字节，与本地 jar 完全一致。
+    · AGENTS.md 的同步状态段已同步更新（5.x 由 10 个 jar 改为 11 个）。
