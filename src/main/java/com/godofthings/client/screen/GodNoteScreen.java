@@ -54,6 +54,12 @@ public class GodNoteScreen extends Screen
     private Button hudToggleButton;
     private Button hudSettingsButton;
 
+    /** 悬浮窗标题的名字输入框 + 自动更名开关（都在悬浮窗页） */
+    private EditBox nameField;
+    private Button autoNameButton;
+    /** 名字输入框里有还没提交的改动 */
+    private boolean nameDirty;
+
     private Button enableButton;
     private Button dragButton;
     private Button xMinus;
@@ -124,6 +130,9 @@ public class GodNoteScreen extends Screen
         bgNext = null;
         doneToggle = null;
         backButton = null;
+        nameField = null;
+        autoNameButton = null;
+        nameDirty = false;
 
         input = new EditBox(this.font, left + 8, top + 148, 180, 18,
                 Component.translatable("gui.godofthings.note.input"));
@@ -166,41 +175,77 @@ public class GodNoteScreen extends Screen
         hudSettingsButton = null;
         editingIndex = -1;
 
+        enableButton = null;
+
+        // ① 名称（悬浮窗标题）
+        nameField = new EditBox(this.font, left + 80, top + 30, 212, 18,
+                Component.translatable("gui.godofthings.note.name"));
+        nameField.setMaxLength(NoteBook.MAX_NAME);
+        nameField.setHint(Component.translatable("gui.godofthings.note.name_hint"));
+        nameField.setValue(book().name());
+        addRenderableWidget(nameField);
+
+        // ② 自动更名：开启后名字固定为当日日期（MM.dd），服务端登录 / 定时都会刷
+        autoNameButton = addRenderableWidget(Button.builder(Component.empty(), b ->
+        {
+            boolean on = !book().autoName();
+            book().setAutoName(on);
+            if (on)
+            {
+                // 本地先按当日日期填一下，等回包这一小会儿显示也一致（服务端会以它的日期为准再回发）
+                book().applyAutoName();
+                if (nameField != null)
+                {
+                    nameField.setValue(book().name());
+                }
+            }
+            nameDirty = false;
+            push();
+            refresh();
+        }).bounds(left + 80, top + 54, 60, 18).build());
+
+        // ③ 悬浮窗总开关 + 拖动摆放
         enableButton = addRenderableWidget(Button.builder(Component.empty(), b ->
         {
             book().hud().enabled = !book().hud().enabled;
             push();
             refresh();
-        }).bounds(left + 8, top + 34, 140, 18).build());
+        }).bounds(left + 80, top + 78, 60, 18).build());
 
         dragButton = addRenderableWidget(Button.builder(
                 Component.translatable("gui.godofthings.note.drag"), b ->
-                        this.minecraft.setScreen(new GodNoteHudEditScreen()))
-                .bounds(left + 152, top + 34, 140, 18).build());
+                {
+                    commitName();
+                    this.minecraft.setScreen(new GodNoteHudEditScreen());
+                })
+                .bounds(left + 148, top + 78, 144, 18).build());
 
-        // 位置 X / 位置 Y / 大小 / 透明度：[-] [+] + 数值
-        xMinus = addRenderableWidget(stepButton(left + 96, top + 60, "-", () -> stepX(-1)));
-        xPlus = addRenderableWidget(stepButton(left + 120, top + 60, "+", () -> stepX(1)));
-        yMinus = addRenderableWidget(stepButton(left + 96, top + 84, "-", () -> stepY(-1)));
-        yPlus = addRenderableWidget(stepButton(left + 120, top + 84, "+", () -> stepY(1)));
-        scaleMinus = addRenderableWidget(stepButton(left + 96, top + 108, "-", () -> stepScale(-1)));
-        scalePlus = addRenderableWidget(stepButton(left + 120, top + 108, "+", () -> stepScale(1)));
-        opacityMinus = addRenderableWidget(stepButton(left + 96, top + 132, "-", () -> stepOpacity(-1)));
-        opacityPlus = addRenderableWidget(stepButton(left + 120, top + 132, "+", () -> stepOpacity(1)));
+        // ④ 位置：X / Y 各一个 [-] [+] 与百分比（坐标按英文标签宽度留的余量）
+        xMinus = addRenderableWidget(stepButton(left + 66, top + 102, "-", () -> stepX(-1)));
+        xPlus = addRenderableWidget(stepButton(left + 88, top + 102, "+", () -> stepX(1)));
+        yMinus = addRenderableWidget(stepButton(left + 204, top + 102, "-", () -> stepY(-1)));
+        yPlus = addRenderableWidget(stepButton(left + 226, top + 102, "+", () -> stepY(1)));
 
-        bgPrev = addRenderableWidget(stepButton(left + 96, top + 156, "<", () -> cycleBackground(-1)));
-        bgNext = addRenderableWidget(stepButton(left + 120, top + 156, ">", () -> cycleBackground(1)));
+        // ⑤ 大小 / 透明度
+        scaleMinus = addRenderableWidget(stepButton(left + 52, top + 126, "-", () -> stepScale(-1)));
+        scalePlus = addRenderableWidget(stepButton(left + 74, top + 126, "+", () -> stepScale(1)));
+        opacityMinus = addRenderableWidget(stepButton(left + 196, top + 126, "-", () -> stepOpacity(-1)));
+        opacityPlus = addRenderableWidget(stepButton(left + 218, top + 126, "+", () -> stepOpacity(1)));
 
+        // ⑥ 背景 / 是否显示已完成条目
+        bgPrev = addRenderableWidget(stepButton(left + 52, top + 150, "<", () -> cycleBackground(-1)));
+        bgNext = addRenderableWidget(stepButton(left + 74, top + 150, ">", () -> cycleBackground(1)));
         doneToggle = addRenderableWidget(Button.builder(Component.empty(), b ->
         {
             book().hud().showDone = !book().hud().showDone;
             push();
             refresh();
-        }).bounds(left + 96, top + 180, 84, 18).build());
+        }).bounds(left + 216, top + 150, 76, 18).build());
 
+        // ⑦ 返回任务页
         backButton = addRenderableWidget(Button.builder(
                 Component.translatable("gui.godofthings.note.back"), b -> pendingPage = 0)
-                .bounds(left + 188, top + 180, 104, 18).build());
+                .bounds(left + 80, top + 174, 212, 18).build());
     }
 
     private Button stepButton(int x, int y, String label, Runnable action)
@@ -265,13 +310,18 @@ public class GodNoteScreen extends Screen
         }
         if (enableButton != null)
         {
-            enableButton.setMessage(toggleText("gui.godofthings.note.hud", hud.enabled));
+            // 悬浮窗页的按钮只有 60px 宽，这里只显示开 / 关（行首已经画了标签）
+            enableButton.setMessage(onOff(hud.enabled));
+        }
+        if (autoNameButton != null)
+        {
+            autoNameButton.setMessage(onOff(book().autoName()));
         }
         if (doneToggle != null)
         {
             doneToggle.setMessage(Component.translatable(hud.showDone
-                    ? "gui.godofthings.note.on"
-                    : "gui.godofthings.note.off"));
+                    ? "gui.godofthings.note.show"
+                    : "gui.godofthings.note.hide"));
         }
         if (input != null)
         {
@@ -281,11 +331,63 @@ public class GodNoteScreen extends Screen
         }
     }
 
+    /** 开 / 关 */
+    private Component onOff(boolean on)
+    {
+        return Component.translatable(on ? "gui.godofthings.note.on" : "gui.godofthings.note.off");
+    }
+
     private Component toggleText(String key, boolean on)
     {
-        return Component.translatable(key, Component.translatable(on
-                ? "gui.godofthings.note.on"
-                : "gui.godofthings.note.off"));
+        return Component.translatable(key, onOff(on));
+    }
+
+    /** 把名字输入框里还没提交的内容写进本地镜像并发服务端 */
+    private void commitName()
+    {
+        if (nameField == null || !nameDirty)
+        {
+            return;
+        }
+        nameDirty = false;
+        book().setName(nameField.getValue());
+        if (book().autoName())
+        {
+            // 手动起名 = 关掉自动更名，否则下一 tick 就被当日日期覆盖了
+            book().setAutoName(false);
+        }
+        push();
+    }
+
+    @Override
+    public void tick()
+    {
+        super.tick();
+        if (nameField == null)
+        {
+            return;
+        }
+        if (nameField.isFocused())
+        {
+            nameDirty = true; // 玩家正在打字，先别提交
+        }
+        else if (nameDirty)
+        {
+            commitName();
+            refresh();
+        }
+        else if (!nameField.getValue().equals(book().name()))
+        {
+            // 服务端把名字改了（开着自动更名 / 跨天刷新）：输入框跟着回读
+            nameField.setValue(book().name());
+        }
+    }
+
+    @Override
+    public void onClose()
+    {
+        commitName();
+        super.onClose();
     }
 
     private void stepX(int delta)
@@ -332,6 +434,7 @@ public class GodNoteScreen extends Screen
         // 换页放在这里做：按钮回调期间改控件列表会让事件分发中途断掉
         if (pendingPage >= 0)
         {
+            commitName(); // 切页前先把名字改动提交掉，免得输入框被销毁后丢失
             page = pendingPage;
             pendingPage = -1;
             rebuildWidgets();
@@ -427,27 +530,50 @@ public class GodNoteScreen extends Screen
         gui.drawString(this.font, Component.translatable("gui.godofthings.note.hud_hint"),
                 left + 10, top + 20, 0xFF9AA0A8, false);
 
-        rowLabel(gui, top + 60, "gui.godofthings.note.pos_x", hud.x, true);
-        rowLabel(gui, top + 84, "gui.godofthings.note.pos_y", hud.y, true);
-        rowLabel(gui, top + 108, "gui.godofthings.note.scale", hud.scale, false);
-        rowLabel(gui, top + 132, "gui.godofthings.note.opacity", hud.opacity, false);
+        // ① 名称（输入框由控件自己画）
+        gui.drawString(this.font, Component.translatable("gui.godofthings.note.name"),
+                left + 10, top + 35, 0xFFF2F4F8, false);
 
+        // ② 自动更名
+        gui.drawString(this.font, Component.translatable("gui.godofthings.note.auto_name"),
+                left + 10, top + 59, 0xFFF2F4F8, false);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.note.auto_name_hint"),
+                left + 148, top + 59, 0xFF7E8794, false);
+
+        // ③ 悬浮窗
+        gui.drawString(this.font, Component.translatable("gui.godofthings.note.hud_label"),
+                left + 10, top + 83, 0xFFF2F4F8, false);
+
+        // ④ 位置 X / Y
+        gui.drawString(this.font, Component.translatable("gui.godofthings.note.pos_x"),
+                left + 10, top + 107, 0xFFF2F4F8, false);
+        gui.drawString(this.font, percent(hud.x), left + 112, top + 107, 0xFFE8C86A, false);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.note.pos_y"),
+                left + 148, top + 107, 0xFFF2F4F8, false);
+        gui.drawString(this.font, percent(hud.y), left + 250, top + 107, 0xFFE8C86A, false);
+
+        // ⑤ 大小 / 透明度
+        gui.drawString(this.font, Component.translatable("gui.godofthings.note.scale"),
+                left + 10, top + 131, 0xFFF2F4F8, false);
+        gui.drawString(this.font, String.format("%.2fx", hud.scale),
+                left + 98, top + 131, 0xFFE8C86A, false);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.note.opacity"),
+                left + 150, top + 131, 0xFFF2F4F8, false);
+        gui.drawString(this.font, percent(hud.opacity), left + 242, top + 131, 0xFFE8C86A, false);
+
+        // ⑥ 背景 / 已完成条目
         gui.drawString(this.font, Component.translatable("gui.godofthings.note.background"),
-                left + 10, top + 161, 0xFFF2F4F8, false);
+                left + 10, top + 155, 0xFFF2F4F8, false);
         gui.drawString(this.font, Component.translatable(NoteHud.backgroundKey(hud.background)),
-                left + 148, top + 161, 0xFFE8C86A, false);
-
+                left + 98, top + 155, 0xFFE8C86A, false);
         gui.drawString(this.font, Component.translatable("gui.godofthings.note.show_done_label"),
-                left + 10, top + 185, 0xFFF2F4F8, false);
+                left + 160, top + 155, 0xFFF2F4F8, false);
     }
 
-    private void rowLabel(GuiGraphics gui, int rowY, String labelKey, float value, boolean percent)
+    /** 0~1 的比例显示成百分比整数 */
+    private static String percent(float value)
     {
-        gui.drawString(this.font, Component.translatable(labelKey), left + 10, rowY + 5, 0xFFF2F4F8, false);
-        String valueText = percent
-                ? Math.round(value * 100.0F) + "%"
-                : String.format("%.2fx", value);
-        gui.drawString(this.font, valueText, left + 148, rowY + 5, 0xFFE8C86A, false);
+        return Math.round(value * 100.0F) + "%";
     }
 
     private void drawCheckbox(GuiGraphics gui, int x, int y, boolean done)
@@ -527,10 +653,18 @@ public class GodNoteScreen extends Screen
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers)
     {
-        if (input != null && input.isFocused() && (keyCode == GLFW.GLFW_KEY_ENTER
-                || keyCode == GLFW.GLFW_KEY_KP_ENTER))
+        boolean enter = keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER;
+        if (input != null && input.isFocused() && enter)
         {
             submitInput();
+            return true;
+        }
+        if (nameField != null && nameField.isFocused() && enter)
+        {
+            // 回车提交名字并取消聚焦（悬浮窗标题立刻就会变）
+            commitName();
+            nameField.setFocused(false);
+            refresh();
             return true;
         }
         if (keyCode == GLFW.GLFW_KEY_ESCAPE && editingIndex >= 0)

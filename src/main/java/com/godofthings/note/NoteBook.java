@@ -18,9 +18,15 @@ public final class NoteBook
 {
     /** 单本便签的任务条数上限 */
     public static final int MAX_TASKS = 64;
+    /** 便签名称（悬浮窗标题）的长度上限 */
+    public static final int MAX_NAME = 24;
 
     private final List<NoteTask> tasks = new ArrayList<>();
     private final NoteHud hud = new NoteHud();
+    /** 悬浮窗标题上的名字；空串 = 用默认的「神之便签」 */
+    private String name = "";
+    /** 自动更名：开启后名字固定为当日日期（MM.dd） */
+    private boolean autoName;
 
     public List<NoteTask> tasks()
     {
@@ -30,6 +36,60 @@ public final class NoteBook
     public NoteHud hud()
     {
         return hud;
+    }
+
+    public String name()
+    {
+        return name;
+    }
+
+    public void setName(String value)
+    {
+        name = clampName(value);
+    }
+
+    public boolean autoName()
+    {
+        return autoName;
+    }
+
+    public void setAutoName(boolean value)
+    {
+        autoName = value;
+    }
+
+    /** 名称去掉换行 / 首尾空白并截断到 {@link #MAX_NAME}；null 视为空串 */
+    public static String clampName(String raw)
+    {
+        if (raw == null)
+        {
+            return "";
+        }
+        String s = raw.replace('\n', ' ').replace('\r', ' ').trim();
+        return s.length() > MAX_NAME ? s.substring(0, MAX_NAME) : s;
+    }
+
+    /**
+     * 自动更名：开着的时候把名字刷成当日日期（MM.dd）。
+     *
+     * <p>名字本身就是日期串，所以不需要另存一份「上次自动命名的日期」—— 直接比字符串就行，
+     * 重复调用无副作用；跨天（含游戏一直开着跨零点）时由服务端定时器再刷一次。</p>
+     *
+     * @return 名字是否真的变了（调用方据此决定要不要落库 + 下发）
+     */
+    public boolean applyAutoName()
+    {
+        if (!autoName)
+        {
+            return false;
+        }
+        String today = NoteDate.today();
+        if (today.equals(name))
+        {
+            return false;
+        }
+        name = today;
+        return true;
     }
 
     public boolean isEmpty()
@@ -126,7 +186,7 @@ public final class NoteBook
         tasks.clear();
     }
 
-    /** 服务端落库前的兜底：条数、文字长度、HUD 字段全部夹到合法范围 */
+    /** 服务端落库前的兜底：条数、文字长度、名称、HUD 字段全部夹到合法范围 */
     public void clamp()
     {
         while (tasks.size() > MAX_TASKS)
@@ -138,6 +198,7 @@ public final class NoteBook
         {
             t.text = NoteTask.clampText(t.text);
         }
+        name = clampName(name);
         hud.clamp();
     }
 
@@ -157,6 +218,8 @@ public final class NoteBook
         b.hud.color = h.color;
         b.hud.opacity = h.opacity;
         b.hud.showDone = h.showDone;
+        b.name = name;
+        b.autoName = autoName;
         return b;
     }
 
@@ -173,6 +236,8 @@ public final class NoteBook
         CompoundTag hudTag = new CompoundTag();
         hud.save(hudTag);
         tag.put("Hud", hudTag);
+        tag.putString("Name", name);
+        tag.putBoolean("AutoName", autoName);
     }
 
     public void load(CompoundTag tag)
@@ -191,6 +256,8 @@ public final class NoteBook
         {
             hud.load(tag.getCompound("Hud"));
         }
+        name = clampName(tag.getString("Name"));
+        autoName = tag.getBoolean("AutoName");
         clamp();
     }
 
@@ -202,6 +269,8 @@ public final class NoteBook
             t.write(buf);
         }
         hud.write(buf);
+        buf.writeUtf(name, MAX_NAME);
+        buf.writeBoolean(autoName);
     }
 
     public static NoteBook read(RegistryFriendlyByteBuf buf)
@@ -225,6 +294,8 @@ public final class NoteBook
         b.hud.color = h.color;
         b.hud.opacity = h.opacity;
         b.hud.showDone = h.showDone;
+        b.name = clampName(buf.readUtf(MAX_NAME));
+        b.autoName = buf.readBoolean();
         b.clamp();
         return b;
     }

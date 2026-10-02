@@ -23,6 +23,8 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
  *   <li>{@code /godnote add <文字>} —— 直接加一条任务（不必开界面）</li>
  *   <li>{@code /godnote list} —— 把当前任务打到聊天栏</li>
  *   <li>{@code /godnote clear} —— 清空所有任务</li>
+ *   <li>{@code /godnote name <文字>} —— 给悬浮窗标题改名（会顺手关掉自动更名）</li>
+ *   <li>{@code /godnote auto on|off} —— 自动更名：开着时名字固定为当日日期（MM.dd）</li>
  *   <li>{@code /godnote hud on|off} —— 开关屏幕上的悬浮窗</li>
  * </ul>
  * 便签是玩家个人资料，所以不限制权限等级：谁都能管自己那一本。
@@ -43,6 +45,13 @@ public class GodNoteCommands
                         .executes(ctx -> list(ctx.getSource())))
                 .then(Commands.literal("clear")
                         .executes(ctx -> clear(ctx.getSource())))
+                .then(Commands.literal("name")
+                        .then(Commands.argument("text", StringArgumentType.greedyString())
+                                .executes(ctx -> rename(ctx.getSource(),
+                                        StringArgumentType.getString(ctx, "text")))))
+                .then(Commands.literal("auto")
+                        .then(Commands.literal("on").executes(ctx -> auto(ctx.getSource(), true)))
+                        .then(Commands.literal("off").executes(ctx -> auto(ctx.getSource(), false))))
                 .then(Commands.literal("hud")
                         .then(Commands.literal("on").executes(ctx -> hud(ctx.getSource(), true)))
                         .then(Commands.literal("off").executes(ctx -> hud(ctx.getSource(), false)))));
@@ -118,6 +127,42 @@ public class GodNoteCommands
                 Component.translatable(enabled
                         ? "gui.godofthings.note.on"
                         : "gui.godofthings.note.off")).withStyle(ChatFormatting.GREEN), false);
+        return 1;
+    }
+
+    /** 改名：顺手关掉自动更名 —— 手动起名后要是还开着自动，下一 tick 就被日期覆盖了 */
+    private static int rename(CommandSourceStack source, String text) throws CommandSyntaxException
+    {
+        ServerPlayer player = source.getPlayerOrException();
+        NoteBook book = GodNoteData.get(source.getServer()).book(player.getUUID());
+        book.setAutoName(false);
+        book.setName(text);
+        GodNoteData.get(source.getServer()).setDirty();
+        GodNoteMessages.sendSync(player);
+        source.sendSuccess(() -> Component.translatable(book.name().isEmpty()
+                        ? "message.godofthings.note.renamed_default"
+                        : "message.godofthings.note.renamed",
+                book.name()).withStyle(ChatFormatting.GREEN), false);
+        return 1;
+    }
+
+    /** 自动更名开关；打开时立刻刷成当日日期（服务端日期） */
+    private static int auto(CommandSourceStack source, boolean enabled) throws CommandSyntaxException
+    {
+        ServerPlayer player = source.getPlayerOrException();
+        NoteBook book = GodNoteData.get(source.getServer()).book(player.getUUID());
+        book.setAutoName(enabled);
+        if (enabled)
+        {
+            book.applyAutoName();
+        }
+        GodNoteData.get(source.getServer()).setDirty();
+        GodNoteMessages.sendSync(player);
+        source.sendSuccess(() -> Component.translatable("message.godofthings.note.auto_set",
+                Component.translatable(enabled
+                        ? "gui.godofthings.note.on"
+                        : "gui.godofthings.note.off"),
+                book.name()).withStyle(ChatFormatting.GREEN), false);
         return 1;
     }
 }

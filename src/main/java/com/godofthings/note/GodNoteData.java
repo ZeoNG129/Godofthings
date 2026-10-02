@@ -58,10 +58,11 @@ public class GodNoteData extends SavedData
         return books.computeIfAbsent(id, k -> new NoteBook());
     }
 
-    /** 整本替换（客户端上传的副本），先兜底再落库 */
+    /** 整本替换（客户端上传的副本），先兜底再落库；开着自动更名时以服务端当日日期为准 */
     public void put(UUID id, NoteBook book)
     {
         book.clamp();
+        book.applyAutoName();
         books.put(id, book);
         setDirty();
     }

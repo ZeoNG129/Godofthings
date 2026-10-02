@@ -206,10 +206,14 @@ public final class GodNoteHud
         gui.pose().popPose();
     }
 
+    /** 悬浮窗标题：自定义名字（没设名字就用默认的「神之便签」）+ 已完成 / 总数 */
     private static Component header(NoteBook book)
     {
+        Component name = book.name().isEmpty()
+                ? Component.translatable("gui.godofthings.note.title")
+                : Component.literal(book.name());
         return Component.translatable("gui.godofthings.note.hud_title",
-                book.doneCount(), book.tasks().size());
+                name, book.doneCount(), book.tasks().size());
     }
 
     /** 背景色（含透明度）；返回 0 表示完全不画背景 */
