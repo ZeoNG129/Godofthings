@@ -9,15 +9,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 一本便签：若干条任务（有序）+ 名字 + 自动更名开关。
+ * 一本便签：若干条任务（有序，每条可带子任务）+ 名字 + 自动更名开关。
  *
  * <p>悬浮窗的显示设置（位置/大小/背景）不在这里 —— 它在 {@link NoteShelf} 上，
  * 因为屏幕上只有一个便签窗口，那些设置属于「怎么显示」而不是「哪一本内容」。</p>
+ *
+ * <p>层级只到「主任务 + 子任务」两级（见 {@link NoteTask#MAX_DEPTH}）。这里提供的是
+ * 结构性操作：加 / 删 / 同级重排 / 升降级 —— 界面那层的「扁平行列表 + 拖拽 + Tab」
+ * 最终都落到这几个方法上，逻辑集中在这一处，方便被 GameTest 直接测。</p>
  */
 public final class NoteBook
 {
-    /** 单本便签的任务条数上限 */
+    /** 单本便签的<b>主任务</b>条数上限 */
     public static final int MAX_TASKS = 64;
+    /** 单本便签的<b>总任务数</b>上限（主任务 + 全部子任务），用来兜住同步包大小 */
+    public static final int MAX_TOTAL = 256;
     /** 便签名称（悬浮窗标题）的长度上限 */
     public static final int MAX_NAME = 24;
 
@@ -91,6 +97,9 @@ public final class NoteBook
         return tasks.isEmpty();
     }
 
+    // ------------------------------------------------------------------ 计数
+
+    /** 主任务里已完成的数量 */
     public int doneCount()
     {
         int n = 0;
@@ -104,17 +113,52 @@ public final class NoteBook
         return n;
     }
 
-    /** 未完成条目数（HUD 标题上用） */
+    /** 未完成主任务数 */
     public int undoneCount()
     {
         return tasks.size() - doneCount();
     }
 
-    /** 追加一条任务（文字为空或超出条数上限时不做事）；返回新任务的下标，失败返回 -1 */
+    /** 全部子任务数量 */
+    public int childCount()
+    {
+        int n = 0;
+        for (NoteTask t : tasks)
+        {
+            n += t.childCount();
+        }
+        return n;
+    }
+
+    /** 已完成的子任务数量 */
+    public int doneChildren()
+    {
+        int n = 0;
+        for (NoteTask t : tasks)
+        {
+            n += t.doneChildren();
+        }
+        return n;
+    }
+
+    /** 主任务 + 子任务的总条数 */
+    public int totalCount()
+    {
+        int n = 0;
+        for (NoteTask t : tasks)
+        {
+            n += t.totalCount();
+        }
+        return n;
+    }
+
+    // ------------------------------------------------------------------ 主任务
+
+    /** 追加一条主任务（文字为空 / 超上限时不做事）；返回下标，失败返回 -1 */
     public int add(String text)
     {
         String clean = NoteTask.clampText(text);
-        if (clean.isEmpty() || tasks.size() >= MAX_TASKS)
+        if (clean.isEmpty() || tasks.size() >= MAX_TASKS || totalCount() >= MAX_TOTAL)
         {
             return -1;
         }
@@ -147,6 +191,7 @@ public final class NoteBook
         }
     }
 
+    /** 删掉一条主任务（连同它的子任务） */
     public void remove(int index)
     {
         if (index >= 0 && index < tasks.size())
@@ -155,12 +200,138 @@ public final class NoteBook
         }
     }
 
-    /** 删掉所有已勾选的条目，返回删掉的条数 */
+    /** 主任务同级重排（列表拖拽用）；越界自动夹回 */
+    public void moveTask(int from, int to)
+    {
+        if (from < 0 || from >= tasks.size())
+        {
+            return;
+        }
+        int target = Math.max(0, Math.min(to, tasks.size() - 1));
+        if (target == from)
+        {
+            return;
+        }
+        NoteTask task = tasks.remove(from);
+        tasks.add(target, task);
+    }
+
+    // ------------------------------------------------------------------ 子任务
+
+    /** 给第 parentIndex 条主任务挂一个子任务；返回子任务下标，失败（越界/超上限/空文字）返回 -1 */
+    public int addChild(int parentIndex, String text)
+    {
+        if (parentIndex < 0 || parentIndex >= tasks.size() || totalCount() >= MAX_TOTAL)
+        {
+            return -1;
+        }
+        NoteTask parent = tasks.get(parentIndex);
+        if (parent.addChild(text) == null)
+        {
+            return -1;
+        }
+        return parent.childCount() - 1;
+    }
+
+    public void toggleChild(int parentIndex, int childIndex)
+    {
+        if (parentIndex >= 0 && parentIndex < tasks.size())
+        {
+            tasks.get(parentIndex).toggleChild(childIndex);
+        }
+    }
+
+    public void setChildText(int parentIndex, int childIndex, String text)
+    {
+        if (parentIndex >= 0 && parentIndex < tasks.size())
+        {
+            tasks.get(parentIndex).setChildText(childIndex, text);
+        }
+    }
+
+    /** 删掉一条子任务 */
+    public void removeChild(int parentIndex, int childIndex)
+    {
+        if (parentIndex >= 0 && parentIndex < tasks.size())
+        {
+            tasks.get(parentIndex).removeChild(childIndex);
+        }
+    }
+
+    /** 同一个父任务下的子任务重排 */
+    public void moveChild(int parentIndex, int from, int to)
+    {
+        if (parentIndex < 0 || parentIndex >= tasks.size())
+        {
+            return;
+        }
+        List<NoteTask> children = tasks.get(parentIndex).children();
+        if (from < 0 || from >= children.size())
+        {
+            return;
+        }
+        int target = Math.max(0, Math.min(to, children.size() - 1));
+        if (target == from)
+        {
+            return;
+        }
+        NoteTask child = children.remove(from);
+        children.add(target, child);
+    }
+
+    /**
+     * 升级：把第 parentIndex 条主任务下的第 childIndex 个子任务变成主任务，插在父任务后面。
+     * （界面里的 Shift+Tab）
+     */
+    public boolean promoteChild(int parentIndex, int childIndex)
+    {
+        if (parentIndex < 0 || parentIndex >= tasks.size() || tasks.size() >= MAX_TASKS)
+        {
+            return false;
+        }
+        List<NoteTask> children = tasks.get(parentIndex).children();
+        if (childIndex < 0 || childIndex >= children.size())
+        {
+            return false;
+        }
+        NoteTask moved = children.remove(childIndex);
+        moved.children().clear(); // 升级后本来也不该带子任务（只有两级）
+        tasks.add(parentIndex + 1, moved);
+        return true;
+    }
+
+    /**
+     * 降级：把第 index 条主任务挂到它前一条主任务下面，成为最后一个子任务。
+     * （界面里的 Tab；第一条主任务没有前一条，返回 false）
+     */
+    public boolean demoteTop(int index)
+    {
+        if (index <= 0 || index >= tasks.size())
+        {
+            return false;
+        }
+        NoteTask parent = tasks.get(index - 1);
+        if (parent.childCount() >= NoteTask.MAX_CHILDREN)
+        {
+            return false;
+        }
+        NoteTask moved = tasks.remove(index);
+        parent.appendChild(moved);
+        return true;
+    }
+
+    // ------------------------------------------------------------------ 清理
+
+    /** 删掉所有已完成的主任务（连同子任务）与已完成的子任务，返回删掉的条数 */
     public int clearDone()
     {
-        int before = tasks.size();
+        int before = totalCount();
         tasks.removeIf(t -> t.done);
-        return before - tasks.size();
+        for (NoteTask t : tasks)
+        {
+            t.children().removeIf(c -> c.done);
+        }
+        return before - totalCount();
     }
 
     public void clear()
@@ -168,7 +339,7 @@ public final class NoteBook
         tasks.clear();
     }
 
-    /** 服务端落库前的兜底：条数、文字长度、名称全部夹到合法范围 */
+    /** 服务端落库前的兜底：条数、文字长度、名称、层级全部夹到合法范围 */
     public void clamp()
     {
         while (tasks.size() > MAX_TASKS)
@@ -178,7 +349,12 @@ public final class NoteBook
         tasks.removeIf(t -> NoteTask.clampText(t.text).isEmpty());
         for (NoteTask t : tasks)
         {
-            t.text = NoteTask.clampText(t.text);
+            t.clamp(1);
+        }
+        // 总条数兜底：超了就从尾部砍主任务（连带它的子任务）
+        while (totalCount() > MAX_TOTAL && tasks.size() > 1)
+        {
+            tasks.remove(tasks.size() - 1);
         }
         name = clampName(name);
     }

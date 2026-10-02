@@ -6,6 +6,7 @@ import com.godofthings.note.GodNoteData;
 import com.godofthings.note.NoteAdvancements;
 import com.godofthings.note.NoteBook;
 import com.godofthings.note.NoteTask;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
@@ -17,12 +18,15 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
+import java.util.List;
+
 /**
  * 神之便签指令（第三条入口）：
  * <ul>
  *   <li>{@code /godnote} —— 打开记事本界面</li>
- *   <li>{@code /godnote add <文字>} —— 直接加一条任务（不必开界面）</li>
- *   <li>{@code /godnote list} —— 把当前任务打到聊天栏</li>
+ *   <li>{@code /godnote add <文字>} —— 直接加一条主任务（不必开界面）</li>
+ *   <li>{@code /godnote sub <主任务序号> <文字>} —— 给某条主任务加子任务（序号见 list）</li>
+ *   <li>{@code /godnote list} —— 把当前任务（含子任务的树形缩进）打到聊天栏</li>
  *   <li>{@code /godnote clear} —— 清空所有任务</li>
  *   <li>{@code /godnote name <文字>} —— 给悬浮窗标题改名（会顺手关掉自动更名）</li>
  *   <li>{@code /godnote auto on|off} —— 自动更名：开着时名字固定为当日日期（MM.dd）</li>
@@ -42,6 +46,12 @@ public class GodNoteCommands
                         .then(Commands.argument("text", StringArgumentType.greedyString())
                                 .executes(ctx -> add(ctx.getSource(),
                                         StringArgumentType.getString(ctx, "text")))))
+                .then(Commands.literal("sub")
+                        .then(Commands.argument("parent", IntegerArgumentType.integer(1))
+                                .then(Commands.argument("text", StringArgumentType.greedyString())
+                                        .executes(ctx -> addSub(ctx.getSource(),
+                                                IntegerArgumentType.getInteger(ctx, "parent"),
+                                                StringArgumentType.getString(ctx, "text"))))))
                 .then(Commands.literal("list")
                         .executes(ctx -> list(ctx.getSource())))
                 .then(Commands.literal("clear")
@@ -84,6 +94,33 @@ public class GodNoteCommands
         return 1;
     }
 
+    /** 给第 parent 号主任务加子任务（序号从 1 开始，与 list 显示一致） */
+    private static int addSub(CommandSourceStack source, int parent, String text)
+            throws CommandSyntaxException
+    {
+        ServerPlayer player = source.getPlayerOrException();
+        NoteBook book = GodNoteData.get(source.getServer()).shelf(player.getUUID()).current();
+        int parentIndex = parent - 1;
+        if (parentIndex < 0 || parentIndex >= book.tasks().size())
+        {
+            source.sendFailure(Component.translatable("message.godofthings.note.sub_bad_parent", parent));
+            return 0;
+        }
+        int childIndex = book.addChild(parentIndex, text);
+        if (childIndex < 0)
+        {
+            source.sendFailure(Component.translatable("message.godofthings.note.sub_failed",
+                    NoteTask.MAX_CHILDREN, NoteBook.MAX_TOTAL));
+            return 0;
+        }
+        GodNoteData.get(source.getServer()).setDirty();
+        GodNoteMessages.sendSync(player);
+        source.sendSuccess(() -> Component.translatable("message.godofthings.note.sub_added",
+                book.tasks().get(parentIndex).text, book.tasks().get(parentIndex)
+                        .children().get(childIndex).text).withStyle(ChatFormatting.GREEN), false);
+        return 1;
+    }
+
     private static int list(CommandSourceStack source) throws CommandSyntaxException
     {
         ServerPlayer player = source.getPlayerOrException();
@@ -94,14 +131,25 @@ public class GodNoteCommands
             return 1;
         }
         source.sendSuccess(() -> Component.translatable("message.godofthings.note.list_header",
-                book.doneCount(), book.tasks().size()), false);
+                book.doneCount() + book.doneChildren(),
+                book.tasks().size() + book.childCount()), false);
+        int n = 0;
         for (NoteTask task : book.tasks())
         {
-            String line = (task.done ? "[x] " : "[ ] ") + task.text;
+            n++;
+            String line = (task.done ? "[x] " : "[ ] ") + n + ". " + task.text;
             source.sendSuccess(() -> Component.literal(line)
                     .withStyle(task.done ? ChatFormatting.GRAY : ChatFormatting.WHITE), false);
+            List<NoteTask> children = task.children();
+            for (int c = 0; c < children.size(); c++)
+            {
+                NoteTask child = children.get(c);
+                String childLine = (child.done ? "    [x] " : "    [ ] ") + n + "." + (c + 1) + " " + child.text;
+                source.sendSuccess(() -> Component.literal(childLine)
+                        .withStyle(child.done ? ChatFormatting.DARK_GRAY : ChatFormatting.GRAY), false);
+            }
         }
-        return book.tasks().size();
+        return n;
     }
 
     private static int clear(CommandSourceStack source) throws CommandSyntaxException

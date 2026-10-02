@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -83,14 +84,42 @@ public class GodNoteScreen extends Screen
     private Button doneToggle;
     private Button backButton;
 
-    /** 正在改名的那条任务下标，-1 = 新增模式 */
-    private int editingIndex = -1;
+    /** 输入框的三种模式：新增主任务 / 改名（主任务或子任务）/ 给某条主任务加子任务 */
+    private static final int MODE_ADD = 0;
+    private static final int MODE_EDIT = 1;
+    private static final int MODE_SUB = 2;
 
-    /** 正在拖拽排序的那条任务下标，-1 = 没在拖 */
-    private int dragIndex = -1;
+    /** 输入框当前模式与目标（MODE_EDIT / MODE_SUB 时有效） */
+    private int inputMode = MODE_ADD;
+    private int editParent = -1;
+    private int editChild = -1;
+    private int subParent = -1;
+
+    /** 正在拖拽排序的那一行（rows 下标），-1 = 没在拖 */
+    private int dragRow = -1;
     private boolean dragMoved;
     /** 删除便签本需要点两次（第一次变成「确认删除」） */
     private boolean bookDeleteArmed;
+    /** 删除「带子任务的主任务」也需要点两次：第一次点 × 后记住这一行（rows 下标） */
+    private int deleteArmedRow = -1;
+
+    /** 扁平行列表：主任务与子任务按显示顺序排平，渲染与命中判定都吃这一份 */
+    private List<RowRef> rows = List.of();
+    /** rows 是从哪本书摊出来的（同步回包会整册替换对象，换了就重建） */
+    private NoteBook rowsBook;
+
+    /**
+     * 扁平化后的一行。主任务：{@code parent = 自己的下标、child = -1}；
+     * 子任务：{@code parent = 父任务下标、child = 自己在父任务里的下标}。
+     * 这样勾选 / 删除 / 改名都能直接落到 {@link NoteBook} 的对应方法上。
+     */
+    private record RowRef(NoteTask task, int parent, int child) {}
+
+    /** 任务列表是否处于「编辑中」状态（用于 Esc 与高亮） */
+    private boolean editingTask()
+    {
+        return inputMode == MODE_EDIT;
+    }
 
     public GodNoteScreen()
     {
@@ -248,8 +277,10 @@ public class GodNoteScreen extends Screen
         nextBookButton = null;
         addBookButton = null;
         deleteBookButton = null;
-        editingIndex = -1;
-        dragIndex = -1;
+        inputMode = MODE_ADD;
+        editParent = editChild = subParent = -1;
+        dragRow = -1;
+        deleteArmedRow = -1;
         nameDirty = false;
 
         // ① 名称（当前这一本的悬浮窗标题）
@@ -347,40 +378,131 @@ public class GodNoteScreen extends Screen
             return;
         }
         String text = input.getValue();
-        if (editingIndex >= 0)
+        switch (inputMode)
         {
-            book().setText(editingIndex, text);
-            editingIndex = -1;
+            case MODE_EDIT ->
+            {
+                if (editParent >= 0 && editChild >= 0)
+                {
+                    book().setChildText(editParent, editChild, text);
+                }
+                else if (editParent >= 0)
+                {
+                    book().setText(editParent, text);
+                }
+            }
+            case MODE_SUB ->
+            {
+                if (subParent >= 0 && book().addChild(subParent, text) >= 0)
+                {
+                    // 成功后收起子任务模式，回正常的新增状态
+                    subParent = -1;
+                }
+            }
+            default -> book().add(text);
         }
-        else
-        {
-            book().add(text);
-        }
+        inputMode = MODE_ADD;
+        editParent = editChild = subParent = -1;
         input.setValue("");
         push();
         refresh();
     }
 
-    private void startEditing(int index)
+    /** 把输入框切到「给第 parent 行加子任务」模式 */
+    private void startSubTask(int parentIndex)
     {
-        List<NoteTask> tasks = book().tasks();
-        if (index < 0 || index >= tasks.size() || input == null)
+        if (input == null || parentIndex < 0 || parentIndex >= book().tasks().size())
         {
             return;
         }
-        editingIndex = index;
-        input.setValue(tasks.get(index).text);
+        inputMode = MODE_SUB;
+        subParent = parentIndex;
+        editParent = editChild = -1;
+        input.setValue("");
         input.setFocused(true);
         refresh();
+    }
+
+    /** 进入「改名」模式：主任务或子任务（rows 下标定位） */
+    private void startEditing(int rowIndex)
+    {
+        RowRef row = rowAt(rowIndex);
+        if (row == null || input == null)
+        {
+            return;
+        }
+        inputMode = MODE_EDIT;
+        if (row.child() >= 0)
+        {
+            editParent = row.parent();
+            editChild = row.child();
+            input.setValue(row.task().text);
+        }
+        else
+        {
+            editParent = row.parent();
+            editChild = -1;
+            input.setValue(row.task().text);
+        }
+        subParent = -1;
+        input.setFocused(true);
+        refresh();
+    }
+
+    /** 取消输入框的编辑 / 子任务状态，回到新增模式 */
+    private void resetInput()
+    {
+        inputMode = MODE_ADD;
+        editParent = editChild = subParent = -1;
+        if (input != null)
+        {
+            input.setValue("");
+        }
+        refresh();
+    }
+
+    /** Tab = 降级为上一条主任务的子任务；Shift+Tab = 升级为主任务（编辑中的那条） */
+    private void handleIndentKeys(int keyCode, int modifiers)
+    {
+        if (input == null || !input.isFocused() || inputMode != MODE_EDIT)
+        {
+            return;
+        }
+        boolean shift = (modifiers & GLFW.GLFW_MOD_SHIFT) != 0;
+        if (keyCode != GLFW.GLFW_KEY_TAB)
+        {
+            return;
+        }
+        if (shift)
+        {
+            // 升级：子任务 → 主任务（插在父任务后面）
+            if (editParent >= 0 && editChild >= 0 && book().promoteChild(editParent, editChild))
+            {
+                push();
+                resetInput();
+            }
+            return;
+        }
+        // 降级：主任务 → 上一条主任务的子任务（子任务不能再降，只有两级）
+        if (editChild >= 0 || editParent <= 0 || !book().demoteTop(editParent))
+        {
+            return;
+        }
+        push();
+        resetInput();
     }
 
     private void refresh()
     {
         if (actionButton != null)
         {
-            actionButton.setMessage(Component.translatable(editingIndex >= 0
-                    ? "gui.godofthings.note.save_edit"
-                    : "gui.godofthings.note.add"));
+            String key = switch (inputMode)
+            {
+                case MODE_EDIT -> "gui.godofthings.note.save_edit";
+                case MODE_SUB -> "gui.godofthings.note.save_sub";
+                default -> "gui.godofthings.note.add";
+            };
+            actionButton.setMessage(Component.translatable(key));
         }
         NoteHud hud = shelf().hud();
         if (hudToggleButton != null)
@@ -410,9 +532,13 @@ public class GodNoteScreen extends Screen
         }
         if (input != null)
         {
-            input.setHint(Component.translatable(editingIndex >= 0
-                    ? "gui.godofthings.note.input_edit"
-                    : "gui.godofthings.note.input"));
+            String key = switch (inputMode)
+            {
+                case MODE_EDIT -> "gui.godofthings.note.input_edit";
+                case MODE_SUB -> "gui.godofthings.note.input_sub";
+                default -> "gui.godofthings.note.input";
+            };
+            input.setHint(Component.translatable(key));
         }
     }
 
@@ -555,11 +681,47 @@ public class GodNoteScreen extends Screen
         }
     }
 
+    /** 把当前书摊平成显示行（主任务 + 缩进的子任务），并缓存；书对象换了就重建 */
+    private List<RowRef> rows()
+    {
+        NoteBook book = book();
+        if (rowsBook != book)
+        {
+            List<RowRef> list = new ArrayList<>();
+            List<NoteTask> tasks = book.tasks();
+            for (int p = 0; p < tasks.size(); p++)
+            {
+                NoteTask task = tasks.get(p);
+                list.add(new RowRef(task, p, -1));
+                List<NoteTask> children = task.children();
+                for (int c = 0; c < children.size(); c++)
+                {
+                    list.add(new RowRef(children.get(c), p, c));
+                }
+            }
+            rows = list;
+            rowsBook = book;
+        }
+        return rows;
+    }
+
+    private RowRef rowAt(int rowIndex)
+    {
+        List<RowRef> list = rows();
+        return rowIndex < 0 || rowIndex >= list.size() ? null : list.get(rowIndex);
+    }
+
+    /** 行文字左缩进（子任务多缩一格，像论文的小标题） */
+    private static final int CHILD_INDENT = 10;
+    /** 行右侧「+ 子任务」与「× 删除」两个热区的宽度 */
+    private static final int HOTSPOT_W = 14;
+
     private void drawTaskPage(GuiGraphics gui, int mouseX, int mouseY)
     {
         NoteBook book = book();
         gui.drawString(this.font, Component.translatable("gui.godofthings.note.counter",
-                        book.doneCount(), book.tasks().size()),
+                        book.doneCount() + book.doneChildren(),
+                        book.tasks().size() + book.childCount()),
                 left + 10, top + 20, 0xFF9AA0A8, false);
 
         // ---- 便签册栏：◂ [名字 (i/n)] ▸ 新建 删除 ----
@@ -570,11 +732,11 @@ public class GodNoteScreen extends Screen
 
         gui.fill(left + 8, top + ROWS_TOP - 3, left + PANEL_W - 8, top + ROWS_BOTTOM, 0xFF11151A);
 
-        List<NoteTask> tasks = book.tasks();
-        int maxScroll = Math.max(0, tasks.size() - VISIBLE_ROWS);
+        List<RowRef> list = rows();
+        int maxScroll = Math.max(0, list.size() - VISIBLE_ROWS);
         scroll = Mth.clamp(scroll, 0, maxScroll);
 
-        if (tasks.isEmpty())
+        if (list.isEmpty())
         {
             gui.drawString(this.font, Component.translatable("gui.godofthings.note.empty"),
                     left + 14, top + ROWS_TOP + 2, 0xFF7E8794, false);
@@ -583,48 +745,86 @@ public class GodNoteScreen extends Screen
         for (int i = 0; i < VISIBLE_ROWS; i++)
         {
             int index = scroll + i;
-            if (index >= tasks.size())
+            if (index >= list.size())
             {
                 break;
             }
-            NoteTask task = tasks.get(index);
+            RowRef row = list.get(index);
+            NoteTask task = row.task();
+            boolean child = row.child() >= 0;
             int rowY = top + ROWS_TOP + i * ROW_H;
             boolean hovered = isRowHovered(mouseX, mouseY, rowY);
-            boolean editing = index == editingIndex;
-            boolean dragging = index == dragIndex;
+            boolean editing = inputMode == MODE_EDIT && editParent == row.parent()
+                    && editChild == row.child();
+            boolean dragging = index == dragRow;
+            boolean deleteArmed = index == deleteArmedRow && task.hasChildren();
 
+            int indent = child ? CHILD_INDENT : 0;
             if (dragging)
             {
                 gui.fill(left + 9, rowY - 1, left + PANEL_W - 9, rowY + ROW_H - 2, 0x60E8C86A);
             }
-            else if (hovered || editing)
+            else if (hovered || editing || deleteArmed)
             {
-                gui.fill(left + 9, rowY - 1, left + PANEL_W - 9, rowY + ROW_H - 2, 0x30FFFFFF);
+                gui.fill(left + 9, rowY - 1, left + PANEL_W - 9, rowY + ROW_H - 2,
+                        deleteArmed ? 0x50FF6060 : 0x30FFFFFF);
             }
-            drawCheckbox(gui, left + 12, rowY + 2, task.done);
-            int textColor = task.done ? 0xFF9AA0A8 : 0xFFF2F4F8;
-            String text = this.font.plainSubstrByWidth(task.text, PANEL_W - 60);
-            gui.drawString(this.font, text, left + 26, rowY + 2, textColor, false);
+
+            // 勾选框（子任务的框随缩进右移）
+            drawCheckbox(gui, left + 12 + indent, rowY + 2, task.done);
+            int textColor = task.done ? 0xFF9AA0A8 : (child ? 0xFFC9D0D9 : 0xFFF2F4F8);
+            // 主任务带子任务时显示 (n/m) 进度
+            String text = task.hasChildren() && !child
+                    ? task.text + " (" + task.doneChildren() + "/" + task.childCount() + ")"
+                    : task.text;
+            int textX = left + 26 + indent;
+            int textMax = left + PANEL_W - 40 - indent;
+            text = this.font.plainSubstrByWidth(text, Math.max(20, textMax - textX));
+            gui.drawString(this.font, text, textX, rowY + 2, textColor, false);
             if (task.done)
             {
-                gui.fill(left + 26, rowY + 6, left + 26 + this.font.width(text), rowY + 7, 0x80FFFFFF);
+                gui.fill(textX, rowY + 6, textX + this.font.width(text), rowY + 7, 0x80FFFFFF);
             }
-            gui.drawString(this.font, "x", left + PANEL_W - 20, rowY + 2, 0xFFFF8080, false);
+
+            // 行尾两个热区：+ 子任务（仅主任务显示）与 × 删除
+            int xX = left + PANEL_W - 10;
+            gui.drawString(this.font, "x", xX, rowY + 2,
+                    deleteArmed ? 0xFFFFD0D0 : 0xFFFF8080, false);
+            if (!child)
+            {
+                gui.drawString(this.font, "+", xX - HOTSPOT_W, rowY + 2,
+                        hovered ? 0xFF9FE89F : 0xFF7FA97F, false);
+            }
         }
 
         if (maxScroll > 0)
         {
             gui.drawString(this.font, Component.translatable("gui.godofthings.note.scroll_hint",
-                            scroll + 1, Math.min(tasks.size(), scroll + VISIBLE_ROWS), tasks.size()),
+                            scroll + 1, Math.min(list.size(), scroll + VISIBLE_ROWS), list.size()),
                     left + PANEL_W - 118, top + 20, 0xFF6F7883, false);
         }
 
         // 拖拽排序时给一句提示
-        if (dragIndex >= 0)
+        if (dragRow >= 0)
         {
             gui.drawString(this.font, Component.translatable("gui.godofthings.note.drag_sort_hint"),
                     left + 10, top + ROWS_BOTTOM + 2, 0xFFE8C86A, false);
         }
+        else if (inputMode == MODE_SUB)
+        {
+            gui.drawString(this.font, Component.translatable("gui.godofthings.note.input_sub_hint",
+                    parentTitle(subParent)), left + 10, top + ROWS_BOTTOM + 2, 0xFFE8C86A, false);
+        }
+    }
+
+    /** 「给谁加子任务」提示里用的父任务名（截断防溢出） */
+    private String parentTitle(int parentIndex)
+    {
+        if (parentIndex < 0 || parentIndex >= book().tasks().size())
+        {
+            return "?";
+        }
+        return this.font.plainSubstrByWidth(book().tasks().get(parentIndex).text, 120);
     }
 
     /** 便签标题：没起名就用默认名 */
@@ -706,7 +906,7 @@ public class GodNoteScreen extends Screen
                 && mouseY >= rowY - 1 && mouseY < rowY + ROW_H - 2;
     }
 
-    /** 由屏幕 Y 反推任务下标（含滚动偏移）；点空白处返回 -1 */
+    /** 由屏幕 Y 反推「扁平行」下标（含滚动偏移）；点空白处返回 -1 */
     private int rowIndexAt(int mouseY)
     {
         int row = (mouseY - (top + ROWS_TOP)) / ROW_H;
@@ -724,6 +924,7 @@ public class GodNoteScreen extends Screen
     {
         if (page == 0 && button == 0)
         {
+            List<RowRef> list = rows();
             for (int i = 0; i < VISIBLE_ROWS; i++)
             {
                 int rowY = top + ROWS_TOP + i * ROW_H;
@@ -732,30 +933,64 @@ public class GodNoteScreen extends Screen
                     continue;
                 }
                 int index = scroll + i;
-                if (index >= book().tasks().size())
+                if (index >= list.size())
                 {
                     break;
                 }
+                RowRef row = list.get(index);
+                boolean child = row.child() >= 0;
+                int indent = child ? CHILD_INDENT : 0;
                 bookDeleteArmed = false;
-                if (mouseX <= left + 24)
+                if (mouseX <= left + 24 + indent)
                 {
-                    book().toggle(index);
-                    push();
-                }
-                else if (mouseX >= left + PANEL_W - 24)
-                {
-                    book().remove(index);
-                    if (editingIndex == index)
+                    // 勾选框
+                    if (child)
                     {
-                        editingIndex = -1;
+                        book().toggleChild(row.parent(), row.child());
+                    }
+                    else
+                    {
+                        book().toggle(row.parent());
+                    }
+                    push();
+                    deleteArmedRow = -1;
+                }
+                else if (mouseX >= left + PANEL_W - 22)
+                {
+                    // × 删除（主任务带子任务时要点两次确认）
+                    if (row.task().hasChildren() && deleteArmedRow != index)
+                    {
+                        deleteArmedRow = index;
+                        return true;
+                    }
+                    deleteArmedRow = -1;
+                    if (child)
+                    {
+                        book().removeChild(row.parent(), row.child());
+                    }
+                    else
+                    {
+                        book().remove(row.parent());
+                    }
+                    if (inputMode == MODE_EDIT && editParent == row.parent()
+                            && (child || editChild < 0))
+                    {
+                        resetInput();
                     }
                     push();
                     refresh();
                 }
+                else if (!child && mouseX >= left + PANEL_W - 22 - HOTSPOT_W)
+                {
+                    // + 子任务
+                    deleteArmedRow = -1;
+                    startSubTask(row.parent());
+                }
                 else
                 {
                     // 记录拖拽起点：松手时若没移动过就当成「点文字改名」
-                    dragIndex = index;
+                    deleteArmedRow = -1;
+                    dragRow = index;
                     dragMoved = false;
                 }
                 return true;
@@ -767,16 +1002,31 @@ public class GodNoteScreen extends Screen
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
     {
-        if (page == 0 && dragIndex >= 0 && button == 0)
+        if (page == 0 && dragRow >= 0 && button == 0)
         {
             int target = rowIndexAt((int) mouseY);
-            if (target >= 0 && target != dragIndex)
+            if (target >= 0 && target != dragRow)
             {
-                shelf().moveTask(dragIndex, target);
-                dragIndex = target;
-                dragMoved = true;
+                RowRef from = rowAt(dragRow);
+                RowRef to = rowAt(target);
+                if (from != null && to != null)
+                {
+                    // 只允许同级重排：主任务在主任务之间、子任务在同一个父任务的子任务之间
+                    if (from.child() >= 0 && to.child() >= 0 && from.parent() == to.parent())
+                    {
+                        book().moveChild(from.parent(), from.child(), to.child());
+                        dragRow = target;
+                        dragMoved = true;
+                    }
+                    else if (from.child() < 0 && to.child() < 0)
+                    {
+                        book().moveTask(from.parent(), to.parent());
+                        dragRow = target;
+                        dragMoved = true;
+                    }
+                }
                 // 拖到列表边缘时自动滚动
-                int size = book().tasks().size();
+                int size = rows().size();
                 if (mouseY >= top + ROWS_BOTTOM - ROW_H && scroll < Math.max(0, size - VISIBLE_ROWS))
                 {
                     scroll++;
@@ -794,10 +1044,10 @@ public class GodNoteScreen extends Screen
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button)
     {
-        if (page == 0 && dragIndex >= 0)
+        if (page == 0 && dragRow >= 0)
         {
-            int index = dragIndex;
-            dragIndex = -1;
+            int index = dragRow;
+            dragRow = -1;
             if (dragMoved)
             {
                 push();
@@ -832,6 +1082,12 @@ public class GodNoteScreen extends Screen
             submitInput();
             return true;
         }
+        if (input != null && input.isFocused() && keyCode == GLFW.GLFW_KEY_TAB)
+        {
+            // Tab / Shift+Tab：编辑中的任务降级 / 升级（像写大纲那样）
+            handleIndentKeys(keyCode, modifiers);
+            return true;
+        }
         if (nameField != null && nameField.isFocused() && enter)
         {
             // 回车提交名字并取消聚焦（悬浮窗标题立刻就会变）
@@ -840,15 +1096,11 @@ public class GodNoteScreen extends Screen
             refresh();
             return true;
         }
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE && editingIndex >= 0)
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && (inputMode != MODE_ADD || deleteArmedRow >= 0))
         {
-            // 正在改名时按 Esc 只取消改名，不关界面
-            editingIndex = -1;
-            if (input != null)
-            {
-                input.setValue("");
-            }
-            refresh();
+            // Esc 只取消改名 / 子任务模式 / 删除确认，不关界面
+            deleteArmedRow = -1;
+            resetInput();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);

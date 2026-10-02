@@ -76,8 +76,11 @@ public final class GodNoteHud
         render(gui, mc.font, shelf.current(), shelf.hud(), gui.guiWidth(), gui.guiHeight(), false);
     }
 
-    /** 一行版面（一条任务可能折成多行，只有首行带勾选框） */
-    private record Row(String text, boolean done, boolean checkbox) {}
+    /** 子任务行相对主任务缩进的像素 */
+    private static final int CHILD_INDENT = 7;
+
+    /** 一行版面（一条任务可能折成多行，只有首行带勾选框；child = 子任务行，整体缩进） */
+    private record Row(String text, boolean done, boolean checkbox, boolean child) {}
 
     /** 一次排版的结果：行 + 未缩放面板尺寸 */
     private record Layout(List<Row> rows, int width, int height) {}
@@ -106,6 +109,10 @@ public final class GodNoteHud
         for (NoteTask task : book.tasks())
         {
             sb.append('|').append(task.done ? 1 : 0).append(task.text);
+            for (NoteTask child : task.children())
+            {
+                sb.append('>').append(child.done ? 1 : 0).append(child.text);
+            }
         }
         return sb.toString();
     }
@@ -117,13 +124,9 @@ public final class GodNoteHud
         {
             if (task.done && !hud.showDone)
             {
-                continue;
+                continue; // 主任务完成且不显示已完成：连子任务一起隐藏
             }
-            List<String> wrapped = wrap(font, task.text, MAX_TEXT_W);
-            for (int i = 0; i < wrapped.size() && rows.size() < MAX_ROWS; i++)
-            {
-                rows.add(new Row(wrapped.get(i), task.done, i == 0));
-            }
+            appendRows(font, task, false, rows, hud);
             if (rows.size() >= MAX_ROWS)
             {
                 break;
@@ -133,11 +136,39 @@ public final class GodNoteHud
         int textW = font.width(header(book));
         for (Row r : rows)
         {
-            textW = Math.max(textW, CHECK + CHECK_GAP + font.width(r.text()));
+            int indent = r.child() ? CHILD_INDENT : 0;
+            textW = Math.max(textW, indent + CHECK + CHECK_GAP + font.width(r.text()));
         }
         int width = Mth.clamp(textW + PAD * 2, MIN_PANEL_W, MAX_PANEL_W);
         int height = PAD * 2 + HEADER_H + Math.max(1, rows.size()) * LINE_H;
         return new Layout(rows, width, height);
+    }
+
+    /** 一条任务（含子任务）展开成显示行；子任务缩进、颜色更淡，主任务带 (n/m) 进度 */
+    private static void appendRows(Font font, NoteTask task, boolean child, List<Row> rows, NoteHud hud)
+    {
+        String text = task.text;
+        if (!child && task.hasChildren())
+        {
+            text = text + " (" + task.doneChildren() + "/" + task.childCount() + ")";
+        }
+        List<String> wrapped = wrap(font, text, child ? MAX_TEXT_W - CHILD_INDENT : MAX_TEXT_W);
+        for (int i = 0; i < wrapped.size() && rows.size() < MAX_ROWS; i++)
+        {
+            rows.add(new Row(wrapped.get(i), task.done, i == 0, child));
+        }
+        for (NoteTask c : task.children())
+        {
+            if (rows.size() >= MAX_ROWS)
+            {
+                break;
+            }
+            if (c.done && !hud.showDone)
+            {
+                continue;
+            }
+            appendRows(font, c, true, rows, hud);
+        }
     }
 
     /**
@@ -217,12 +248,15 @@ public final class GodNoteHud
         }
         for (Row row : l.rows())
         {
-            int textX = PAD + CHECK + CHECK_GAP;
+            int indent = row.child() ? CHILD_INDENT : 0;
+            int boxX = PAD + indent;
+            int textX = boxX + CHECK + CHECK_GAP;
             if (row.checkbox())
             {
-                drawCheckbox(gui, PAD, rowY + 1, row.done(), boxBorder, boxFill);
+                drawCheckbox(gui, boxX, rowY + 1, row.done(), boxBorder, boxFill);
             }
-            gui.drawString(font, row.text(), textX, rowY, row.done() ? doneColor : textColor, true);
+            gui.drawString(font, row.text(), textX, rowY,
+                    row.done() ? doneColor : (row.child() ? 0xFFC3CAD3 : textColor), true);
             if (row.done() && !row.text().isEmpty())
             {
                 gui.fill(textX, rowY + 4, textX + font.width(row.text()), rowY + 5,
@@ -234,14 +268,15 @@ public final class GodNoteHud
         gui.pose().popPose();
     }
 
-    /** 悬浮窗标题：自定义名字（没设名字就用默认的「神之便签」）+ 已完成 / 总数 */
+    /** 悬浮窗标题：自定义名字（没设名字就用默认的「神之便签」）+ 已完成 / 总数（含子任务） */
     private static Component header(NoteBook book)
     {
         Component name = book.name().isEmpty()
                 ? Component.translatable("gui.godofthings.note.title")
                 : Component.literal(book.name());
         return Component.translatable("gui.godofthings.note.hud_title",
-                name, book.doneCount(), book.tasks().size());
+                name, book.doneCount() + book.doneChildren(),
+                book.tasks().size() + book.childCount());
     }
 
     /** 背景色（含透明度）；返回 0 表示完全不画背景 */

@@ -30,7 +30,7 @@ public class NoteDataGameTest
 {
     private static final String TEMPLATE = "note_data";
 
-    /** 造一册有代表性的便签：两本、多条任务、勾选、名字、自动更名开关、悬浮窗设置 */
+    /** 造一册有代表性的便签：两本、多条任务（含子任务）、勾选、名字、自动更名开关、悬浮窗设置 */
     private static NoteShelf sample()
     {
         NoteShelf shelf = new NoteShelf();
@@ -39,6 +39,12 @@ public class NoteDataGameTest
         first.add("写周报");
         first.add("测试勾选");
         first.toggle(2);
+        // 「做贤者之石」+ 子任务（用户给的例子）
+        int parent = first.add("做贤者之石");
+        first.addChild(parent, "热核");
+        first.addChild(parent, "工业先锋");
+        first.addChild(parent, "还差一步");
+        first.toggleChild(parent, 1); // 工业先锋 已完成
         first.setName("我的清单");
         first.setAutoName(false);
 
@@ -88,9 +94,19 @@ public class NoteDataGameTest
             {
                 NoteTask lt = left.tasks().get(t);
                 NoteTask rt = right.tasks().get(t);
-                if (!lt.text.equals(rt.text) || lt.done != rt.done)
+                if (!lt.text.equals(rt.text) || lt.done != rt.done
+                        || lt.childCount() != rt.childCount())
                 {
                     return false;
+                }
+                for (int c = 0; c < lt.childCount(); c++)
+                {
+                    NoteTask lc = lt.children().get(c);
+                    NoteTask rc = rt.children().get(c);
+                    if (!lc.text.equals(rc.text) || lc.done != rc.done)
+                    {
+                        return false;
+                    }
                 }
             }
         }
@@ -252,6 +268,121 @@ public class NoteDataGameTest
         helper.assertTrue(shelf.hud().background == NoteHud.BG_COUNT - 1,
                 "背景档位没夹住：" + shelf.hud().background);
         helper.assertTrue(shelf.hud().x <= 1.5F, "位置没夹住：" + shelf.hud().x);
+        helper.succeed();
+    }
+
+    /** 子任务：NBT / 封包往返、旧平铺存档兼容、深度与数量夹取 */
+    @GameTest(template = TEMPLATE)
+    public static void noteSubTaskStructure(GameTestHelper helper)
+    {
+        NoteBook book = new NoteBook();
+        book.add("做贤者之石");
+        int p = 0;
+        helper.assertTrue(book.addChild(p, "热核") == 0, "挂第一个子任务应返回下标 0");
+        helper.assertTrue("热核".equals(book.tasks().get(p).children().get(0).text), "子任务文字不对");
+        book.addChild(p, "工业先锋");
+        book.toggleChild(p, 1);
+        helper.assertTrue(book.tasks().get(p).doneChildren() == 1, "已完成子任务计数不对");
+        helper.assertTrue(book.tasks().get(p).totalDone() == 1
+                && book.tasks().get(p).totalCount() == 3, "子树计数不对");
+
+        // NBT 往返
+        CompoundTag tag = new CompoundTag();
+        book.tasks().get(p).save(tag);
+        NoteTask back = NoteTask.load(tag);
+        helper.assertTrue(back.childCount() == 2, "NBT 往返后子任务丢了");
+        helper.assertTrue("工业先锋".equals(back.children().get(1).text) && back.children().get(1).done,
+                "NBT 往返后子任务内容/勾选不对");
+
+        // 封包往返
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(
+                Unpooled.buffer(), helper.getLevel().registryAccess());
+        book.tasks().get(p).write(buf);
+        NoteTask fromBuf = NoteTask.read(buf);
+        helper.assertTrue(fromBuf.childCount() == 2
+                && "热核".equals(fromBuf.children().get(0).text), "封包往返后子任务不对");
+        helper.assertTrue(buf.readableBytes() == 0, "封包没读完（读写不对称）");
+
+        // 旧平铺存档（没有 Children 字段）→ 读成主任务、无子任务
+        CompoundTag legacy = new CompoundTag();
+        new NoteTask("老任务", false).save(legacy);
+        NoteTask legacyTask = NoteTask.load(legacy);
+        helper.assertTrue(legacyTask.childCount() == 0 && "老任务".equals(legacyTask.text),
+                "旧平铺任务应该读成无子任务的主任务");
+
+        // 超过两级的嵌套会被夹掉
+        NoteTask deep = new NoteTask("一级", false);
+        NoteTask mid = new NoteTask("二级", false);
+        mid.appendChild(new NoteTask("三级", false));
+        deep.appendChild(mid);
+        NoteTask deepBack = NoteTask.load(toTag(deep));
+        helper.assertTrue(deepBack.childCount() == 1, "二级应该保留");
+        helper.assertTrue(deepBack.children().get(0).childCount() == 0, "三级应该被夹掉（只开放两级）");
+
+        // 数量上限
+        NoteBook big = new NoteBook();
+        big.add("主任务");
+        for (int i = 0; i < NoteTask.MAX_CHILDREN + 5; i++)
+        {
+            big.addChild(0, "子" + i);
+        }
+        helper.assertTrue(big.tasks().get(0).childCount() == NoteTask.MAX_CHILDREN,
+                "子任务数没夹在 " + NoteTask.MAX_CHILDREN);
+        helper.succeed();
+    }
+
+    private static CompoundTag toTag(NoteTask task)
+    {
+        CompoundTag tag = new CompoundTag();
+        task.save(tag);
+        return tag;
+    }
+
+    /** 升降级与同级重排：Tab（降级）/ Shift+Tab（升级）/ 拖拽语义 */
+    @GameTest(template = TEMPLATE)
+    public static void noteSubTaskMove(GameTestHelper helper)
+    {
+        NoteBook book = new NoteBook();
+        book.add("A");
+        book.add("B");
+        book.add("C");
+
+        // B 降级成 A 的子任务
+        helper.assertTrue(book.demoteTop(1), "demoteTop 应该成功");
+        helper.assertTrue(book.tasks().size() == 2, "降级后主任务数应为 2");
+        helper.assertTrue(book.tasks().get(0).childCount() == 1
+                && "B".equals(book.tasks().get(0).children().get(0).text), "B 应该挂在 A 下面");
+
+        // 再把 B 升级回主任务（插在 A 后面）
+        helper.assertTrue(book.promoteChild(0, 0), "promoteChild 应该成功");
+        helper.assertTrue(book.tasks().size() == 3
+                && "B".equals(book.tasks().get(1).text), "升级后 B 应该回到 A 后面");
+
+        // 子任务同级重排
+        book.addChild(0, "子1");
+        book.addChild(0, "子2");
+        book.addChild(0, "子3");
+        book.moveChild(0, 2, 0);
+        helper.assertTrue("子3".equals(book.tasks().get(0).children().get(0).text), "子任务重排失败");
+
+        // 主任务同级重排：子任务跟着走
+        book.moveTask(0, 2);
+        helper.assertTrue(book.tasks().get(2).childCount() == 3, "主任务拖拽应该带着子任务走");
+
+        // 删除主任务连子任务一起删
+        book.remove(2);
+        helper.assertTrue(book.childCount() == 0, "删主任务应该连子任务一起删");
+
+        // clearDone：完成的子任务会被清掉，未完成的保留（主任务不受影响）
+        book.addChild(0, "已完成的子任务");
+        book.addChild(0, "未完成的子任务");
+        book.toggleChild(0, 0); // 第一个标成完成
+        int removed = book.clearDone();
+        helper.assertTrue(removed == 1, "clearDone 应该只清掉 1 条已完成的子任务");
+        helper.assertTrue(book.tasks().size() == 2, "未完成的主任务应该保留");
+        helper.assertTrue(book.childCount() == 1
+                && "未完成的子任务".equals(book.tasks().get(0).children().get(0).text),
+                "clearDone 应该保留未完成的子任务");
         helper.succeed();
     }
 
