@@ -172,12 +172,18 @@ def keepOldVersions = false
 
 tasks.register('deployJars') {
     group = 'build'
-    description = '把 build/libs 下的 jar 同步到本机 1.21.1 测试 mods 目录。'
+    description = '把 build/libs 下的 jar 同步到本机 1.21.1 测试 mods 目录（仅 Windows 本机；其它平台自动跳过）。'
     dependsOn tasks.named('jar')
     doLast {
         def jarFile = layout.buildDirectory.file("libs/${mod_id}-${mod_version}.jar").get().asFile
         if (!jarFile.isFile()) {
             throw new GradleException("deployJars: 找不到构建产物 ${jarFile}")
+        }
+        // 部署目标是本机固定路径（Windows 盘符），在 Linux/CI 上 file('E:/...') 会直接抛
+        // "Cannot convert URL to a file"，所以这里先判平台，非 Windows 一律跳过。
+        if (!System.getProperty('os.name').toLowerCase().contains('windows')) {
+            logger.lifecycle('deployJars: 非 Windows 环境，跳过本机部署（jar 仍在 {}）', jarFile)
+            return
         }
         def anyDeployed = false
         deployTargets.each { target ->
