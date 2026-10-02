@@ -933,3 +933,23 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     没有往 1000+ 行的老类里塞任何新逻辑。**存量那几个大类的拆分没有在本轮做**：`ModeWheelScreen`(1512) /
     `EndlessBeafItem`(1464) / `StaffLinkScreen`(1381) / `ConfigManager`(1385) 大多是逐字照抄上游的，
     拆之前得先确认「上游更新时怎么合并」，而且拆分属于纯重构、必须进游戏逐屏验证 —— 属于该单独开一轮的活。
+- 5.4.1 → **5.4.2（God class 拆分第一步 + 掉落逻辑首次有测试）** —— 重构 + 测试，按规则**末位 +1**。
+  - **背景**：优化②「God class 逐步拆分」在 5.4.1 里只做到了「新代码一律独立成文件」，存量大类没动。
+    本轮挑了一个**真正安全**的落点：`GodDropBlockEntity` 里那段「按原版战利品表产出掉落物」的算法。
+  - **做了什么**：把 `produce` / `produceFromLootTable` / `nearestPlayer` / `isBannedDrop` + 那 16 项
+    `BANNED_ITEM_CLASSES` 常量（共 **110 行**）搬到新文件 `com.godofthings.block.entity.machine.DropLootRoller`，
+    方块实体只留一行委派：**514 行 → 396 行**，并自动清掉了 31 个因此变成未使用的 import。
+    选它的理由是「自成一体的纯算法」——只依赖 `(ServerLevel, BlockPos, EntityType/ItemStack)`，不碰 BE 的字段。
+  - **顺带补上了一个真空地带**：这条链路（掉落机到底会不会按原版表产出全部掉落物、装备过滤对不对）
+    **以前一条测试都没有**，只能人工进游戏摆机器试。抽成静态方法后新增
+    `DropLootRollerGameTest` **4 条测试**（用真实服务端的原版战利品表跑）：
+    · 鸡 → 必含生鸡肉、每种产物都是 64 个、产物里不出现被过滤的装备；
+    · 刷怪蛋入口能产出 / 非刷怪蛋物品产出空表；
+    · 非生物实体（船）安静返回空表而不是抛异常；
+    · 装备过滤：剑 / 盔甲 / 弓 / 剪刀 / 打火石 → 过滤，羽毛 / 生鸡肉 → 放行，空物品按过滤处理。
+    → 测试总数 **7 → 11**，`gradlew runGameTestServer` 实测 `All 11 required tests passed`。
+  - **没做的部分（仍然只做了一小步）**：`ModeWheelScreen`(1512) / `EndlessBeafItem`(1464) / `StaffLinkScreen`(1381) /
+    `ConfigManager`(1385) / `GodCraftBlockEntity`(987) 这些大类的拆分**还是没动**，原因不变：
+    它们多是逐字照抄上游的，拆之前要先定「上游更新时怎么合并」，而且属于纯重构、必须逐屏实机验证 ——
+    该在单独一轮里挑一个类、配一次完整的手动回归。这轮先把「可测的小块」拆出来做样板。
+  - 开发专用服务端实机加载通过（含 AE2 required 声明、`note_sync` 协议版本 1→2 之后）。
