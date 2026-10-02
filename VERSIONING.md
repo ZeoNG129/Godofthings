@@ -718,3 +718,11 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     `gradlew build` 0 错误并自动部署（清理 5.1.7、落 5.1.8 到两个测试实例）；jar 内 `version="5.1.8"`、
     zh/en 各 1299 键且新增键文案回读正确；改完后再跑一次开发服务端加载自检通过。
   - README：本次没有新增/删除内容，表格无需改动。
+  - **发版（已完成）**：本地提交 `af788fb` 已推送到 `origin/1.21.1`（走 NBVPN 的 7890 代理）；
+    `godofthings-5.1.8.jar`（1,747,018 字节）按「每个首位大版本一个 release」的规则**追加到 5.x 那个 release**
+    （tag `v5.1.7`，release id `400888984`），**没有新建 release、也没有新建 tag**；该 release 的 notes 同步追加了
+    v5.1.8 一行并把「包含 jar」清单改成 5.0.0…5.1.8（现共 **10 个 asset**），远端 notes 与本地文案逐字一致。
+    · AGENTS.md 的同步状态段已同步更新（5.x 由 9 个 jar 改为 10 个，核对日期改 2026-10-02）。
+    · 上传脚本这次是临时脚本（`git credential fill` 取 token + 自动探测 7890 + `PATCH /releases/{id}` 改 notes +
+      `POST uploads.github.com/.../assets` 传 jar），未入库；`.ref/release/publish-majors.ps1` 目前只管「建大版本 release」，
+      小版本的「追加 asset + 改 notes」还没有可复用脚本，下次可以考虑补一个 `publish-patch.ps1`。
