@@ -53,6 +53,15 @@ public class WandKeyBindings
             CATEGORY
     ));
 
+    /** 神之便签记事本界面（N） */
+    public static final Lazy<KeyMapping> OPEN_NOTE_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.open_note",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_N,
+            CATEGORY
+    ));
+
     private WandKeyBindings() {}
 
     public static void register(RegisterKeyMappingsEvent event)
@@ -61,5 +70,6 @@ public class WandKeyBindings
         event.register(SWORD_MODE_KEY.get());
         event.register(OPEN_ARMOR_CONFIG_KEY.get());
         event.register(OPEN_ARMOR_SKILL_KEY.get());
+        event.register(OPEN_NOTE_KEY.get());
     }
 }

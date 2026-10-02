@@ -41,6 +41,7 @@ import com.godofthings.item.GodBlackBoxItem;
 import com.godofthings.item.GodChangeItem;
 import com.godofthings.item.GodInviteItem;
 import com.godofthings.item.GodMinerItem;
+import com.godofthings.item.GodNoteItem;
 import com.godofthings.item.GodUnbreakableItem;
 import com.godofthings.menu.GodBlackBoxMenu;
 import com.godofthings.menu.GodChangeMenu;
@@ -231,6 +232,9 @@ public class Godofthings
             ITEMS.registerItem("god_black_box", GodBlackBoxItem::new);
     public static final DeferredItem<GodBinderItem> GOD_BINDER =
             ITEMS.registerItem("god_binder", GodBinderItem::new);
+    /** 神之便签：记事本物品（内容按玩家存在存档里，见 GodNoteData） */
+    public static final DeferredItem<GodNoteItem> GOD_NOTE =
+            ITEMS.registerItem("god_note", props -> new GodNoteItem(props.stacksTo(1)));
 
     // ---- 神之工具 ----
     // GT 扳手模式子类（通过模式轮盘切换，不直接出现在创造标签）
@@ -484,6 +488,7 @@ public class Godofthings
                         output.accept(GOD_RECORD_ITEM.get());
                         output.accept(GOD_BLACK_BOX.get());
                         output.accept(GOD_BINDER.get());
+                        output.accept(GOD_NOTE.get());
                         output.accept(GOD_TRANSMITTER_ITEM.get());
                         output.accept(GOD_SLAUGHTER_ITEM.get());
                         output.accept(GOD_ABSORBER_ITEM.get());

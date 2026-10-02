@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "PIP",
+    " G "
+  ],
+  "key": {
+    "P": { "item": "minecraft:paper" },
+    "I": { "item": "minecraft:ink_sac" },
+    "G": { "item": "minecraft:gold_ingot" }
+  },
+  "result": {
+    "id": "godofthings:god_note"
+  }
+}

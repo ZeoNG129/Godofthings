@@ -726,3 +726,45 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     · 上传脚本这次是临时脚本（`git credential fill` 取 token + 自动探测 7890 + `PATCH /releases/{id}` 改 notes +
       `POST uploads.github.com/.../assets` 传 jar），未入库；`.ref/release/publish-majors.ps1` 目前只管「建大版本 release」，
       小版本的「追加 asset + 改 notes」还没有可复用脚本，下次可以考虑补一个 `publish-patch.ps1`。
+- 5.1.8 → **5.2.0（新增物品：神之便签 / God Note —— 记事本 + 屏幕悬浮便签）** —— 新增小物品，按规则**第二位 +1、末位归零**。
+  - **需求**：用户要一个「类似便签的东西」，快捷键 / 物品 / 指令三种方式都能打开记事本，任务前带方框勾选；
+    界面里可以开关悬浮窗，悬浮窗的位置、大小、背景也都能调。
+  - **数据归属（本次的设计决定）**：便签属于**玩家个人资料**，不是物品自带 —— 一本便签对应一个玩家，存在存档里
+    （`GodNoteData extends SavedData`，挂主世界维度存储、跨维度共享，与传送点同一套做法）。这样「N 键」「`/godnote`」
+    这两条入口不需要玩家拿着物品也能用，悬浮窗也有一份稳定的数据源；物品只是第三个入口，把便签丢给别人不会把内容带走。
+  - **网络（`GodNoteMessages`，4+1 条包）**：`note_sync`（服务端→客户端，整本下发）/ `note_update`（客户端→服务端，整本替换）/
+    `note_request`（进世界后拉一次）/ `note_open`（快捷键请求开界面）+ `note_open_screen`（服务端→客户端，让客户端开界面）。
+    · 同步策略用「整本替换」而不是增量：数据量很小（上限 64 条 × 64 字），换来的是「客户端怎么改、服务端就怎么存」这种
+      最不容易出错的形态；**服务端始终先 `clamp()` 再落库**，客户端塞越界数据也写不坏存档（自检里专门验了这条）。
+    · 发的是**副本**而不是引用：`PacketDistributor` 到网络线程才编码，直接发主线程那份对象会有并发改写风险。
+    · 进世界后的首次同步由**客户端主动请求**（`ClientNoteCache.requestOnce()`），而不是服务端在登录事件里推送 ——
+      纯原版客户端连进来时，服务端就不会往它发它不认识的包。
+  - **界面**：`GodNoteScreen`（纯 Screen：`renderBackground` 留空、自己在 `render` 里画底色与面板，与 `RangeAccelerationConfigScreen`
+    同一套写法）分两页：
+    · **任务页**：一行一条 —— 左侧方框点击勾选、点文字改名（底部输入框变成「保存修改」）、右侧 `x` 删单条、`清空已完成`、
+      `悬浮窗：开/关`、`悬浮窗设置 >`；列表滚轮翻页并显示 `起始-结束 / 总数`；Enter 提交，正在改名时 Esc 只取消改名不关界面。
+    · **悬浮窗页**：开关、位置 X / Y（±2%）、大小（±0.25x，范围 0.5~2.5）、透明度（±0.1）、背景（`<` `>` 循环 5 档）、
+      `已完成条目` 开关、`拖动摆放`、`< 返回任务列表`。
+    · 换页不直接 `rebuildWidgets()`（按钮回调还在事件分发里，中途清空控件列表会让本轮点击分发提前结束），
+      改成置 `pendingPage`、下一帧 `render` 里再切。
+  - **悬浮窗**：`GodNoteHud` 注册为独立 GUI 层（`registerAbove(VanillaGuiLayers.EXPERIENCE_LEVEL, …)`，在血条之上、聊天栏之下，
+    不做任何 Mixin，与其他 HUD mod 零冲突）。
+    · 位置按**屏幕比例**存（0~1），绘制时换算成像素并夹在屏幕内 —— 换分辨率、换 GUI 缩放都不会跑偏；大小用 `pose().scale()`
+      缩放，文字随之放大。
+    · 每条任务按像素宽度折行（英文优先在空格断行、中文硬断；单条最多 6 行、整块最多 24 行），已完成条目画灰 + 删除线，
+      勾选框用 4 个小方块拼出「✓」（不依赖字体里有没有 U+2713）。
+    · 背景 5 档：无 / 半透明黑 / 羊皮纸（不透明 + 深棕文字）/ 深空蓝 / 自定义（颜色 + 透明度）；`mc.screen != null` 时不画，
+      免得盖住别的界面。
+    · `GodNoteHudEditScreen`：「拖动摆放」用的透明界面 —— 没有界面打开时鼠标事件根本不会送到模组手里（点一下就是攻击），
+      所以用一层透明界面接管输入：拖动移动、滚轮缩放、Esc 保存并回到记事本。
+  - **三入口**：`GodNoteItem`（右键 → 服务端先 `sendSync` 再 `sendOpenScreen`）/ `WandKeyBindings.OPEN_NOTE_KEY`（**N 键**，
+    客户端 `NoteKeyHandler` 每帧 `consumeClick` → `note_open`）/ `GodNoteCommands`（`/godnote`〔开界面〕、`add <文字>`、`list`、
+    `clear`、`hud on|off`；不设权限等级，谁都能管自己那一本）。
+  - **新增文件**：`note/{NoteTask, NoteHud, NoteBook, GodNoteData}.java`、`network/GodNoteMessages.java`、`item/GodNoteItem.java`、
+    `client/{ClientNoteCache, GodNoteHud, NoteKeyHandler}.java`、`client/screen/{GodNoteScreen, GodNoteHudEditScreen}.java`、
+    `command/GodNoteCommands.java`；资源 `models/item/god_note.json`、`textures/item/god_note.png`（16×16 像素画）、
+    `recipe/god_note.json`；`Godofthings.java` 注册物品与创造栏、`WandKeyBindings` 加 N 键。
+  - **验证**：`gradlew build` 0 错误并自动部署（清理 5.1.8、落 5.2.0）；开发专用服务端实机加载 `Done (8.776s)!`；
+    临时自检（验证后已删除，jar 内已确认无残留）在真实服务端运行时里跑通 4 项 —— **NBT 往返 = PASS、SavedData 整份存 / 取 = PASS、
+    网络封包往返（且缓冲区正好读完）= PASS、越界数据 clamp = PASS**（日志实测 `nbt=true savedData=true packet=true clamp=true`）。
+  - 语言文件 zh/en 各 **1338** 键（1299 + 39）、双向差异 0；README「内容一览」与键位表已同步（新增神之便签一行 + `N` 键）。
