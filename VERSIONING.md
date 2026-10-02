@@ -802,3 +802,7 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     `nbt=true packet=true auto=true idempotent=true manual=true put=true clamp=true today=10.02`。
   - 语言文件 zh/en 各 **1348** 键（+10）、双向差异 0；README「内容一览」的神之便签一行与指令清单已同步
     （顺手修掉那一行里 `hud on|off` 没转义的竖线 —— 它会把 Markdown 表格多切出一列）。
+  - **发版（已完成）**：本地提交 `05b16b8` 已推送到 `origin/1.21.1`（走 NBVPN 的 7890 代理）；
+    `godofthings-5.2.1.jar`（1,799,372 字节）继续**追加到 5.x 那个 release**（tag `v5.1.7`，release id `400888984`），
+    没有新建 release / tag；release notes 追加了 v5.2.1 一行，「整合 5.0.0 → 5.2.0」改成「→ 5.2.1」，jar 清单补到 5.2.1
+    （现共 **12 个 asset**）；下载链路实测 `HTTP 200`、1,799,372 字节与本地 jar 一致。AGENTS.md 的同步状态段同步改为 12 个 jar。
