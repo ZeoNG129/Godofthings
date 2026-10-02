@@ -118,12 +118,12 @@ public final class WondrousStaffHud {
         int fillColor;
         float fraction;
         if (permanent) {
-            title = Component.literal("\u65F6\u95F4\u52A0\u901F x" + speed + " \u221E");
+            title = Component.translatable("hud.godofthings.staff.time_speed_permanent", speed);
             fillColor = COLOR_PERMANENT_FILL;
             fraction = 1.0F;
         } else {
             int seconds = Math.max(0, remaining) / 20;
-            title = Component.literal("\u65F6\u95F4\u52A0\u901F x" + speed + " \u00B7 " + seconds + "s");
+            title = Component.translatable("hud.godofthings.staff.time_speed_timed", speed, seconds);
             fillColor = COLOR_TIME_FILL;
             fraction = Mth.clamp(remaining / (float) WondrousStaffAcceleration.DEFAULT_DURATION_TICKS, 0.0F, 1.0F);
         }

@@ -118,7 +118,9 @@ public abstract class AbstractWaypointScreen<T extends AbstractContainerMenu & W
 
     private void drawRow(GuiGraphics gui, int x, int rowY, Waypoint wp)
     {
-        String label = wp.pinned ? "[顶] " + wp.name : wp.name;
+        String label = wp.pinned
+                ? Component.translatable("gui.godofthings.waypoint.pinned_prefix").getString() + wp.name
+                : wp.name;
         label = this.font.plainSubstrByWidth(label, 72);
         gui.drawString(this.font, label, x + 8, rowY + 5, wp.pinned ? 0xFFE0B030 : 0xFFFFFF);
 

@@ -53,7 +53,7 @@ public class GodAbsorberScreen extends AbstractContainerScreen<GodAbsorberMenu>
                 this.menu.isEnabled() ? Component.translatable("gui.godofthings.slaughter.on") : Component.translatable("gui.godofthings.slaughter.off"),
                 this.menu.isEnabled());
         drawButton(gui, x + 88, y + 24, 76, 16,
-                this.menu.isAeEnabled() ? Component.literal("AE: 开") : Component.literal("AE: 关"),
+                this.menu.isAeEnabled() ? Component.translatable("gui.godofthings.ae.on") : Component.translatable("gui.godofthings.ae.off"),
                 this.menu.isAeEnabled());
         gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.range", this.menu.getRange()), x + 8, y + 50, 0xFFFFFF);
         drawButton(gui, x + 96, y + 46, 18, 16, Component.literal("-"), false);

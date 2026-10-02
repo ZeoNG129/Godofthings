@@ -685,3 +685,36 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     至此远程 release 共 **6 个**（v1.9.0 / v2.0.5 / v2.4.1 / v3.0.1 / v4.0.2 / v5.1.7），tag 与分支均与本地一致；
     下载链路实测 `HTTP 200`（`godofthings-5.1.7.jar` = 1,746,580 字节）。发版脚本落在 `.ref/release/publish-majors.ps1`（ASCII-only，
     走 `git credential fill` 取 token、自动探测 7890 代理），AGENTS.md 的同步状态段已同步更新。
+- 5.1.7 → **5.1.8（全项目体检后修复：补 1 个缺失语言键 + 把 26 处写死的中文文案改成语言键）** —— 修复，按规则**末位 +1**。
+  - **背景**：用户要求「检查一下这个模组」，做了一轮更彻底的体检（构建 / 真实加载 / 资源完整性 / 语言键 / 数据引用 / jar 打包 / 版本一致性）。
+    **体检结论：项目健康**——`gradlew build` 0 错误；开发专用服务端实机加载 `Done (7.440s)!`（注册表 / Mixin / 数据包 / 5061 条配方全部就绪）；
+    zh/en 各 1276 键双向零差异；模型引用的 79 处贴图全部存在、所有注册物品与方块都有 model + blockstate；
+    jar 内 `mods.toml` 版本号替换正确、`zh_cn` 是合法 UTF-8 无乱码、6 份第三方许可都打进了 `META-INF/`；
+    数据文件没有引用不存在的 `godofthings:` 物品 ID；代码零 `System.out` / `printStackTrace` / `TODO` 残留；
+    3 个 mixin 配置里列的 25 个类全部存在；`gradle.properties` / `VERSIONING.md` / README 三处版本号一致。
+  - **问题 ①（真 bug）：缺 `gui.godofthings.staff_summon.mode`**。它在 `WondrousStaffSummonScreen:253` 的
+    `enabledMessage()` 里被用作**召唤界面的开关按钮文字**（77 / 207 / 221 行都调用它），而 zh_cn / en_us 两个文件里都**没有这个键**
+    —— 玩家看到的是原始键名拼参数（`gui.godofthings.staff_summon.mode开`）。→ 补「召唤模式：%s / Summon mode: %s」。
+    · 上次体检（5.1.7）没抓到这个键，原因是键集比对只比 zh 与 en 是否一致，**两边同时缺的键那种检查天然看不见**；
+      这次改成「从 Java 里抽出全部 `translatable("字面量")` 再逐个回查语言文件」才暴露出来。
+  - **问题 ②：26 处写死的界面文案绕过了语言文件**，英文环境下照样显示中文（`Component.literal(...)`）：
+    · `GodCraftScreen`：模板 / 锁 / 开·停 / 配 / 模 / 神之合成；
+    · `GodCraftTemplateScreen`：模板 / 单击预览 · Shift+单击保存 / 产物 / 无 / 模板为空 / 加载 / 返；
+    · `GodAbsorberScreen`：`AE: 开` · `AE: 关`；`DevourerButtonHandler`：背包左上角按钮「吞」；
+    · `WondrousStaffHud`：HUD 上的「时间加速 x%s ∞」「时间加速 x%s · %ss」（源码里写成 `\uXXXX` 转义，
+      第一遍按中文正则扫没扫到，第二遍放宽规则才发现）；
+    · `AbstractWaypointScreen`：置顶前缀「[顶] 」；`RangeAccelerationHistoryScreen`：历史条目详情的「偏 x,y,z」；
+    · `PointCommands`：`/setpoint`、`/point tp`、`/point del` 的 5 条命令反馈。
+    → 全部改成 `Component.translatable(...)`，共**新增 23 个键**（zh/en 同步），另有 3 处直接复用已有键
+      （`gui.godofthings.back`、`container.godofthings.god_craft`、`gui.godofthings.range.offset_short`）。
+    · 顺带把神之合成界面那排小按钮加宽（`BTN_W` / `BACK_W` 22 → 30，`BTN_X` / `BACK_X` 146+SHIFT → 140+SHIFT），
+      否则英文短标签（Lock / On / Off / Face / Tpl）放不进 22px；改后左右都不与 AE 按钮（170+SHIFT 起、宽 16）
+      和结果槽（124+SHIFT、宽 16）重叠，右边缘仍停在 222 之前没压到原版贴图边框。
+  - **两处刻意不动**：① 配置注释（`ConfigManager` / `StretcherConfig` / `MachinesConfig` / `ClientConfig`）——NeoForge 的配置注释
+    不支持语言键，只能写死；② 日志文案（`AeLogisticsCompat` / `AeEnergyCompat` / `AdAstraCompat` / `MagicAttributeHandler` /
+    `StaffLinkManager` / `StaffLinkTargets` 等）是给开发者看的，不面向玩家。另外发现 `GodMinerBlockEntity.fluidName()`
+    是**无人调用的死代码**（返回「水 / 岩浆 / 液体」），本次未动，留待后续清理。
+  - **验证**：语言文件 zh/en 各 **1299** 键（1276 + 23）、双向差异 0、与仓库原有的排序规则一致；
+    `gradlew build` 0 错误并自动部署（清理 5.1.7、落 5.1.8 到两个测试实例）；jar 内 `version="5.1.8"`、
+    zh/en 各 1299 键且新增键文案回读正确；改完后再跑一次开发服务端加载自检通过。
+  - README：本次没有新增/删除内容，表格无需改动。

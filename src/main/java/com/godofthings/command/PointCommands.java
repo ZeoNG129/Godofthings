@@ -69,7 +69,8 @@ public class PointCommands
         wp.yaw = player.getYRot();
         wp.pitch = player.getXRot();
         WaypointData.get(source.getServer()).set(wp);
-        source.sendSuccess(() -> Component.literal("已设置传送点 " + name).withStyle(ChatFormatting.GREEN), false);
+        source.sendSuccess(() -> Component.translatable("message.godofthings.point.set", name)
+                .withStyle(ChatFormatting.GREEN), false);
         return 1;
     }
 
@@ -79,15 +80,16 @@ public class PointCommands
         Waypoint wp = WaypointData.get(source.getServer()).get(name.trim());
         if (wp == null)
         {
-            source.sendFailure(Component.literal("传送点不存在：" + name));
+            source.sendFailure(Component.translatable("message.godofthings.point.missing", name));
             return 0;
         }
         if (!WaypointData.teleport(player, wp))
         {
-            source.sendFailure(Component.literal("目标维度不存在：" + wp.dimension));
+            source.sendFailure(Component.translatable("message.godofthings.point.dimension_missing", wp.dimension));
             return 0;
         }
-        source.sendSuccess(() -> Component.literal("已传送到 " + name).withStyle(ChatFormatting.GREEN), false);
+        source.sendSuccess(() -> Component.translatable("message.godofthings.point.teleported", name)
+                .withStyle(ChatFormatting.GREEN), false);
         return 1;
     }
 
@@ -96,11 +98,12 @@ public class PointCommands
         WaypointData data = WaypointData.get(source.getServer());
         if (data.get(name.trim()) == null)
         {
-            source.sendFailure(Component.literal("传送点不存在：" + name));
+            source.sendFailure(Component.translatable("message.godofthings.point.missing", name));
             return 0;
         }
         data.remove(name.trim());
-        source.sendSuccess(() -> Component.literal("已删除传送点 " + name).withStyle(ChatFormatting.GREEN), false);
+        source.sendSuccess(() -> Component.translatable("message.godofthings.point.deleted", name)
+                .withStyle(ChatFormatting.GREEN), false);
         return 1;
     }
 }

@@ -127,7 +127,8 @@ public final class RangeAccelerationHistoryScreen extends Screen {
             if (!field.name().isBlank()) location = field.name() + "  ·  " + location;
             String details = TIME_FORMAT.format(Instant.ofEpochMilli(field.createdAt()))
                     + "  x" + field.speed() + "  " + field.sizeX() + "x" + field.sizeY() + "x" + field.sizeZ()
-                    + "  偏" + field.offsetX() + "," + field.offsetY() + "," + field.offsetZ();
+                    + "  " + Component.translatable("gui.godofthings.range.offset_short",
+                            field.offsetX() + "," + field.offsetY() + "," + field.offsetZ()).getString();
             graphics.drawString(font, font.plainSubstrByWidth(location, panelWidth - 158),
                     panelLeft + 12, y + 3, StretcherScreenStyle.TEXT_COLOR, false);
             graphics.drawString(font, font.plainSubstrByWidth(details, panelWidth - 158), panelLeft + 12, y + 13,

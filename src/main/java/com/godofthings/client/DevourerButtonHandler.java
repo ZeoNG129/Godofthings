@@ -26,7 +26,7 @@ public class DevourerButtonHandler
             int x = inv.getGuiLeft();
             int y = inv.getGuiTop() + 166;
             Button button = Button.builder(
-                            Component.literal("吞"),
+                            Component.translatable("gui.godofthings.devourer.button"),
                             b -> DevourerMessages.sendOpen())
                     .bounds(x, y, 20, 20)
                     .tooltip(Tooltip.create(Component.translatable("block.godofthings.god_devourer")))
