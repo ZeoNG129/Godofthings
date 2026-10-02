@@ -863,3 +863,11 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     · **新增依赖 release `libs-1.21.1`**（pre-release、19 个 asset、不属于版本线）：`libs/` 里那 19 个第三方模组 jar 从版本树移除后，
       由根目录 `fetch-libs.ps1` 从这里拉回；实测 19 个文件 SHA256 与本地逐一相同。
     · AGENTS.md 的同步状态段已同步更新（5.x 由 12 个 jar 改为 13 个，并注明多了一个依赖 release）。
+  - **CI 首跑失败 → 已修复（记一笔，省下次时间）**：第一个 Action 运行（run #2/#3）在 `fetch-libs` 与 `build` 两步先后失败，都是**本机脚本里的 Windows 独有写法**：
+    · `fetch-libs.ps1` 用了 `Test-NetConnection` 探测本机代理 —— **Linux 上的 pwsh 没有这个 cmdlet**（它属于 Windows 的 NetTCPIP 模块），直接 `CommandNotFound` 让脚本退出。
+      改成 `System.Net.Sockets.TcpClient` 的跨平台探测，并按平台选 `curl.exe` / `curl`。
+    · `build.gradle` 的 `deployJars` 用 `file('E:/MC/...')` —— 在 Linux 上这段字符串会被当成 URL，抛 `Cannot convert URL 'E:/...' to a file`，把整个 build 拖失败（**编译本身是成功的**）。
+      改成先判 `os.name` 含 windows，否则打印一行「非 Windows 环境，跳过本机部署」直接返回。
+    · 两处修完后 run #4 **全部步骤通过**（fetch-libs / check-lang / build / upload jar）。本机也复验过：Windows 上照常部署，把 `os.name` 伪装成 Linux 则走跳过分支。
+    · 教训：**本机用的 .ps1 / build.gradle 只要会在 CI 跑到，就不能用 Windows 独有的 cmdlet 或盘符路径**。
+    · 备注：release 里那个 `godofthings-5.3.0.jar` 是从 `4f74290`（功能提交）构建的；之后两个提交（`653a624`、`f5b616b`）只动了 CI 与构建脚本，**不影响 jar 内容**，所以没有重新上传。
