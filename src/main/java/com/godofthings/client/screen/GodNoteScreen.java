@@ -1,9 +1,9 @@
 package com.godofthings.client.screen;
 
 import com.godofthings.client.ClientNoteCache;
-import com.godofthings.client.GodNoteHud;
 import com.godofthings.note.NoteBook;
 import com.godofthings.note.NoteHud;
+import com.godofthings.note.NoteShelf;
 import com.godofthings.note.NoteTask;
 import com.godofthings.network.GodNoteMessages;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,22 +21,25 @@ import java.util.List;
  *
  * <p>两页：
  * <ul>
- *   <li><b>任务页</b>：一行一条，左边方框点击勾选、点文字改名、右边 × 删除；底部输入框新增。</li>
- *   <li><b>悬浮窗页</b>：开关、位置、大小、透明度、背景、是否显示已完成，
- *       以及「拖动摆放」——切到 {@link GodNoteHudEditScreen} 直接在屏幕上拖着放。</li>
+ *   <li><b>任务页</b>：顶部一条「便签册」栏（切换 / 新建 / 删除一本），下面是一行一条的任务列表 ——
+ *       点方框勾选、<b>按住整行上下拖拽排序</b>、点文字改名、右边 × 删单条，底部输入框新增。</li>
+ *   <li><b>悬浮窗页</b>：开关、位置、大小、透明度、背景、是否显示已完成，以及「拖动摆放」。</li>
  * </ul>
  *
- * <p>数据只有一份来源：{@link ClientNoteCache}（服务端下发的镜像）。界面里每次改动都
- * 把整本便签发回服务端，服务端兜底落库后再回发一份，所以界面与悬浮窗永远同步。</p>
+ * <p>数据只有一份来源：{@link ClientNoteCache}（服务端下发的镜像）。界面里每次改动都把整册
+ * 发回服务端，服务端兜底落库后再回发一份，所以界面与悬浮窗永远同步。</p>
  */
 public class GodNoteScreen extends Screen
 {
     private static final int PANEL_W = 300;
     private static final int PANEL_H = 200;
 
-    private static final int ROWS_TOP = 34;
+    /** 便签册栏（切换 / 新建 / 删除） */
+    private static final int BOOK_BAR_Y = 32;
+    /** 任务区 */
+    private static final int ROWS_TOP = 52;
     private static final int ROW_H = 12;
-    private static final int VISIBLE_ROWS = 9;
+    private static final int VISIBLE_ROWS = 8;
     private static final int ROWS_BOTTOM = ROWS_TOP + VISIBLE_ROWS * ROW_H;
 
     private int left;
@@ -53,6 +56,11 @@ public class GodNoteScreen extends Screen
     private Button clearDoneButton;
     private Button hudToggleButton;
     private Button hudSettingsButton;
+
+    private Button prevBookButton;
+    private Button nextBookButton;
+    private Button addBookButton;
+    private Button deleteBookButton;
 
     /** 悬浮窗标题的名字输入框 + 自动更名开关（都在悬浮窗页） */
     private EditBox nameField;
@@ -78,14 +86,25 @@ public class GodNoteScreen extends Screen
     /** 正在改名的那条任务下标，-1 = 新增模式 */
     private int editingIndex = -1;
 
+    /** 正在拖拽排序的那条任务下标，-1 = 没在拖 */
+    private int dragIndex = -1;
+    private boolean dragMoved;
+    /** 删除便签本需要点两次（第一次变成「确认删除」） */
+    private boolean bookDeleteArmed;
+
     public GodNoteScreen()
     {
         super(Component.translatable("gui.godofthings.note.title"));
     }
 
+    private NoteShelf shelf()
+    {
+        return ClientNoteCache.shelf();
+    }
+
     private NoteBook book()
     {
-        return ClientNoteCache.book();
+        return shelf().current();
     }
 
     @Override
@@ -97,6 +116,7 @@ public class GodNoteScreen extends Screen
 
         this.left = (this.width - PANEL_W) / 2;
         this.top = (this.height - PANEL_H) / 2;
+        this.bookDeleteArmed = false;
 
         // 右上角关闭
         addRenderableWidget(Button.builder(Component.literal("X"), b -> onClose())
@@ -134,7 +154,56 @@ public class GodNoteScreen extends Screen
         autoNameButton = null;
         nameDirty = false;
 
-        input = new EditBox(this.font, left + 8, top + 148, 180, 18,
+        // ---- 便签册栏 ----
+        prevBookButton = addRenderableWidget(Button.builder(Component.literal("<"), b ->
+        {
+            bookDeleteArmed = false;
+            shelf().select(shelf().selected() - 1);
+            scroll = 0;
+            push();
+            refresh();
+        }).bounds(left + 8, top + BOOK_BAR_Y, 16, 16).build());
+
+        nextBookButton = addRenderableWidget(Button.builder(Component.literal(">"), b ->
+        {
+            bookDeleteArmed = false;
+            shelf().select(shelf().selected() + 1);
+            scroll = 0;
+            push();
+            refresh();
+        }).bounds(left + 148, top + BOOK_BAR_Y, 16, 16).build());
+
+        addBookButton = addRenderableWidget(Button.builder(
+                Component.translatable("gui.godofthings.note.book_new"), b ->
+                {
+                    bookDeleteArmed = false;
+                    if (shelf().addBook("") >= 0)
+                    {
+                        scroll = 0;
+                        push();
+                        refresh();
+                    }
+                }).bounds(left + 170, top + BOOK_BAR_Y, 58, 16).build());
+
+        deleteBookButton = addRenderableWidget(Button.builder(Component.empty(), b ->
+        {
+            if (!bookDeleteArmed)
+            {
+                bookDeleteArmed = true;
+                refresh();
+                return;
+            }
+            bookDeleteArmed = false;
+            if (shelf().removeBook(shelf().selected()))
+            {
+                scroll = 0;
+                push();
+            }
+            refresh();
+        }).bounds(left + 232, top + BOOK_BAR_Y, 60, 16).build());
+
+        // ---- 任务输入 / 操作 ----
+        input = new EditBox(this.font, left + 8, top + 152, 180, 18,
                 Component.translatable("gui.godofthings.note.input"));
         input.setMaxLength(NoteTask.MAX_TEXT);
         input.setHint(Component.translatable("gui.godofthings.note.input"));
@@ -142,27 +211,29 @@ public class GodNoteScreen extends Screen
 
         actionButton = addRenderableWidget(Button.builder(
                 Component.translatable("gui.godofthings.note.add"), b -> submitInput())
-                .bounds(left + 192, top + 148, 100, 18).build());
+                .bounds(left + 192, top + 152, 100, 18).build());
 
         clearDoneButton = addRenderableWidget(Button.builder(
                 Component.translatable("gui.godofthings.note.clear_done"), b ->
                 {
+                    bookDeleteArmed = false;
                     book().clearDone();
                     push();
                     refresh();
-                }).bounds(left + 8, top + 172, 88, 18).build());
+                }).bounds(left + 8, top + 174, 88, 18).build());
 
         hudToggleButton = addRenderableWidget(Button.builder(
                 Component.empty(), b ->
                 {
-                    book().hud().enabled = !book().hud().enabled;
+                    bookDeleteArmed = false;
+                    shelf().hud().enabled = !shelf().hud().enabled;
                     push();
                     refresh();
-                }).bounds(left + 100, top + 172, 92, 18).build());
+                }).bounds(left + 100, top + 174, 92, 18).build());
 
         hudSettingsButton = addRenderableWidget(Button.builder(
                 Component.translatable("gui.godofthings.note.hud_settings"), b -> pendingPage = 1)
-                .bounds(left + 196, top + 172, 96, 18).build());
+                .bounds(left + 196, top + 174, 96, 18).build());
     }
 
     private void initHudPage()
@@ -173,11 +244,15 @@ public class GodNoteScreen extends Screen
         clearDoneButton = null;
         hudToggleButton = null;
         hudSettingsButton = null;
+        prevBookButton = null;
+        nextBookButton = null;
+        addBookButton = null;
+        deleteBookButton = null;
         editingIndex = -1;
+        dragIndex = -1;
+        nameDirty = false;
 
-        enableButton = null;
-
-        // ① 名称（悬浮窗标题）
+        // ① 名称（当前这一本的悬浮窗标题）
         nameField = new EditBox(this.font, left + 80, top + 30, 212, 18,
                 Component.translatable("gui.godofthings.note.name"));
         nameField.setMaxLength(NoteBook.MAX_NAME);
@@ -207,7 +282,7 @@ public class GodNoteScreen extends Screen
         // ③ 悬浮窗总开关 + 拖动摆放
         enableButton = addRenderableWidget(Button.builder(Component.empty(), b ->
         {
-            book().hud().enabled = !book().hud().enabled;
+            shelf().hud().enabled = !shelf().hud().enabled;
             push();
             refresh();
         }).bounds(left + 80, top + 78, 60, 18).build());
@@ -237,7 +312,7 @@ public class GodNoteScreen extends Screen
         bgNext = addRenderableWidget(stepButton(left + 74, top + 150, ">", () -> cycleBackground(1)));
         doneToggle = addRenderableWidget(Button.builder(Component.empty(), b ->
         {
-            book().hud().showDone = !book().hud().showDone;
+            shelf().hud().showDone = !shelf().hud().showDone;
             push();
             refresh();
         }).bounds(left + 216, top + 150, 76, 18).build());
@@ -255,10 +330,10 @@ public class GodNoteScreen extends Screen
 
     // ------------------------------------------------------------------ 数据改动
 
-    /** 把整本便签发回服务端（发副本，避免网络线程编码时主线程还在改同一份） */
+    /** 把整册便签发回服务端（发副本，避免网络线程编码时主线程还在改同一份） */
     private void push()
     {
-        GodNoteMessages.sendUpdate(book().copy());
+        GodNoteMessages.sendUpdate(shelf().copy());
     }
 
     private void submitInput()
@@ -303,10 +378,16 @@ public class GodNoteScreen extends Screen
                     ? "gui.godofthings.note.save_edit"
                     : "gui.godofthings.note.add"));
         }
-        NoteHud hud = book().hud();
+        NoteHud hud = shelf().hud();
         if (hudToggleButton != null)
         {
             hudToggleButton.setMessage(toggleText("gui.godofthings.note.hud", hud.enabled));
+        }
+        if (deleteBookButton != null)
+        {
+            deleteBookButton.setMessage(Component.translatable(bookDeleteArmed
+                    ? "gui.godofthings.note.book_delete_confirm"
+                    : "gui.godofthings.note.book_delete"));
         }
         if (enableButton != null)
         {
@@ -392,35 +473,35 @@ public class GodNoteScreen extends Screen
 
     private void stepX(int delta)
     {
-        NoteHud hud = book().hud();
+        NoteHud hud = shelf().hud();
         hud.x = Mth.clamp(hud.x + delta * NoteHud.POS_STEP, 0.0F, 1.0F);
         push();
     }
 
     private void stepY(int delta)
     {
-        NoteHud hud = book().hud();
+        NoteHud hud = shelf().hud();
         hud.y = Mth.clamp(hud.y + delta * NoteHud.POS_STEP, 0.0F, 1.0F);
         push();
     }
 
     private void stepScale(int delta)
     {
-        NoteHud hud = book().hud();
+        NoteHud hud = shelf().hud();
         hud.scale = Mth.clamp(hud.scale + delta * NoteHud.SCALE_STEP, NoteHud.MIN_SCALE, NoteHud.MAX_SCALE);
         push();
     }
 
     private void stepOpacity(int delta)
     {
-        NoteHud hud = book().hud();
+        NoteHud hud = shelf().hud();
         hud.opacity = Mth.clamp(hud.opacity + delta * 0.1F, NoteHud.MIN_OPACITY, NoteHud.MAX_OPACITY);
         push();
     }
 
     private void cycleBackground(int delta)
     {
-        NoteHud hud = book().hud();
+        NoteHud hud = shelf().hud();
         hud.background = Math.floorMod(hud.background + delta, NoteHud.BG_COUNT);
         push();
         refresh();
@@ -477,6 +558,12 @@ public class GodNoteScreen extends Screen
                         book.doneCount(), book.tasks().size()),
                 left + 10, top + 20, 0xFF9AA0A8, false);
 
+        // ---- 便签册栏：◂ [名字 (i/n)] ▸ 新建 删除 ----
+        Component bookLabel = Component.translatable("gui.godofthings.note.book_label",
+                bookTitle(book), shelf().selected() + 1, shelf().size());
+        gui.drawString(this.font, this.font.plainSubstrByWidth(bookLabel.getString(), 116),
+                left + 28, top + BOOK_BAR_Y + 4, 0xFFE8C86A, false);
+
         gui.fill(left + 8, top + ROWS_TOP - 3, left + PANEL_W - 8, top + ROWS_BOTTOM, 0xFF11151A);
 
         List<NoteTask> tasks = book.tasks();
@@ -500,8 +587,13 @@ public class GodNoteScreen extends Screen
             int rowY = top + ROWS_TOP + i * ROW_H;
             boolean hovered = isRowHovered(mouseX, mouseY, rowY);
             boolean editing = index == editingIndex;
+            boolean dragging = index == dragIndex;
 
-            if (hovered || editing)
+            if (dragging)
+            {
+                gui.fill(left + 9, rowY - 1, left + PANEL_W - 9, rowY + ROW_H - 2, 0x60E8C86A);
+            }
+            else if (hovered || editing)
             {
                 gui.fill(left + 9, rowY - 1, left + PANEL_W - 9, rowY + ROW_H - 2, 0x30FFFFFF);
             }
@@ -522,11 +614,26 @@ public class GodNoteScreen extends Screen
                             scroll + 1, Math.min(tasks.size(), scroll + VISIBLE_ROWS), tasks.size()),
                     left + PANEL_W - 118, top + 20, 0xFF6F7883, false);
         }
+
+        // 拖拽排序时给一句提示
+        if (dragIndex >= 0)
+        {
+            gui.drawString(this.font, Component.translatable("gui.godofthings.note.drag_sort_hint"),
+                    left + 10, top + ROWS_BOTTOM + 2, 0xFFE8C86A, false);
+        }
+    }
+
+    /** 便签标题：没起名就用默认名 */
+    private Component bookTitle(NoteBook book)
+    {
+        return book.name().isEmpty()
+                ? Component.translatable("gui.godofthings.note.title")
+                : Component.literal(book.name());
     }
 
     private void drawHudPage(GuiGraphics gui)
     {
-        NoteHud hud = book().hud();
+        NoteHud hud = shelf().hud();
         gui.drawString(this.font, Component.translatable("gui.godofthings.note.hud_hint"),
                 left + 10, top + 20, 0xFF9AA0A8, false);
 
@@ -595,6 +702,17 @@ public class GodNoteScreen extends Screen
                 && mouseY >= rowY - 1 && mouseY < rowY + ROW_H - 2;
     }
 
+    /** 由屏幕 Y 反推任务下标（含滚动偏移）；点空白处返回 -1 */
+    private int rowIndexAt(int mouseY)
+    {
+        int row = (mouseY - (top + ROWS_TOP)) / ROW_H;
+        if (mouseY < top + ROWS_TOP - 1 || mouseY >= top + ROWS_BOTTOM)
+        {
+            return -1;
+        }
+        return scroll + Mth.clamp(row, 0, VISIBLE_ROWS - 1);
+    }
+
     // ------------------------------------------------------------------ 交互
 
     @Override
@@ -614,6 +732,7 @@ public class GodNoteScreen extends Screen
                 {
                     break;
                 }
+                bookDeleteArmed = false;
                 if (mouseX <= left + 24)
                 {
                     book().toggle(index);
@@ -631,12 +750,62 @@ public class GodNoteScreen extends Screen
                 }
                 else
                 {
-                    startEditing(index);
+                    // 记录拖拽起点：松手时若没移动过就当成「点文字改名」
+                    dragIndex = index;
+                    dragMoved = false;
                 }
                 return true;
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
+    {
+        if (page == 0 && dragIndex >= 0 && button == 0)
+        {
+            int target = rowIndexAt((int) mouseY);
+            if (target >= 0 && target != dragIndex)
+            {
+                shelf().moveTask(dragIndex, target);
+                dragIndex = target;
+                dragMoved = true;
+                // 拖到列表边缘时自动滚动
+                int size = book().tasks().size();
+                if (mouseY >= top + ROWS_BOTTOM - ROW_H && scroll < Math.max(0, size - VISIBLE_ROWS))
+                {
+                    scroll++;
+                }
+                else if (mouseY <= top + ROWS_TOP + ROW_H && scroll > 0)
+                {
+                    scroll--;
+                }
+            }
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button)
+    {
+        if (page == 0 && dragIndex >= 0)
+        {
+            int index = dragIndex;
+            dragIndex = -1;
+            if (dragMoved)
+            {
+                push();
+            }
+            else
+            {
+                startEditing(index);
+            }
+            dragMoved = false;
+            return true;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override

@@ -57,8 +57,8 @@ public class NoteAutoName
     {
         GodNoteData data = GodNoteData.get(player.server);
         UUID id = player.getUUID();
-        NoteBook book = data.book(id);
-        if (book.applyAutoName())
+        NoteShelf shelf = data.shelf(id);
+        if (shelf.applyAutoName())
         {
             data.setDirty();
             GodNoteMessages.sendSync(player);

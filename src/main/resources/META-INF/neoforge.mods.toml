@@ -23,14 +23,167 @@ AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁
     modId="neoforge"
     type="required"
     versionRange="${neoforge_version_range}"
-    ordering="NONE"
+    ordering="AFTER"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
     modId="minecraft"
     type="required"
     versionRange="${minecraft_version_range}"
-    ordering="NONE"
+    ordering="AFTER"
+    side="BOTH"
+
+# ⚠ AE2 是**硬依赖**（不是可选）：矿机 / 资源机 / 掉落机 / 合成台 / 砍杀 / 吸收这 6 个方块实体
+# 在类声明上直接 implements 了 AE2 的 IGridConnectedBlockEntity，没有 AE2 时本模组会在**加载阶段**
+# NoClassDefFoundError 崩掉。如实声明为 required，好在缺依赖时给出「缺 ae2」的明确提示而不是崩溃堆栈。
+[[dependencies.${mod_id}]]
+    modId="ae2"
+    type="required"
+    versionRange="[19,)"
+    ordering="AFTER"
+    side="BOTH"
+
+# ===== 以下均为可选兼容（装了才生效，没装自动跳过）=====
+# 统一写 optional + AFTER：既是给整合包工具看的兼容清单，
+# 也保证本模组的兼容代码在这些模组的注册表就绪之后才跑。
+[[dependencies.${mod_id}]]
+    modId="jei"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="emi"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="ae2wtlib"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="extendedae"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="appliedflux"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="appmek"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="ad_astra"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="occultism"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="malum"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="mysticalagriculture"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="goety"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="irons_spellbooks"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="ars_nouveau"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="enderio"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="mekanism"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="modern_industrialization"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="productivebees"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="constructionwand"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="ftbteams"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="gtceu"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
     side="BOTH"
 
 # 声明 Mixin 配置：血条压缩（GuiHeartsCompressMixin）由 FML 加载

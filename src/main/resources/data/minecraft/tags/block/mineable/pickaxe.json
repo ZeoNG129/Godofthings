@@ -15,6 +15,9 @@
     "godofthings:god_transmitter",
     "godofthings:god_slaughter",
     "godofthings:god_absorber",
-    "godofthings:god_devourer"
+    "godofthings:god_devourer",
+    "godofthings:teleport_block",
+    "godofthings:teleport_block_2",
+    "godofthings:teleport_block_3"
   ]
 }

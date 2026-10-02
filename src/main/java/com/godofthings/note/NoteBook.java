@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 一个玩家的整本便签：若干条任务（有序）+ 悬浮窗设置。
+ * 一本便签：若干条任务（有序）+ 名字 + 自动更名开关。
  *
- * <p>这是客户端界面 / HUD / 服务端存档三边唯一的数据形态；服务端收到客户端上传的副本后
- * 先 {@link #clamp()} 再落库，客户端收到下发的副本后直接替换本地镜像。</p>
+ * <p>悬浮窗的显示设置（位置/大小/背景）不在这里 —— 它在 {@link NoteShelf} 上，
+ * 因为屏幕上只有一个便签窗口，那些设置属于「怎么显示」而不是「哪一本内容」。</p>
  */
 public final class NoteBook
 {
@@ -22,8 +22,7 @@ public final class NoteBook
     public static final int MAX_NAME = 24;
 
     private final List<NoteTask> tasks = new ArrayList<>();
-    private final NoteHud hud = new NoteHud();
-    /** 悬浮窗标题上的名字；空串 = 用默认的「神之便签」 */
+    /** 名字；空串 = 用默认的「神之便签」 */
     private String name = "";
     /** 自动更名：开启后名字固定为当日日期（MM.dd） */
     private boolean autoName;
@@ -31,11 +30,6 @@ public final class NoteBook
     public List<NoteTask> tasks()
     {
         return tasks;
-    }
-
-    public NoteHud hud()
-    {
-        return hud;
     }
 
     public String name()
@@ -161,18 +155,6 @@ public final class NoteBook
         }
     }
 
-    /** 上移 / 下移（排序用） */
-    public void move(int index, int delta)
-    {
-        int target = index + delta;
-        if (index < 0 || index >= tasks.size() || target < 0 || target >= tasks.size())
-        {
-            return;
-        }
-        NoteTask t = tasks.remove(index);
-        tasks.add(target, t);
-    }
-
     /** 删掉所有已勾选的条目，返回删掉的条数 */
     public int clearDone()
     {
@@ -186,7 +168,7 @@ public final class NoteBook
         tasks.clear();
     }
 
-    /** 服务端落库前的兜底：条数、文字长度、名称、HUD 字段全部夹到合法范围 */
+    /** 服务端落库前的兜底：条数、文字长度、名称全部夹到合法范围 */
     public void clamp()
     {
         while (tasks.size() > MAX_TASKS)
@@ -199,7 +181,6 @@ public final class NoteBook
             t.text = NoteTask.clampText(t.text);
         }
         name = clampName(name);
-        hud.clamp();
     }
 
     public NoteBook copy()
@@ -209,15 +190,6 @@ public final class NoteBook
         {
             b.tasks.add(t.copy());
         }
-        NoteHud h = hud.copy();
-        b.hud.enabled = h.enabled;
-        b.hud.x = h.x;
-        b.hud.y = h.y;
-        b.hud.scale = h.scale;
-        b.hud.background = h.background;
-        b.hud.color = h.color;
-        b.hud.opacity = h.opacity;
-        b.hud.showDone = h.showDone;
         b.name = name;
         b.autoName = autoName;
         return b;
@@ -233,13 +205,11 @@ public final class NoteBook
             list.add(c);
         }
         tag.put("Tasks", list);
-        CompoundTag hudTag = new CompoundTag();
-        hud.save(hudTag);
-        tag.put("Hud", hudTag);
         tag.putString("Name", name);
         tag.putBoolean("AutoName", autoName);
     }
 
+    /** 读取；v5.3.0 及以前存在的 "Hud" 标签由 {@link NoteShelf} 在册一级处理，这里忽略 */
     public void load(CompoundTag tag)
     {
         tasks.clear();
@@ -251,10 +221,6 @@ public final class NoteBook
             {
                 tasks.add(t);
             }
-        }
-        if (tag.contains("Hud"))
-        {
-            hud.load(tag.getCompound("Hud"));
         }
         name = clampName(tag.getString("Name"));
         autoName = tag.getBoolean("AutoName");
@@ -268,7 +234,6 @@ public final class NoteBook
         {
             t.write(buf);
         }
-        hud.write(buf);
         buf.writeUtf(name, MAX_NAME);
         buf.writeBoolean(autoName);
     }
@@ -285,15 +250,6 @@ public final class NoteBook
                 b.tasks.add(t);
             }
         }
-        NoteHud h = NoteHud.read(buf);
-        b.hud.enabled = h.enabled;
-        b.hud.x = h.x;
-        b.hud.y = h.y;
-        b.hud.scale = h.scale;
-        b.hud.background = h.background;
-        b.hud.color = h.color;
-        b.hud.opacity = h.opacity;
-        b.hud.showDone = h.showDone;
         b.name = clampName(buf.readUtf(MAX_NAME));
         b.autoName = buf.readBoolean();
         b.clamp();

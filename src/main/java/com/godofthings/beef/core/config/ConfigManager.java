@@ -197,26 +197,26 @@ public class ConfigManager {
         // Server config: these values change world or machine behavior.
         SERVER_BUILDER.push("game_mechanics");
         BOTANY_POT_GROWTH_MULTIPLIER = SERVER_BUILDER
-                .comment("植物盆生长倍率 - 1.0为原版速度, 2.0为2倍速度")
+                .comment("植物盆生长倍率 - 1.0为原版速度, 2.0为2倍速度 / Botany pot growth multiplier - 1.0 is vanilla speed, 2.0 is 2x speed")
                 .defineInRange("botany_pot_growth_multiplier", 1, 1, Integer.MAX_VALUE);
 
         MATRIX_PATTERN_COUNT = SERVER_BUILDER
-                .comment("矩阵样板槽位倍数 - 减少数量时请保持槽位空！否则可能会造成样板丢失")
+                .comment("矩阵样板槽位倍数 - 减少数量时请保持槽位空！否则可能会造成样板丢失 / Matrix pattern slot multiplier - keep slots empty when reducing! Otherwise patterns may be lost")
                 .defineInRange("matrix_pattern_count", 1, 1, 100);
         SERVER_BUILDER.pop();
 
         // Client config: rendering-only options must never affect server behavior.
         CLIENT_BUILDER.push("game_mechanics");
         ENABLE_BOTANY_POT_RENDERING = CLIENT_BUILDER
-                .comment("是否启用植物盆作物渲染")
+                .comment("是否启用植物盆作物渲染 / Whether to enable botany pot crop rendering")
                 .define("enable_botany_pot_rendering", true);
         CLIENT_BUILDER.pop();
 
         CLIENT_BUILDER.push("beef_tool");
         BEEF_AUTOCLICK_CLICKS_PER_TICK = CLIENT_BUILDER
-                .comment("造化杖连点模式每个客户端 tick 触发多少次右键",
-                        "调大 = 更快（默认 4 约等于 80 次/秒），调小 = 降低服务端压力",
-                        "仅在客户端生效，无需服务端同意")
+                .comment("造化杖连点模式每个客户端 tick 触发多少次右键 / How many right-clicks the staff Auto Click mode triggers per client tick",
+                        "调大 = 更快（默认 4 约等于 80 次/秒），调小 = 降低服务端压力 / Higher = faster (the default 4 is roughly 80 clicks per second), lower = less server load",
+                        "仅在客户端生效，无需服务端同意 / Client-side only, no server approval needed")
                 .translation("godofthings.configuration.beef_autoclick_clicks_per_tick")
                 .defineInRange("beef_autoclick_clicks_per_tick", 4, 1, 20);
         CLIENT_BUILDER.pop();
@@ -242,22 +242,22 @@ public class ConfigManager {
         for (int tier = 1; tier <= 9; tier++) {
             int index = tier - 1;
             OMNIVERSAL_COIL_TIER_THREADS[index] = SERVER_BUILDER
-                    .comment("普通线圈 " + tier + " 阶的最大AE任务数")
+                    .comment("普通线圈 " + tier + " 阶的最大AE任务数 / Max AE jobs of this coil tier")
                     .defineInRange("coil_tier_" + tier + "_threads", tier + 1, 1, Integer.MAX_VALUE);
             OMNIVERSAL_COIL_TIER_PARALLEL[index] = SERVER_BUILDER
-                    .comment("普通线圈 " + tier + " 阶的单任务最大并行数")
+                    .comment("普通线圈 " + tier + " 阶的单任务最大并行数 / Max parallel count for a single task at this coil tier")
                     .defineInRange("coil_tier_" + tier + "_single_task_parallel",
                             1L << (tier * 2), 1L, Long.MAX_VALUE);
             OMNIVERSAL_COIL_TIER_ENERGY_DIVISOR[index] = SERVER_BUILDER
-                    .comment("普通线圈 " + tier + " 阶的能耗除数")
+                    .comment("普通线圈 " + tier + " 阶的能耗除数 / Energy divisor of this coil tier")
                     .defineInRange("coil_tier_" + tier + "_energy_divisor", 1 << tier, 1, Integer.MAX_VALUE);
             OMNIVERSAL_COIL_TIER_TIME_MULTIPLIER[index] = SERVER_BUILDER
-                    .comment("普通线圈 " + tier + " 阶的处理时间倍率")
+                    .comment("普通线圈 " + tier + " 阶的处理时间倍率 / Processing time multiplier of this coil tier")
                     .defineInRange("coil_tier_" + tier + "_time_multiplier",
                             1.0 / (1L << tier), 0.0, 1.0);
         }
         OMNIVERSAL_USEFUL_TIER_THREADS = SERVER_BUILDER
-                .comment("有用级线圈的最大AE任务数")
+                .comment("有用级线圈的最大AE任务数 / Max AE jobs of the useful-tier coil")
                 .defineInRange("useful_tier_threads", 11, 1, Integer.MAX_VALUE);
         SERVER_BUILDER.pop();
 
@@ -311,255 +311,255 @@ public class ConfigManager {
         // Server config: gameplay options are authoritative on the logical server.
         SERVER_BUILDER.translation("godofthings.configuration.beef_tool").push("beef_tool");
         ENABLE_POTION_EFFECTS = SERVER_BUILDER
-                .comment("是否启用药水效果")
+                .comment("是否启用药水效果 / Whether to enable potion effects")
                 .translation("godofthings.configuration.enable_potion_effects")
                 .define("enable_potion_effects", true);
 
         ENABLE_FLIGHT_EFFECT = SERVER_BUILDER
-                .comment("是否启用飞行效果")
+                .comment("是否启用飞行效果 / Whether to enable flight effect")
                 .translation("godofthings.configuration.enable_flight_effect")
                 .define("enable_flight_effect", true);
 
         BEEF_TOOL_FLIGHT_SPEED = SERVER_BUILDER
-                .comment("牛排工具飞行速度")
+                .comment("牛排工具飞行速度 / Flight speed of the beef tool")
                 .translation("godofthings.configuration.beef_tool_flight_speed")
                 .defineInRange("beef_tool_flight_speed", 0.05, 0.01, 1.0);
 
         CHAIN_MINING_RANGE_X = SERVER_BUILDER
-                .comment("连锁挖掘的X轴范围半径")
+                .comment("连锁挖掘的X轴范围半径 / Chain mining X-axis range radius")
                 .translation("godofthings.configuration.chain_mining_range_x")
                 .defineInRange("chain_mining_range_x", 8, 1, 32);
 
         CHAIN_MINING_RANGE_Y = SERVER_BUILDER
-                .comment("连锁挖掘的Y轴范围半径")
+                .comment("连锁挖掘的Y轴范围半径 / Chain mining Y-axis range radius")
                 .translation("godofthings.configuration.chain_mining_range_y")
                 .defineInRange("chain_mining_range_y", 8, 1, 255);
 
         CHAIN_MINING_RANGE_Z = SERVER_BUILDER
-                .comment("连锁挖掘的Z轴范围半径")
+                .comment("连锁挖掘的Z轴范围半径 / Chain mining Z-axis range radius")
                 .translation("godofthings.configuration.chain_mining_range_z")
                 .defineInRange("chain_mining_range_z", 8, 1, 32);
 
         BEEF_AOE_DAMAGE_RANGE_X = SERVER_BUILDER
-                .comment("范围伤害的X轴范围半径")
+                .comment("范围伤害的X轴范围半径 / AoE damage X-axis range radius")
                 .translation("godofthings.configuration.beef_aoe_damage_range_x")
                 .defineInRange("beef_aoe_damage_range_x", 5, 1, 64);
 
         BEEF_AOE_DAMAGE_RANGE_Y = SERVER_BUILDER
-                .comment("范围伤害的Y轴范围半径")
+                .comment("范围伤害的Y轴范围半径 / AoE damage Y-axis range radius")
                 .translation("godofthings.configuration.beef_aoe_damage_range_y")
                 .defineInRange("beef_aoe_damage_range_y", 3, 1, 64);
 
         BEEF_AOE_DAMAGE_RANGE_Z = SERVER_BUILDER
-                .comment("范围伤害的Z轴范围半径")
+                .comment("范围伤害的Z轴范围半径 / AoE damage Z-axis range radius")
                 .translation("godofthings.configuration.beef_aoe_damage_range_z")
                 .defineInRange("beef_aoe_damage_range_z", 5, 1, 64);
 
         BEEF_AOE_DAMAGE_MAX_TARGETS = SERVER_BUILDER
-                .comment("范围伤害单次最多命中的实体数量")
+                .comment("范围伤害单次最多命中的实体数量 / Maximum number of entities hit by a single AoE damage")
                 .translation("godofthings.configuration.beef_aoe_damage_max_targets")
                 .defineInRange("beef_aoe_damage_max_targets", 64, 1, 1024);
 
         BEEF_MAGNET_RANGE_X = SERVER_BUILDER
-                .comment("击杀后范围磁力吸附的X轴范围半径")
+                .comment("击杀后范围磁力吸附的X轴范围半径 / X-axis range radius of the post-kill magnet")
                 .translation("godofthings.configuration.beef_magnet_range_x")
                 .defineInRange("beef_magnet_range_x", 5, 1, 64);
 
         BEEF_MAGNET_RANGE_Y = SERVER_BUILDER
-                .comment("击杀后范围磁力吸附的Y轴范围半径")
+                .comment("击杀后范围磁力吸附的Y轴范围半径 / Y-axis range radius of the post-kill magnet")
                 .translation("godofthings.configuration.beef_magnet_range_y")
                 .defineInRange("beef_magnet_range_y", 3, 1, 64);
 
         BEEF_MAGNET_RANGE_Z = SERVER_BUILDER
-                .comment("击杀后范围磁力吸附的Z轴范围半径")
+                .comment("击杀后范围磁力吸附的Z轴范围半径 / Z-axis range radius of the post-kill magnet")
                 .translation("godofthings.configuration.beef_magnet_range_z")
                 .defineInRange("beef_magnet_range_z", 5, 1, 64);
 
         CHAIN_MINING_MAX_BLOCKS = SERVER_BUILDER
-                .comment("连锁挖掘的最大方块数量")
+                .comment("连锁挖掘的最大方块数量 / Maximum number of blocks for chain mining")
                 .translation("godofthings.configuration.chain_mining_max_blocks")
                 .defineInRange("chain_mining_max_blocks", 1000, 1, 1000000);
 
         // 牛排工具附魔等级配置
         FORTUNE_LEVEL = SERVER_BUILDER
-                .comment("牛排工具时运附魔等级")
+                .comment("牛排工具时运附魔等级 / Fortune enchantment level of the beef tool")
                 .translation("godofthings.configuration.fortune_level")
                 .defineInRange("fortune_level", 10, 1, 127);
 
         LOOTING_LEVEL = SERVER_BUILDER
-                .comment("牛排工具抢夺附魔等级")
+                .comment("牛排工具抢夺附魔等级 / Looting enchantment level of the beef tool")
                 .translation("godofthings.configuration.looting_level")
                 .defineInRange("looting_level", 10, 1, 127);
 
         // 战利品大爆发触发概率配置
         FESTIVE_DROP_CHANCE = SERVER_BUILDER
-                .comment("战利品大爆发触发概率 (百分比, 1-100%)")
+                .comment("战利品大爆发触发概率 (百分比, 1-100%) / Festive drop trigger chance (percentage, 1-100%)")
                 .translation("godofthings.configuration.festive_drop_chance")
                 .defineInRange("festive_drop_chance", 5, 1, 100);
 
         ENABLE_GRASS_WAND_DROP = SERVER_BUILDER
-                .comment("是否启用打草掉落造化杖彩蛋")
+                .comment("是否启用打草掉落造化杖彩蛋 / Whether breaking grass can trigger the wand drop easter egg")
                 .translation("godofthings.configuration.enable_grass_wand_drop")
                 .define("enable_grass_wand_drop", true);
 
         GRASS_WAND_DROP_PROBABILITY = SERVER_BUILDER
-                .comment("打草掉落造化杖的概率，0.00001为十万分之一")
+                .comment("打草掉落造化杖的概率，0.00001为十万分之一 / Chance of a wand dropping from grass; 0.00001 is one in one hundred thousand")
                 .translation("godofthings.configuration.grass_wand_drop_probability")
                 .defineInRange("grass_wand_drop_probability", 0.00001, 0.0, 1.0);
 
         // 牛排工具挖掘速度配置
         BEEF_TOOL_MINING_SPEED = SERVER_BUILDER
-                .comment("牛排工具基础挖掘速度")
+                .comment("牛排工具基础挖掘速度 / Base mining speed of the beef tool")
                 .translation("godofthings.configuration.beef_tool_mining_speed")
                 .defineInRange("beef_tool_mining_speed", 10.0, 1.0, 1000.0);
 
         // 造化杖是否无视工具挖掘等级（含其它模组自定义的等级）
         BEEF_TOOL_IGNORES_TOOL_TIER = SERVER_BUILDER
-                .comment("造化杖是否无视所有工具挖掘等级限制（含其它模组自定义的等级）",
-                        "开启：可正常挖掘任何需要特定工具等级的方块；关闭：回到下界合金层级的原版语义",
-                        "无论开关如何，godofthings:beef_tool_tier_locked 标签内的方块始终按等级判定")
+                .comment("造化杖是否无视所有工具挖掘等级限制（含其它模组自定义的等级） / Whether the staff ignores every tool mining tier restriction (including custom tiers added by other mods)",
+                        "开启：可正常挖掘任何需要特定工具等级的方块；关闭：回到下界合金层级的原版语义 / On: any block requiring a specific tool tier can be mined normally; Off: falls back to vanilla netherite-tier semantics",
+                        "无论开关如何，godofthings:beef_tool_tier_locked 标签内的方块始终按等级判定 / Regardless of the switch, blocks in the godofthings:beef_tool_tier_locked tag always keep tier checks")
                 .translation("godofthings.configuration.beef_tool_ignores_tool_tier")
                 .define("beef_tool_ignores_tool_tier", true);
 
         // 「伪不可破坏」方块（hardness = -1）的名义硬度：speed = baseSpeed × 本值
         BEEF_TOOL_PSEUDO_HARDNESS = SERVER_BUILDER
-                .comment("牛排工具挖掘「伪不可破坏」方块（hardness = -1）时使用的名义硬度",
-                        "这类方块原版层面不可破坏，靠自写 getDestroyProgress 决定进度，其进度除数远大于普通方块",
-                        "（如 AllTheModium 的三矿与远古石用 250，而普通方块相当于硬度x30），",
-                        "所以需要更大的挖掘速度才能手感一致：speed = beef_tool_mining_speed × 本值",
-                        "15 约等于挖普通方块的手感；调大 = 更快")
+                .comment("牛排工具挖掘「伪不可破坏」方块（hardness = -1）时使用的名义硬度 / Nominal hardness used when the beef tool mines pseudo-unbreakable blocks (hardness = -1)",
+                        "这类方块原版层面不可破坏，靠自写 getDestroyProgress 决定进度，其进度除数远大于普通方块 / Such blocks are unbreakable in vanilla terms and decide progress through their own getDestroyProgress, with a progress divisor far larger than normal blocks",
+                        "（如 AllTheModium 的三矿与远古石用 250，而普通方块相当于硬度x30）， / (e.g. AllTheModium ores and ancient stone use 250, while a normal block is equivalent to hardness x30),",
+                        "所以需要更大的挖掘速度才能手感一致：speed = beef_tool_mining_speed × 本值 / so a higher mining speed is needed for a consistent feel: speed = beef_tool_mining_speed x this value",
+                        "15 约等于挖普通方块的手感；调大 = 更快 / 15 roughly matches the feel of mining a normal block; higher = faster")
                 .translation("godofthings.configuration.beef_tool_pseudo_hardness")
                 .defineInRange("beef_tool_pseudo_hardness", 15.0, 1.0, 1000.0);
 
         BEEF_TOOL_ENTITY_INTERACTION_RANGE = SERVER_BUILDER
-                .comment("牛排工具实体触及范围加成, 重启游戏生效")
+                .comment("牛排工具实体触及范围加成, 重启游戏生效 / Entity interaction range bonus of the beef tool, takes effect after a game restart")
                 .translation("godofthings.configuration.beef_tool_entity_interaction_range")
                 .defineInRange("beef_tool_entity_interaction_range", 8.0, 0.0, 1024.0);
 
         BEEF_TOOL_BLOCK_INTERACTION_RANGE = SERVER_BUILDER
-                .comment("牛排工具方块触及范围加成, 重启游戏生效")
+                .comment("牛排工具方块触及范围加成, 重启游戏生效 / Block interaction range bonus of the beef tool, takes effect after a game restart")
                 .translation("godofthings.configuration.beef_tool_block_interaction_range")
                 .defineInRange("beef_tool_block_interaction_range", 8.0, 0.0, 1024.0);
 
         BEEF_SHORT_TELEPORT_RANGE = SERVER_BUILDER
-                .comment("造化杖短距闪现的最大距离（格）",
-                        "该值为上限而非保证距离：准星方向若在中途命中方块或缺少可站立空间，落点会相应前移",
-                        "未命中任何方块时按该距离取最远落点")
+                .comment("造化杖短距闪现的最大距离（格） / Maximum distance of the staff short teleport (blocks)",
+                        "该值为上限而非保证距离：准星方向若在中途命中方块或缺少可站立空间，落点会相应前移 / This is an upper bound rather than a guaranteed distance: the landing spot moves closer when the crosshair ray hits a block midway or there is no room to stand",
+                        "未命中任何方块时按该距离取最远落点 / When no block is hit, the farthest landing spot at this distance is used")
                 .translation("godofthings.configuration.beef_short_teleport_range")
                 .defineInRange("beef_short_teleport_range", 24, 4, 512);
 
         BEEF_CONSTRUCTION_WAND_BUILD_LIMIT = SERVER_BUILDER
-                .comment("牛排工具建筑手杖普通建造单次最大方块数")
+                .comment("牛排工具建筑手杖普通建造单次最大方块数 / Maximum blocks per normal build for the beef tool construction wand")
                 .translation("godofthings.configuration.beef_construction_wand_build_limit")
                 .defineInRange("construction_wand_build_limit", 1024, 1, 1_000_000);
 
         BEEF_CONSTRUCTION_WAND_ANGEL_LIMIT = SERVER_BUILDER
-                .comment("牛排工具建筑手杖天使核心单次最大方块数")
+                .comment("牛排工具建筑手杖天使核心单次最大方块数 / Maximum blocks per build for the angel core of the beef tool construction wand")
                 .translation("godofthings.configuration.beef_construction_wand_angel_limit")
                 .defineInRange("construction_wand_angel_limit", 16, 1, 1_000_000);
 
         BEEF_CONSTRUCTION_WAND_DESTRUCTION_LIMIT = SERVER_BUILDER
-                .comment("牛排工具建筑手杖破坏核心单次最大方块数")
+                .comment("牛排工具建筑手杖破坏核心单次最大方块数 / Maximum blocks per break for the destruction core of the beef tool construction wand")
                 .translation("godofthings.configuration.beef_construction_wand_destruction_limit")
                 .defineInRange("construction_wand_destruction_limit", 81, 1, 1_000_000);
 
         BEEF_TOOL_FORCE_MINING_BLACKLIST = SERVER_BUILDER
-                .comment("牛排工具强制挖掘黑名单，不会被强制挖掘的方块",
-                        "支持精确方块ID、#方块标签和*通配符")
+                .comment("牛排工具强制挖掘黑名单，不会被强制挖掘的方块 / Beef tool force-mining blacklist: blocks that are never force-mined",
+                        "支持精确方块ID、#方块标签和*通配符 / Supports exact block IDs, #block tags and * wildcards")
                 .translation("godofthings.configuration.beef_tool_force_mining_blacklist")
                 .defineListAllowEmpty("beef_tool_force_mining_blacklist", List.<String>of(), () -> "",
                         entry -> entry instanceof String);
 
         BEEF_TOOL_FORCE_KILL_BLACKLIST = SERVER_BUILDER
-                .comment("牛排工具强制击杀黑名单, 多个实体ID用分号分隔, 例如 minecraft:wither;modid:boss")
+                .comment("牛排工具强制击杀黑名单, 多个实体ID用分号分隔, 例如 minecraft:wither;modid:boss / Beef tool force-kill blacklist, multiple entity IDs separated by semicolons, e.g. minecraft:wither;modid:boss")
                 .translation("godofthings.configuration.beef_tool_force_kill_blacklist")
                 .define("beef_tool_force_kill_blacklist", "");
 
         BEEF_TOOL_FORCE_KILL_NON_LIVING_WHITELIST = SERVER_BUILDER
-                .comment("牛排工具非生物实体强制击杀白名单, 多个实体ID用分号分隔")
+                .comment("牛排工具非生物实体强制击杀白名单, 多个实体ID用分号分隔 / Beef tool force-kill whitelist for non-living entities, multiple entity IDs separated by semicolons")
                 .translation("godofthings.configuration.beef_tool_force_kill_non_living_whitelist")
                 .define("beef_tool_force_kill_non_living_whitelist", "draconicevolution:guardian_crystal");
         SERVER_BUILDER.pop();
 
         SERVER_BUILDER.push("mekanism_upgrade");
         TIME_MULTIPLIER = SERVER_BUILDER
-                .comment("速度升级增强倍率")
+                .comment("速度升级增强倍率 / Speed upgrade multiplier")
                 .defineInRange("time_multiplier", 1, 1, Integer.MAX_VALUE);
 
         ELECTRICITY_MULTIPLIER = SERVER_BUILDER
-                .comment("能量升级节电增强倍率")
+                .comment("能量升级节电增强倍率 / Energy upgrade efficiency multiplier")
                 .defineInRange("electricity_multiplier", 1, 1, Integer.MAX_VALUE);
 
         CAPACITY_MULTIPLIER = SERVER_BUILDER
-                .comment("能量升级储电增强倍率")
+                .comment("能量升级储电增强倍率 / Energy upgrade capacity multiplier")
                 .defineInRange("capacity_multiplier", 1, 1, Integer.MAX_VALUE);
 
         MAX_UPGRADE = SERVER_BUILDER
-                .comment("机器可接受的最大速度/能量升级数量, 重启游戏生效")
+                .comment("机器可接受的最大速度/能量升级数量, 重启游戏生效 / Maximum number of speed/energy upgrades a machine accepts, takes effect after a game restart")
                 .defineInRange("max_upgrade", 16, 1, 64);
         SERVER_BUILDER.pop();
 
         SERVER_BUILDER.translation("godofthings.configuration.advanced_alloy_furnace")
                 .push("advanced_alloy_furnace");
         FURNACE_DRAW_APPFLUX_ENERGY = SERVER_BUILDER
-                .comment("万象炉是否自动从所在AE网络抽取AppliedFlux(应用通量)存储的FE能量",
-                        "需要安装AppliedFlux且网络中有通量元件, 每tick抽取量受熔炉最大输入速率限制")
+                .comment("万象炉是否自动从所在AE网络抽取AppliedFlux(应用通量)存储的FE能量 / Whether the Advanced Alloy Furnace automatically draws FE stored by AppliedFlux from its AE network",
+                        "需要安装AppliedFlux且网络中有通量元件, 每tick抽取量受熔炉最大输入速率限制 / Requires AppliedFlux and flux cells in the network; the per-tick draw is limited by the furnace max input rate")
                 .define("draw_appflux_energy", true);
 
         FURNACE_DRAW_AE_ENERGY = SERVER_BUILDER
-                .comment("万象炉是否直接抽取AE网络自身的能量(按 1 AE = 2 FE 折算)",
-                        "警告: 会与网络中其他设备争抢供电, 网络储能不足时可能导致设备频繁掉线",
-                        "在AppliedFlux抽取之后作为补充, 每tick总抽取量受熔炉最大输入速率限制")
+                .comment("万象炉是否直接抽取AE网络自身的能量(按 1 AE = 2 FE 折算) / Whether the Advanced Alloy Furnace draws the AE network energy directly (converted at 1 AE = 2 FE)",
+                        "警告: 会与网络中其他设备争抢供电, 网络储能不足时可能导致设备频繁掉线 / Warning: competes for power with other devices in the network and may cause frequent device disconnects when network storage is low",
+                        "在AppliedFlux抽取之后作为补充, 每tick总抽取量受熔炉最大输入速率限制 / Applied as a supplement after AppliedFlux extraction; the total per-tick draw is limited by the furnace max input rate")
                 .define("draw_ae_energy", false);
 
         FURNACE_AE_BATCH_RIPE_TICKS = SERVER_BUILDER
-                .comment("万象炉收到 AE 推送的批次后，先等待多少个 tick 再投入执行",
-                        "这个窗口用于把连续推送合并成一个任务，等待期间 GUI 显示为「排队」",
-                        "设为 0 表示推送即刻投入执行；机器完全空闲（无任何运行中任务）时会跳过该窗口")
+                .comment("万象炉收到 AE 推送的批次后，先等待多少个 tick 再投入执行 / How many ticks the Advanced Alloy Furnace waits after receiving a pushed AE batch before starting it",
+                        "这个窗口用于把连续推送合并成一个任务，等待期间 GUI 显示为「排队」 / This window merges consecutive pushes into a single task; the GUI shows Queued while waiting",
+                        "设为 0 表示推送即刻投入执行；机器完全空闲（无任何运行中任务）时会跳过该窗口 / Set to 0 to start immediately; the window is skipped when the machine is completely idle (no running task)")
                 .translation("godofthings.configuration.ae_batch_ripe_ticks")
                 .defineInRange("ae_batch_ripe_ticks", 10, 0, 200);
 
         FURNACE_AE_UNLIMITED_BIGINT_PARALLELISM = SERVER_BUILDER
-                .comment("是否解除「材料窗口」对单批规模的限制（即去掉 线程数 × Long.MAX 这道闸）",
-                        "开启后单批规模只由「产物交付能力」决定，可以一次吃下任意大的份数，",
-                        "不必再靠堆线程数来抬高单批上限",
-                        "代价：单次准入可能吃下极大量材料（由调用方自己的 BigInteger 账本扣除）；",
-                        "低档线圈会转而受「能量」闸限制，有用线圈无能量闸、不受影响")
+                .comment("是否解除「材料窗口」对单批规模的限制（即去掉 线程数 × Long.MAX 这道闸） / Whether to remove the material-window cap on single-batch size (that is, drop the threads x Long.MAX gate)",
+                        "开启后单批规模只由「产物交付能力」决定，可以一次吃下任意大的份数， / When enabled, batch size is decided only by output delivery capacity, so a single dispatch can absorb arbitrarily large counts,",
+                        "不必再靠堆线程数来抬高单批上限 / without stacking thread counts to raise the single-batch cap",
+                        "代价：单次准入可能吃下极大量材料（由调用方自己的 BigInteger 账本扣除）； / Trade-off: a single admission may take an extremely large amount of materials (debited from the caller BigInteger ledger);",
+                        "低档线圈会转而受「能量」闸限制，有用线圈无能量闸、不受影响 / Low-tier coils then fall back to the energy gate, while the useful coil has no energy gate and is unaffected")
                 .translation("godofthings.configuration.ae_unlimited_bigint_parallelism")
                 .define("ae_unlimited_bigint_parallelism", false);
 
         FURNACE_AE_OUTPUT_RETURN_BUDGET_MILLIS = SERVER_BUILDER
-                .comment("万象炉每 tick 最多花多少毫秒把产物写回 ME 网络",
-                        "这个值直接决定「可持续合成速度」：AE2 存储接口单次只能写一个 long 分段，",
-                        "产物必须逐段插入，所以每 tick 能插多少次就决定了能跑多快",
-                        "调大 = 合成更快，但单 tick 更重（可能掉 TPS）；调小 = 更省 tick，但合成变慢",
-                        "机器或服务端过载时，本预算还会被全局降频系数按比例收窄（下限 250 微秒）",
-                        "全局降频基准会跟随本值放大（= 本值×2，下限 10 毫秒），所以调大本值确实能生效")
+                .comment("万象炉每 tick 最多花多少毫秒把产物写回 ME 网络 / How many milliseconds per tick the Advanced Alloy Furnace may spend writing outputs back to the ME network",
+                        "这个值直接决定「可持续合成速度」：AE2 存储接口单次只能写一个 long 分段， / This value directly sets the sustainable crafting speed: the AE2 storage interface accepts only one long chunk per call,",
+                        "产物必须逐段插入，所以每 tick 能插多少次就决定了能跑多快 / outputs must be inserted chunk by chunk, so the per-tick insert count limits throughput",
+                        "调大 = 合成更快，但单 tick 更重（可能掉 TPS）；调小 = 更省 tick，但合成变慢 / Higher = faster crafting but a heavier tick (may cost TPS); lower = cheaper tick but slower crafting",
+                        "机器或服务端过载时，本预算还会被全局降频系数按比例收窄（下限 250 微秒） / When the machine or server is overloaded this budget is scaled down by the global throttle factor (floor 250 microseconds)",
+                        "全局降频基准会跟随本值放大（= 本值×2，下限 10 毫秒），所以调大本值确实能生效 / The global throttle baseline scales with this value (this value x2, floor 10 ms), so raising it does take effect")
                 .translation("godofthings.configuration.ae_output_return_budget_millis")
                 .defineInRange("ae_output_return_budget_millis", 8, 1, 200);
 
         for (int tier = 0; tier <= 10; tier++) {
             FURNACE_TIER_THREADS[tier] = SERVER_BUILDER
-                    .comment("单方块熔炉 " + tier + " 阶的最大AE任务数")
+                    .comment("单方块熔炉 " + tier + " 阶的最大AE任务数 / Max AE jobs of this single-block furnace tier")
                     .defineInRange("furnace_tier_" + tier + "_threads", tier + 1, 1, Integer.MAX_VALUE);
         }
         for (int tier = 0; tier <= 9; tier++) {
             CATALYST_TIER_PARALLEL[tier] = SERVER_BUILDER
-                    .comment("催化剂 " + tier + " 阶的普通配方并行数")
+                    .comment("催化剂 " + tier + " 阶的普通配方并行数 / Normal recipe parallel count of this catalyst tier")
                     .defineInRange("catalyst_tier_" + tier + "_parallel", 1 << tier, 1, Integer.MAX_VALUE);
             CATALYST_TIER_ENERGY_DIVISOR[tier] = SERVER_BUILDER
-                    .comment("催化剂 " + tier + " 阶的能耗除数")
+                    .comment("催化剂 " + tier + " 阶的能耗除数 / Energy divisor of this catalyst tier")
                     .defineInRange("catalyst_tier_" + tier + "_energy_divisor", 1, 1, Integer.MAX_VALUE);
             CATALYST_TIER_TIME_MULTIPLIER[tier] = SERVER_BUILDER
-                    .comment("催化剂 " + tier + " 阶的处理时间倍率")
+                    .comment("催化剂 " + tier + " 阶的处理时间倍率 / Processing time multiplier of this catalyst tier")
                     .defineInRange("catalyst_tier_" + tier + "_time_multiplier",
                             Math.max(0.1, 1.0 - tier * 0.1), 0.0, 1.0);
         }
 
         FURNACE_RECIPE_TIER_RULES = SERVER_BUILDER
-                .comment("万象炉配方等级限制，格式为 配方ID通配符,等级",
-                        "*可匹配任意字符；精确配方ID优先于通配符，匹配具体度相同时后面的规则覆盖前面的规则",
-                        "等级范围为0-10；未匹配规则的配方不受限制")
+                .comment("万象炉配方等级限制，格式为 配方ID通配符,等级 / Advanced Alloy Furnace recipe tier limits, format: recipe ID wildcard,tier",
+                        "*可匹配任意字符；精确配方ID优先于通配符，匹配具体度相同时后面的规则覆盖前面的规则 / * matches any characters; exact recipe IDs take priority over wildcards, and later rules override earlier ones at the same specificity",
+                        "等级范围为0-10；未匹配规则的配方不受限制 / Tiers range from 0 to 10; recipes matching no rule are unrestricted")
                 .translation("godofthings.configuration.advanced_alloy_furnace.recipe_tier_rules")
                 .defineListAllowEmpty("recipe_tier_rules", List.<String>of(), () -> "",
                         ConfigManager::isValidFurnaceRecipeTierRuleEntry);
@@ -790,7 +790,7 @@ public class ConfigManager {
     private static ModConfigSpec.BooleanValue defineRecipeConversionOption(
             String key, boolean defaultValue) {
         return COMMON_BUILDER
-                .comment("是否启用该配方来源的配方转换", "修改后重启游戏生效")
+                .comment("是否启用该配方来源的配方转换 / Whether to enable recipe conversion for this recipe source", "修改后重启游戏生效 / Takes effect after restarting the game")
                 .translation("godofthings.configuration." + key)
                 .define(key, defaultValue);
     }

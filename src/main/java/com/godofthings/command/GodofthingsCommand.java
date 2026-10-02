@@ -166,20 +166,34 @@ public class GodofthingsCommand
         ServerPlayer player = source.getPlayer();
         if (player != null)
         {
-            NoteBook book = GodNoteData.get(server).book(player.getUUID());
+            com.godofthings.note.NoteShelf shelf = GodNoteData.get(server).shelf(player.getUUID());
+            NoteBook book = shelf.current();
             int tasks = book.tasks().size();
             int done = book.doneCount();
             Component name = book.name().isEmpty()
                     ? Component.translatable("gui.godofthings.note.title")
                     : Component.literal(book.name());
-            Component hudState = Component.translatable(book.hud().enabled
+            Component hudState = Component.translatable(shelf.hud().enabled
                     ? "gui.godofthings.note.on"
                     : "gui.godofthings.note.off");
             source.sendSuccess(() -> Component.translatable("command.godofthings.doctor.note",
-                    tasks, done, name, hudState), false);
+                    tasks, done, name, hudState, shelf.selected() + 1, shelf.size()), false);
         }
         int waypoints = WaypointData.get(server).names().size();
         source.sendSuccess(() -> Component.translatable("command.godofthings.doctor.waypoints", waypoints), false);
+
+        // ⑤ 存档数据体积：排查「存档怎么越来越大」
+        try
+        {
+            int noteBytes = GodNoteData.get(server).save(new CompoundTag(), server.registryAccess()).sizeInBytes();
+            int pointBytes = WaypointData.get(server).save(new CompoundTag(), server.registryAccess()).sizeInBytes();
+            source.sendSuccess(() -> Component.translatable("command.godofthings.doctor.data_size",
+                    noteBytes, pointBytes), false);
+        }
+        catch (Throwable ignored)
+        {
+            // 体积统计失败不影响诊断本身
+        }
         return 1;
     }
 
@@ -188,8 +202,17 @@ public class GodofthingsCommand
     private static int exportNote(CommandSourceStack source, String name) throws CommandSyntaxException
     {
         ServerPlayer player = source.getPlayerOrException();
-        NoteBook book = GodNoteData.get(source.getServer()).book(player.getUUID());
-        if (book.isEmpty() && book.name().isEmpty())
+        com.godofthings.note.NoteShelf shelf = GodNoteData.get(source.getServer()).shelf(player.getUUID());
+        boolean empty = true;
+        for (NoteBook book : shelf.books())
+        {
+            if (!book.isEmpty() || !book.name().isEmpty())
+            {
+                empty = false;
+                break;
+            }
+        }
+        if (empty)
         {
             source.sendFailure(Component.translatable("message.godofthings.export.empty"));
             return 0;
@@ -197,8 +220,9 @@ public class GodofthingsCommand
         String file = SaveFileIO.sanitize(name, player.getGameProfile().getName() + "-" + NoteDate.today());
         try
         {
+            // 导的是整册（多本 + 悬浮窗设置都在里面）
             CompoundTag tag = new CompoundTag();
-            book.save(tag);
+            shelf.save(tag);
             Path path = SaveFileIO.write(source.getServer(), "note", file, tag.toString());
             source.sendSuccess(() -> Component.translatable("message.godofthings.export.done",
                     path.toString()).withStyle(ChatFormatting.GREEN), false);
@@ -241,12 +265,29 @@ public class GodofthingsCommand
                 source.sendFailure(Component.translatable("message.godofthings.import.invalid"));
                 return 0;
             }
-            NoteBook imported = new NoteBook();
+            com.godofthings.note.NoteShelf imported = new com.godofthings.note.NoteShelf();
             imported.load(tag);
+            // 覆盖前先把当前内容备份一份（备份失败不影响导入，只提示）
+            String backupName = file + "-backup-" + SaveFileIO.timestamp();
+            try
+            {
+                CompoundTag current = new CompoundTag();
+                GodNoteData.get(source.getServer()).shelf(player.getUUID()).save(current);
+                SaveFileIO.write(source.getServer(), "note", backupName, current.toString());
+                source.sendSuccess(() -> Component.translatable("message.godofthings.import.backup",
+                        backupName + ".snbt").withStyle(ChatFormatting.GRAY), false);
+            }
+            catch (Exception backupError)
+            {
+                source.sendSuccess(() -> Component.translatable("message.godofthings.import.backup_failed",
+                        String.valueOf(backupError.getMessage())).withStyle(ChatFormatting.RED), false);
+            }
             GodNoteData.get(source.getServer()).put(player.getUUID(), imported);
             com.godofthings.network.GodNoteMessages.sendSync(player);
             source.sendSuccess(() -> Component.translatable("message.godofthings.import.note_done",
-                    file, imported.tasks().size()).withStyle(ChatFormatting.GREEN), false);
+                            file, imported.size(),
+                            imported.books().stream().mapToInt(b -> b.tasks().size()).sum())
+                    .withStyle(ChatFormatting.GREEN), false);
             return 1;
         }
         catch (Exception e)

@@ -69,7 +69,7 @@ public class GodNoteCommands
     private static int add(CommandSourceStack source, String text) throws CommandSyntaxException
     {
         ServerPlayer player = source.getPlayerOrException();
-        NoteBook book = GodNoteData.get(source.getServer()).book(player.getUUID());
+        NoteBook book = GodNoteData.get(source.getServer()).shelf(player.getUUID()).current();
         int index = book.add(text);
         if (index < 0)
         {
@@ -87,7 +87,7 @@ public class GodNoteCommands
     private static int list(CommandSourceStack source) throws CommandSyntaxException
     {
         ServerPlayer player = source.getPlayerOrException();
-        NoteBook book = GodNoteData.get(source.getServer()).book(player.getUUID());
+        NoteBook book = GodNoteData.get(source.getServer()).shelf(player.getUUID()).current();
         if (book.isEmpty())
         {
             source.sendSuccess(() -> Component.translatable("message.godofthings.note.list_empty"), false);
@@ -107,7 +107,7 @@ public class GodNoteCommands
     private static int clear(CommandSourceStack source) throws CommandSyntaxException
     {
         ServerPlayer player = source.getPlayerOrException();
-        NoteBook book = GodNoteData.get(source.getServer()).book(player.getUUID());
+        NoteBook book = GodNoteData.get(source.getServer()).shelf(player.getUUID()).current();
         int count = book.tasks().size();
         book.clear();
         GodNoteData.get(source.getServer()).setDirty();
@@ -120,8 +120,8 @@ public class GodNoteCommands
     private static int hud(CommandSourceStack source, boolean enabled) throws CommandSyntaxException
     {
         ServerPlayer player = source.getPlayerOrException();
-        NoteBook book = GodNoteData.get(source.getServer()).book(player.getUUID());
-        book.hud().enabled = enabled;
+        com.godofthings.note.NoteShelf shelf = GodNoteData.get(source.getServer()).shelf(player.getUUID());
+        shelf.hud().enabled = enabled;
         GodNoteData.get(source.getServer()).setDirty();
         GodNoteMessages.sendSync(player);
         source.sendSuccess(() -> Component.translatable("gui.godofthings.note.hud",
@@ -135,7 +135,7 @@ public class GodNoteCommands
     private static int rename(CommandSourceStack source, String text) throws CommandSyntaxException
     {
         ServerPlayer player = source.getPlayerOrException();
-        NoteBook book = GodNoteData.get(source.getServer()).book(player.getUUID());
+        NoteBook book = GodNoteData.get(source.getServer()).shelf(player.getUUID()).current();
         book.setAutoName(false);
         book.setName(text);
         GodNoteData.get(source.getServer()).setDirty();
@@ -151,7 +151,7 @@ public class GodNoteCommands
     private static int auto(CommandSourceStack source, boolean enabled) throws CommandSyntaxException
     {
         ServerPlayer player = source.getPlayerOrException();
-        NoteBook book = GodNoteData.get(source.getServer()).book(player.getUUID());
+        NoteBook book = GodNoteData.get(source.getServer()).shelf(player.getUUID()).current();
         book.setAutoName(enabled);
         if (enabled)
         {

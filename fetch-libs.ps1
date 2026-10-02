@@ -8,11 +8,14 @@
 # ASCII-only on purpose (PowerShell 5.1 misreads UTF-8-no-BOM scripts containing Chinese).
 #
 # Usage:
-#   ./fetch-libs.ps1              # restore into ./libs
-#   ./fetch-libs.ps1 -Dest <dir>  # restore into another directory (used for a dry run)
+#   ./fetch-libs.ps1                     # restore into ./libs
+#   ./fetch-libs.ps1 -Dest <dir>         # restore into another directory (used for a dry run)
+#   ./fetch-libs.ps1 -IncludeTestMods    # also fetch guideme (AE2's runtime dep) so that
+#                                        # `gradlew runGameTestServer` works; CI uses this
 
 param(
-    [string]$Dest = ''
+    [string]$Dest = '',
+    [switch]$IncludeTestMods
 )
 
 $ErrorActionPreference = 'Stop'
@@ -51,6 +54,13 @@ $files = @(
     @{ local = 'productivebees-1.21.1-13.13.5.jar'; remote = '' },
     @{ local = 'SmartBrainLib-neoforge-1.21.1-1.16.11.jar'; remote = '' }
 )
+
+if ($IncludeTestMods) {
+    # guideme is AE2's runtime dependency (not a compile dependency of this mod): it is only
+    # needed when running the game tests. Keep comments in this file ASCII-only -- a non-ASCII
+    # comment in a UTF-8-no-BOM .ps1 can be misread by PowerShell and swallow the next line.
+    $files += @{ local = 'guideme-21.1.19.jar'; remote = '' }
+}
 
 # Optional local proxy (NBVPN listens on 7890 once connected; 7897 is the fallback).
 # NOTE: this script also runs on Linux (GitHub Actions), so it must not use Windows-only

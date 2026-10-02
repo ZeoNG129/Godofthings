@@ -149,7 +149,8 @@ tasks.withType(JavaCompile).configureEach {
 // 这里在跑测试前把 libs 里的 AE2 拷进 run-gametest/mods，保证「fetch-libs 之后就能直接跑测试」，CI 同理。
 tasks.register('prepareGameTestMods', Copy) {
     from('libs/ae2-1.21.1-neoforge.jar')
-    // AE2 的运行期前置 guideme（本机 dev 环境 run-server/mods 里有；CI 不跑 gametest，所以这里可以缺席）
+    // AE2 的运行期前置 guideme：本机 dev 环境在 run-server/mods/，CI 用 fetch-libs.ps1 -IncludeTestMods 拉到 libs/
+    from('libs') { include 'guideme-*.jar' }
     from('run-server/mods') { include 'guideme-*.jar' }
     into('run-gametest/mods')
     onlyIf { file('libs/ae2-1.21.1-neoforge.jar').isFile() }

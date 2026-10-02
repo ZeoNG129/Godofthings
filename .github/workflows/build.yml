@@ -6,9 +6,10 @@ name: build
 #
 # 说明：
 #  - 编译期的 19 个可选依赖 jar 不再进版本库，CI 里先跑 fetch-libs.ps1 拉回来（带缓存）。
-#  - 不跑 gametest：本模组有若干方块实体直接 implements AE2 接口，运行期需要 AE2 + guideme，
-#    CI 里没有这两个前置。本机跑法见 AGENTS.md（gradlew runGameTestServer）。
-#  - deployJars 在 CI 上找不到本机测试目录，会打印警告后跳过，不影响构建结果。
+#    加 -IncludeTestMods 会额外拉 guideme（AE2 的运行期前置），下面那步 gametest 需要它。
+#  - game test 跑的是数据层回归测试（便签/传送点的存档与封包往返、自动更名、兜底 clamp），
+#    需要运行期有 AE2 —— prepareGameTestMods 任务会把 AE2 与 guideme 拷进 run-gametest/mods。
+#  - deployJars 在 CI 上会自己跳过（非 Windows 平台），不影响构建结果。
 
 on:
   push:
@@ -36,13 +37,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: libs
-          key: libs-1.21.1-v1
+          key: libs-1.21.1-v2
 
       - name: Fetch compile-only deps
         shell: pwsh
-        run: ./fetch-libs.ps1
+        run: ./fetch-libs.ps1 -IncludeTestMods
 
-      - name: Language file check
+      - name: Static checks (lang + assets)
         shell: pwsh
         run: ./check-lang.ps1
 
@@ -51,6 +52,11 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew build --no-daemon -Dorg.gradle.java.home="$JAVA_HOME"
+
+      - name: Game tests
+        run: |
+          chmod +x gradlew
+          ./gradlew runGameTestServer --no-daemon -Dorg.gradle.java.home="$JAVA_HOME"
 
       - name: Upload jar
         uses: actions/upload-artifact@v4

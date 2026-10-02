@@ -871,3 +871,44 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     · 两处修完后 run #4 **全部步骤通过**（fetch-libs / check-lang / build / upload jar）。本机也复验过：Windows 上照常部署，把 `os.name` 伪装成 Linux 则走跳过分支。
     · 教训：**本机用的 .ps1 / build.gradle 只要会在 CI 跑到，就不能用 Windows 独有的 cmdlet 或盘符路径**。
     · 备注：release 里那个 `godofthings-5.3.0.jar` 是从 `4f74290`（功能提交）构建的；之后两个提交（`653a624`、`f5b616b`）只动了 CI 与构建脚本，**不影响 jar 内容**，所以没有重新上传。
+- 5.3.0 → **5.4.0（便签多本 + 拖拽排序；体检发现的掉落 bug 修复；CI 跑起 gametest；校验脚本扩到资源一致性）** —— 一批**新增功能 + 修复 + 工程完善**，按规则**第二位 +1、末位归零**。
+  - **① 便签一册多本（补充 6）**：新增 `NoteShelf` —— 一个玩家一册，**最多 8 本**，每本有自己的任务 / 名字 / 自动更名开关；
+    悬浮窗的显示设置（位置 / 大小 / 背景 / 透明度 / 是否显示已完成）移到册一级共享，窗口里画的是**当前选中那本**。
+    界面任务页顶部加了一条便签册栏：`<` `>` 切换、`新建`、`删除`（**点两次确认**，且只剩一本时不允许删）。
+    自动更名改为「对每一本开着的那本生效」；doctor 会报「当前第 i/n 本」。
+    · **旧存档兼容**：v5.3.0 及以前顶层是 `Tasks/Name/Hud`，读取时整份当成「一册里的一本」，悬浮窗设置一并接上
+      （GameTest 里专门有一条迁移测试）。
+  - **② 任务拖拽排序（补充 6）**：按住任务行上下拖拽即可重排（拖到列表上下边缘会自动滚动），松手才发包；
+    没移动过就还是「点文字改名」。
+  - **③ 修掉一个真 bug：3 个无用维度传送方块挖掉不掉落（优化①带出来的内容审计）**。
+    `teleport_block` / `_2` / `_3` 带 `requiresCorrectToolForDrops()`，但**没进任何 `mineable` 标签**
+    —— 原版判定链里没有等级规则命中时 `Tool#isCorrectForDrops` 直接返回 false，于是 `canHarvestBlock` 为假、
+    `playerDestroy` 不执行，**掉落表写了也永远不触发**（钻石 / 下界合金镐一样）。查上游 useless_mod 自己的
+    `data/minecraft/tags/block/mineable/pickaxe.json` 确实含这 3 个 id，属于照抄时漏了标签 → 按上游补进 pickaxe.json。
+  - **④ 补 3 个实体语言键 + 删 4 张孤儿贴图（同一轮内容审计的产物）**：`beef_time_acceleration` 原本没有
+    `entity.godofthings.*` 键（名称会回落成原始键），另两个辅助实体也一并补上；删掉 4 张经核对无任何模型 /
+    blockstate 引用的贴图（`item/god_craft`、`item/void_teleporter`、`item/wondrous_staff`、`block/god_craft`）。
+  - **⑤ 静态校验脚本扩到「语言 + 资源一致性」（补充 2）**：`check-lang.ps1` 现在一次查完 —— 键集双向一致 / 无空值 /
+    代码字面量回查 / 6 个拼接前缀能解析 / **注册的方块→blockstate、非方块物品→item 模型、物品方块→名称键、
+    实体→实体名键 全覆盖** / 反向「有 blockstate 但没有注册方块」 / **仓库内 .ps1 必须纯 ASCII**。
+    规则在 HEAD 上零误报（20 方块 / 18 物品 / 4 实体），并做了正反两次验证（临时拿掉一个 blockstate → exit 1，还原 → exit 0）。
+    · 顺带把 `release.ps1` 里唯一一处中文注释换成英文 —— 它本来就是 AGENTS.md 里点名的「PS 5.1 解析风险」来源。
+  - **⑥ GameTest 进 CI（补充 1）**：`guideme` 作为第 20 个 asset 传到 `libs-1.21.1`，`fetch-libs.ps1` 加
+    `-IncludeTestMods`；CI 现在是 fetch-libs → check-lang → build → **runGameTestServer** → 上传 jar。
+    测试从 5 条扩到 **7 条**（新增多本 / 旧存档迁移；拖拽排序、自动更名、clamp 都加进了断言）。
+  - **⑦ 导入前自动备份 + 存档体积体检（补充 3）**：`/godofthings import note` 覆盖前先写一份
+    `note-<名字>-backup-<yyyyMMdd-HHmmss>.snbt`（备份失败只提示、不阻断导入）；`/godofthings doctor` 新增一行
+    报告便签与传送点两份 SavedData 的 NBT 字节数，方便排查存档膨胀。
+  - **⑧ mods.toml 依赖声明补全（补充 4）**：把 **AE2 如实声明为 `required`**（6 个方块实体类声明上直接 implements 它的接口，
+    缺了就是加载期崩 —— 声明后缺依赖时会给出「缺 ae2」的明确提示而不是崩溃堆栈），另加 19 个 `optional` + `ordering="AFTER"`
+    的可选兼容条目（JEI / EMI / AE2WTLib / ExtendedAE / AppliedFlux / AppMek / Ad Astra / Occultism / Malum /
+    神秘农业 / Goety / 铁魔法 / 新生魔艺 / EnderIO / 通用机械 / MI / 资源蜜蜂 / 建筑手杖 / FTB Teams / GTCEu）。
+  - **⑨ 配置注释双语化（补充 9）**：4 个配置类共 **117 处 `.comment(...)` / 117 个字符串字面量**后面追加英文
+    （中文原文一字未改）：ConfigManager 83、StretcherConfig 28、MachinesConfig 5、ClientConfig 1；
+    另有 15 个本来就是英文的注释保持不动。NeoForge 的配置注释不支持语言键，只能这样中英并排。
+  - **⑩ 修一个会「静默吞代码」的脚本坑（顺带发现）**：给 `fetch-libs.ps1` 加 `-IncludeTestMods` 时我在里面写了中文注释，
+    结果 **UTF-8 无 BOM + 中文** 被 PowerShell 读错编码后，注释尾字节被当成续行符，把下一行的 `$files += ...` 吞掉了 ——
+    表现为「开关值为 True、if 也进了，但数组就是没变」（靠临时插调试行才定位到）。已改成英文注释，
+    并把「仓库内 .ps1 必须纯 ASCII」做成了校验项（见 ⑤）。
+  - **⑪ 文档订正（优化①）**：README 里「神之护甲 **12 项**功能」与代码不符 —— `GodArmorFeatures.COUNT = 16`
+    （多出来的是水下视觉 / 村庄英雄 / 发光 / 暴食），已订正并补进功能列表；顺带更新了「测试」一节与便签一行（多本 / 拖拽排序）。

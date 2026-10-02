@@ -18,20 +18,20 @@ public class MachinesConfig {
 
    static {
       BUILDER.push("miner");
-      MINER_MAX_RADIUS = BUILDER.comment("神之矿机最大挖掘半径（方形半径，格）。").defineInRange("maxRadius", 1600, 1, 100000);
-      MINER_MAX_BLOCKS_PER_TICK = BUILDER.comment("神之矿机每个 tick 最多处理的方块数，防止卡顿。")
+      MINER_MAX_RADIUS = BUILDER.comment("神之矿机最大挖掘半径（方形半径，格）。 / God Miner max mining radius (square radius, in blocks).").defineInRange("maxRadius", 1600, 1, 100000);
+      MINER_MAX_BLOCKS_PER_TICK = BUILDER.comment("神之矿机每个 tick 最多处理的方块数，防止卡顿。 / Max blocks the God Miner processes per tick, to avoid lag.")
          .defineInRange("maxBlocksPerTick", 131072, 1, 10000000);
-      MINER_TICKS_PER_COLUMN_BASE = BUILDER.comment("神之矿机挖一整列的基础 tick 数（效率每级 -4，最低 1）。")
+      MINER_TICKS_PER_COLUMN_BASE = BUILDER.comment("神之矿机挖一整列的基础 tick 数（效率每级 -4，最低 1）。 / Base ticks for the God Miner to mine one full column (-4 per efficiency level, minimum 1).")
          .defineInRange("ticksPerColumnBase", 20, 1, 100000);
       BUILDER.pop();
 
       BUILDER.push("resourceMachine");
-      RESOURCE_WORK_INTERVAL = BUILDER.comment("神之资源机工作间隔（tick）：每 N tick 处理输入槽 1 个物品。")
+      RESOURCE_WORK_INTERVAL = BUILDER.comment("神之资源机工作间隔（tick）：每 N tick 处理输入槽 1 个物品。 / God Resource Machine work interval (ticks): processes 1 item from the input slot every N ticks.")
          .defineInRange("workInterval", 20, 1, 100000);
       BUILDER.pop();
 
       BUILDER.push("dropMachine");
-      DROP_WORK_INTERVAL = BUILDER.comment("神之掉落机工作间隔（tick）：每 N tick 处理刷怪蛋一次。")
+      DROP_WORK_INTERVAL = BUILDER.comment("神之掉落机工作间隔（tick）：每 N tick 处理刷怪蛋一次。 / God Drop Machine work interval (ticks): processes one spawn egg every N ticks.")
          .defineInRange("workInterval", 20, 1, 100000);
       BUILDER.pop();
 

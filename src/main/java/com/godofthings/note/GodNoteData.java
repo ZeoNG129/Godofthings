@@ -13,16 +13,18 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 神之便签的全局存储（World SavedData，持久化到存档）：一个玩家一本。
+ * 神之便签的全局存储（World SavedData，持久化到存档）：一个玩家一册（可含多本）。
  *
- * <p>与传送点（{@code WaypointData}）同一套做法，挂主世界维度存储下、跨维度共享。
- * 便签属于「玩家个人资料」而不是物品，所以物品只是个入口：把便签丢给别人也不会把内容带走。</p>
+ * <p>与传送点（{@code WaypointData}）同一套做法，挂主世界维度存储下、跨维度共享。</p>
+ *
+ * <p><b>旧存档兼容</b>：v5.3.0 及以前每个玩家只有一本，NBT 顶层是 {@code Books:[{Id,Tasks,...}]}；
+ * 读取时若没有 {@code Shelves} 标签，就把每个旧条目的内容当成「一册里的一本」（旧条目的 Hud 也一并接上）。</p>
  */
 public class GodNoteData extends SavedData
 {
     private static final String NAME = "godofthings_notes";
 
-    private final Map<UUID, NoteBook> books = new HashMap<>();
+    private final Map<UUID, NoteShelf> shelves = new HashMap<>();
 
     public GodNoteData()
     {
@@ -31,17 +33,34 @@ public class GodNoteData extends SavedData
     /** 反序列化构造器（SavedData.Factory 的 BiFunction 入参） */
     public GodNoteData(CompoundTag tag, HolderLookup.Provider provider)
     {
-        ListTag list = tag.getList("Books", Tag.TAG_COMPOUND);
-        for (int i = 0; i < list.size(); i++)
+        if (tag.contains("Shelves", Tag.TAG_LIST))
         {
-            CompoundTag entry = list.getCompound(i);
+            ListTag list = tag.getList("Shelves", Tag.TAG_COMPOUND);
+            for (int i = 0; i < list.size(); i++)
+            {
+                CompoundTag entry = list.getCompound(i);
+                if (!entry.hasUUID("Id"))
+                {
+                    continue;
+                }
+                NoteShelf shelf = new NoteShelf();
+                shelf.load(entry);
+                shelves.put(entry.getUUID("Id"), shelf);
+            }
+            return;
+        }
+        // v5.3.0 及以前的单本格式
+        ListTag legacy = tag.getList("Books", Tag.TAG_COMPOUND);
+        for (int i = 0; i < legacy.size(); i++)
+        {
+            CompoundTag entry = legacy.getCompound(i);
             if (!entry.hasUUID("Id"))
             {
                 continue;
             }
-            NoteBook book = new NoteBook();
-            book.load(entry);
-            books.put(entry.getUUID("Id"), book);
+            NoteShelf shelf = new NoteShelf();
+            shelf.load(entry);
+            shelves.put(entry.getUUID("Id"), shelf);
         }
     }
 
@@ -52,18 +71,18 @@ public class GodNoteData extends SavedData
                 new SavedData.Factory<>(GodNoteData::new, GodNoteData::new), NAME);
     }
 
-    /** 取该玩家的便签（没有就新建一份空的，但不立刻标脏） */
-    public NoteBook book(UUID id)
+    /** 取该玩家的便签册（没有就新建一册，但不立刻标脏） */
+    public NoteShelf shelf(UUID id)
     {
-        return books.computeIfAbsent(id, k -> new NoteBook());
+        return shelves.computeIfAbsent(id, k -> new NoteShelf());
     }
 
-    /** 整本替换（客户端上传的副本），先兜底再落库；开着自动更名时以服务端当日日期为准 */
-    public void put(UUID id, NoteBook book)
+    /** 整册替换（客户端上传的副本），先兜底再落库；开着自动更名的那几本以服务端当日日期为准 */
+    public void put(UUID id, NoteShelf shelf)
     {
-        book.clamp();
-        book.applyAutoName();
-        books.put(id, book);
+        shelf.clamp();
+        shelf.applyAutoName();
+        shelves.put(id, shelf);
         setDirty();
     }
 
@@ -71,14 +90,14 @@ public class GodNoteData extends SavedData
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider)
     {
         ListTag list = new ListTag();
-        for (Map.Entry<UUID, NoteBook> e : books.entrySet())
+        for (Map.Entry<UUID, NoteShelf> e : shelves.entrySet())
         {
             CompoundTag entry = new CompoundTag();
             entry.putUUID("Id", e.getKey());
             e.getValue().save(entry);
             list.add(entry);
         }
-        tag.put("Books", list);
+        tag.put("Shelves", list);
         return tag;
     }
 }

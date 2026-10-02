@@ -3,6 +3,7 @@ package com.godofthings.client;
 import com.godofthings.Godofthings;
 import com.godofthings.note.NoteBook;
 import com.godofthings.note.NoteHud;
+import com.godofthings.note.NoteShelf;
 import com.godofthings.note.NoteTask;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -67,12 +68,12 @@ public final class GodNoteHud
         {
             return; // 开界面 / 未进世界时不画
         }
-        NoteBook book = ClientNoteCache.book();
-        if (!book.hud().enabled)
+        NoteShelf shelf = ClientNoteCache.shelf();
+        if (!shelf.hud().enabled)
         {
             return;
         }
-        render(gui, mc.font, book, gui.guiWidth(), gui.guiHeight(), false);
+        render(gui, mc.font, shelf.current(), shelf.hud(), gui.guiWidth(), gui.guiHeight(), false);
     }
 
     /** 一行版面（一条任务可能折成多行，只有首行带勾选框） */
@@ -81,12 +82,12 @@ public final class GodNoteHud
     /** 一次排版的结果：行 + 未缩放面板尺寸 */
     private record Layout(List<Row> rows, int width, int height) {}
 
-    private static Layout layout(Font font, NoteBook book)
+    private static Layout layout(Font font, NoteBook book, NoteHud hud)
     {
         List<Row> rows = new ArrayList<>();
         for (NoteTask task : book.tasks())
         {
-            if (task.done && !book.hud().showDone)
+            if (task.done && !hud.showDone)
             {
                 continue;
             }
@@ -115,14 +116,14 @@ public final class GodNoteHud
      * 便签在屏幕上占据的矩形：{@code {x, y, 缩放后宽, 缩放后高}}（单位 = GUI 像素）。
      * 编辑界面用它做命中判定与拖动换算。
      */
-    public static int[] rect(Font font, NoteBook book, int screenW, int screenH)
+    public static int[] rect(Font font, NoteBook book, NoteHud hud, int screenW, int screenH)
     {
-        Layout l = layout(font, book);
-        float scale = Mth.clamp(book.hud().scale, NoteHud.MIN_SCALE, NoteHud.MAX_SCALE);
+        Layout l = layout(font, book, hud);
+        float scale = Mth.clamp(hud.scale, NoteHud.MIN_SCALE, NoteHud.MAX_SCALE);
         int w = Math.round(l.width() * scale);
         int h = Math.round(l.height() * scale);
-        int x = clampPos(Math.round(book.hud().x * screenW), w, screenW);
-        int y = clampPos(Math.round(book.hud().y * screenH), h, screenH);
+        int x = clampPos(Math.round(hud.x * screenW), w, screenW);
+        int y = clampPos(Math.round(hud.y * screenH), h, screenH);
         return new int[] { x, y, w, h };
     }
 
@@ -141,11 +142,10 @@ public final class GodNoteHud
     }
 
     /** 画一份便签；{@code editing} = true 时加一圈高亮虚框（编辑模式提示可拖动） */
-    public static void render(GuiGraphics gui, Font font, NoteBook book, int screenW, int screenH,
+    public static void render(GuiGraphics gui, Font font, NoteBook book, NoteHud hud, int screenW, int screenH,
                               boolean editing)
     {
-        NoteHud hud = book.hud();
-        Layout l = layout(font, book);
+        Layout l = layout(font, book, hud);
         float scale = Mth.clamp(hud.scale, NoteHud.MIN_SCALE, NoteHud.MAX_SCALE);
         int w = l.width();
         int h = l.height();

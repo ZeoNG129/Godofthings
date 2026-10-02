@@ -66,4 +66,11 @@ public final class SaveFileIO
         Path file = server.getWorldPath(LevelResource.ROOT).resolve(FOLDER).resolve(kind + "-" + name + ".snbt");
         return Files.exists(file) ? Files.readString(file, StandardCharsets.UTF_8) : null;
     }
+
+    /** 备份用的时间戳（yyyyMMdd-HHmmss），保证同一秒内多次覆盖也不会互相盖掉 */
+    public static String timestamp()
+    {
+        return java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+    }
 }

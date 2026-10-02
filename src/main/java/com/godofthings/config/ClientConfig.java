@@ -22,7 +22,7 @@ public class ClientConfig
     static
     {
         BUILDER.push("gui");
-        LAST_SKILL_TAB = BUILDER.comment("神之套装配置界面上次停留的标签页（0=基础属性 1=特殊增幅 2=套装功能）。")
+        LAST_SKILL_TAB = BUILDER.comment("神之套装配置界面上次停留的标签页（0=基础属性 1=特殊增幅 2=套装功能）。 / Last selected tab of the God Armor config screen (0=Base Attributes 1=Special Amplifiers 2=Suit Functions).")
                 .defineInRange("lastSkillTab", 0, 0, 8);
         BUILDER.pop();
         SPEC = BUILDER.build();
