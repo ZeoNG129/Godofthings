@@ -1,7 +1,6 @@
 package com.godofthings.command;
 
 import com.godofthings.Godofthings;
-import com.godofthings.armor.skill.MagicAttributeBridge;
 import com.godofthings.note.GodNoteData;
 import com.godofthings.note.NoteBook;
 import com.godofthings.note.NoteDate;
@@ -133,26 +132,7 @@ public class GodofthingsCommand
                     String.join(" ", absent)).withStyle(ChatFormatting.DARK_GRAY), false);
         }
 
-        // ② 魔法增幅属性解析（异常绝不影响指令本身）
-        try
-        {
-            List<String> all = MagicAttributeBridge.allSkills();
-            List<String> matched = MagicAttributeBridge.availableSkills();
-            List<String> missing = new ArrayList<>(all);
-            missing.removeAll(matched);
-            source.sendSuccess(() -> Component.translatable(matched.isEmpty()
-                            ? "command.godofthings.doctor.magic_none"
-                            : "command.godofthings.doctor.magic",
-                    matched.size(), all.size(),
-                    missing.isEmpty() ? "-" : String.join(", ", missing)), false);
-        }
-        catch (Throwable t)
-        {
-            source.sendSuccess(() -> Component.translatable("command.godofthings.doctor.magic_error",
-                    String.valueOf(t.getMessage())).withStyle(ChatFormatting.RED), false);
-        }
-
-        // ③ Mixin 共存
+        // ② Mixin 共存
         boolean anyOverride = false;
         for (String[] pair : MIXIN_OVERRIDERS)
         {
@@ -171,7 +151,7 @@ public class GodofthingsCommand
                     .withStyle(ChatFormatting.GREEN), false);
         }
 
-        // ④ 数据统计
+        // ③ 数据统计
         ServerPlayer player = source.getPlayer();
         if (player != null)
         {
@@ -191,7 +171,7 @@ public class GodofthingsCommand
         int waypoints = WaypointData.get(server).names().size();
         source.sendSuccess(() -> Component.translatable("command.godofthings.doctor.waypoints", waypoints), false);
 
-        // ⑤ 存档数据体积：排查「存档怎么越来越大」
+        // ④ 存档数据体积：排查「存档怎么越来越大」
         try
         {
             int noteBytes = GodNoteData.get(server).save(new CompoundTag(), server.registryAccess()).sizeInBytes();

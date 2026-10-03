@@ -49,7 +49,7 @@
 ## 项目约定
 - 语言文件 `zh_cn.json` 与 `en_us.json` 键集必须双向一致
 - **README「内容一览」提交更新时就要同步更新**（新增/删除物品、方块、功能都要改那张表格）
-- **新功能一律独立成包 / 独立文件**：`Godofthings.java` 只做注册；不要再往已经很大的类里塞新东西（`ModeWheelScreen` 1500+ 行、`EndlessBeafItem` 1400+、`StaffLinkScreen` 1300+、`ConfigManager` 1100+、`GodMinerBlockEntity` / `GodCraftBlockEntity` 1000 行左右，且大多是照抄上游的）。参考 `note/` 包（神之便签）的做法：数据 / 网络 / 界面 / 指令各自成文件
+- **新功能一律独立成包 / 独立文件**：`Godofthings.java` 只做注册；不要再往已经很大的类里塞新东西（`ModeWheelScreen` 1500+ 行、`EndlessBeafItem` 1400+、`ConfigManager` 1100+、`GodMinerBlockEntity` / `GodCraftBlockEntity` 1000 行左右，且大多是照抄上游的）。参考 `note/` 包（神之便签）的做法：数据 / 网络 / 界面 / 指令各自成文件
 - **对「照抄上游」代码的本地改动，用 `[本地改动]` 注释标出来**，并在 VERSIONING.md 记一笔：上游更新后继续移植是既定做法（用户明确会选择继续移植），标注了才知道哪些是「移植时要带上」的。当前代码里暂无此类标注（原举例的 `RenderEntityScan` 已随权杖在 v5.8.0 一并删除）。
 - **语言键改动后用脚本自检**：`check-lang.ps1`（根目录）会校验 zh/en 键集双向一致、且代码里所有 `translatable("字面量")` 都能在语言文件里找到
 - **新增物品 / 方块必须补一条手册条目**：`manual.godofthings.<注册名>`（`check-lang.ps1` 会校验，漏了直接报错）。
@@ -59,7 +59,7 @@
 - git 分支：本项目用 `1.21.1` 分支（GitHub 仓库默认分支已设为 `1.21.1`）；1.20.1 Forge 版在 `main` 分支（本地 `E:\MC\Mod\1.20.1\Godofthings`），两仓库 remote 指向同一 GitHub 仓库 `ZeoNG129/Godofthings`
 - GitHub Release 按**首位大版本**归类（1.x / 2.x / 3.x / 4.x / 5.x …各一个 release，tag 取该大版本下的一个具体版本，如 v2.6.0）；1.20.1 保留 v2.0.5；每个大版本 release 下挂该大版本**所有小版本 jar**（新小版本 jar 追加为 asset，不删除旧 asset）
 - **当前同步状态（2026-10-02 核对，已全部补齐）**：远程 `origin/1.21.1` 与本地**一致**，tag **v3.0.1 / v4.0.2 / v5.1.7** 已推送；**模组 release 6 个**（另有一个 `libs-1.21.1` 依赖 release，标为 pre-release、不属于版本线）：
-  v1.9.0（1.x，24 个 jar）、v2.0.5（1.20.1 Forge）、v2.4.1（2.x，20 个 jar，已补 2.20.5）、**v3.0.1（3.x，2 个 jar）**、**v4.0.2（4.x，3 个 jar）**、**v5.1.7（5.x，24 个 jar，已补 5.1.8 / 5.2.0 / 5.2.1 / 5.3.0 / 5.4.0 / 5.4.1 / 5.4.2 / 5.5.0 / 5.5.1 / 5.5.2 / 5.6.0 / 5.6.1 / 5.6.2 / 5.7.0 / 5.8.0）**。
+  v1.9.0（1.x，24 个 jar）、v2.0.5（1.20.1 Forge）、v2.4.1（2.x，20 个 jar，已补 2.20.5）、**v3.0.1（3.x，2 个 jar）**、**v4.0.2（4.x，3 个 jar）**、**v5.1.7（5.x，25 个 jar，已补 5.1.8 / 5.2.0 / 5.2.1 / 5.3.0 / 5.4.0 / 5.4.1 / 5.4.2 / 5.5.0 / 5.5.1 / 5.5.2 / 5.6.0 / 5.6.1 / 5.6.2 / 5.7.0 / 5.8.0 / 5.9.0）**。
   · **发小版本 / 第二位变化**：build → commit → `git push origin 1.21.1` → **不新建 release、不新建 tag**，只把 jar 追加到该首位大版本已有的 release 下并补 release notes（例如 5.1.8 / 5.2.0 / 5.2.1 都进 v5.1.7 那个 release）。
   · 现成脚本：`.ref/release/publish-majors.ps1`（`git credential fill` 取 token + 自动探测 7890 代理 + 建 tag/release/上传资产）。仓库内所有 `.ps1` **一律保持纯 ASCII**（`check-lang.ps1` 会校验这条）：UTF-8 无 BOM 且含中文的脚本被 PowerShell 5.1 读错编码时，注释的尾字节会被当成续行符、**把下一行代码吞掉**（`fetch-libs.ps1` 真踩过一次，表现为某个分支静默失效）。
   · **离线构建依赖**：`libs/` 下 19 个第三方模组 jar（约 52MB）**不进版本库**（仓库瘦身 + 第三方 jar 不再随源码分发）；克隆后跑根目录的 `fetch-libs.ps1`，从本仓库的 `libs-1.21.1` release 一次性拉回来（该 release 标为 pre-release，不属于模组版本线）。

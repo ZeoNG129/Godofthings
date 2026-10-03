@@ -172,8 +172,9 @@ public final class ArmorSkillMessages
                     return;
                 }
                 // >0 = 设为该等级；<0 = 只关闭（保留等级）；0 = 清除该列（重置）
+                // 等级上限由 ArmorSkillData 按每个节点自己的 maxLevel 夹取（7 个节点上限各不相同）
                 int raw = msg.level();
-                int level = raw == 0 ? 0 : (raw < 0 ? -1 : Math.min(ArmorSkills.BASE_MAX_LEVEL, raw));
+                int level = raw == 0 ? 0 : (raw < 0 ? -1 : raw);
                 ArmorSkillCategory[] categories = ArmorSkillCategory.values();
                 if (msg.categoryOrdinal() == CATEGORY_ALL)
                 {

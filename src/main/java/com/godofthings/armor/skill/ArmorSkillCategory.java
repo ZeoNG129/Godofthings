@@ -1,30 +1,19 @@
 package com.godofthings.armor.skill;
 
 /**
- * 神之套装技能树的分类（对应技能树界面里的"列"）。
- * <p>
- * 阶段 1 只开放 {@link #BASE} 与 {@link #AMPLIFY}；其余分类按后续阶段逐个接入
- * （终极节点 / 特殊被动 / 光环 / 机械共鸣 / 魔法增幅）。
- * <p>
- * 数值与机制移植自 <b>Zifeng Skill Tree（子枫的百宝箱）</b>
- * （Copyright (c) 2026 zifeng, MIT License），已按神之套装的"无技能点、无前置、点击即解锁"重做。
+ * 神之套装技能树的分类。
+ *
+ * <p><b>v5.9.0 起按用户要求只保留一个分类</b>：原「终极节点」改名为「神之增幅」，
+ * 「基础属性」「特殊增幅」「机械共鸣」「魔法增幅」四类整体删除。
+ * 界面上的另一页是「神之套装」（{@code GodArmorFeatures} 的开关位），不属于技能分类。</p>
+ *
+ * <p>数值与机制原样移植自 Zifeng Skill Tree（子枫的百宝箱，MIT），
+ * 本模组按「无技能点、无前置、点击开关」重做。</p>
  */
 public enum ArmorSkillCategory
 {
-    /** 魔法增幅（其余模组兼容，需装对应模组才生效） */
-    MAGIC("magic"),
-    /** 基础属性（纯固定数值堆叠） */
-    BASE("base"),
-    /** 特殊增幅（百分比放大基础数值） */
-    AMPLIFY("amplify"),
-    /** 终极节点（成长型大招） */
-    ULTIMATE("ultimate"),
-    /** 特殊被动（一次性奇技） */
-    SPECIAL("special"),
-    /** 杀戮光环（独立系统） */
-    AURA("aura"),
-    /** 机械共鸣（机器继承开关） */
-    MACHINE("machine");
+    /** 神之增幅（7 个开关式节点：让神之系列机器/掉落产出翻倍或附加效果） */
+    ULTIMATE("ultimate");
 
     private final String key;
 

@@ -152,13 +152,6 @@ AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁
     side="BOTH"
 
 [[dependencies.${mod_id}]]
-    modId="modern_industrialization"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
     modId="productivebees"
     type="optional"
     versionRange="*"
@@ -167,13 +160,6 @@ AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁
 
 [[dependencies.${mod_id}]]
     modId="constructionwand"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="ftbteams"
     type="optional"
     versionRange="*"
     ordering="AFTER"

@@ -1,7 +1,5 @@
 package com.godofthings.mixin;
 
-import com.godofthings.armor.skill.ArmorSkillData;
-import com.godofthings.armor.skill.ArmorSkills;
 import com.godofthings.armor.GodArmorFeatures;
 import com.godofthings.armor.GodArmorState;
 import com.godofthings.handler.GodArmorHandler;
@@ -18,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 碧波清眸（套装功能「碧波清眸」）：水底 / 岩浆中拥有清晰视野。
+ * 碧波清眸（v5.9.0 起并入套装功能「神之视觉」{@link GodArmorFeatures#VISION}）：水底 / 岩浆中拥有清晰视野。
  * <p>
  * <b>移植自 Zifeng Skill Tree（子枫的百宝箱）的 {@code FogRendererMixin}</b>
  * （Copyright (c) 2026 zifeng, MIT License，见 README「第三方代码与许可」）。
@@ -34,7 +32,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * <ul>
  *   <li>相机浸没在水或岩浆里（其余情况只多一次 FogType 判断，零开销）</li>
  *   <li>相机实体是<b>本地玩家</b>（多人游戏里不影响别人视角）</li>
- *   <li>碧波清眸已开启（客户端镜像）且<b>穿齐全套神之护甲</b></li>
+ *   <li>神之视觉已开启（客户端镜像）且<b>穿齐全套神之护甲</b></li>
  * </ul>
  * {@code require = 0}：注入失败只降级（雾照旧），绝不崩游戏。
  */
@@ -56,10 +54,10 @@ public abstract class FogRendererMixin
         {
             return; // 仅本地玩家视角
         }
-        if (!GodArmorFeatures.isOn(GodArmorState.getClientMask(), GodArmorFeatures.UNDERWATER_VISION)
+        if (!GodArmorFeatures.isOn(GodArmorState.getClientMask(), GodArmorFeatures.VISION)
                 || !GodArmorHandler.isFullSetWorn(player))
         {
-            return; // 技能未开启 或 未穿齐全套
+            return; // 神之视觉未开启 或 未穿齐全套
         }
         // 完全禁用雾（等价原版 setupNoFog）
         RenderSystem.setShaderFogStart(Float.MAX_VALUE);

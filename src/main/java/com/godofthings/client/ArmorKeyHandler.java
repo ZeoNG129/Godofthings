@@ -34,15 +34,17 @@ public final class ArmorKeyHandler
             return;
         }
         // consumeClick 检测按下沿：每按一次触发一次
+        // O 键 → 「神之套装」页（8 个功能开关）
         while (WandKeyBindings.OPEN_ARMOR_CONFIG_KEY.get().consumeClick())
         {
             requestAll();
-            mc.setScreen(new GodArmorSkillScreen());
+            mc.setScreen(new GodArmorSkillScreen(GodArmorSkillScreen.TAB_FEATURE));
         }
+        // K 键 → 「神之增幅」页（7 个开关式节点）
         while (WandKeyBindings.OPEN_ARMOR_SKILL_KEY.get().consumeClick())
         {
             requestAll();
-            mc.setScreen(new GodArmorSkillScreen());
+            mc.setScreen(new GodArmorSkillScreen(GodArmorSkillScreen.TAB_ULTIMATE));
         }
     }
 

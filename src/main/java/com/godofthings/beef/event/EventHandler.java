@@ -1,13 +1,9 @@
 package com.godofthings.beef.event;
 
 import com.godofthings.beef.UselessMod;
-import com.godofthings.beef.client.StaffLinkClientHooks;
 import com.godofthings.beef.content.items.BeefMagnetHandler;
 import com.godofthings.beef.content.items.BeefTimeAcceleration;
 import com.godofthings.beef.content.items.EndlessBeafItem;
-import com.godofthings.beef.content.stafflink.StaffLinkEngine;
-import com.godofthings.beef.content.stafflink.StaffLinkTargets;
-import com.godofthings.beef.content.menus.StaffLinkMenu;
 import com.godofthings.beef.compat.ae.AeDeviceLinker;
 import com.godofthings.beef.compat.ae.AeLinkChannelBypass;
 import com.godofthings.beef.compat.constructionwand.ConstructionWandLogic;
@@ -20,8 +16,6 @@ import com.godofthings.beef.data.BeefToolLayoutManager;
 import com.godofthings.beef.network.BeefInvulnerabilitySyncPacket;
 import com.godofthings.beef.network.BeefInvulnerabilityStatePacket;
 import com.godofthings.beef.network.BeefToolLayoutSyncPacket;
-import com.godofthings.beef.network.StaffLinkBindPacket;
-import com.godofthings.beef.network.StaffLinkStatusPacket;
 import com.godofthings.beef.utils.UselessItemUtils;
 import com.godofthings.beef.utils.mining.MiningDispatcher;
 import com.godofthings.beef.world.dimension.UselessDimensionConfigManager;
@@ -699,14 +693,8 @@ public class EventHandler {
 
         // 「Shift + 右键无线访问点 = 给 AE 连接模式定一个绑定目标」只在 AE 连接模式开启时成立。
         //
-        // 这里必须判模式，否则它会无条件抢走这次交互：无线物流模式同样用 Shift + 右键绑定容器，
-        // 而无线访问点本身就是合法的 AE 端点（现在也允许绑进物流网络）。两者撞在同一个手势上，
-        // 谁先跑取决于事件注册顺序——早先这里不判模式，于是「想绑访问点进物流网络」时，
-        // 事件被本方法吃掉并设成 AE 连接目标，onStaffLinkBind 看到 isCanceled 直接返回，
-        // 表现就是「Shift 右键访问点会把杖子连到该网络，按键冲突」。
-        //
-        // 两个模式本身已经互斥（开一个会关掉另一个），所以判模式就足以把语义分开：
-        // AE 连接模式 → 设绑定目标；无线物流模式 → 落到 onStaffLinkBind 绑进物流网络。
+        // 这里必须判模式，否则它会无条件抢走这次交互：无线访问点本身也是合法的 AE 端点，
+        // 不判模式的话「Shift 右键访问点」会在任何模式下都被吃掉并设成 AE 连接目标。
         if (!stack.getOrDefault(UComponents.AeNetworkConnectComponent.get(), false)) return;
 
         if (!world.isClientSide) {
@@ -759,75 +747,6 @@ public class EventHandler {
     }
 
     /**
-     * 无线物流搬运引擎。
-     *
-     * <p>单独一个订阅而不是并进 {@link #onServerTick}：那条路径有 20 tick 的闸门，
-     * 而线路的搬运周期最短是 1 tick。</p>
-     */
-    @SubscribeEvent
-    public static void onStaffLinkTick(ServerTickEvent.Post event) {
-        MinecraftServer server = event.getServer();
-        StaffLinkEngine.tick(server);
-        if (server.getTickCount() % 20 == 0) {
-            pushStaffLinkStatus(server);
-        }
-    }
-
-    /** 把「上次搬了多少」推给开着无线物流界面的玩家，界面上有一行读数。 */
-    private static void pushStaffLinkStatus(MinecraftServer server) {
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            if (!(player.containerMenu instanceof StaffLinkMenu menu)) {
-                continue;
-            }
-            StaffLinkEngine.TransferStats stats = StaffLinkEngine.lastTransfer(menu.getNetworkId());
-            PacketDistributor.sendToPlayer(player, new StaffLinkStatusPacket(
-                    menu.getNetworkId(), stats.requested(), stats.moved(), stats.targets(),
-                    stats.tick(), stats.blocker()));
-        }
-    }
-
-    /**
-     * 无线物流模式：潜行右键容器方块，把它绑进/解绑出这把杖的物流网络。
-     *
-     * <p>与 {@link #onBlockInteract} 分开实现：那个方法分支多且早返回，这里目标类型完全不同
-     * （探测的是物品/流体/能量/化学品/魔源能力，无线访问点不具备这些）。</p>
-     *
-     * <p><b>绑定动作由客户端发起。</b>「按住 Ctrl 批量」这个修饰键状态只存在于客户端，
-     * 服务端在事件里读不到，所以两边分工：客户端判断按键并发包，服务端只负责取消原版交互
-     * 与校验后执行。否则服务端会用自己的判断再绑一次，批量就变成了重复绑定。</p>
-     */
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onStaffLinkBind(PlayerInteractEvent.RightClickBlock event) {
-        if (event.isCanceled()) return;
-
-        ItemStack stack = event.getItemStack();
-        if (!(stack.getItem() instanceof EndlessBeafItem)) return;
-        if (!EndlessBeafItem.isStaffLinkEnabled(stack)) return;
-
-        Player player = event.getEntity();
-        if (!player.isShiftKeyDown()) return;
-
-        Level level = event.getLevel();
-        BlockPos pos = event.getPos();
-
-        if (level.isClientSide()) {
-            // 客户端这一侧没有可靠的能力信息（方块实体未必已同步），所以只发坐标 + 修饰键，
-            // 「这个位置能不能绑」交给服务端用真世界判断。
-            boolean batch = StaffLinkClientHooks.isBatchModifierDown();
-            PacketDistributor.sendToServer(new StaffLinkBindPacket(pos, batch));
-            event.setCanceled(true);
-            event.setCancellationResult(InteractionResult.SUCCESS);
-            return;
-        }
-
-        // 服务端：只在确实可绑时才吞掉交互。否则玩家会发现「右键没反应」——那其实是
-        // 一次本该正常工作的方块交互被我们吃掉了。
-        if (!StaffLinkTargets.isBindable(level, pos)) return;
-        event.setCanceled(true);
-        event.setCancellationResult(InteractionResult.SUCCESS);
-    }
-
-    /**
      * 服务器启动时构建配方索引
      */
     @SubscribeEvent
@@ -843,8 +762,6 @@ public class EventHandler {
         BEEF_ADVANCED_STEALTH_PLAYERS.clear();
         // 通道豁免索引里存的是网格节点引用，别把它们留到下一局。
         AeLinkChannelBypass.clear();
-        // 无线物流的调度表按 tick 计数，同样不能跨局沿用。
-        StaffLinkEngine.clearRuntimeState();
         // 连锁等价组的解析缓存按玩家 UUID 索引，别留到下一局。
         ChainGroupManager.clearAll();
     }

@@ -18,18 +18,6 @@ import com.godofthings.beef.network.ForceBreakKeyPacket;
 import com.godofthings.beef.network.MiningDataSyncPacket;
 import com.godofthings.beef.network.ModeTogglePacket;
 import com.godofthings.beef.network.RitualSatchelPlacePacket;
-import com.godofthings.beef.network.StaffLinkBindPacket;
-import com.godofthings.beef.network.StaffLinkConfigurePacket;
-import com.godofthings.beef.network.StaffLinkCyclePacket;
-import com.godofthings.beef.network.StaffLinkDetachPacket;
-import com.godofthings.beef.network.StaffLinkHighlightPacket;
-import com.godofthings.beef.network.StaffLinkHighlightRequestPacket;
-import com.godofthings.beef.network.StaffLinkNetworkPacket;
-import com.godofthings.beef.network.StaffLinkOpenPacket;
-import com.godofthings.beef.network.StaffLinkRenamePacket;
-import com.godofthings.beef.network.StaffLinkReorderPacket;
-import com.godofthings.beef.network.StaffLinkStatusPacket;
-import com.godofthings.beef.network.StaffLinkSyncPacket;
 import com.godofthings.beef.network.TabKeyPressedPacket;
 import com.godofthings.beef.network.TeleportKeyPacket;
 import com.godofthings.beef.network.ToolTypeModeSwitchPacket;
@@ -115,41 +103,5 @@ public class ModNetwork {
         registrar.playToServer(DimensionConfigSubmitPacket.TYPE,
                                DimensionConfigSubmitPacket.STREAM_CODEC,
                                DimensionConfigSubmitPacket::handle);
-        registrar.playToServer(StaffLinkOpenPacket.TYPE,
-                               StaffLinkOpenPacket.STREAM_CODEC,
-                               StaffLinkOpenPacket::handle);
-        registrar.playToServer(StaffLinkBindPacket.TYPE,
-                               StaffLinkBindPacket.STREAM_CODEC,
-                               StaffLinkBindPacket::handle);
-        registrar.playToServer(StaffLinkDetachPacket.TYPE,
-                               StaffLinkDetachPacket.STREAM_CODEC,
-                               StaffLinkDetachPacket::handle);
-        registrar.playToServer(StaffLinkReorderPacket.TYPE,
-                               StaffLinkReorderPacket.STREAM_CODEC,
-                               StaffLinkReorderPacket::handle);
-        registrar.playToServer(StaffLinkConfigurePacket.TYPE,
-                               StaffLinkConfigurePacket.STREAM_CODEC,
-                               StaffLinkConfigurePacket::handle);
-        registrar.playToServer(StaffLinkRenamePacket.TYPE,
-                               StaffLinkRenamePacket.STREAM_CODEC,
-                               StaffLinkRenamePacket::handle);
-        registrar.playToServer(StaffLinkCyclePacket.TYPE,
-                               StaffLinkCyclePacket.STREAM_CODEC,
-                               StaffLinkCyclePacket::handle);
-        registrar.playToServer(StaffLinkNetworkPacket.TYPE,
-                               StaffLinkNetworkPacket.STREAM_CODEC,
-                               StaffLinkNetworkPacket::handle);
-        registrar.playToClient(StaffLinkSyncPacket.TYPE,
-                               StaffLinkSyncPacket.STREAM_CODEC,
-                               StaffLinkSyncPacket::handle);
-        registrar.playToClient(StaffLinkStatusPacket.TYPE,
-                               StaffLinkStatusPacket.STREAM_CODEC,
-                               StaffLinkStatusPacket::handle);
-        registrar.playToServer(StaffLinkHighlightRequestPacket.TYPE,
-                               StaffLinkHighlightRequestPacket.STREAM_CODEC,
-                               StaffLinkHighlightRequestPacket::handle);
-        registrar.playToClient(StaffLinkHighlightPacket.TYPE,
-                               StaffLinkHighlightPacket.STREAM_CODEC,
-                               StaffLinkHighlightPacket::handle);
     }
 }

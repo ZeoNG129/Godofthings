@@ -132,6 +132,18 @@ public class Godofthings
                     .copyOnDeath()
                     .build());
 
+    /**
+     * 神之套装功能开关（v2 格式）：v5.9.0 把 16 个开关合并成 8 个后启用的新键。
+     *
+     * <p>默认 {@code -1} = 「还没写过」，用来区分「老存档（要迁移）」与「玩家真的选了 0（全关）」——
+     * 读的时候是 -1 就把旧的 {@link #ARMOR_FEATURES} 按合并规则迁移过来（见 {@link GodArmorState}）。</p>
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Integer>> ARMOR_FEATURES_V2 =
+            ATTACHMENT_TYPES.register("armor_features_v2", () -> AttachmentType.builder(() -> -1)
+                    .serialize(Codec.INT)
+                    .copyOnDeath()
+                    .build());
+
     /** 神之套装技能树：按玩家保存的「技能 id → 等级」表（见 ArmorSkills / ArmorSkillData） */
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<java.util.Map<String, Integer>>> ARMOR_SKILLS =
             ATTACHMENT_TYPES.register("armor_skills", () -> AttachmentType.<java.util.Map<String, Integer>>builder(

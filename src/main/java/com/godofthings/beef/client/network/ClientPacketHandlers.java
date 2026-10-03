@@ -3,22 +3,15 @@ package com.godofthings.beef.client.network;
 import com.godofthings.beef.UselessMod;
 import com.godofthings.beef.client.gui.ChainGroupScreen;
 import com.godofthings.beef.client.gui.ModeWheelScreen;
-import com.godofthings.beef.client.gui.StaffLinkScreen;
-import com.godofthings.beef.client.render.StaffLinkHighlightRenderer;
 import com.godofthings.beef.core.config.ChainGroupManager;
 import com.godofthings.beef.data.BeefToolLayout;
 import com.godofthings.beef.network.BeefInvulnerabilitySyncPacket;
 import com.godofthings.beef.network.BeefToolLayoutResultPacket;
 import com.godofthings.beef.network.BeefToolLayoutSyncPacket;
-import com.godofthings.beef.network.StaffLinkHighlightPacket;
-import com.godofthings.beef.network.StaffLinkStatusPacket;
-import com.godofthings.beef.network.StaffLinkSyncPacket;
-import com.godofthings.beef.world.stafflink.StaffLinkNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * 客户端专用的载荷（Packet）处理逻辑。
@@ -103,48 +96,4 @@ public final class ClientPacketHandlers {
             screen.receiveError(packet.error());
         }
     }
-
-    /** 无线物流：把服务端下发的整网快照交给已打开的配置界面。 */
-    public static void handleStaffLinkSync(StaffLinkSyncPacket packet) {
-        lastStaffLinkSync = packet;
-        if (Minecraft.getInstance().screen instanceof StaffLinkScreen screen) {
-            screen.receiveSync(packet);
-        }
-    }
-
-    /** 无线物流：把「上次搬了多少」的读数交给已打开的配置界面。 */
-    public static void handleStaffLinkStatus(StaffLinkStatusPacket packet) {
-        if (Minecraft.getInstance().screen instanceof StaffLinkScreen screen) {
-            screen.receiveStatus(packet.networkId(), packet.requested(), packet.moved(),
-                    packet.targets(), packet.tick(), packet.blocker());
-        }
-    }
-
-    /**
-     * 无线物流：服务端回发的「当前网络内容器按流向分类」结果，交给世界高亮渲染器。
-     *
-     * <p>与界面无关：只要手持杖、开着无线物流模式，界面关着也要能看见框。</p>
-     */
-    public static void handleStaffLinkHighlight(StaffLinkHighlightPacket packet) {
-        StaffLinkHighlightRenderer.setHighlights(packet.release(), packet.absorb(), packet.disabled());
-    }
-
-    /**
-     * 取走「界面还没建好时先到的」那份快照。
-     *
-     * <p>开界面与下发快照是两个包，正常情况下顺序到达；这里兜底的是极端情况下快照先到、
-     * 界面尚未创建的那一瞬——否则界面会一直空着直到下一次同步。</p>
-     */
-    @Nullable
-    public static StaffLinkSyncPacket consumePendingStaffLinkSync(java.util.UUID networkId) {
-        StaffLinkSyncPacket pending = lastStaffLinkSync;
-        if (pending == null || !pending.network().id().equals(networkId)) {
-            return null;
-        }
-        lastStaffLinkSync = null;
-        return pending;
-    }
-
-    @Nullable
-    private static StaffLinkSyncPacket lastStaffLinkSync;
 }

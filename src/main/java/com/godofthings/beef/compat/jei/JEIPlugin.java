@@ -3,11 +3,7 @@ package com.godofthings.beef.compat.jei;
 import com.godofthings.beef.UselessMod;
 import com.godofthings.beef.client.gui.ChainGroupScreen;
 import com.godofthings.beef.client.gui.DimensionConfigScreen;
-import com.godofthings.beef.client.gui.StaffLinkScreen;
 import com.godofthings.beef.content.menus.DimensionConfigMenu;
-import com.godofthings.beef.content.stafflink.LinkFilterSlot;
-import com.godofthings.beef.content.stafflink.StaffLinkFilters;
-import com.godofthings.beef.content.stafflink.StaffLinkRoute;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
@@ -35,7 +31,8 @@ import java.util.List;
  * <p><b>v5.1.1 补记</b>：v3.0.0 首次照抄时把本类裁剪成「只有运行时持有器」，
  * 判断依据是「上游该类里与造化杖有关的只有运行时持有器」——那个判断<b>漏掉了
  * {@code registerGuiHandlers}</b>：它注册的三个拖拽处理器分别服务于连锁等价组界面、
- * 无线物流界面与无用维度配置界面，都属于已移植的子系统。现按上游逐字补回三者。</p>
+ * 无线物流界面与无用维度配置界面，都属于已移植的子系统。现按上游逐字补回三者。
+ * （无线物流已整体移除，现只剩连锁等价组与无用维度配置两个处理器。）</p>
  *
  * <p>本类自带 {@link JeiPlugin} 注解，是独立于 {@code com.godofthings.jei.GodJeiPlugin}
  * 的另一个 JEI 插件：JEI 允许同一模组注册多个插件（按 pluginUid 区分）。</p>
@@ -76,8 +73,6 @@ public final class JEIPlugin implements IModPlugin {
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
         registration.addGhostIngredientHandler(DimensionConfigScreen.class,
                 new DimensionConfigGhostHandler());
-        registration.addGhostIngredientHandler(StaffLinkScreen.class,
-                new StaffLinkGhostHandler());
         registration.addGhostIngredientHandler(ChainGroupScreen.class,
                 new ChainGroupGhostHandler());
         // 等价组界面继承了 AbstractContainerScreen，JEI 内置的容器屏 handler 会自动接管，
@@ -115,50 +110,6 @@ public final class JEIPlugin implements IModPlugin {
                     @Override
                     public void accept(I value) {
                         screen.addEntryFromBlock(groupIndex, blockId);
-                    }
-                });
-            }
-            return targets;
-        }
-
-        @Override
-        public void onComplete() {
-        }
-    }
-
-    /**
-     * 无线物流的过滤槽接受 JEI 拖拽。
-     *
-     * <p>标记按线路的资源类型分流：物品线路收物品，流体线路收<b>流体本身</b>（不是装它的桶），
-     * 化学品线路收一只装满它的储罐。类型对不上的原料直接不接受——不接，比悄悄塞进一个
-     * 语义不对的东西好。</p>
-     */
-    private static final class StaffLinkGhostHandler
-            implements IGhostIngredientHandler<StaffLinkScreen> {
-        @Override
-        public <I> List<Target<I>> getTargetsTyped(StaffLinkScreen screen,
-                                                   ITypedIngredient<I> ingredient,
-                                                   boolean doStart) {
-            StaffLinkRoute config = screen.getMenu().getSelectedConfig();
-            if (config == null || !config.filterApplies()) return List.of();
-            LinkFilterSlot marker = StaffLinkFilters.fromIngredient(
-                    config.medium(), ingredient.getIngredient());
-            if (marker == null) return List.of();
-
-            List<Target<I>> targets = new ArrayList<>(StaffLinkScreen.filterSlotCount());
-            for (int index = 0; index < StaffLinkScreen.filterSlotCount(); index++) {
-                final int slotIndex = index;
-                targets.add(new Target<>() {
-                    @Override
-                    public Rect2i getArea() {
-                        return new Rect2i(screen.filterSlotScreenX(slotIndex),
-                                screen.filterSlotScreenY(slotIndex),
-                                StaffLinkScreen.filterSlotSize(), StaffLinkScreen.filterSlotSize());
-                    }
-
-                    @Override
-                    public void accept(I value) {
-                        screen.getMenu().setFilterSlot(slotIndex, marker);
                     }
                 });
             }

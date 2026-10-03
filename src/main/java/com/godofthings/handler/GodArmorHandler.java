@@ -24,7 +24,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 神之护甲效果：穿全套时提供飞行、无敌（含 kill）、永不饥饿、火焰免疫、水下呼吸、夜视、熔岩可视等。
+ * 神之护甲效果：穿全套时的 8 个开关位实现（v5.9.0 由 16 项合并而来）。
+ * <ul>
+ *   <li>{@link GodArmorFeatures#FLIGHT 神之飞行}：创造飞行 + 飞行无惯性 + 飞行不减速</li>
+ *   <li>{@link GodArmorFeatures#INVINCIBLE 神之无敌}：免疫伤害 + 免死 + 免疫负面 + 无限氧气</li>
+ *   <li>{@link GodArmorFeatures#SATURATION 神之饱和}：永不饥饿</li>
+ *   <li>{@link GodArmorFeatures#FIRE_RESIST 神之抗火}：火焰 / 熔岩免疫</li>
+ *   <li>{@link GodArmorFeatures#WATER_BREATH 神之呼吸}：水下呼吸</li>
+ *   <li>{@link GodArmorFeatures#VISION 神之视觉}：无痕夜视（熔岩可视 / 碧波清眸见客户端处理器与 Mixin）</li>
+ * </ul>
+ * 其余两项（神之透视 / 神之贪吃）见 {@code ArmorExtraFeatures}；「万民敬仰」改为穿齐即生效，不占开关位。
  * <p>
  * 每一项都可以用「神之套装功能开关界面」（O 键，见 {@code GodArmorClientScreen} / {@code ArmorMessages}）
  * 单独关闭：开关按玩家保存（{@link GodArmorState}），默认全开，所以旧存档行为不变。
@@ -57,7 +66,7 @@ public class GodArmorHandler
     public static void onBreakSpeed(PlayerEvent.BreakSpeed event)
     {
         Player player = event.getEntity();
-        if (player.getAbilities().flying && GodArmorState.active(player, GodArmorFeatures.FLIGHT_MINING))
+        if (player.getAbilities().flying && GodArmorState.active(player, GodArmorFeatures.FLIGHT))
         {
             // getOriginalSpeed() 已含飞行 /5 惩罚，乘 5 恢复
             event.setNewSpeed(event.getOriginalSpeed() * 5.0F);
@@ -70,7 +79,7 @@ public class GodArmorHandler
     @SubscribeEvent
     public static void onIncomingDamage(LivingIncomingDamageEvent event)
     {
-        if (event.getEntity() instanceof Player player && GodArmorState.active(player, GodArmorFeatures.DAMAGE_IMMUNITY))
+        if (event.getEntity() instanceof Player player && GodArmorState.active(player, GodArmorFeatures.INVINCIBLE))
         {
             event.setCanceled(true);
         }
@@ -80,7 +89,7 @@ public class GodArmorHandler
     @SubscribeEvent
     public static void onDeath(LivingDeathEvent event)
     {
-        if (event.getEntity() instanceof Player player && GodArmorState.active(player, GodArmorFeatures.NO_DEATH))
+        if (event.getEntity() instanceof Player player && GodArmorState.active(player, GodArmorFeatures.INVINCIBLE))
         {
             event.setCanceled(true);
             player.setHealth(player.getMaxHealth());
@@ -94,7 +103,7 @@ public class GodArmorHandler
     public static void onEffectApplicable(MobEffectEvent.Applicable event)
     {
         if (event.getEntity() instanceof Player player
-                && GodArmorState.active(player, GodArmorFeatures.DEBUFF_IMMUNITY)
+                && GodArmorState.active(player, GodArmorFeatures.INVINCIBLE)
                 && event.getEffectInstance() != null
                 && !event.getEffectInstance().getEffect().value().isBeneficial())
         {
@@ -113,7 +122,7 @@ public class GodArmorHandler
         // 取消飞行惯性（无飞行漂移）：飞行移动由客户端 LocalPlayer 主导，
         // 只在服务端清零无效，必须双端都在移动处理完毕后（旧 END 阶段 → Post 事件）把水平速度归零
         if (player.getAbilities().flying
-                && GodArmorState.active(player, GodArmorFeatures.FLIGHT_INERTIA)
+                && GodArmorState.active(player, GodArmorFeatures.FLIGHT)
                 && player.xxa == 0.0F && player.zza == 0.0F)
         {
             Vec3 motion = player.getDeltaMovement();
@@ -143,24 +152,24 @@ public class GodArmorHandler
             return;
         }
 
-        if (GodArmorFeatures.isOn(mask, GodArmorFeatures.NO_HUNGER))
+        if (GodArmorFeatures.isOn(mask, GodArmorFeatures.SATURATION))
         {
             player.getFoodData().setFoodLevel(20);          // 永不饥饿
             player.getFoodData().setSaturation(20.0F);      // 无限饱和度
         }
-        if (GodArmorFeatures.isOn(mask, GodArmorFeatures.FIRE_IMMUNITY))
+        if (GodArmorFeatures.isOn(mask, GodArmorFeatures.FIRE_RESIST))
         {
             player.setRemainingFireTicks(0);                // 火焰/熔岩免疫（去除着火反馈）
         }
-        if (GodArmorFeatures.isOn(mask, GodArmorFeatures.WATER_BREATHING) && player.isUnderWater())
+        if (GodArmorFeatures.isOn(mask, GodArmorFeatures.WATER_BREATH) && player.isUnderWater())
         {
             player.setAirSupply(player.getMaxAirSupply());  // 水下呼吸
         }
-        if (GodArmorFeatures.isOn(mask, GodArmorFeatures.DEBUFF_IMMUNITY))
+        if (GodArmorFeatures.isOn(mask, GodArmorFeatures.INVINCIBLE))
         {
             removeDebuffs(player);                          // 免疫所有负面状态
         }
-        if (GodArmorFeatures.isOn(mask, GodArmorFeatures.NIGHT_VISION))
+        if (GodArmorFeatures.isOn(mask, GodArmorFeatures.VISION))
         {
             // 无痕夜视：服务端药水效果，ambient=true 无粒子、visible=false 不显示 HUD、showIcon=false 无图标
             player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 400, 0, true, false, false));

@@ -38,7 +38,7 @@ public final class AdAstraCompat {
          String var3 = method.getName();
          switch (var3) {
             case "tick":
-               if (args[1] instanceof Player player && GodArmorState.active(player, GodArmorFeatures.OXYGEN)) {
+               if (args[1] instanceof Player player && GodArmorState.active(player, GodArmorFeatures.INVINCIBLE)) {
                   return false;
                }
 
@@ -63,7 +63,7 @@ public final class AdAstraCompat {
          String var3 = method.getName();
          switch (var3) {
             case "hasOxygen":
-               if (args[0] instanceof Player player && GodArmorState.active(player, GodArmorFeatures.OXYGEN)) {
+               if (args[0] instanceof Player player && GodArmorState.active(player, GodArmorFeatures.INVINCIBLE)) {
                   return true;
                }
 

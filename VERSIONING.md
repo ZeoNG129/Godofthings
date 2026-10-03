@@ -1087,3 +1087,24 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **④ 手册同步**：删除 `system.staff`、`wondrous_staff`、`range_reclaimer` 与神之记录条目；改写「按键与指令」「兼容与共存」「神之便签」等条目（去掉 x/X 与 J 杖按键、`/godnote` 指令、useless_stretcher 提法）；README 成就数按实际文件重算为 **29 个**（原文档的 33 已过时）。
   - 验证：`check-lang.ps1` OK（**381 个 java 文件 / 20 方块 / 17 物品 / 1 实体 / 32 条手册条目 + 9 条系统条目**）；GameTest **19/19 通过**；
     残留引用全量复查（java + 资源 + 标签 + 成就）为 **0**；开发服务端加载通过。过程中修掉自己造成的一处 `mods.toml` 孤儿 `[[mixins]]` 空块（会让模组加载失败，被 GameTest 报出来）。
+- 5.8.0 → **5.9.0（按用户要求：删无线物流 / 删传送点指令 / 神之套装技能树与套装功能大合并）** —— 内容删除与重构，按规则**第二位 +1、末位归零**。
+  - **① 无线物流（StaffLink，照抄 useless_mod）整体删除**
+    · 删 **36 个文件**：`beef/content/stafflink/`（12）+ `beef/world/stafflink/`（3）+ `beef/network/StaffLink*Packet`（12）+ `beef/client/gui/StaffLinkScreen`、`beef/client/render/StaffLinkHighlightRenderer`、`beef/client/StaffLinkClientHooks`、`beef/content/menus/StaffLinkMenu`（4）+ 4 个只为它存在的兼容桥（`compat/ars/SourceBridge`、`compat/ars/ArsSourceCompatLoader`、`compat/ae/AeSourceBridge`、`compat/ae/AeSourceCompatLoader`）+ `command/PointCommands.java`（见 ②）。
+    · 改 15 个文件：网络包注册、菜单注册、界面注册、B 键（`KeyBindings` + 客户端事件 + 只为它服务的 Shift+滚轮处理器）、`UComponents` 的三个属主组件、`ClientPacketHandlers` 的三个处理函数、模式轮盘的物流条目（`ModeWheelScreen` / `ModeTypeEnum` / `BeefToolModuleRegistry`）、`ModeTogglePacket`、`EventHandler` 的三个物流事件、`EndlessBeafItem` 的物流开关、JEI 拖拽处理器、注释。
+    · 连带清理**已无调用方的物流支撑死代码 23 个文件**：`beef/api/logistics/`（5）、`beef/compat/teams/`（4，FTB Teams 团队归属只为物流网络服务）、`beef/compat/modernindustrialization/`（2）、`beef/compat/mekanism/`（1）、`beef/compat/ae/` 里只被物流簇引用的 11 个（Chemical/Energy/Logistics 三对 Bridge+Compat+Loader、`AeNetworks`、`DynamicReflectionSupport`）。
+      **保留** `beef/compat/ae/AeDeviceLinker` 与 `AeLinkChannelBypass` —— 查证它们有活调用方（`EventHandler`、`AeLinkPreviewPacket`、`AeConnectLinkSavedData`、`GodFurnaceBlockEntity`），是神之机器并网/链接预览在用的。
+    · **保留**：无用维度、皮肤玩偶、神之传输（无线 FE 充能，与物流无关）、`gui.godofthings.transmitter.*` 等键。
+    · 语言键删除 **91 个**（83 个 `gui.godofthings.wireless_logistics.*` + `key/menu/tooltip` 各 1 + 5 个 `message.godofthings.point.*`）。
+  - **② 传送点指令删除**：`/setpoint`、`/point`、`/delpoint`（`command/PointCommands.java`）整个删除，**只保留 U 键图形界面**（传送点数据、`WaypointMenu`、界面编辑/删除/置顶一律照旧）；手册与 README 的指令表同步去掉这三条。
+  - **③ 神之套装技能树大改（按用户要求）**
+    · 删「基础属性（15）」「特殊增幅（15）」「机械共鸣」「魔法增幅（26）」四页与其余终极节点；`ArmorSkillCategory` 现在只剩 `ULTIMATE` 一个分类，`ArmorSkills` 只剩 **7 个开关式节点**，`ArmorSkillEngine` / `ArmorSkillHandler` / `ArmorExtraFeatures` 里对应的属性、暴击、吸血、荆棘、破甲、金身、涅槃、死神、奥术、光环、铁砧附魔、机械继承等实现一并删除；整个 `MagicAttributeBridge`（魔法增幅属性桥）删除。
+    · 「终极节点」改名 **神之增幅**，7 个节点**改为开关**（打开即给到该节点的最大等级，关闭只关不清等级）：**神之掉落**（原财源滚滚，满级 100）/ **神之生物**（原猎魂丰收，×10）/ **神之方块**（原点石成金，×10）/ **神之经验**（原经验飞涨，×10）/ **神之怪蛋**（原妖魂凝卵，满级 100%）/ **神之头颅**（原斩首夺颅，满级 100%）/ **神之熔炼**（原自动熔炼）。id 沿用上游 skillId，改名只动语言键。
+  - **④ 套装功能（神之套装）合并**：16 个开关 → **8 个**，`GodArmorFeatures.COUNT` 16 → 8
+    · 神之飞行 = 创造飞行 + 飞行无惯性 + 飞行挖掘不减速；神之无敌 = 免疫所有伤害 + 不会死亡 + 免疫负面 + 无限氧气（含 Ad Astra 氧气）；神之视觉 = 无痕夜视 + 熔岩夜视 + 碧波清眸（水下清晰）；
+      永不饥饿 → **神之饱和**；火焰熔岩免疫 → **神之抗火**；水下呼吸 → **神之呼吸**；发光 → **神之透视**；暴食 → **神之贪吃**。
+    · **万民敬仰（村庄英雄）改为常驻**：穿齐套装即生效，不再占开关位（代码里用 `GodArmorState.alwaysOn`）。
+    · **老存档迁移**：新增附件 `godofthings:armor_features_v2`（默认 -1 = 未写过）；读到 -1 就把旧的 16 位掩码按合并规则迁移过来（`GodArmorFeatures.migrateLegacy`：被合并的旧开关里任一为开，合并后的新开关即为开）并落库，之后只读写新附件。
+    · 界面 `GodArmorSkillScreen` **整个重写**：两页（K = 神之增幅 / O = 神之套装）+ 开关式行 + 悬停说明 + 滚轮 + 「全部开启 / 全部关闭」+ 「未穿齐」提示 + 记住上次页面；旧界面里的等级进度条、拖动调级、整列操作等一并去掉（等级概念只保留在「开启 = 满级」）。
+  - 语言键：套装相关删除 178 个（72 个已删节点 × 名称+说明、6 个分类键、14 个旧功能键及其说明），改写 19 个，新增 18 个（8 个新功能名 + 说明、界面提示、技能状态文案）。合并后两个语言文件各 **1194 → 最终以实际为准** 条。
+  - 文档：README 的护甲行（8 开关 + 常驻万民敬仰）、技能树行（两页 7 节点）、第三方署名段；手册套装条目；AGENTS 同步。
+  - 协作说明：本轮由一名 teammate 执行无线物流/传送点指令的删除（含隔离验证树自证删除不破坏编译），主 agent 执行技能树与套装功能改造，双方写集不重叠（teammate 只碰 beef/client/command，主 agent 只碰 armor/screen/lang/docs），最后由主 agent 统一编译、校验、测试与发版。

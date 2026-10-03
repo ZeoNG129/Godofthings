@@ -6,18 +6,14 @@ import com.godofthings.beef.api.enums.tool.EnchantMode;
 import com.godofthings.beef.api.enums.tool.ConstructionWandCoreMode;
 import com.godofthings.beef.api.enums.tool.ToolTypeMode;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.util.List;
-import java.util.UUID;
 import java.util.function.UnaryOperator;
 
 public final class UComponents {
@@ -380,43 +376,6 @@ public final class UComponents {
                            .networkSynchronized(StreamCodec.of(
                                    FriendlyByteBuf::writeBoolean,
                                    FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 无线物流模式组件（StaffLink）
-     * true = 开启「无线物流」：潜行右键容器方块可把它绑进/解绑出造化杖的物流网络，
-     * 网络内的搬运规则在独立界面里配置。真正的搬运由服务端引擎执行。
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> StaffLinkEnabledComponent =
-            register("beef_wireless_logistics", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * <b>旧格式</b>：造化杖曾经把物流网络列表挂在自己身上。
-     *
-     * <p>网络归属已经改成跟着<b>玩家/队伍</b>走（存在服务端的 {@code StaffLinkSavedData} 归属
-     * 登记里），所以这两个组件现在只用于<b>迁移</b>：玩家登录（或每 20 tick 的活跃刷新）时把
-     * 杖上残留的列表迁到归属者名下，然后就地清空。新代码不要再读写它们。</p>
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<UUID>>> STAFF_LINK_NETWORKS =
-            register("staff_link_networks", builder ->
-                    builder.persistent(UUIDUtil.CODEC.listOf())
-                           .networkSynchronized(UUIDUtil.STREAM_CODEC.apply(ByteBufCodecs.list()))
-            );
-
-    /** <b>旧格式</b>：{@link #STAFF_LINK_NETWORKS} 里当前生效的下标。只用于迁移。 */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STAFF_LINK_ACTIVE =
-            register("staff_link_active", builder ->
-                    builder.persistent(Codec.INT)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeVarInt,
-                                   FriendlyByteBuf::readVarInt
                            ))
             );
 

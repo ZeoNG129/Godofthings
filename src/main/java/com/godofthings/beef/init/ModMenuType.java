@@ -3,7 +3,6 @@ package com.godofthings.beef.init;
 import com.godofthings.beef.UselessMod;
 import com.godofthings.beef.content.menus.ChainGroupMenu;
 import com.godofthings.beef.content.menus.DimensionConfigMenu;
-import com.godofthings.beef.content.menus.StaffLinkMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
@@ -20,10 +19,6 @@ import java.util.function.Supplier;
 public final class ModMenuType {
     private static final DeferredRegister<MenuType<?>> MENU_TYPES =
             DeferredRegister.create(Registries.MENU, UselessMod.MODID);
-
-    public static final Supplier<MenuType<StaffLinkMenu>> STAFF_LINK_MENU =
-            MENU_TYPES.register("staff_link_menu",
-                    () -> IMenuTypeExtension.create(StaffLinkMenu::new));
 
     /**
      * 连锁等价组界面用的空菜单：只为让界面继承 {@code AbstractContainerScreen}

@@ -13,8 +13,6 @@ import com.godofthings.beef.event.EventHandler;
 import com.godofthings.beef.network.EnchantmentSwitchPacket;
 import com.godofthings.beef.network.ForceBreakKeyPacket;
 import com.godofthings.beef.network.ModeTogglePacket;
-import com.godofthings.beef.network.StaffLinkCyclePacket;
-import com.godofthings.beef.network.StaffLinkOpenPacket;
 import com.godofthings.beef.network.TabKeyPressedPacket;
 import com.godofthings.beef.network.TeleportKeyPacket;
 import net.minecraft.client.KeyMapping;
@@ -71,7 +69,6 @@ public class ClientEventBusSubscriber {
 
         // UI
         event.register(KeyBindings.SWITCH_MODE_WHEEL_KEY.get());
-        event.register(KeyBindings.OPEN_WIRELESS_LOGISTICS_KEY.get());
     }
 
     @SubscribeEvent
@@ -81,14 +78,6 @@ public class ClientEventBusSubscriber {
         if (player == null) return;
 
         if (mc.screen != null) return;
-
-        // 无线物流：打开配置界面（仅手持造化杖时）
-        if (KeyBindings.OPEN_WIRELESS_LOGISTICS_KEY.get().consumeClick()) {
-            ItemStack mainHandItem = player.getMainHandItem();
-            if (mainHandItem.getItem() instanceof EndlessBeafItem) {
-                PacketDistributor.sendToServer(new StaffLinkOpenPacket());
-            }
-        }
 
         // 检测Tab键状态变化
         boolean currentTabPressed = KeyBindings.TRIGGER_CHAIN_MINING_KEY.get().isDown();
@@ -199,29 +188,6 @@ public class ClientEventBusSubscriber {
 
         // 连点模式：手持造化杖时按配置速率重复触发右键（开关本身走 ModeTogglePacket）
         BeefAutoClicker.tick(mc);
-    }
-
-    /**
-     * Shift + 滚轮切换无线物流网络。
-     *
-     * <p>只在「手持造化杖 + 开着无线物流模式 + 没开任何界面」时才吃掉这次滚动，
-     * 免得抢走其它模组的 Shift 滚轮用法（物品栏滚动之类）。</p>
-     */
-    @SubscribeEvent
-    public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
-        if (event.isCanceled() || event.getScrollDeltaY() == 0.0) return;
-
-        Minecraft mc = Minecraft.getInstance();
-        LocalPlayer player = mc.player;
-        if (player == null || mc.screen != null) return;
-        if (!player.isShiftKeyDown()) return;
-
-        ItemStack mainHandItem = player.getMainHandItem();
-        if (!(mainHandItem.getItem() instanceof EndlessBeafItem)) return;
-        if (!EndlessBeafItem.isStaffLinkEnabled(mainHandItem)) return;
-
-        event.setCanceled(true);
-        PacketDistributor.sendToServer(new StaffLinkCyclePacket(event.getScrollDeltaY() > 0.0 ? 1 : -1));
     }
 
     /**

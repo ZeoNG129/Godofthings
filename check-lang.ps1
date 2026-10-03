@@ -32,8 +32,6 @@ $prefixAllow = @(
     'gui.godofthings.dimension_config.preview.role.',
     'gui.godofthings.god_change.time_',
     'gui.godofthings.god_change.weather_',
-    'gui.godofthings.wireless_logistics.',
-    'gui.godofthings.wireless_logistics.side.',
     # Two more runtime concatenations come from the manual:
     #   gui.godofthings.manual.tab.<category>  (ManualCategory.label)
     #   manual.godofthings.<registry id / system.<id>>  (ManualCatalog.make)

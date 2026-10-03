@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 「火焰熔岩免疫」开着且穿齐全套时，<b>去掉屏幕上的火焰/岩浆覆盖贴图</b>。
+ * 「神之抗火」（原「火焰熔岩免疫」）开着且穿齐全套时，<b>去掉屏幕上的火焰/岩浆覆盖贴图</b>。
  * <p>
  * 之前只做了伤害与雾效的免疫，但<b>着火/浸在岩浆里时屏幕上那层橙色火焰纹理会照旧绘制</b>
  * （由 {@link ScreenEffectRenderer#renderScreenEffect} 负责），挡视野。这里在入口直接取消。
@@ -29,9 +29,9 @@ public abstract class ScreenEffectRendererMixin
         {
             return;
         }
-        if (!GodArmorFeatures.isOn(GodArmorState.getClientMask(), GodArmorFeatures.FIRE_IMMUNITY))
+        if (!GodArmorFeatures.isOn(GodArmorState.getClientMask(), GodArmorFeatures.FIRE_RESIST))
         {
-            return; // 没开火焰免疫：原样显示
+            return; // 没开抗火：原样显示
         }
         if (!GodArmorHandler.isFullSetWorn(minecraft.player))
         {
