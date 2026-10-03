@@ -1623,16 +1623,15 @@ public class EndlessBeafItem extends TieredItem {
     @OnlyIn(Dist.CLIENT)
     public @NotNull Component getName(@NotNull ItemStack stack) {
         Level level = Minecraft.getInstance().level;
-        // 按附魔模式给名字加后缀。上游在造化杖上是用两个不同的**物品名**区分
-        // 「造化垂青之杖（时运）」与「太初洞见之杖（精准采集）」；本项目只保留荒辰移晷之杖
-        // 一个物品（v5.1.2 起），故这里改为该物品自己的两个名字变体。
+        // 按附魔模式给名字加后缀（时运 / 精准采集两种叫法）。键名归牛排工具基类，
+        // 与已移除的杖无关。
         if (level != null
                 && level.isClientSide
                 && stack.getTagEnchantments()
                         .getLevel(EnchantmentUtil.getEnchantmentHolder(level, Enchantments.FORTUNE)) != 0) {
-            return Component.translatable("item.godofthings.wondrous_staff.fortune");
+            return Component.translatable("item.godofthings.beef_tool.fortune");
         } else {
-            return Component.translatable("item.godofthings.wondrous_staff.silk_touch");
+            return Component.translatable("item.godofthings.beef_tool.silk_touch");
         }
     }
 

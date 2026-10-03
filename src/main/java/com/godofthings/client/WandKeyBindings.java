@@ -11,9 +11,8 @@ import org.lwjgl.glfw.GLFW;
  * 神之系列的按键绑定（客户端）。
  * <p>
  * 原「神之工具」自创的那些按键（精准采集/时运/连锁/强制挖掘/模式轮盘等）已随该实现一并退役；
- * 造化杖（太初洞见之杖）的按键由照抄进来的
- * {@code com.godofthings.beef.core.common.KeyBindings} 自行注册。
- * 这里只保留不属于造化杖的功能键。
+ * 照抄进来的 {@code com.godofthings.beef.core.common.KeyBindings} 自行注册属于它自己的按键。
+ * 这里放的是本模组自己的功能键（传送点 / 套装 / 便签 / 手册等）。
  */
 public class WandKeyBindings
 {
@@ -27,14 +26,7 @@ public class WandKeyBindings
             GLFW.GLFW_KEY_U,
             CATEGORY
     ));
-    /** 神之剑功能面板（J） */
-    public static final Lazy<KeyMapping> SWORD_MODE_KEY = Lazy.of(() -> new KeyMapping(
-            "key.godofthings.sword_mode",
-            KeyConflictContext.IN_GAME,
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_J,
-            CATEGORY
-    ));
+
     /** 神之套装功能开关界面（O） */
     public static final Lazy<KeyMapping> OPEN_ARMOR_CONFIG_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.open_armor_config",
@@ -85,7 +77,6 @@ public class WandKeyBindings
     public static void register(RegisterKeyMappingsEvent event)
     {
         event.register(OPEN_WAYPOINT_KEY.get());
-        event.register(SWORD_MODE_KEY.get());
         event.register(OPEN_ARMOR_CONFIG_KEY.get());
         event.register(OPEN_ARMOR_SKILL_KEY.get());
         event.register(OPEN_NOTE_KEY.get());

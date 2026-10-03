@@ -43,11 +43,7 @@ $prefixAllow = @(
     'manual.godofthings.'
 )
 
-# Item models that intentionally belong to no item id: model overrides picked by the
-# minecraft:custom_model_data component (see EndlessBeafItem / EnchantmentSwitchPacket).
-$itemModelAllow = @(
-    'wondrous_staff_silk_touch'
-)
+$itemModelAllow = @()
 
 function Read-Lang([string]$path) {
     $text = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)

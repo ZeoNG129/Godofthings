@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/handheld",
-  "textures": {
-    "layer0": "godofthings:item/endless_beaf_time_item"
-  }
-}

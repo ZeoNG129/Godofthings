@@ -22,14 +22,7 @@
   沿用了这套被适配过的生成模型，因此**该部分同样适用 LGPL-3.0**。
 - **许可**：见 `LICENSES/PersonalSpace-LGPL-3.0.txt`。
 
-## 3. Useless Stretcher（万象担架）—— MIT License
-
-- **照抄内容**：荒辰移晷之杖子系统（时间加速 / 范围加速 / 召唤 / 战利品箱刷新 / 树叶掉落彩蛋，
-  以及加速实体、HUD 与四套配置界面）。
-- **署名**：作者 `2i学习`；**美术 `虾比`**（荒辰移晷之杖与四种区块维度方块的材质由该美术制作）。
-- **许可**：MIT，Copyright (c) 2026 2i学习（见 `LICENSES/useless-stretcher-MIT.txt`）。
-
-## 4. JDTE (JDT Extras) —— MIT License
+## 3. JDTE (JDT Extras) —— MIT License
 
 - **关联内容**：Useless Stretcher 的荒辰移晷之杖在**倍率档位设计**
   （1 / 2 / 4 / 16 / 256 / 1024）与「retained virtual ticks + 每 tick 执行预算 + pending 上限」
@@ -37,7 +30,7 @@
 - **对本模组的影响**：本模组照抄的是扩展模组的实现，故一并署名。
 - **署名 / 许可**：JDTE contributors，MIT（见 `LICENSES/JDTE-MIT.txt`）。
 
-## 5. AE2 Lightning Tech Reborn —— 源码 LGPL-3.0 / 素材 CC BY-NC-SA 3.0
+## 4. AE2 Lightning Tech Reborn —— 源码 LGPL-3.0 / 素材 CC BY-NC-SA 3.0
 
 - **照抄内容**：fumo 玩偶系统 —— `block/FumoBlock`、`blockentity/FumoBlockEntity`、
   `item/FumoBlockItem`、`client/FumoBlockRenderer`、`client/SpinningFumoBakedModel`，

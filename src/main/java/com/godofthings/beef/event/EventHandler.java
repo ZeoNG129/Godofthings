@@ -585,8 +585,7 @@ public class EventHandler {
         updateBeefInvulnerability(event.getEntity(), true);
         if (event.getEntity() instanceof ServerPlayer player) {
             syncAdvancedStealthPlayersTo(player);
-            GrassWandDropHandler.onPlayerLoggedIn(player);
-            resetAutoClickState(player);
+                resetAutoClickState(player);
             // 连锁等价组是玩家个人设置，客户端要靠它做右键连锁的本地预测，
             // 因此登录时就把整份布局下发一次（没有存档的玩家不下发，等价于无等价组）。
             BeefToolLayout layout = BeefToolLayoutManager.load(player);
@@ -652,8 +651,7 @@ public class EventHandler {
         FLIGHT_RESYNC_QUEUE.remove(event.getEntity().getUUID());
         STICKY_FLIGHT.remove(event.getEntity().getUUID());
         if (event.getEntity() instanceof ServerPlayer player) {
-            GrassWandDropHandler.onPlayerLoggedOut(player);
-        }
+            }
     }
 
     /**
@@ -834,7 +832,6 @@ public class EventHandler {
      */
     @SubscribeEvent
     public static void onServerStarted(ServerStartedEvent event) {
-        GrassWandDropHandler.clearCache();
         // 无用维度：开服时把 3 个维度已保存的地形配置全部应用一遍
         UselessDimensionConfigManager.applyAll(event.getServer());
         event.getServer().getPlayerList().getPlayers().forEach(EndlessBeafItem::refreshAttackDamage);
@@ -844,7 +841,6 @@ public class EventHandler {
     public static void onServerStopped(ServerStoppedEvent event) {
         BEEF_PROTECTED_PLAYERS.clear();
         BEEF_ADVANCED_STEALTH_PLAYERS.clear();
-        GrassWandDropHandler.clearCache();
         // 通道豁免索引里存的是网格节点引用，别把它们留到下一局。
         AeLinkChannelBypass.clear();
         // 无线物流的调度表按 tick 计数，同样不能跨局沿用。

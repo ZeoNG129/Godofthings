@@ -14,7 +14,6 @@ import com.godofthings.client.screen.GodDropScreen;
 import com.godofthings.client.screen.GodEnchantScreen;
 import com.godofthings.client.screen.GodMinerScreen;
 import com.godofthings.client.screen.GodMinerConfigScreen;
-import com.godofthings.client.screen.GodRecordScreen;
 import com.godofthings.client.screen.GodResourceScreen;
 import com.godofthings.client.screen.GodSpawnEggScreen;
 import com.godofthings.client.screen.GodAbsorberConfigScreen;
@@ -52,7 +51,6 @@ public class ClientModEvents
         event.register(Godofthings.GOD_CRAFT_CONFIG_MENU.get(), GodCraftConfigScreen::new);
         event.register(Godofthings.GOD_CRAFT_TEMPLATE_MENU.get(), GodCraftTemplateScreen::new);
         event.register(Godofthings.CREATIVE_ENERGY_CUBE_MENU.get(), CreativeEnergyCubeScreen::new);
-        event.register(Godofthings.GOD_RECORD_MENU.get(), GodRecordScreen::new);
         event.register(Godofthings.WAYPOINT_MENU.get(), WaypointScreen::new);
         event.register(Godofthings.GOD_BLACK_BOX_MENU.get(), GodBlackBoxScreen::new);
         event.register(Godofthings.GOD_TRANSMITTER_MENU.get(), GodTransmitterScreen::new);
@@ -69,23 +67,9 @@ public class ClientModEvents
 
     }
 
-    /** 荒辰移晷之杖（照抄 useless_stretcher）的 3 个实体渲染器。 */
-    @SubscribeEvent
-    public static void onRegisterEntityRenderers(EntityRenderersEvent.RegisterRenderers event)
-    {
-        event.registerEntityRenderer(com.godofthings.beef.stretcher.init.ModEntities.WONDROUS_STAFF_ACCELERATION.get(),
-                com.godofthings.beef.stretcher.client.render.WondrousStaffAccelerationRenderer::new);
-        event.registerEntityRenderer(com.godofthings.beef.stretcher.init.ModEntities.STAFF_LEAF_REWARD.get(),
-                com.godofthings.beef.stretcher.client.render.StaffLeafRewardRenderer::new);
-        event.registerEntityRenderer(com.godofthings.beef.stretcher.init.ModEntities.TIME_FLOW.get(),
-                com.godofthings.beef.stretcher.client.render.TimeFlowRenderer::new);
-    }
-
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event)
     {
         WandKeyBindings.register(event);
-        // 荒辰移晷之杖：X 键打开加速配置面板
-        event.register(com.godofthings.beef.stretcher.client.StretcherKeyBindings.WONDROUS_STAFF_MODE);
     }
 }

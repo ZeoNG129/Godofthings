@@ -58,8 +58,7 @@ public class GodofthingsCommand
 
     /** 会覆盖本模组 Mixin 的上游 mod：{modId, 被覆盖的 Mixin 类名} */
     private static final String[][] MIXIN_OVERRIDERS = {
-            { "useless_mod", "EntityGetterMixin" },
-            { "useless_stretcher", "LevelRendererCloudMixin" }
+            { "useless_mod", "EntityGetterMixin" }
     };
 
     @SubscribeEvent

@@ -1070,3 +1070,20 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     复制产物保真（同种物品，实体数据与自定义名等组件一起带走）/ 掉落机接受模组蛋的端到端）。
   - 文档：README 内容一览新增「神之怪蛋」行、掉落机行补「v5.7.0 起兼容所有模组刷怪蛋」、AE2 行 6 台 → **7 台**；
     手册新增 `manual.godofthings.god_spawn_egg` 条目，并同步更新掉落机与 AE2 两条表述。
+- 5.7.0 → **5.8.0（按用户要求删除三块内容：神之记录方块 / 神之便签指令 / 荒辰移晷之杖整套；手册同步）** —— 内容删除，按规则**第二位 +1、末位归零**。
+  - **① 神之记录方块**（`god_record`）：方块 / 方块实体 / 菜单 / 界面 / blockstate / 模型 / 贴图 / 掉落表 / 配方 / 成就 / mineable 标签条目 / 中英语言键 / 手册条目全部删除。
+    **传送点系统本身保留**：`/setpoint`、`/point`、`/delpoint` 与 U 键界面照常可用（README 那一行从「神之记录」改题为「传送点」并注明方块已删除）。
+  - **② 神之便签指令**：整个 `GodNoteCommands` 删除（`/godnote`、`add`、`list`、`clear`、`name`、`auto`、`hud`、`sub`），连带 10 个只有它使用的 `message.godofthings.note.*` 回执键。
+    **便签功能本身完整保留**：物品右键、N 键界面、悬浮窗（M 键摆放）、多本与子任务、导出导入（`/godofthings export|import note`）都不受影响；手册与 README 的入口说明改为「两种打开方式」。
+  - **③ 荒辰移晷之杖（权杖）彻底清除**：`beef/stretcher` 整套 **56 个文件**（杖物品、时间加速、范围加速及其预览/历史/配置界面、召唤、战利品刷新、树叶掉落彩蛋、时流范围回收器、四套配置、网络包、HUD、3 个实体与渲染器、mixins 配置），
+    再加「神之剑」系统 **5 个文件**（J 键功能面板 —— 它的 `findSword` 找的就是权杖，README 里也写作「杖的功能面板」，属权杖专属）、打草彩蛋处理器，
+    以及相关资源（3 个模型 / 2 个成就 / 1 个配方 / `neoforge.mods.toml` 的 mixins 声明 / 源码内与 `LICENSES/` 的 MIT 许可副本）、**61 个语言键**、
+    配置段 `godofthings-staff-*.toml`、手册条目与系统条目（`ManualCatalog.SYSTEM_IDS` 里的 `staff`）。
+    · 连带清理：**31 个标签文件**里对权杖的引用（`c:tools/*`、`gtceu:crafting_tools/*`、`malum:soul_shatter_capable_weapon`、原版剑/镐/斧/锹/锄与可采掘标签等）——
+      用 **JSON 解析**方式删条目（第一版正则把 JSON 删坏过，被脚本自带的 `json.loads` 校验当场拦下，没有写坏文件）；两个以已删物品为图标 / 父级的成就（`grass_wand_drop`、`wonder_collector`）一并删除。
+    · **保留**：无线物流（`StaffLink`，15 个文件 —— 查证过它不引用权杖，属 beef 核心自有）、无用维度、皮肤玩偶。
+    · 如实说明一个边界：**牛排工具那套基类框架现在成了没有物品可达的代码**（`EndlessBeafItem` 1464 行、`ConfigManager` 1385 行、模式轮盘、工具按键与网络包；牛排工具物品本体早在 v5.1.2 就已按用户要求移除，基类此前只被权杖继承）。
+      它来自上游 useless_mod 的移植，与本模组自有的无线物流 / 维度共处同一批包，彻底拆掉要先重构共享部分 —— 本轮按「权杖」这个边界处理，没有动它；要一起清掉再单独提。
+  - **④ 手册同步**：删除 `system.staff`、`wondrous_staff`、`range_reclaimer` 与神之记录条目；改写「按键与指令」「兼容与共存」「神之便签」等条目（去掉 x/X 与 J 杖按键、`/godnote` 指令、useless_stretcher 提法）；README 成就数按实际文件重算为 **29 个**（原文档的 33 已过时）。
+  - 验证：`check-lang.ps1` OK（**381 个 java 文件 / 20 方块 / 17 物品 / 1 实体 / 32 条手册条目 + 9 条系统条目**）；GameTest **19/19 通过**；
+    残留引用全量复查（java + 资源 + 标签 + 成就）为 **0**；开发服务端加载通过。过程中修掉自己造成的一处 `mods.toml` 孤儿 `[[mixins]]` 空块（会让模组加载失败，被 GameTest 报出来）。

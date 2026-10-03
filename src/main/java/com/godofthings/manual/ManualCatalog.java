@@ -29,7 +29,7 @@ public final class ManualCatalog
 {
     /** 系统条目（不是某个具体物品，讲的是整套机制） */
     public static final List<String> SYSTEM_IDS = List.of(
-            "getting_started", "keys_and_commands", "staff", "armor_and_skills",
+            "getting_started", "keys_and_commands", "armor_and_skills",
             "note", "waypoints", "dimensions", "ae2", "compat", "faq");
 
     private static List<ManualEntry> cache;

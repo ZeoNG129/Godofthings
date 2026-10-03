@@ -9,7 +9,6 @@ import com.godofthings.block.GodEnchantBlock;
 import com.godofthings.block.GodFurnaceBlock;
 import com.godofthings.block.GodHeavenEnchantBlock;
 import com.godofthings.block.GodMinerBlock;
-import com.godofthings.block.GodRecordBlock;
 import com.godofthings.block.GodResourceBlock;
 import com.godofthings.block.GodSpawnEggBlock;
 import com.godofthings.block.GodAbsorberBlock;
@@ -23,7 +22,6 @@ import com.godofthings.block.entity.GodDropBlockEntity;
 import com.godofthings.block.entity.GodEnchantBlockEntity;
 import com.godofthings.block.entity.GodFurnaceBlockEntity;
 import com.godofthings.block.entity.GodMinerBlockEntity;
-import com.godofthings.block.entity.GodRecordBlockEntity;
 import com.godofthings.block.entity.GodResourceBlockEntity;
 import com.godofthings.block.entity.GodSpawnEggBlockEntity;
 import com.godofthings.block.entity.GodAbsorberBlockEntity;
@@ -57,7 +55,6 @@ import com.godofthings.menu.GodFurnaceConfigMenu;
 import com.godofthings.menu.GodFurnaceMenu;
 import com.godofthings.menu.GodMinerMenu;
 import com.godofthings.menu.GodMinerConfigMenu;
-import com.godofthings.menu.GodRecordMenu;
 import com.godofthings.menu.GodResourceMenu;
 import com.godofthings.menu.GodSpawnEggMenu;
 import com.godofthings.menu.GodSlaughterConfigMenu;
@@ -417,20 +414,6 @@ public class Godofthings
             MENUS.register("portable_devourer", () -> IMenuTypeExtension.create(
                     (id, inv, buf) -> new GodDevourerMenu(id, inv)));
 
-    // ---- 神之记录（传送点管理 UI）----
-    public static final DeferredBlock<GodRecordBlock> GOD_RECORD =
-            BLOCKS.registerBlock("god_record", GodRecordBlock::new,
-                    BlockBehaviour.Properties.of()
-                            .mapColor(MapColor.COLOR_BROWN)
-                            .strength(3.0F, 6.0F)
-                            .sound(SoundType.WOOD));
-    public static final DeferredItem<BlockItem> GOD_RECORD_ITEM =
-            ITEMS.registerSimpleBlockItem(GOD_RECORD, new Item.Properties());
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodRecordBlockEntity>> GOD_RECORD_BE =
-            BLOCK_ENTITIES.register("god_record",
-                    () -> BlockEntityType.Builder.of(GodRecordBlockEntity::new, GOD_RECORD.get()).build(null));
-    public static final DeferredHolder<MenuType<?>, MenuType<GodRecordMenu>> GOD_RECORD_MENU =
-            MENUS.register("god_record", () -> IMenuTypeExtension.create(GodRecordMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<WaypointMenu>> WAYPOINT_MENU =
             MENUS.register("waypoint", () -> IMenuTypeExtension.create(WaypointMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodBlackBoxMenu>> GOD_BLACK_BOX_MENU =
@@ -509,7 +492,6 @@ public class Godofthings
                         output.accept(SPACE_TIME_ETERNITY_ITEM.get());
                         output.accept(CREATURE_ANNIHILATION_ITEM.get());
                         output.accept(GOD_DEVOURER_ITEM.get());
-                        output.accept(GOD_RECORD_ITEM.get());
                         output.accept(GOD_BLACK_BOX.get());
                         output.accept(GOD_BINDER.get());
                         output.accept(GOD_NOTE.get());
@@ -517,12 +499,6 @@ public class Godofthings
                         output.accept(GOD_TRANSMITTER_ITEM.get());
                         output.accept(GOD_SLAUGHTER_ITEM.get());
                         output.accept(GOD_ABSORBER_ITEM.get());
-                        // 造化杖（太初洞见之杖）：创造栏只放本体一项。另外 6 个形态
-                        // （关闭扳手 + 扳手/螺丝刀/软锤/撬棍/铁锤）仍已注册，由模式轮盘
-                        // 在运行时切换生成，不必在创造栏里各占一格。
-                        // 荒辰移晷之杖（时间加速杖，照抄 useless_stretcher）
-                        output.accept(com.godofthings.beef.stretcher.init.ModItems.WONDROUS_STAFF.get());
-                        output.accept(com.godofthings.beef.stretcher.init.ModItems.RANGE_RECLAIMER.get());
                         // 无用维度传送方块（奇数 / 偶数 / 三维度）
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
@@ -563,8 +539,6 @@ public class Godofthings
         // 皮肤玩偶「HoYooG Fumo」（照抄 ae2lt 的 fumo 系统，源码 LGPL-3.0 / 模型 CC BY-NC-SA 3.0）
         com.godofthings.fumo.registry.ModFumos.register(modEventBus);
         modEventBus.addListener(com.godofthings.beef.init.ModNetwork::registerPayloadHandlers);
-        // 荒辰移晷之杖（照抄 useless_stretcher 扩展模组）：物品/实体/数据组件/网络包/配置
-        com.godofthings.beef.stretcher.init.StretcherRegistration.register(modEventBus, modContainer);
         // 造化杖的配置（链挖范围/磁力范围/飞行速度/连点速率等，上游 ConfigManager）
         // 上游文件名是 useless_mod-{common,client,server}.toml；这里加 beef 前缀，
         // 避免与上面已有的 godofthings-client.toml 撞名。
