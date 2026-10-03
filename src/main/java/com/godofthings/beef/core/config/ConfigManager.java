@@ -8,6 +8,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 上游 useless_mod 的配置管理器（照抄）。
+ *
+ * <p><b>本次死代码清理</b>：牛排工具框架已整套删除，只服务于工具的配置项连同它们的
+ * 字段、注册块、getter 与配套校验方法一并移除：客户端 {@code beef_tool} 段（连点速率）、
+ * 服务端 {@code beef_tool} 段（药水效果 / 飞行 / 连锁挖掘范围与上限 / 范围伤害 / 范围磁力 /
+ * 时运 / 抢夺 / 战利品大爆发 / 打草掉杖 / 挖掘速度 / 无视挖掘等级 / 伪硬度 / 触及范围 /
+ * 短距传送 / 建筑手杖三个上限 / 强制挖掘黑名单 / 强制击杀名单）。</p>
+ *
+ * <p>保留的配置项都还有活引用：无用维度地板黑白名单（{@code DimensionGenerationConfig}）、
+ * 合金炉等级规则（{@code AlloyFurnaceTierRules}）、以及上游机器子系统带进来但本模组
+ * 尚未接线的那些段（配方转换 / 万向炉 / 线圈 / AE2 礼物包等，未列入本次清理范围）。</p>
+ */
 public class ConfigManager {
     public static final ModConfigSpec COMMON_SPEC;
     public static final ModConfigSpec CLIENT_SPEC;
@@ -19,59 +32,8 @@ public class ConfigManager {
     private static final ModConfigSpec.IntValue BOTANY_POT_GROWTH_MULTIPLIER;
     // 植物盆渲染配置
     private static final ModConfigSpec.BooleanValue ENABLE_BOTANY_POT_RENDERING;
-    // 造化杖连点模式：每个客户端 tick 触发多少次右键（客户端行为，放 CLIENT 配置）
-    private static final ModConfigSpec.IntValue BEEF_AUTOCLICK_CLICKS_PER_TICK;
-
     // 矩阵样板数量配置
     private static final ModConfigSpec.IntValue MATRIX_PATTERN_COUNT;
-
-    // 药水效果配置
-    private static final ModConfigSpec.BooleanValue ENABLE_POTION_EFFECTS;
-    private static final ModConfigSpec.BooleanValue ENABLE_FLIGHT_EFFECT;
-    
-    // 自定义药水效果配置 - 每个列表条目格式: "modid:effect_name,amplifier"
-    // 持续时间固定为20000 tick, 等级从1开始计算
-    private static final ModConfigSpec.ConfigValue<List<? extends String>> CUSTOM_POTION_EFFECTS;
-
-    // 牛排工具连锁挖掘配置
-    private static final ModConfigSpec.IntValue CHAIN_MINING_RANGE_X;
-    private static final ModConfigSpec.IntValue CHAIN_MINING_RANGE_Y;
-    private static final ModConfigSpec.IntValue CHAIN_MINING_RANGE_Z;
-    private static final ModConfigSpec.IntValue CHAIN_MINING_MAX_BLOCKS;
-    private static final ModConfigSpec.DoubleValue BEEF_TOOL_FLIGHT_SPEED;
-    // 牛排工具附魔等级配置
-    private static final ModConfigSpec.IntValue FORTUNE_LEVEL;
-    private static final ModConfigSpec.IntValue LOOTING_LEVEL;
-    // 牛排工具挖掘速度配置
-    private static final ModConfigSpec.DoubleValue BEEF_TOOL_MINING_SPEED;
-    private static final ModConfigSpec.BooleanValue BEEF_TOOL_IGNORES_TOOL_TIER;
-    private static final ModConfigSpec.DoubleValue BEEF_TOOL_PSEUDO_HARDNESS;
-    private static final ModConfigSpec.DoubleValue BEEF_TOOL_ENTITY_INTERACTION_RANGE;
-    private static final ModConfigSpec.DoubleValue BEEF_TOOL_BLOCK_INTERACTION_RANGE;
-    // 造化杖短距闪现的最大距离
-    private static final ModConfigSpec.IntValue BEEF_SHORT_TELEPORT_RANGE;
-    private static final ModConfigSpec.IntValue BEEF_CONSTRUCTION_WAND_BUILD_LIMIT;
-    private static final ModConfigSpec.IntValue BEEF_CONSTRUCTION_WAND_ANGEL_LIMIT;
-    private static final ModConfigSpec.IntValue BEEF_CONSTRUCTION_WAND_DESTRUCTION_LIMIT;
-    private static final ModConfigSpec.ConfigValue<List<? extends String>> BEEF_TOOL_FORCE_MINING_BLACKLIST;
-    private static final ModConfigSpec.ConfigValue<String> BEEF_TOOL_FORCE_KILL_BLACKLIST;
-    private static final ModConfigSpec.ConfigValue<String> BEEF_TOOL_FORCE_KILL_NON_LIVING_WHITELIST;
-    // 牛排工具范围伤害配置（半径）
-    private static final ModConfigSpec.IntValue BEEF_AOE_DAMAGE_RANGE_X;
-    private static final ModConfigSpec.IntValue BEEF_AOE_DAMAGE_RANGE_Y;
-    private static final ModConfigSpec.IntValue BEEF_AOE_DAMAGE_RANGE_Z;
-    private static final ModConfigSpec.IntValue BEEF_AOE_DAMAGE_MAX_TARGETS;
-    // 牛排工具范围磁力吸附配置（半径）
-    private static final ModConfigSpec.IntValue BEEF_MAGNET_RANGE_X;
-    private static final ModConfigSpec.IntValue BEEF_MAGNET_RANGE_Y;
-    private static final ModConfigSpec.IntValue BEEF_MAGNET_RANGE_Z;
-
-    // 战利品大爆发触发概率配置 (百分比)
-    private static final ModConfigSpec.IntValue FESTIVE_DROP_CHANCE;
-
-    // 打草掉落造化杖彩蛋配置
-    private static final ModConfigSpec.BooleanValue ENABLE_GRASS_WAND_DROP;
-    private static final ModConfigSpec.DoubleValue GRASS_WAND_DROP_PROBABILITY;
 
     // Mekanism 升级配置
     private static final ModConfigSpec.IntValue TIME_MULTIPLIER;
@@ -189,9 +151,6 @@ public class ConfigManager {
     private static volatile List<String> cachedUselessDimensionFloorBlockWhitelist = List.of();
     private static volatile BlockBlacklistMatcher uselessDimensionFloorBlockWhitelistMatcher =
             BlockBlacklistMatcher.empty(DIMENSION_FLOOR_WHITELIST_NAME);
-    private static volatile List<String> cachedBeefToolForceMiningBlacklist = List.of();
-    private static volatile BlockBlacklistMatcher beefToolForceMiningBlacklistMatcher =
-            BlockBlacklistMatcher.empty("beef tool force mining blacklist");
 
     static {
         // Server config: these values change world or machine behavior.
@@ -210,15 +169,6 @@ public class ConfigManager {
         ENABLE_BOTANY_POT_RENDERING = CLIENT_BUILDER
                 .comment("是否启用植物盆作物渲染 / Whether to enable botany pot crop rendering")
                 .define("enable_botany_pot_rendering", true);
-        CLIENT_BUILDER.pop();
-
-        CLIENT_BUILDER.push("beef_tool");
-        BEEF_AUTOCLICK_CLICKS_PER_TICK = CLIENT_BUILDER
-                .comment("造化杖连点模式每个客户端 tick 触发多少次右键 / How many right-clicks the staff Auto Click mode triggers per client tick",
-                        "调大 = 更快（默认 4 约等于 80 次/秒），调小 = 降低服务端压力 / Higher = faster (the default 4 is roughly 80 clicks per second), lower = less server load",
-                        "仅在客户端生效，无需服务端同意 / Client-side only, no server approval needed")
-                .translation("godofthings.configuration.beef_autoclick_clicks_per_tick")
-                .defineInRange("beef_autoclick_clicks_per_tick", 4, 1, 20);
         CLIENT_BUILDER.pop();
 
         SERVER_BUILDER.translation("godofthings.configuration.omniversal_multiblock_alloy_furnace")
@@ -279,16 +229,6 @@ public class ConfigManager {
                         ConfigManager::isValidAE2GiftPackageEntry);
         SERVER_BUILDER.pop();
 
-        SERVER_BUILDER.translation("godofthings.configuration.beef_tool")
-                .push("beef_tool");
-        CUSTOM_POTION_EFFECTS = SERVER_BUILDER
-                .comment("Custom potion effects. Format: modid:effect_id,amplifier.",
-                        "Use one effect per list entry. Missing effects and invalid levels are skipped.")
-                .translation("godofthings.configuration.custom_potion_effects")
-                .defineListAllowEmpty("custom_potion_effects", defaultCustomPotionEffects(), () -> "",
-                        ConfigManager::isValidCustomPotionEffectEntry);
-        SERVER_BUILDER.pop();
-
         SERVER_BUILDER.translation("godofthings.configuration.useless_dimension")
                 .push("useless_dimension");
         USELESS_DIMENSION_FLOOR_BLOCK_BLACKLIST = SERVER_BUILDER
@@ -305,180 +245,6 @@ public class ConfigManager {
                 .translation("godofthings.configuration.useless_dimension_floor_block_whitelist")
                 .defineListAllowEmpty("floor_block_whitelist", List.<String>of(), () -> "",
                         entry -> entry instanceof String);
-        SERVER_BUILDER.pop();
-
-        // 牛排工具连锁挖掘配置
-        // Server config: gameplay options are authoritative on the logical server.
-        SERVER_BUILDER.translation("godofthings.configuration.beef_tool").push("beef_tool");
-        ENABLE_POTION_EFFECTS = SERVER_BUILDER
-                .comment("是否启用药水效果 / Whether to enable potion effects")
-                .translation("godofthings.configuration.enable_potion_effects")
-                .define("enable_potion_effects", true);
-
-        ENABLE_FLIGHT_EFFECT = SERVER_BUILDER
-                .comment("是否启用飞行效果 / Whether to enable flight effect")
-                .translation("godofthings.configuration.enable_flight_effect")
-                .define("enable_flight_effect", true);
-
-        BEEF_TOOL_FLIGHT_SPEED = SERVER_BUILDER
-                .comment("牛排工具飞行速度 / Flight speed of the beef tool")
-                .translation("godofthings.configuration.beef_tool_flight_speed")
-                .defineInRange("beef_tool_flight_speed", 0.05, 0.01, 1.0);
-
-        CHAIN_MINING_RANGE_X = SERVER_BUILDER
-                .comment("连锁挖掘的X轴范围半径 / Chain mining X-axis range radius")
-                .translation("godofthings.configuration.chain_mining_range_x")
-                .defineInRange("chain_mining_range_x", 8, 1, 32);
-
-        CHAIN_MINING_RANGE_Y = SERVER_BUILDER
-                .comment("连锁挖掘的Y轴范围半径 / Chain mining Y-axis range radius")
-                .translation("godofthings.configuration.chain_mining_range_y")
-                .defineInRange("chain_mining_range_y", 8, 1, 255);
-
-        CHAIN_MINING_RANGE_Z = SERVER_BUILDER
-                .comment("连锁挖掘的Z轴范围半径 / Chain mining Z-axis range radius")
-                .translation("godofthings.configuration.chain_mining_range_z")
-                .defineInRange("chain_mining_range_z", 8, 1, 32);
-
-        BEEF_AOE_DAMAGE_RANGE_X = SERVER_BUILDER
-                .comment("范围伤害的X轴范围半径 / AoE damage X-axis range radius")
-                .translation("godofthings.configuration.beef_aoe_damage_range_x")
-                .defineInRange("beef_aoe_damage_range_x", 5, 1, 64);
-
-        BEEF_AOE_DAMAGE_RANGE_Y = SERVER_BUILDER
-                .comment("范围伤害的Y轴范围半径 / AoE damage Y-axis range radius")
-                .translation("godofthings.configuration.beef_aoe_damage_range_y")
-                .defineInRange("beef_aoe_damage_range_y", 3, 1, 64);
-
-        BEEF_AOE_DAMAGE_RANGE_Z = SERVER_BUILDER
-                .comment("范围伤害的Z轴范围半径 / AoE damage Z-axis range radius")
-                .translation("godofthings.configuration.beef_aoe_damage_range_z")
-                .defineInRange("beef_aoe_damage_range_z", 5, 1, 64);
-
-        BEEF_AOE_DAMAGE_MAX_TARGETS = SERVER_BUILDER
-                .comment("范围伤害单次最多命中的实体数量 / Maximum number of entities hit by a single AoE damage")
-                .translation("godofthings.configuration.beef_aoe_damage_max_targets")
-                .defineInRange("beef_aoe_damage_max_targets", 64, 1, 1024);
-
-        BEEF_MAGNET_RANGE_X = SERVER_BUILDER
-                .comment("击杀后范围磁力吸附的X轴范围半径 / X-axis range radius of the post-kill magnet")
-                .translation("godofthings.configuration.beef_magnet_range_x")
-                .defineInRange("beef_magnet_range_x", 5, 1, 64);
-
-        BEEF_MAGNET_RANGE_Y = SERVER_BUILDER
-                .comment("击杀后范围磁力吸附的Y轴范围半径 / Y-axis range radius of the post-kill magnet")
-                .translation("godofthings.configuration.beef_magnet_range_y")
-                .defineInRange("beef_magnet_range_y", 3, 1, 64);
-
-        BEEF_MAGNET_RANGE_Z = SERVER_BUILDER
-                .comment("击杀后范围磁力吸附的Z轴范围半径 / Z-axis range radius of the post-kill magnet")
-                .translation("godofthings.configuration.beef_magnet_range_z")
-                .defineInRange("beef_magnet_range_z", 5, 1, 64);
-
-        CHAIN_MINING_MAX_BLOCKS = SERVER_BUILDER
-                .comment("连锁挖掘的最大方块数量 / Maximum number of blocks for chain mining")
-                .translation("godofthings.configuration.chain_mining_max_blocks")
-                .defineInRange("chain_mining_max_blocks", 1000, 1, 1000000);
-
-        // 牛排工具附魔等级配置
-        FORTUNE_LEVEL = SERVER_BUILDER
-                .comment("牛排工具时运附魔等级 / Fortune enchantment level of the beef tool")
-                .translation("godofthings.configuration.fortune_level")
-                .defineInRange("fortune_level", 10, 1, 127);
-
-        LOOTING_LEVEL = SERVER_BUILDER
-                .comment("牛排工具抢夺附魔等级 / Looting enchantment level of the beef tool")
-                .translation("godofthings.configuration.looting_level")
-                .defineInRange("looting_level", 10, 1, 127);
-
-        // 战利品大爆发触发概率配置
-        FESTIVE_DROP_CHANCE = SERVER_BUILDER
-                .comment("战利品大爆发触发概率 (百分比, 1-100%) / Festive drop trigger chance (percentage, 1-100%)")
-                .translation("godofthings.configuration.festive_drop_chance")
-                .defineInRange("festive_drop_chance", 5, 1, 100);
-
-        ENABLE_GRASS_WAND_DROP = SERVER_BUILDER
-                .comment("是否启用打草掉落造化杖彩蛋 / Whether breaking grass can trigger the wand drop easter egg")
-                .translation("godofthings.configuration.enable_grass_wand_drop")
-                .define("enable_grass_wand_drop", true);
-
-        GRASS_WAND_DROP_PROBABILITY = SERVER_BUILDER
-                .comment("打草掉落造化杖的概率，0.00001为十万分之一 / Chance of a wand dropping from grass; 0.00001 is one in one hundred thousand")
-                .translation("godofthings.configuration.grass_wand_drop_probability")
-                .defineInRange("grass_wand_drop_probability", 0.00001, 0.0, 1.0);
-
-        // 牛排工具挖掘速度配置
-        BEEF_TOOL_MINING_SPEED = SERVER_BUILDER
-                .comment("牛排工具基础挖掘速度 / Base mining speed of the beef tool")
-                .translation("godofthings.configuration.beef_tool_mining_speed")
-                .defineInRange("beef_tool_mining_speed", 10.0, 1.0, 1000.0);
-
-        // 造化杖是否无视工具挖掘等级（含其它模组自定义的等级）
-        BEEF_TOOL_IGNORES_TOOL_TIER = SERVER_BUILDER
-                .comment("造化杖是否无视所有工具挖掘等级限制（含其它模组自定义的等级） / Whether the staff ignores every tool mining tier restriction (including custom tiers added by other mods)",
-                        "开启：可正常挖掘任何需要特定工具等级的方块；关闭：回到下界合金层级的原版语义 / On: any block requiring a specific tool tier can be mined normally; Off: falls back to vanilla netherite-tier semantics",
-                        "无论开关如何，godofthings:beef_tool_tier_locked 标签内的方块始终按等级判定 / Regardless of the switch, blocks in the godofthings:beef_tool_tier_locked tag always keep tier checks")
-                .translation("godofthings.configuration.beef_tool_ignores_tool_tier")
-                .define("beef_tool_ignores_tool_tier", true);
-
-        // 「伪不可破坏」方块（hardness = -1）的名义硬度：speed = baseSpeed × 本值
-        BEEF_TOOL_PSEUDO_HARDNESS = SERVER_BUILDER
-                .comment("牛排工具挖掘「伪不可破坏」方块（hardness = -1）时使用的名义硬度 / Nominal hardness used when the beef tool mines pseudo-unbreakable blocks (hardness = -1)",
-                        "这类方块原版层面不可破坏，靠自写 getDestroyProgress 决定进度，其进度除数远大于普通方块 / Such blocks are unbreakable in vanilla terms and decide progress through their own getDestroyProgress, with a progress divisor far larger than normal blocks",
-                        "（如 AllTheModium 的三矿与远古石用 250，而普通方块相当于硬度x30）， / (e.g. AllTheModium ores and ancient stone use 250, while a normal block is equivalent to hardness x30),",
-                        "所以需要更大的挖掘速度才能手感一致：speed = beef_tool_mining_speed × 本值 / so a higher mining speed is needed for a consistent feel: speed = beef_tool_mining_speed x this value",
-                        "15 约等于挖普通方块的手感；调大 = 更快 / 15 roughly matches the feel of mining a normal block; higher = faster")
-                .translation("godofthings.configuration.beef_tool_pseudo_hardness")
-                .defineInRange("beef_tool_pseudo_hardness", 15.0, 1.0, 1000.0);
-
-        BEEF_TOOL_ENTITY_INTERACTION_RANGE = SERVER_BUILDER
-                .comment("牛排工具实体触及范围加成, 重启游戏生效 / Entity interaction range bonus of the beef tool, takes effect after a game restart")
-                .translation("godofthings.configuration.beef_tool_entity_interaction_range")
-                .defineInRange("beef_tool_entity_interaction_range", 8.0, 0.0, 1024.0);
-
-        BEEF_TOOL_BLOCK_INTERACTION_RANGE = SERVER_BUILDER
-                .comment("牛排工具方块触及范围加成, 重启游戏生效 / Block interaction range bonus of the beef tool, takes effect after a game restart")
-                .translation("godofthings.configuration.beef_tool_block_interaction_range")
-                .defineInRange("beef_tool_block_interaction_range", 8.0, 0.0, 1024.0);
-
-        BEEF_SHORT_TELEPORT_RANGE = SERVER_BUILDER
-                .comment("造化杖短距闪现的最大距离（格） / Maximum distance of the staff short teleport (blocks)",
-                        "该值为上限而非保证距离：准星方向若在中途命中方块或缺少可站立空间，落点会相应前移 / This is an upper bound rather than a guaranteed distance: the landing spot moves closer when the crosshair ray hits a block midway or there is no room to stand",
-                        "未命中任何方块时按该距离取最远落点 / When no block is hit, the farthest landing spot at this distance is used")
-                .translation("godofthings.configuration.beef_short_teleport_range")
-                .defineInRange("beef_short_teleport_range", 24, 4, 512);
-
-        BEEF_CONSTRUCTION_WAND_BUILD_LIMIT = SERVER_BUILDER
-                .comment("牛排工具建筑手杖普通建造单次最大方块数 / Maximum blocks per normal build for the beef tool construction wand")
-                .translation("godofthings.configuration.beef_construction_wand_build_limit")
-                .defineInRange("construction_wand_build_limit", 1024, 1, 1_000_000);
-
-        BEEF_CONSTRUCTION_WAND_ANGEL_LIMIT = SERVER_BUILDER
-                .comment("牛排工具建筑手杖天使核心单次最大方块数 / Maximum blocks per build for the angel core of the beef tool construction wand")
-                .translation("godofthings.configuration.beef_construction_wand_angel_limit")
-                .defineInRange("construction_wand_angel_limit", 16, 1, 1_000_000);
-
-        BEEF_CONSTRUCTION_WAND_DESTRUCTION_LIMIT = SERVER_BUILDER
-                .comment("牛排工具建筑手杖破坏核心单次最大方块数 / Maximum blocks per break for the destruction core of the beef tool construction wand")
-                .translation("godofthings.configuration.beef_construction_wand_destruction_limit")
-                .defineInRange("construction_wand_destruction_limit", 81, 1, 1_000_000);
-
-        BEEF_TOOL_FORCE_MINING_BLACKLIST = SERVER_BUILDER
-                .comment("牛排工具强制挖掘黑名单，不会被强制挖掘的方块 / Beef tool force-mining blacklist: blocks that are never force-mined",
-                        "支持精确方块ID、#方块标签和*通配符 / Supports exact block IDs, #block tags and * wildcards")
-                .translation("godofthings.configuration.beef_tool_force_mining_blacklist")
-                .defineListAllowEmpty("beef_tool_force_mining_blacklist", List.<String>of(), () -> "",
-                        entry -> entry instanceof String);
-
-        BEEF_TOOL_FORCE_KILL_BLACKLIST = SERVER_BUILDER
-                .comment("牛排工具强制击杀黑名单, 多个实体ID用分号分隔, 例如 minecraft:wither;modid:boss / Beef tool force-kill blacklist, multiple entity IDs separated by semicolons, e.g. minecraft:wither;modid:boss")
-                .translation("godofthings.configuration.beef_tool_force_kill_blacklist")
-                .define("beef_tool_force_kill_blacklist", "");
-
-        BEEF_TOOL_FORCE_KILL_NON_LIVING_WHITELIST = SERVER_BUILDER
-                .comment("牛排工具非生物实体强制击杀白名单, 多个实体ID用分号分隔 / Beef tool force-kill whitelist for non-living entities, multiple entity IDs separated by semicolons")
-                .translation("godofthings.configuration.beef_tool_force_kill_non_living_whitelist")
-                .define("beef_tool_force_kill_non_living_whitelist", "draconicevolution:guardian_crystal");
         SERVER_BUILDER.pop();
 
         SERVER_BUILDER.push("mekanism_upgrade");
@@ -795,35 +561,6 @@ public class ConfigManager {
                 .define(key, defaultValue);
     }
 
-    // 获取配置值方法
-    private static List<String> defaultCustomPotionEffects() {
-        return List.of(
-                "minecraft:saturation,1",
-                "minecraft:regeneration,6",
-                "minecraft:night_vision,1",
-                "minecraft:fire_resistance,1",
-                "minecraft:water_breathing,1",
-                "minecraft:resistance,6"
-        );
-    }
-
-    private static boolean isValidCustomPotionEffectEntry(Object entry) {
-        if (!(entry instanceof String value)) {
-            return false;
-        }
-
-        String[] parts = value.split(",", -1);
-        if (parts.length != 2 || ResourceLocation.tryParse(parts[0].trim()) == null) {
-            return false;
-        }
-
-        try {
-            return Integer.parseInt(parts[1].trim()) > 0;
-        } catch (NumberFormatException ignored) {
-            return false;
-        }
-    }
-
     private static boolean isValidFurnaceRecipeTierRuleEntry(Object entry) {
         return AlloyFurnaceTierRules.isValidEntry(entry);
     }
@@ -894,10 +631,6 @@ public class ConfigManager {
 
     public static int getElectricityMultiplier() {
         return getConfigValue(ELECTRICITY_MULTIPLIER);
-    }
-
-    public static int getChainMiningMaxBlocks() {
-        return getConfigValue(CHAIN_MINING_MAX_BLOCKS);
     }
 
     public static int getCapacityMultiplier() {
@@ -1031,124 +764,6 @@ public class ConfigManager {
         return Math.max(27, clamped / 27 * 27);
     }
 
-    // 获取连锁挖掘范围配置
-    public static int getChainMiningRangeX() {
-        return getConfigValue(CHAIN_MINING_RANGE_X);
-    }
-
-    public static int getChainMiningRangeY() {
-        return getConfigValue(CHAIN_MINING_RANGE_Y);
-    }
-
-    public static int getChainMiningRangeZ() {
-        return getConfigValue(CHAIN_MINING_RANGE_Z);
-    }
-
-    // 获取牛排工具范围伤害配置
-    public static int getBeefAoeDamageRangeX() {
-        return getConfigValue(BEEF_AOE_DAMAGE_RANGE_X);
-    }
-
-    public static int getBeefAoeDamageRangeY() {
-        return getConfigValue(BEEF_AOE_DAMAGE_RANGE_Y);
-    }
-
-    public static int getBeefAoeDamageRangeZ() {
-        return getConfigValue(BEEF_AOE_DAMAGE_RANGE_Z);
-    }
-
-    public static int getBeefAoeDamageMaxTargets() {
-        return getConfigValue(BEEF_AOE_DAMAGE_MAX_TARGETS);
-    }
-
-    // 获取牛排工具范围磁力吸附配置
-    public static int getBeefMagnetRangeX() {
-        return getConfigValue(BEEF_MAGNET_RANGE_X);
-    }
-
-    public static int getBeefMagnetRangeY() {
-        return getConfigValue(BEEF_MAGNET_RANGE_Y);
-    }
-
-    public static int getBeefMagnetRangeZ() {
-        return getConfigValue(BEEF_MAGNET_RANGE_Z);
-    }
-
-    public static double getBeefToolFlightSpeed() {
-        return getConfigValue(BEEF_TOOL_FLIGHT_SPEED);
-    }
-
-    // 获取牛排工具附魔等级配置
-    public static int getFortuneLevel() {
-        return getConfigValue(FORTUNE_LEVEL);
-    }
-
-    public static int getLootingLevel() {
-        return getConfigValue(LOOTING_LEVEL);
-    }
-
-    // 获取节日掉落触发概率
-    public static int getFestiveDropChance() {
-        return getConfigValue(FESTIVE_DROP_CHANCE);
-    }
-
-    public static boolean shouldEnableGrassWandDrop() {
-        return getConfigValue(ENABLE_GRASS_WAND_DROP);
-    }
-
-    public static double getGrassWandDropProbability() {
-        return getConfigValue(GRASS_WAND_DROP_PROBABILITY);
-    }
-
-    // 获取牛排工具基础挖掘速度
-    public static double getBeefToolMiningSpeed() {
-        return getConfigValue(BEEF_TOOL_MINING_SPEED);
-    }
-
-    // 造化杖是否无视工具挖掘等级
-    public static boolean isBeefToolIgnoresToolTier() {
-        return getConfigValue(BEEF_TOOL_IGNORES_TOOL_TIER);
-    }
-
-    // 造化杖挖掘「伪不可破坏」方块时使用的名义硬度
-    public static double getBeefToolPseudoHardness() {
-        return getConfigValue(BEEF_TOOL_PSEUDO_HARDNESS);
-    }
-
-    // 造化杖连点模式：每个客户端 tick 触发多少次右键
-    public static int getBeefAutoClickClicksPerTick() {
-        return getConfigValue(BEEF_AUTOCLICK_CLICKS_PER_TICK);
-    }
-
-    public static double getBeefToolEntityInteractionRange() {
-        return getConfigValue(BEEF_TOOL_ENTITY_INTERACTION_RANGE);
-    }
-
-    public static double getBeefToolBlockInteractionRange() {
-        return getConfigValue(BEEF_TOOL_BLOCK_INTERACTION_RANGE);
-    }
-
-    // 造化杖短距闪现的最大距离（格）
-    public static int getBeefShortTeleportRange() {
-        return getConfigValue(BEEF_SHORT_TELEPORT_RANGE);
-    }
-
-    public static int getBeefConstructionWandBuildLimit() {
-        return getConfigValue(BEEF_CONSTRUCTION_WAND_BUILD_LIMIT);
-    }
-
-    public static int getBeefConstructionWandAngelLimit() {
-        return getConfigValue(BEEF_CONSTRUCTION_WAND_ANGEL_LIMIT);
-    }
-
-    public static int getBeefConstructionWandDestructionLimit() {
-        return getConfigValue(BEEF_CONSTRUCTION_WAND_DESTRUCTION_LIMIT);
-    }
-
-    public static List<String> getBeefToolForceMiningBlacklist() {
-        return readConfigList(BEEF_TOOL_FORCE_MINING_BLACKLIST);
-    }
-
     public static List<String> getAE2GiftPackageItems() {
         return resolveAE2GiftPackageItems(readConfigList(AE2_GIFT_PACKAGE_ITEMS));
     }
@@ -1267,10 +882,6 @@ public class ConfigManager {
         return false;
     }
 
-    public static boolean isBeefToolForceMiningBlockBlacklisted(ResourceLocation blockId) {
-        return beefToolForceMiningBlacklistMatcher().matches(blockId);
-    }
-
     public static List<String> getUselessDimensionFloorBlockBlacklist() {
         return readConfigList(USELESS_DIMENSION_FLOOR_BLOCK_BLACKLIST);
     }
@@ -1295,35 +906,6 @@ public class ConfigManager {
             BlockBlacklistMatcher whitelist) {
         if (blockId == null || blacklist.matches(blockId)) return false;
         return whitelist.isEmpty() || whitelist.matches(blockId);
-    }
-
-    public static List<String> getBeefToolForceKillBlacklist() {
-        return splitEntityIdList(getConfigValue(BEEF_TOOL_FORCE_KILL_BLACKLIST));
-    }
-
-    public static List<String> getBeefToolForceKillNonLivingWhitelist() {
-        return splitEntityIdList(getConfigValue(BEEF_TOOL_FORCE_KILL_NON_LIVING_WHITELIST));
-    }
-
-    // 获取药水效果配置
-    public static boolean shouldEnablePotionEffects() {
-        return getConfigValue(ENABLE_POTION_EFFECTS);
-    }
-
-    public static boolean shouldEnableFlightEffect() {
-        return getConfigValue(ENABLE_FLIGHT_EFFECT);
-    }
-
-    // 获取自定义药水效果配置列表
-    public static List<String> getCustomPotionEffects() {
-        return readConfigList(CUSTOM_POTION_EFFECTS);
-    }
-
-    private static List<String> splitEntityIdList(String value) {
-        if (value == null || value.isBlank()) {
-            return List.of();
-        }
-        return List.of(value.split(";"));
     }
 
     private static List<String> readConfigList(
@@ -1366,20 +948,6 @@ public class ConfigManager {
             }
         }
         return uselessDimensionFloorBlockWhitelistMatcher;
-    }
-
-    private static BlockBlacklistMatcher beefToolForceMiningBlacklistMatcher() {
-        List<String> configured = getBeefToolForceMiningBlacklist();
-        if (!configured.equals(cachedBeefToolForceMiningBlacklist)) {
-            synchronized (ConfigManager.class) {
-                if (!configured.equals(cachedBeefToolForceMiningBlacklist)) {
-                    beefToolForceMiningBlacklistMatcher =
-                            new BlockBlacklistMatcher(configured, "beef tool force mining blacklist");
-                    cachedBeefToolForceMiningBlacklist = configured;
-                }
-            }
-        }
-        return beefToolForceMiningBlacklistMatcher;
     }
 
 }

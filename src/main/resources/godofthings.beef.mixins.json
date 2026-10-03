@@ -9,18 +9,13 @@
     "LivingEntityMixin",
     "PlayerMixin",
     "ServerLevelMixin",
-    "LevelMixin",
-    "ServerPlayerGameModeMixin",
-    "ServerGamePacketListenerImplFlightMixin"
+    "LevelMixin"
   ],
   "server": [
     "ServerGamePacketListenerImplMixin"
   ],
   "client": [
-    "ClientLevelMixin",
-    "ClientPacketListenerMixin",
-    "LocalPlayerMixin",
-    "MultiPlayerGameModeMixin"
+    "ClientLevelMixin"
   ],
   "injectors": {
     "defaultRequire": 0

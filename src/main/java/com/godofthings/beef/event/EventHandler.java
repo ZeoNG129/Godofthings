@@ -1,23 +1,12 @@
 package com.godofthings.beef.event;
 
 import com.godofthings.beef.UselessMod;
-import com.godofthings.beef.content.items.BeefMagnetHandler;
-import com.godofthings.beef.content.items.BeefTimeAcceleration;
-import com.godofthings.beef.content.items.EndlessBeafItem;
 import com.godofthings.beef.compat.ae.AeDeviceLinker;
 import com.godofthings.beef.compat.ae.AeLinkChannelBypass;
-import com.godofthings.beef.compat.constructionwand.ConstructionWandLogic;
-import com.godofthings.beef.core.common.FlyEffectedHolder;
 import com.godofthings.beef.core.component.UComponents;
-import com.godofthings.beef.core.config.ConfigManager;
-import com.godofthings.beef.core.config.ChainGroupManager;
-import com.godofthings.beef.data.BeefToolLayout;
-import com.godofthings.beef.data.BeefToolLayoutManager;
-import com.godofthings.beef.network.BeefInvulnerabilitySyncPacket;
 import com.godofthings.beef.network.BeefInvulnerabilityStatePacket;
-import com.godofthings.beef.network.BeefToolLayoutSyncPacket;
+import com.godofthings.beef.network.BeefInvulnerabilitySyncPacket;
 import com.godofthings.beef.utils.UselessItemUtils;
-import com.godofthings.beef.utils.mining.MiningDispatcher;
 import com.godofthings.beef.world.dimension.UselessDimensionConfigManager;
 import com.godofthings.beef.world.dimension.UselessDimensions;
 import net.minecraft.core.BlockPos;
@@ -25,8 +14,8 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -35,7 +24,6 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.warden.Warden;
-import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -43,31 +31,41 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 照抄自 useless_mod 的服务端事件接线。
+ *
+ * <p><b>本次死代码清理</b>：牛排工具框架（{@code EndlessBeafItem} 及其挖掘 / 磁力 /
+ * 强制击杀 / 时运 / 连锁 / 飞行 / 连点等模式）已整套删除 —— 那些事件处理器全部以
+ * 「手持牛排工具」为前提，而本模组早已没有任何该类物品，永远不可能触发。
+ * 本类现只保留三块仍然活着的接线：</p>
+ * <ol>
+ *   <li><b>玩家保护（无敌 / 高级隐身）</b>：其判定入口
+ *       {@link UselessItemUtils#hasInvulnerabilityEnabledTargetToolInInventory} 仍支持
+ *       外部 mod（omnitools）的物品携带本模组的数据组件，故整层保留；</li>
+ *   <li><b>AE 连接</b>：无线访问点绑定与 {@link AeDeviceLinker} 的续命闹钟；</li>
+ *   <li><b>无用维度</b>：维度载入时灌入地形配置。</li>
+ * </ol>
+ */
 @EventBusSubscriber(modid = UselessMod.MODID)
 public class EventHandler {
     private static final Set<UUID> BEEF_PROTECTED_PLAYERS = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -119,131 +117,10 @@ public class EventHandler {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
-    public static void onForceKillDeathObserved(LivingDeathEvent event) {
-        EndlessBeafItem.observeForceKillDeath(event);
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
-    public static void onBeefToolLivingDeath(LivingDeathEvent event) {
-        if (EndlessBeafItem.handleForceKillDeath(event)) {
-            return;
-        }
-        if (!(event.getSource().getEntity() instanceof Player player)) {
-            return;
-        }
-
-        UselessItemUtils.tryCaptureSpawnEgg(event.getEntity(), player.getMainHandItem(), player);
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
-    public static void onBeefToolMagnetDeath(LivingDeathEvent event) {
-        if (EndlessBeafItem.handleForceKillMagnetDeath(event)) {
-            return;
-        }
-        if (event.isCanceled() || !(event.getEntity().level() instanceof ServerLevel level)) {
-            return;
-        }
-        if (!(event.getSource().getEntity() instanceof Player player)) {
-            return;
-        }
-
-        ItemStack mainHandItem = player.getMainHandItem();
-        if (mainHandItem.getItem() instanceof EndlessBeafItem) {
-            BeefMagnetHandler.onEntityKilled(level, player, mainHandItem, event.getEntity().position());
-        }
-    }
-
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onAttackEntity(AttackEntityEvent event) {
         if (event.getTarget() instanceof Player player && hasBeefAdvancedStealthItem(player)) {
             event.setCanceled(true);
-        }
-    }
-
-    @SubscribeEvent(receiveCanceled = true)
-    public static void onLivingDrops(LivingDropsEvent event) {
-        EndlessBeafItem.observeForceKillDrops(event);
-        if (event.getSource().getEntity() instanceof Player player) {
-            ItemStack mainHandItem = player.getMainHandItem();
-            if (mainHandItem.getItem() instanceof EndlessBeafItem) {
-                UselessItemUtils.tryAddCognizantDustDrop(event, mainHandItem);
-                UselessItemUtils.onLivingDrops(event, mainHandItem, player);
-                UselessItemUtils.tryAddBeheadingDrop(event, mainHandItem);
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public static void onBlockBreak(BlockEvent.BreakEvent event) {
-        Player player = event.getPlayer();
-        ItemStack mainHandItem = player.getMainHandItem();
-        if (mainHandItem.getItem() instanceof EndlessBeafItem) {
-            MiningDispatcher.dispatchBreak(event, mainHandItem, player);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
-        Player player = event.getEntity();
-        ItemStack mainHandItem = player.getMainHandItem();
-        if (!(mainHandItem.getItem() instanceof EndlessBeafItem)) return;
-
-        float newSpeed = event.getOriginalSpeed();
-
-        if (player.getAbilities().flying || player.isInWater()) {
-            newSpeed *= 5.0F;
-        }
-        event.setNewSpeed(newSpeed);
-    }
-
-    private static final float DEFAULT_FLYING_SPEED = 0.05F;
-    private static final float FLYING_SPEED_EPSILON = 1.0E-6F;
-    /**
-     * 游戏模式切换后，接下来这么多个 tick 内每 tick 都强制重发一次能力包。
-     * <p>
-     * 只补发一次是不够的：原版/NeoForge 在切换时重置 abilities，客户端收到 CHANGE_GAME_MODE 后
-     * 还会通过 {@code MultiPlayerGameMode#setLocalMode} 在本地再重置一遍，而这次本地重置
-     * 服务端完全不知情。留一个窗口反复对齐，才能盖住客户端那次重置。
-     */
-    private static final int FLIGHT_RESYNC_WINDOW = 20;
-    private static final Map<UUID, Integer> FLIGHT_RESYNC_QUEUE = new ConcurrentHashMap<>();
-    /**
-     * 「粘滞飞行」玩家：<b>客户端自己上报正在飞行</b>的造化杖携带者。
-     * <p>
-     * 只要玩家还处在这个状态，服务端的 {@code flying} 就不允许被清掉。原因是实测 <b>Re-Avaritia</b> 的
-     * {@code committee.nova.mods.avaritia.init.handler.AbilityHandler#updateClientServerFlight}
-     * 会<b>每秒 1~2 次</b>把 {@code mayfly} / {@code flying} 一起清成 false 并回传客户端，
-     * 把 NeoForge 保留的悬停（创造→生存切换）和玩家自己的起飞都冲掉。
-     * <p>
-     * 开关来自 {@link #onClientFlightIntent}（客户端发的 {@code ServerboundPlayerAbilitiesPacket}）：
-     * 玩家落地或空中双击关飞行时客户端会上报 false，粘滞随之解除，
-     * 所以<b>落地行走、普通起跳、主动关飞行都不受影响</b>；而被其它 mod 在服务端偷偷清掉的情况
-     * 不经过那条上报路径，于是能被我们拉回来。
-     * <p>
-     * 注意不要用 {@code player.onGround()} 做落地判断：{@code handleMovePlayer} 里
-     * {@code setOnGround(flag4)} 的 flag4 含 {@code !player.mayFly()}，只要 mayfly 开着，
-     * 服务端 onGround 就恒为 false，粘滞将永远解除不掉。
-     */
-    private static final Set<UUID> STICKY_FLIGHT = ConcurrentHashMap.newKeySet();
-
-    /** 客户端上报飞行意图时更新粘滞状态（由 {@code ServerGamePacketListenerImplFlightMixin} 调用）。 */
-    public static void onClientFlightIntent(Player player, boolean flying) {
-        if (flying) {
-            STICKY_FLIGHT.add(player.getUUID());
-        } else {
-            STICKY_FLIGHT.remove(player.getUUID());
-        }
-    }
-
-    @SubscribeEvent
-    public static void onPlayerChangeGameMode(PlayerEvent.PlayerChangeGameModeEvent event) {
-        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
-            FLIGHT_RESYNC_QUEUE.put(serverPlayer.getUUID(), FLIGHT_RESYNC_WINDOW);
-            // 本事件在 changeGameModeForPlayer 之前触发，此刻读到的就是「切换前」的状态
-            if (serverPlayer.getAbilities().flying) {
-                STICKY_FLIGHT.add(serverPlayer.getUUID());
-            }
         }
     }
 
@@ -252,102 +129,7 @@ public class EventHandler {
         Player player = event.getEntity();
         if (player.level().isClientSide()) return;
 
-        updateBeefToolFlight(player);
-
         updateBeefInvulnerability(player);
-        
-        MiningDispatcher.tickCacheUpdate(player);
-    }
-
-    /**
-     * 游戏模式切换的瞬间把飞行状态刷成目标值。
-     * <p>
-     * 供 {@code ServerPlayerGameModeMixin} 调用。服务端在切模式时会先按新模式重置 abilities，
-     * 而紧接着 {@code ServerPlayer#setGameMode} 就会把这个状态发给客户端（能力包 A/C）。
-     * 如果不在这里立刻补回去，客户端会先收到 {@code mayfly=false}，要等下一个 tick 模组的补发
-     * 才恢复 —— 中间 1 帧双击空格起不了飞。在这里补掉，客户端从头到尾看不到 false。
-     */
-    public static void applyBeefToolFlightNow(Player player) {
-        updateBeefToolFlight(player);
-    }
-
-    /**
-     * 造化杖飞行状态维护。
-     * <p>
-     * 关键点：能力包只在「服务端状态发生变化」时才发是不够的——客户端那份 abilities 会被
-     * {@link net.minecraft.client.multiplayer.MultiPlayerGameMode#setLocalMode} 单独重置，
-     * 服务端不知情也就永远不会补发。所以这里每 tick 把 abilities 对齐到目标值，
-     * 只要有任何一项不一致、或处在游戏模式切换后的重发窗口内，就重发一次能力包。
-     */
-    private static void updateBeefToolFlight(Player player) {
-        boolean hasItemInInventory = ConfigManager.shouldEnableFlightEffect()
-                && UselessItemUtils.hasTargetToolInInventory(player);
-
-        // 创造/旁观模式自带飞行，这份能力归原版管，模组不接管也不撤销。
-        // 重发窗口故意保留到离开该模式之后才开始倒数，那才是真正需要补发能力包的时机。
-        if (player.isCreative() || player.isSpectator()) {
-            if (hasItemInInventory) {
-                FlyEffectedHolder.add(player);
-            } else {
-                FlyEffectedHolder.remove(player);
-            }
-            return;
-        }
-
-        UUID uuid = player.getUUID();
-        Integer remaining = FLIGHT_RESYNC_QUEUE.get(uuid);
-        boolean resyncing = remaining != null && remaining > 0;
-        if (resyncing) {
-            if (remaining <= 1) {
-                FLIGHT_RESYNC_QUEUE.remove(uuid);
-            } else {
-                FLIGHT_RESYNC_QUEUE.put(uuid, remaining - 1);
-            }
-        }
-
-        if (hasItemInInventory) {
-            FlyEffectedHolder.add(player);
-            float flightSpeed = (float) ConfigManager.getBeefToolFlightSpeed();
-
-            // 粘滞飞行（见 STICKY_FLIGHT 注释）：只要客户端自己还报着「我在飞」，
-            // 就不允许 flying 被外力（Re-Avaritia 每秒一次）清掉。
-            // 玩家落地 / 主动关飞行时客户端会上报 false，粘滞随之解除。
-            boolean flying = player.getAbilities().flying || STICKY_FLIGHT.contains(uuid);
-
-            applyFlightAbilities(player, true, flying, flightSpeed, resyncing);
-            return;
-        }
-
-        // 没有造化杖时只回收模组自己授予过的飞行，避免抢走其它来源的飞行能力。
-        // 归属标记落在玩家持久化数据里，所以「带着模组授予的飞行离线后重登」也能正确回收。
-        STICKY_FLIGHT.remove(uuid);
-        if (FlyEffectedHolder.remove(player)) {
-            applyFlightAbilities(player, false, false, DEFAULT_FLYING_SPEED, true);
-        }
-    }
-
-    private static void applyFlightAbilities(Player player,
-                                             boolean mayfly,
-                                             boolean flying,
-                                             float flyingSpeed,
-                                             boolean forceSync) {
-        Abilities abilities = player.getAbilities();
-        boolean abilitiesChanged = false;
-        if (abilities.mayfly != mayfly) {
-            abilities.mayfly = mayfly;
-            abilitiesChanged = true;
-        }
-        if (abilities.flying != flying) {
-            abilities.flying = flying;
-            abilitiesChanged = true;
-        }
-        if (Math.abs(abilities.getFlyingSpeed() - flyingSpeed) > FLYING_SPEED_EPSILON) {
-            abilities.setFlyingSpeed(flyingSpeed);
-            abilitiesChanged = true;
-        }
-        if (abilitiesChanged || forceSync) {
-            player.onUpdateAbilities();
-        }
     }
 
     public static void updateBeefInvulnerability(Player player) {
@@ -579,13 +361,6 @@ public class EventHandler {
         updateBeefInvulnerability(event.getEntity(), true);
         if (event.getEntity() instanceof ServerPlayer player) {
             syncAdvancedStealthPlayersTo(player);
-                resetAutoClickState(player);
-            // 连锁等价组是玩家个人设置，客户端要靠它做右键连锁的本地预测，
-            // 因此登录时就把整份布局下发一次（没有存档的玩家不下发，等价于无等价组）。
-            BeefToolLayout layout = BeefToolLayoutManager.load(player);
-            if (layout != null) {
-                PacketDistributor.sendToPlayer(player, new BeefToolLayoutSyncPacket(layout.toJson()));
-            }
         }
     }
 
@@ -641,46 +416,14 @@ public class EventHandler {
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         BEEF_PROTECTED_PLAYERS.remove(event.getEntity().getUUID());
         BEEF_ADVANCED_STEALTH_PLAYERS.remove(event.getEntity().getUUID());
-        // 玩家在创造模式下离线时，飞行重发窗口不会开始倒数，故在此一并清除
-        FLIGHT_RESYNC_QUEUE.remove(event.getEntity().getUUID());
-        STICKY_FLIGHT.remove(event.getEntity().getUUID());
-        if (event.getEntity() instanceof ServerPlayer player) {
-            }
-    }
-
-    /**
-     * 连点模式的状态存在物品组件上，会跨会话保留；若玩家带着「开启」状态重登，
-     * 一进游戏就会立刻开始自动右键（叠加打火石等功能后果更明显）。
-     * 这里在登录时统一重置一次，保证每次进入游戏都是关闭状态。
-     */
-    private static void resetAutoClickState(ServerPlayer player) {
-        boolean changed = clearAutoClickFlag(player.getInventory().items);
-        changed |= clearAutoClickFlag(player.getInventory().offhand);
-        changed |= clearAutoClickFlag(player.getInventory().armor);
-        if (changed) {
-            player.containerMenu.broadcastChanges();
-        }
-    }
-
-    private static boolean clearAutoClickFlag(Iterable<ItemStack> stacks) {
-        boolean changed = false;
-        for (ItemStack stack : stacks) {
-            if (stack.getItem() instanceof EndlessBeafItem && EndlessBeafItem.isAutoClickEnabled(stack)) {
-                EndlessBeafItem.setAutoClickEnabled(stack, false);
-                changed = true;
-            }
-        }
-        return changed;
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onBlockInteract(PlayerInteractEvent.RightClickBlock event) {
         ItemStack stack = event.getItemStack();
-        if (!(stack.getItem() instanceof EndlessBeafItem)) return;
-        if (event.isCanceled() || ConstructionWandLogic.isEnabled(stack)) return;
+        if (event.isCanceled()) return;
 
         Player player = event.getEntity();
-        if (BeefTimeAcceleration.shouldBlockOtherRightClick(stack, player)) return;
         if (!player.isShiftKeyDown()) return;
 
         Level world = event.getLevel();
@@ -709,23 +452,22 @@ public class EventHandler {
     }
 
     /**
-     * AE 连接模式：右键「能连入 AE 网络」的机器，把它的 AE 节点并入工具绑定的那张网。
+     * AE 连接模式：右键「能连入 AE 网络」的机器，把它的 AE 节点并入链接目标所在的那张网。
      *
      * <p>必须拦在 {@link PlayerInteractEvent.RightClickBlock} 这一层，而不是 {@code Item#useOn}：
      * 右键 ME 设备默认会开方块 GUI，只有取消本次交互才拦得住。
-     * 潜行时直接让位给既有的「Shift + 右键绑定无线访问点 / 自动装配合金炉」。</p>
+     * 潜行时直接让位给既有的「Shift + 右键绑定无线访问点」。</p>
      */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onAeConnectInteract(PlayerInteractEvent.RightClickBlock event) {
         if (event.isCanceled() || event.getEntity().isShiftKeyDown()) return;
 
         ItemStack stack = event.getItemStack();
-        if (!(stack.getItem() instanceof EndlessBeafItem)) return;
         if (!stack.getOrDefault(UComponents.AeNetworkConnectComponent.get(), false)) return;
 
         Level level = event.getLevel();
         BlockPos pos = event.getPos();
-        // 目标不是 AE 节点宿主就不接管，交给原有的右键链路（收菜 / 工具动作等）。
+        // 目标不是 AE 节点宿主就不接管，交给原有的右键链路。
         if (!AeDeviceLinker.isLinkTarget(level, pos)) return;
 
         if (level instanceof ServerLevel serverLevel && event.getEntity() instanceof ServerPlayer serverPlayer) {
@@ -753,7 +495,6 @@ public class EventHandler {
     public static void onServerStarted(ServerStartedEvent event) {
         // 无用维度：开服时把 3 个维度已保存的地形配置全部应用一遍
         UselessDimensionConfigManager.applyAll(event.getServer());
-        event.getServer().getPlayerList().getPlayers().forEach(EndlessBeafItem::refreshAttackDamage);
     }
 
     @SubscribeEvent
@@ -762,7 +503,5 @@ public class EventHandler {
         BEEF_ADVANCED_STEALTH_PLAYERS.clear();
         // 通道豁免索引里存的是网格节点引用，别把它们留到下一局。
         AeLinkChannelBypass.clear();
-        // 连锁等价组的解析缓存按玩家 UUID 索引，别留到下一局。
-        ChainGroupManager.clearAll();
     }
 }

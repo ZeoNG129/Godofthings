@@ -19,8 +19,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * 其它玩家，这个包根本不会出现，因此没有在集成服务端生效的必要；只有独立服务端
  * （多人游戏）才需要它。放在 {@code server} 段可避免单人存档无谓地加载这个 mixin。
  * <p>
- * 对比 {@link ServerGamePacketListenerImplFlightMixin}：那个处理的是玩家<b>自己</b>的
- * 飞行上报，单人存档也需要，所以必须放通用段。两者注册段不同是刻意为之，别互相挪。
+ * 与本 mixin 原先成对的「玩家飞行上报」mixin（{@code ServerGamePacketListenerImplFlightMixin}）
+ * 处理的是玩家<b>自己</b>的飞行上报，单人存档也需要，因此它注册在通用段；本 mixin 拦的是
+ * 别的玩家发起的交互，单人存档里不存在，只能注册在 {@code server} 段。
+ * 那个飞行 mixin 已随牛排工具框架（背包带工具即可创造飞行）一并删除，本 mixin 的注册段保持不变。
  */
 @Mixin(ServerGamePacketListenerImpl.class)
 public class ServerGamePacketListenerImplMixin {

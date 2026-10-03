@@ -21,7 +21,7 @@
 | 神之不毁 God Unbreakable | 特殊合成配方 |
 | 神之请神 God Invite | 右键生物赋予无限血量（保留受击反馈，可切换） |
 | 神之吞噬 God Devourer | 虚空垃圾桶（方块 + 背包内快捷按钮，退出界面销毁） |
-| 传送点 Waypoints | 传送点系统：`/setpoint`、`/point`、`/delpoint` 与 `U` 键界面（可编辑 / 删除二次确认 / 置顶），数据按玩家存在存档里，支持 `/godofthings export\|import points` 备份。（原「神之记录」方块已在 v5.8.0 按用户要求删除，系统本身保留） |
+| 传送点 Waypoints | 传送点系统：`U` 键图形界面（可编辑 / 删除二次确认 / 置顶），数据按玩家存在存档里，支持 `/godofthings export\|import points` 备份。（原「神之记录」方块已在 v5.8.0、三条 `/setpoint`·`/point`·`/delpoint` 指令已在 v5.9.0 按用户要求删除，界面本身保留） |
 | 无用维度 Useless Dimension | **逐字照抄 useless_mod 的维度子系统**：3 个世界 —— **奇数维度**（`teleport_block` 奇数维度传送方块）、**偶数维度**（偶数维度传送方块）、**三维度**（三维度传送方块）。方块潜行右键打开**维度配置界面**（层数 / 起始 Y / 填充·边框·中心方块 / 马路·多联两种平台模式 / 道路主体·边缘·中心线 / 边界间隔 / 基岩层开关与置底 / 顶视与剖面预览 / 配置导出导入），右键直接传送（POI 找已有传送点，找不到就在落点自动铺一块）。传送方块用木板 + 泥土合成，无用维度内永远晴天 |
 | 时空永恒 Space Time Eternity | 放下后锁定世界时间与天气 |
 | 生物覆灭 Creature Annihilation | 放下后半径 512 格内禁止生物自然生成 |
@@ -92,7 +92,6 @@ CI（`.github/workflows/build.yml`）跑的是 fetch-libs → check-lang → bui
 
 | 指令 | 作用 |
 |---|---|
-| `/setpoint <名字>` / `/point <名字>` / `/delpoint <名字>` | 传送点：设置 / 传送 / 删除（带 tab 补全） |
 | `/godofthings doctor` | 诊断：装了哪些可选 mod、魔法增幅属性解析了几项、是否有上游 mod 覆盖本模组 Mixin、数据统计 |
 | `/godofthings export note [名称]` / `export points [名称]` | 把便签 / 传送点导成 SNBT（落在 `<存档>/godofthings/exports/`） |
 | `/godofthings import note <名称>` / `import points <名称>` | 从上述文件恢复（导入便签前会自动把原内容备份一份） |
@@ -109,35 +108,34 @@ CI（`.github/workflows/build.yml`）跑的是 fetch-libs → check-lang → bui
 | 新增小物品 | 第二位 +1、末位归零 |
 | 系统性新增 | 首位 +1、后两位归零 |
 
-## 键位（神之工具）
+## 键位
 
-默认分类：`key.category.godofthings.wand`，可在"选项 → 控制"中修改。
+默认分类：`key.category.godofthings.wand`，可在「选项 → 控制」里改。
 
-- 切换模式转轮 / 连锁挖掘 / 增强连锁 / 强制破坏 / 时运 / 精准采集
-- 捕捉开关 / 一击必杀开关 / 无敌开关 / 触发强制挖掘
-
-## 键位（其他）
-
-- `U` 传送点界面
-- `J` 手杖功能面板（吸星 / 吸魂 / 杀戮光环）
-- `O` 神之套装功能开关界面（穿齐全套后按开关生效）
+- `P` 神之手册
 - `N` 神之便签记事本
-- `M` 直接进便签悬浮窗的「摆放模式」（拖动移动、滚轮缩放、松手自动贴边 / 居中吸附、Esc 保存）
+- `M` 直接进便签悬浮窗的「摆放模式」
+- `U` 传送点界面
+- `O` 神之套装功能开关
+- `K` 神之增幅
+
+（原「神之工具」与权杖那套按键已随对应功能删除）
 
 ## 目录结构
 
 ```
 src/main/java/com/godofthings/
   ├─ Godofthings.java        # 主类：全部 DeferredRegister 注册 + 配置 + 网络注册
-  ├─ block/ block/entity/    # 方块与方块实体（熔炉/矿机/资源机/掉落机/附魔/合成/传送门…）
-  ├─ item/                   # 物品（神之加速/神之工具/护甲…；杖相关在 beef/ 与 beef/stretcher/ 下）
-  ├─ menu/ client/screen/    # 容器菜单与屏幕
-  ├─ modes/                  # 神之工具模式系统
-  ├─ network/                # 网络包（模式转轮 / 神之工具 / 手杖功能开关）
+  ├─ block/ block/entity/    # 方块与方块实体（熔炉/矿机/资源机/掉落机/怪蛋机/附魔/合成/传送门…）
+  ├─ item/ menu/ client/     # 物品、容器菜单与窗口
+  ├─ armor/ skill/           # 神之套装：8 个功能开关 + 神之增幅 7 节点（含老存档迁移）
+  ├─ note/ waypoint/         # 神之便签（含悬浮窗）、传送点
+  ├─ manual/                 # 神之手册（条目从注册表自动生成）
+  ├─ network/                # 网络包（套装开关/技能、传送点、便签、维度配置）
   ├─ recipe/ config/         # 配方与机器参数配置
   ├─ dimension/ energy/      # 虚空维度、创造能量立方
   ├─ handler/ emi/ jei/      # 集成（Ad Astra / EMI / JEI / AE2）
-  └─ utils/mining/           # 挖掘策略（连锁 / 强制破坏…）
+  └─ beef/                   # 照抄上游 useless_mod 的部分（无用维度、传送方块、合金炉、能量、AE 链接等）
 src/main/resources/
   ├─ assets/godofthings/     # blockstates / models / textures / lang
   ├─ data/godofthings/       # recipe / loot_table / advancement / dimension / worldgen…

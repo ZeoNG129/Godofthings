@@ -2,8 +2,6 @@ package com.godofthings.beef.core.component;
 
 import com.mojang.serialization.Codec;
 import com.godofthings.beef.UselessMod;
-import com.godofthings.beef.api.enums.tool.EnchantMode;
-import com.godofthings.beef.api.enums.tool.ConstructionWandCoreMode;
 import com.godofthings.beef.api.enums.tool.ToolTypeMode;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponentType;
@@ -16,26 +14,23 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.UnaryOperator;
 
+/**
+ * 本模组（beef 子系统）的数据组件注册表。
+ *
+ * <p><b>本次死代码清理</b>：牛排工具框架已整套删除，原先只为它服务的那一批组件
+ * （附魔模式 / 扳手标签 / 建筑手杖 / 耕地模式 / 顺手收菜 / 剪刀 / 打火石 / 自动熔炼 /
+ * 增强连锁 / 强制挖掘 / AE 存储优先 / 匠心仪式挎包 / 强制击杀 / 时间加速 / 生物捕捉 /
+ * 精魂 / 觉醒粉 / 斩首 / 传送 / 范围伤害 / 范围磁力 / 催熟 / 连点 / 强制生长）连同
+ * 它们的注册项一并移除：清理后它们在 {@code src/main/java} 里已无任何引用。</p>
+ *
+ * <p>保留的 5 项都还有活引用：{@link #CurrentToolTypeComponent} 与两项玩家保护开关由
+ * {@code com.godofthings.beef.utils.UselessItemUtils}（omnitools 扳手目标工具判定 / 玩家保护）
+ * 使用；{@link #AeNetworkConnectComponent} 与 {@link #WIRELESS_LINK_TARGET} 由 AE 连接
+ * 子系统（{@code EventHandler} / {@code AeDeviceLinker} / {@code AE 连接预览包}）使用。</p>
+ */
 public final class UComponents {
     private static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS =
             DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, UselessMod.MODID);
-
-    /**
-     * 附魔模式组件（EnchantMode）
-     * 用于在物品上存储当前的附魔模式（枚举类型 EnchantMode）
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<EnchantMode>> EnchantModeComponent =
-            register("enchant_mode", builder ->
-                    builder
-                            // 持久化存储：使用字符串 Codec，将枚举转换为字符串保存（保存到 NBT/文件时）
-                            // valueOf 用于从字符串转为枚举，Enum::name 用于从枚举转为字符串
-                            .persistent(Codec.STRING.xmap(EnchantMode::valueOf, Enum::name))
-                            // 网络同步：客户端与服务端同步时使用枚举的原生读写方式
-                            .networkSynchronized(StreamCodec.of(
-                                    FriendlyByteBuf::writeEnum,                     // 写入枚举
-                                    buf -> buf.readEnum(EnchantMode.class)          // 读取枚举
-                            ))
-            );
 
     /**
      * 当前工具类型组件（CurrentToolType）
@@ -51,181 +46,12 @@ public final class UComponents {
                             ))
             );
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> WrenchTagEnabledComponent =
-            register("wrench_tag_enabled", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> ConstructionWandEnabledComponent =
-            register("construction_wand_enabled", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ConstructionWandCoreMode>> ConstructionWandCoreComponent =
-            register("construction_wand_core", builder ->
-                    builder.persistent(Codec.STRING.xmap(ConstructionWandCoreMode::valueOf, Enum::name))
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeEnum,
-                                   buf -> buf.readEnum(ConstructionWandCoreMode.class)
-                           ))
-            );
-
-    /**
-     * 土壤右键模式组件（BeefFarmlandMode）
-     * 造化杖同时具备铲子与锄头能力，右键泥土/草方块时谁先生效由此决定：
-     * false = 铲子优先（变为草径），true = 锄头优先（变为耕地）。
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefFarmlandModeComponent =
-            register("beef_farmland_mode", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 「顺手收菜」组件（BeefCropHarvest）
-     * true = 右键成熟作物时由造化杖自身执行收获，并将种子保留于耕地（作物重置为 0 龄），
-     * 以避免整合包的右键收菜功能将作物连根拔起。
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefCropHarvestComponent =
-            register("beef_crop_harvest", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 剪刀功能组件（BeefShears）
-     * true = 造化杖具备剪刀能力：可对羊、哞菇等 IShearable 实体剪毛/剪掉落，
-     * 也向依赖 ItemAbility 的模组暴露 DEFAULT_SHEARS_ACTIONS。
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefShearsComponent =
-            register("beef_shears", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 打火石功能组件（BeefFlintAndSteel）
-     * true = 造化杖具备打火石能力：右键可点燃营火/蜡烛，或在可放置火的位置点火。
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefFlintAndSteelComponent =
-            register("beef_flint_and_steel", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 自动熔炼组件（AutoSmelt）
-     * true = 挖掘产生的掉落物先按原版烹饪配方（熔炉/高炉/烟熏炉）炼一遍再入包。
-     * 只影响挖掘掉落，不改变方块本身的行为。
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> AutoSmeltComponent =
-            register("auto_smelt", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 增强连锁挖矿模式组件（EnhancedChainMiningMode）
-     * 用于在物品上存储是否启用增强连锁挖掘（布尔类型）
-     * true = 启用增强连锁挖掘，false = 使用普通连锁挖掘
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> EnhancedChainMiningComponent =
-            register("chain_mining", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 强制挖掘组件（ForceMining）
-     * 用于在物品上存储是否启用强制挖掘功能（布尔类型）
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> ForceMiningComponent =
-            register("force_mining", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * AE存储优先组件（AEStoragePriority）
-     * 用于在物品上存储是否启用AE存储优先功能（布尔类型）
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> AEStoragePriorityComponent =
-            register("ae_storage_priority", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
     /**
      * AE 连接模式组件（AeNetworkConnect）
-     * 开启后右键一台「拥有 AE 网格节点」的机器，把它的节点接入工具绑定无线访问点所在的那张网。
-     * 与「顺手收菜 / 时间加速 / 建筑魔杖」互斥（同一时刻仅允许一项占用右键）。
+     * 开启后右键一台「拥有 AE 网格节点」的机器，把它的节点接入链接目标（无线访问点）所在的那张网。
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> AeNetworkConnectComponent =
             register("ae_network_connect", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 匠心仪式挎包模式（RitualSatchel）
-     * 开启后右键已用魔典预览过的五芒星，可直接从绑定的 AE 网络取用方块摆放整座仪式。
-     * 仅在安装了 occultism 时才会出现在模式轮盘里。
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefRitualSatchelComponent =
-            register("beef_ritual_satchel", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> ForceKillEnabledComponent =
-            register("force_kill_enabled", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefTimeAccelerationEnabledComponent =
-            register("beef_time_acceleration_enabled", builder ->
                     builder.persistent(Codec.BOOL)
                            .networkSynchronized(StreamCodec.of(
                                    FriendlyByteBuf::writeBoolean,
@@ -251,133 +77,12 @@ public final class UComponents {
                            ))
             );
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefCaptureEnabledComponent =
-            register("beef_capture_enabled", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefMalumSpiritEnabledComponent =
-            register("beef_malum_spirit_enabled", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefMysticalAgricultureEnabledComponent =
-            register("beef_mystical_agriculture_enabled", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefBeheadingEnabledComponent =
-            register("beef_beheading_enabled", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefTeleportEnabledComponent =
-            register("beef_teleport_enabled", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 范围伤害组件（BeefAoeDamage）
-     * 用于在物品上存储是否启用范围伤害（布尔类型）
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefAoeDamageEnabledComponent =
-            register("beef_aoe_damage_enabled", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 范围磁力吸附组件（BeefMagnet）
-     * 用于在物品上存储是否启用击杀后的范围磁力吸附（布尔类型）
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefMagnetEnabledComponent =
-            register("beef_magnet_enabled", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> WIRELESS_LINK_TARGET = register(
             "wireless_link_target",
             builder ->
                     builder.persistent(GlobalPos.CODEC)
                            .networkSynchronized(GlobalPos.STREAM_CODEC)
     );
-
-    // ==== 以下属于上游「万象合金炉 / 多方块机器」子系统的物品组件，
-    //      未随本次造化杖照抄带入（照抄范围只到工具本体）：
-    //      FURNACE_DATA / OMNIVERSAL_PATTERN_DATA / PATTERN_CONVERTER_DATA /
-    //      PATTERN_CONVERTER_LINK_TARGET / MULTIBLOCK_RECOVERY_DATA / MULTIBLOCK_PART_DATA /
-    //      EXTERNAL_INVENTORY_REFERENCE / PASSIVE_HATCH_SETTINGS / SMART_DOUBLING_OPERATIONS /
-    //      RITUAL_BLUEPRINT_PENTACLE ====
-
-    /**
-     * 催熟模式组件（BeefRipen)
-     * true = 右键时一键催熟目标：可骨粉方块循环施加骨粉直到长满，
-     * 幼年动物直接催至成年；潜行右键把这次交互让给其它模组。
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefRipenComponent =
-            register("beef_ripen", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 连点模式组件（BeefAutoClick）
-     * true = 客户端手持造化杖时以最快速度重复触发右键，再次按下绑定按键关闭。
-     * 只存状态，真正的连点循环在客户端 {@code BeefAutoClicker} 中执行。
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefAutoClickComponent =
-            register("beef_auto_click", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
-
-    /**
-     * 强制生长组件（BeefForceGrow）
-     * true = 催熟时额外用「随机刻」推进方块，可作用于甘蔗、仙人掌、竹子等
-     * 原版骨粉无效的方块。代价是它不挑方块——树叶枯萎、火蔓延、雪冰融化、
-     * 耕地退化这些随机刻行为同样会被推，是否开启由玩家自行抉择。
-     */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefForceGrowComponent =
-            register("beef_force_grow", builder ->
-                    builder.persistent(Codec.BOOL)
-                           .networkSynchronized(StreamCodec.of(
-                                   FriendlyByteBuf::writeBoolean,
-                                   FriendlyByteBuf::readBoolean
-                           ))
-            );
 
     // 私有构造器，防止外部实例化（该类仅用于注册静态组件）
     private UComponents() {}

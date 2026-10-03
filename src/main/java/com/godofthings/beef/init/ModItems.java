@@ -12,11 +12,12 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *
  * <p><b>v5.1.2 起本类只剩这 3 项</b>：照抄 useless_mod 的造化杖（太初洞见之杖 / 造化垂青之杖）
  * 共 7 个物品注册（{@code endless_beaf_item}、{@code _no_wrench}、扳手 / 螺丝刀 / 软锤 / 撬棍 / 铁锤）
- * 已按用户要求移除 —— 本模组只保留「荒辰移晷之杖」一个杖物品。
- * 但基类 {@code com.godofthings.beef.content.items.EndlessBeafItem} <b>保留</b>：
- * 荒辰移晷之杖 {@code extends EndlessBeafItem}，它的采集 / 时运 / 无敌 / 连锁等能力全部来自该基类；
- * 工具形态切换也仍然可用，只是改为写在同一个物品的 {@code CurrentToolTypeComponent} 组件上
- * （见 {@link com.godofthings.beef.content.items.BeefToolVariants}）。</p>
+ * 已按用户要求移除。</p>
+ *
+ * <p><b>本次死代码清理</b>：v5.8.0 删掉唯一还继承 {@code EndlessBeafItem} 的「荒辰移晷之杖」之后，
+ * 牛排工具框架（工具本体 + 模式轮盘 + 工具按键 / 网络包 / HUD / 挖掘辅助 / 建筑手杖 / 各类
+ * 「拿着工具才可能触发」的模式）已整套没有任何入口，连同该基类一并删除。
+ * 本类从此只注册无用维度的 3 个传送方块物品。</p>
  */
 public final class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(UselessMod.MODID);

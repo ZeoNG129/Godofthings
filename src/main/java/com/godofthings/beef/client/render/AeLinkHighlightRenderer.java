@@ -3,7 +3,6 @@ package com.godofthings.beef.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.godofthings.beef.UselessMod;
-import com.godofthings.beef.content.items.BeefToolVariants;
 import com.godofthings.beef.core.component.UComponents;
 import com.godofthings.beef.network.AeLinkPreviewRequestPacket;
 import net.minecraft.client.Camera;
@@ -28,13 +27,15 @@ import org.joml.Quaternionf;
 import java.util.List;
 
 /**
- * 手持造化杖且开了 AE 连接模式时，把「工具绑定的访问点」和「它已经连上的机器」画上边框。
+ * 手持「开着 AE 连接模式且已绑定访问点」的物品时（见
+ * {@link com.godofthings.beef.core.component.UComponents#AeNetworkConnectComponent}），
+ * 把「链接目标（无线访问点）」和「它已经连上的机器」画上边框。
  *
- * <p>渲染位置选 {@code AFTER_LEVEL}、并在 set up 时乘一个反向相机旋转，是照
- * {@link ConstructionWandPreviewRenderer} 的空中预览那条已经在跑的路径抄的：
- * NeoForge 在 {@code GameRenderer} 里分发 AFTER_LEVEL 时传的是 <b>null</b> pose stack
+ * <p>渲染位置选 {@code AFTER_LEVEL}、并在 set up 时乘一个反向相机旋转：NeoForge 在
+ * {@code GameRenderer} 里分发 AFTER_LEVEL 时传的是 <b>null</b> pose stack
  * （事件内部退化成 identity），而 modelview 栈在 {@code LevelRenderer.renderLevel} 结束时
- * 已经弹掉相机旋转，所以这里必须自己补上反向旋转，并把方块坐标减掉相机位置。</p>
+ * 已经弹掉相机旋转，所以这里必须自己补上反向旋转，并把方块坐标减掉相机位置。
+ * （这条渲染路径原先参照同包内「建筑手杖浮空预览」的既有实现，那个渲染器已随牛排工具框架删除。）</p>
  */
 @EventBusSubscriber(modid = UselessMod.MODID, value = Dist.CLIENT)
 public final class AeLinkHighlightRenderer {
@@ -113,11 +114,16 @@ public final class AeLinkHighlightRenderer {
         LevelRenderer.renderLineBox(pose, lines, box, red, green, blue, alpha);
     }
 
-    /** 只在手上真的拿着「开着 AE 连接模式、且已经绑定访问点」的造化杖时才要提示数据。 */
+    /**
+     * 只在手上真的拿着「开着 AE 连接模式、且已经绑定访问点」的物品时才要提示数据。
+     *
+     * <p><b>本次死代码清理</b>：原先这里还要先过一道「是不是牛排工具」的判定
+     * （{@code BeefToolVariants.isBeafTool}），该工具框架已整套删除，故该判定移除：
+     * 剩下的两个数据组件判定与之语义等价（原本也只有该工具的物品会带这两个组件）。</p>
+     */
     private static boolean shouldRequest(Minecraft minecraft) {
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack stack = minecraft.player.getItemInHand(hand);
-            if (!BeefToolVariants.isBeafTool(stack)) continue;
             if (!stack.getOrDefault(UComponents.AeNetworkConnectComponent.get(), false)) continue;
             if (stack.has(UComponents.WIRELESS_LINK_TARGET.get())) return true;
         }

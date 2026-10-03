@@ -4,88 +4,35 @@ import com.godofthings.beef.network.AeLinkPreviewPacket;
 import com.godofthings.beef.network.AeLinkPreviewRequestPacket;
 import com.godofthings.beef.network.BeefInvulnerabilityStatePacket;
 import com.godofthings.beef.network.BeefInvulnerabilitySyncPacket;
-import com.godofthings.beef.network.BeefToolLayoutRequestPacket;
-import com.godofthings.beef.network.BeefToolLayoutResultPacket;
-import com.godofthings.beef.network.BeefToolLayoutSyncPacket;
-import com.godofthings.beef.network.BeefToolLayoutUpdatePacket;
-import com.godofthings.beef.network.ConstructionWandCorePacket;
-import com.godofthings.beef.network.ConstructionWandPreviewPacket;
-import com.godofthings.beef.network.ConstructionWandPreviewRequestPacket;
 import com.godofthings.beef.network.DimensionConfigGhostSlotPacket;
 import com.godofthings.beef.network.DimensionConfigSubmitPacket;
-import com.godofthings.beef.network.EnchantmentSwitchPacket;
-import com.godofthings.beef.network.ForceBreakKeyPacket;
-import com.godofthings.beef.network.MiningDataSyncPacket;
-import com.godofthings.beef.network.ModeTogglePacket;
-import com.godofthings.beef.network.RitualSatchelPlacePacket;
-import com.godofthings.beef.network.TabKeyPressedPacket;
-import com.godofthings.beef.network.TeleportKeyPacket;
-import com.godofthings.beef.network.ToolTypeModeSwitchPacket;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 /**
- * 造化杖的网络包注册。
+ * 本模组（beef 子系统）的网络包注册。
  *
- * <p>逐字照抄上游 {@code com.sorrowmist.useless.init.ModNetwork} 中与工具相关的注册项；
- * 上游的机器/维度配置包（合金炉、发电机、维度配置、被动合成、AE 任务进度等）属于机器子系统，
- * 未随本次照抄带入。</p>
+ * <p><b>本次死代码清理</b>：牛排工具框架已整套删除，原先为它注册的 19 个包
+ * （模式轮盘布局 4 个、附魔 / 工具形态切换、强制破坏、Tab 连锁、短距传送、连点模式切换、
+ * 挖掘数据同步、建筑手杖 3 个、匠心仪式挎包、模式开关）连同各自的类一并移除；
+ * 这里只剩三块仍然活着的：</p>
+ * <ul>
+ *   <li><b>AE 连接预览</b>（{@link AeLinkPreviewRequestPacket} / {@link AeLinkPreviewPacket}）；</li>
+ *   <li><b>玩家保护状态同步</b>（{@link BeefInvulnerabilityStatePacket} /
+ *       {@link BeefInvulnerabilitySyncPacket}）；</li>
+ *   <li><b>无用维度配置界面</b>（{@link DimensionConfigGhostSlotPacket} /
+ *       {@link DimensionConfigSubmitPacket}）。</li>
+ * </ul>
  *
- * <p>唯一的适配点：上游用 {@code event.registrar(MODID).versioned("13")}，
- * 而本模组既有的 9 处网络注册统一使用 {@code event.registrar("1")}，
- * 通道版本是模组级设置而非工具逻辑，故这里与之保持一致。</p>
+ * <p>通道版本是模组级设置而非子系统逻辑，沿用既有的 {@code event.registrar("1")}。</p>
  */
 public class ModNetwork {
     public static void registerPayloadHandlers(final RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("1");
-        registrar.playToServer(BeefToolLayoutRequestPacket.TYPE,
-                               BeefToolLayoutRequestPacket.STREAM_CODEC,
-                               BeefToolLayoutRequestPacket::handle);
-        registrar.playToClient(BeefToolLayoutSyncPacket.TYPE,
-                               BeefToolLayoutSyncPacket.STREAM_CODEC,
-                               BeefToolLayoutSyncPacket::handle);
-        registrar.playToServer(BeefToolLayoutUpdatePacket.TYPE,
-                               BeefToolLayoutUpdatePacket.STREAM_CODEC,
-                               BeefToolLayoutUpdatePacket::handle);
-        registrar.playToClient(BeefToolLayoutResultPacket.TYPE,
-                               BeefToolLayoutResultPacket.STREAM_CODEC,
-                               BeefToolLayoutResultPacket::handle);
-        registrar.playToServer(EnchantmentSwitchPacket.TYPE, EnchantmentSwitchPacket.STREAM_CODEC,
-                               EnchantmentSwitchPacket::handle
-        );
-        registrar.playToServer(ToolTypeModeSwitchPacket.TYPE, ToolTypeModeSwitchPacket.STREAM_CODEC,
-                               ToolTypeModeSwitchPacket::handle
-        );
-        registrar.playToServer(ConstructionWandCorePacket.TYPE, ConstructionWandCorePacket.STREAM_CODEC,
-                               ConstructionWandCorePacket::handle
-        );
         registrar.playToServer(AeLinkPreviewRequestPacket.TYPE, AeLinkPreviewRequestPacket.STREAM_CODEC,
                                AeLinkPreviewRequestPacket::handle
         );
         registrar.playToClient(AeLinkPreviewPacket.TYPE, AeLinkPreviewPacket.STREAM_CODEC,
                                AeLinkPreviewPacket::handle
-        );
-        registrar.playToServer(ConstructionWandPreviewRequestPacket.TYPE,
-                               ConstructionWandPreviewRequestPacket.STREAM_CODEC,
-                               ConstructionWandPreviewRequestPacket::handle
-        );
-        registrar.playToClient(ConstructionWandPreviewPacket.TYPE,
-                               ConstructionWandPreviewPacket.STREAM_CODEC,
-                               ConstructionWandPreviewPacket::handle
-        );
-        registrar.playToServer(TabKeyPressedPacket.TYPE, TabKeyPressedPacket.STREAM_CODEC,
-                               TabKeyPressedPacket::handle
-        );
-        registrar.playToServer(TeleportKeyPacket.TYPE, TeleportKeyPacket.STREAM_CODEC,
-                               TeleportKeyPacket::handle
-        );
-        registrar.playToServer(ModeTogglePacket.TYPE, ModeTogglePacket.STREAM_CODEC,
-                               ModeTogglePacket::handle
-        );
-        registrar.playToServer(ForceBreakKeyPacket.TYPE, ForceBreakKeyPacket.STREAM_CODEC,
-                               ForceBreakKeyPacket::handle
-        );
-        registrar.playToClient(MiningDataSyncPacket.TYPE, MiningDataSyncPacket.STREAM_CODEC,
-                               MiningDataSyncPacket::handle
         );
         registrar.playToClient(BeefInvulnerabilitySyncPacket.TYPE, BeefInvulnerabilitySyncPacket.STREAM_CODEC,
                                BeefInvulnerabilitySyncPacket::handle
@@ -93,9 +40,6 @@ public class ModNetwork {
         registrar.playToClient(BeefInvulnerabilityStatePacket.TYPE, BeefInvulnerabilityStatePacket.STREAM_CODEC,
                                BeefInvulnerabilityStatePacket::handle
         );
-        registrar.playToServer(RitualSatchelPlacePacket.TYPE,
-                               RitualSatchelPlacePacket.STREAM_CODEC,
-                               RitualSatchelPlacePacket::handle);
         // 无用维度配置界面（照抄上游 ModNetwork 的同名两项）
         registrar.playToServer(DimensionConfigGhostSlotPacket.TYPE,
                                DimensionConfigGhostSlotPacket.STREAM_CODEC,

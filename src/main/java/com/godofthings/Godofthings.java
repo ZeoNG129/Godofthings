@@ -539,10 +539,9 @@ public class Godofthings
 
         modEventBus.addListener(this::commonSetup);
 
-        // ===== 造化杖（太初洞见之杖）：照抄 useless_mod 的子系统，注册处一一对应上游 UselessMod 的接线 =====
+        // ===== 照抄 useless_mod 的 beef 子系统接线（牛排工具框架已整套删除，只剩仍活着的部分）=====
         com.godofthings.beef.core.component.UComponents.init(modEventBus);
         com.godofthings.beef.init.ModItems.ITEMS.register(modEventBus);
-        com.godofthings.beef.init.ModEntities.ENTITY_TYPES.register(modEventBus);
         com.godofthings.beef.init.ModMenuType.register(modEventBus);
         // 无用维度（奇数 / 偶数 / 三维度）：传送方块 + 方块物品 + POI + 区块生成器
         com.godofthings.beef.init.ModBlocks.BLOCKS.register(modEventBus);
@@ -551,7 +550,7 @@ public class Godofthings
         // 皮肤玩偶「HoYooG Fumo」（照抄 ae2lt 的 fumo 系统，源码 LGPL-3.0 / 模型 CC BY-NC-SA 3.0）
         com.godofthings.fumo.registry.ModFumos.register(modEventBus);
         modEventBus.addListener(com.godofthings.beef.init.ModNetwork::registerPayloadHandlers);
-        // 造化杖的配置（链挖范围/磁力范围/飞行速度/连点速率等，上游 ConfigManager）
+        // beef 子系统配置（无用维度地板黑白名单、合金炉等级规则、配方转换、AE 礼物包等，上游 ConfigManager）
         // 上游文件名是 useless_mod-{common,client,server}.toml；这里加 beef 前缀，
         // 避免与上面已有的 godofthings-client.toml 撞名。
         modContainer.registerConfig(ModConfig.Type.COMMON,

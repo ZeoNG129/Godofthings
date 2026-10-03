@@ -1,13 +1,7 @@
 package com.godofthings.beef.client.network;
 
 import com.godofthings.beef.UselessMod;
-import com.godofthings.beef.client.gui.ChainGroupScreen;
-import com.godofthings.beef.client.gui.ModeWheelScreen;
-import com.godofthings.beef.core.config.ChainGroupManager;
-import com.godofthings.beef.data.BeefToolLayout;
 import com.godofthings.beef.network.BeefInvulnerabilitySyncPacket;
-import com.godofthings.beef.network.BeefToolLayoutResultPacket;
-import com.godofthings.beef.network.BeefToolLayoutSyncPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
@@ -22,10 +16,13 @@ import net.minecraft.world.entity.player.Player;
  * 客户端类型（例如 {@code Minecraft.player} 的字段类型 {@code LocalPlayer}），
  * 触发 RuntimeDistCleaner 抛出
  * “Attempted to load class net/minecraft/client/player/LocalPlayer for invalid dist DEDICATED_SERVER”
- * 并导致启动崩溃。载荷类只保留“分发检查 + 委托”，客户端类只会在客户端真正执行时被加载。
+ * 并导致启动崩溃。载荷类只保留“分发检查 + 委托”，客户端类只会在客户端真正执行时被加载。</p>
  *
  * <p>注意：这里的静态方法签名中不要出现客户端类型（参数/返回值），否则校验器在服务端
- * 仍需加载它们。参数一律使用公共的载荷类型。
+ * 仍需加载它们。参数一律使用公共的载荷类型。</p>
+ *
+ * <p><b>本次死代码清理</b>：模式轮盘 / 连锁等价组界面的「工具布局同步与错误码」两个处理器
+ * 已随界面一并删除，这里只剩玩家保护的同步处理。</p>
  */
 public final class ClientPacketHandlers {
     private ClientPacketHandlers() {}
@@ -67,33 +64,5 @@ public final class ClientPacketHandlers {
     }
 
     // handleAETaskProgress（把 AE 任务进度刷新到高级合金炉界面）属于上游机器子系统，
-    // 未随本次造化杖照抄带入。
-
-    /** 把服务端校验后的工具配置同步到模式轮盘界面。 */
-    public static void handleBeefToolLayoutSync(BeefToolLayoutSyncPacket packet) {
-        try {
-            BeefToolLayout layout = BeefToolLayout.fromJson(packet.json());
-            // 等价组必须无条件刷新：右键连锁走 Item#useOn，客户端也会本地预测，
-            // 界面开着还是关着都需要这份数据，否则客户端预测的范围会小于服务端实际破坏的范围。
-            ChainGroupManager.setClientMirror(layout.chainGroups());
-            if (Minecraft.getInstance().screen instanceof ModeWheelScreen screen) {
-                screen.receiveLayout(layout);
-            } else if (Minecraft.getInstance().screen instanceof ChainGroupScreen screen) {
-                screen.receiveSync(layout);
-            }
-        } catch (BeefToolLayout.LayoutException ignored) {
-            if (Minecraft.getInstance().screen instanceof ModeWheelScreen screen) {
-                screen.receiveLayoutError(BeefToolLayout.Error.INVALID_TEXT);
-            }
-        }
-    }
-
-    /** 把服务端返回的错误码同步到模式轮盘界面。 */
-    public static void handleBeefToolLayoutResult(BeefToolLayoutResultPacket packet) {
-        if (Minecraft.getInstance().screen instanceof ModeWheelScreen screen) {
-            screen.receiveLayoutError(packet.error());
-        } else if (Minecraft.getInstance().screen instanceof ChainGroupScreen screen) {
-            screen.receiveError(packet.error());
-        }
-    }
+    // 未随本次照抄带入。
 }
