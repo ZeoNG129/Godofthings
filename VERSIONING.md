@@ -1117,3 +1117,21 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 验证：`check-lang.ps1` **OK**（**247 个 java 文件**、20 方块、17 物品、**0 实体**）；GameTest **19/19 通过**；`gradlew build` 成功并自动部署；顺带清掉 `run-gametest` / `run-server` 里带已删 `[beef_tool]` 段的旧配置实例（避免启动时做一次无意义的自动纠正）。
   - 协作方式：由 teammate 执行删除并自证（强制全量 `compileJava` 0 error、全仓库引用图与悬空 `{@link}` 清零、复跑 `check-lang.ps1`），主 agent 负责语言键、文档、验收与发版；删语言键时一度把 JSON 末尾逗号删坏，被 `json.load` + `check-lang.ps1` 双重兜底当场发现并修好。
   - **遗留待定（下一轮）**：①「神之共鸣」（原机械共鸣）按用户要求恢复并改名 —— 方案已交用户审阅；②AE 无线接入点连接子系统（≈1,100 行）与「无敌 / 高级隐身」玩家保护层 + 8 个保护 Mixin —— 两者都已查实「本模组内没有任何入口能触发」，等用户决定是否一并删除。
+- 5.10.0 → **5.11.0（按用户要求：恢复并改名「神之共鸣」、界面文案精简、删高级合金炉模块、再清两块死代码）** —— 内容增删，按规则**第二位 +1、末位归零**。
+  - **① 神之共鸣**（原「机械共鸣」，用户要求恢复并改名）：`ArmorSkillCategory.MACHINE` 恢复，7 个开关（`machine_loot_bomb` 等，id 沿用上游便于对照）重挂回技能表，界面加第三页。
+    · **默认关**：机器默认**不**继承增幅；要让机器继承，需要「主人**在线** + **穿齐全套** + **对应共鸣开关打开**」三条同时满足 —— `ArmorSkillHandler.effectAllowed(玩家, 共鸣id)`，7 处判定分别挂在生物掉落/方块掉落/经验（「生物」「方块」「经验」各管一个入口）、刷怪蛋、头颅、自动熔炼、以及战利品爆炸（「掉落」共鸣，生物与方块两处都会叠加）上。
+    · 界面：**三页**（K = 神之增幅 / O = 神之套装 / 中间页「神之共鸣」用页签或 `Tab` 切），行尾只显示开 / 关，页底一行说明「默认关：打开后对应的神之系列机器才继承这个增幅」。
+    · 老存档：以前点开过的共鸣开关若还在 `armor_skills` 里就照旧生效（等级记忆机制未变）。
+  - **② 界面文案按用户要求精简**：行尾只显示「开 / 关」（不再带「满级 N」）；神之增幅的技能说明**只保留破折号后的内容**；「神之套装」页去掉「功能」二字（页签与标题一致）；功能说明**只保留主要介绍**、不再出现「原 N 个开关合并」字样、句尾不留句号。
+  - **③ 删除高级合金炉模块**：`beef/content/machines/advanced_alloy_furnace/**`（含 `chemical` 子包 7 个文件）+ `AlloyFurnaceTierRules` + `ConfigManager` 的服务端 `advanced_alloy_furnace` 段（10 个字段 + 定义块 + 11 个零调用 getter + 校验器，953 → 825 行）。
+    · 查证：本仓库里它**从来没有方块 / 方块实体 / 菜单 / 屏幕 / 配方类型 / POI 注册**，JEI / EMI 也没有它的类别，`resources` 里一个合金炉文件都没有 —— 只剩配置段。启动日志那条 `Built alloy-furnace recipe catalog` 是**上游 useless_mod 自己打的**（`com.sorrowmist.useless.content.recipe.AlloyFurnaceRecipeCatalog`），本仓库无此类，未动。
+    · 保留：多方块万象合金炉（`omniversal_multiblock_alloy_furnace`）配置段、神之熔炉全套、`advanced_alloy_furnace.recipe_conversion`（见「遗留」）。
+  - **④ 删除 AE 无线接入点连接子系统**（≈1,100 行，用户批准）：`AeDeviceLinker` / `AeLinkChannelBypass` / `AeConnectLinkSavedData` / `AeLinkPreview{,Request}Packet` / `AeLinkHighlightRenderer` + `EventHandler` 四处 + `ModNetwork` 注册 + 2 个数据组件。
+    · **保留**：神之系列机器自己的 AE2 并网（7 个方块实体仍 `implements IGridConnectedBlockEntity`、`AeGridNode`、`registerGridLinkables`）。
+  - **⑤ 删除「无敌 / 高级隐身」玩家保护层 + 7 个保护 Mixin**（用户批准）：`BeefInvulnerabilityOwnership`、2 个状态包、`ClientPacketHandlers`、`ClientEventBusSubscriber`、`UselessItemUtils`、`ToolTypeMode`、`ModTags`；`UComponents` 组件删光后**整类删除**（`Godofthings` 里的 `UComponents.init` 一并去掉）；`EventHandler` 重置为 53 行（只剩无用维度的地形灌注）。
+    · Mixin：删 `EntityGetterMixin` / `EntityMixin` / `LivingEntityMixin` / `PlayerMixin` / `ServerLevelMixin` / `ClientLevelMixin` / `ServerGamePacketListenerImplMixin`；**`LevelMixin` 保留**（`isDay` / `isRaining` / `isThundering` 三条「无用维度永远晴天」注入属于要保留的维度子系统），`godofthings.beef.mixins.json` 因此保留、`mods.toml` 那行不动。
+    · **意外收获**：删掉 priority=500 的 `EntityGetterMixin` 后，useless_mod 那个 `defaultRequire=1` 的同名重定向不会再被挤掉 —— 历史注释里记的 `Critical injection failure` 启动崩溃风险顺手消除。
+    · `GodofthingsCommand`：`MIXIN_OVERRIDERS` 去掉 `{useless_mod, EntityGetterMixin}`；`OPTIONAL_MODS` 26 → **5**（`ae2` / `jei` / `emi` / `ad_astra` / `gtceu`；jei 与 emi 是真插件但代码里没有字面量，特意保留）。
+  - 清理量：删 **30 个 java 文件 + 12 个空目录**，改 7 个文件；beef 包 **73 → 43 个文件**；语言键 1030 → **960**（删 70 个孤儿键：AE 链接/访问点 10、合金炉配置展示 18、档位数组展示 41、`tooltip.godofthings.omnitool_mode` 1）；两处失效 javadoc 顺手改掉。
+  - 验证：`check-lang.ps1` **OK**（**217 个 java 文件**、20 方块、17 物品、0 实体）；GameTest **19/19**；`gradlew build` 成功并部署；开发服务端加载通过。
+  - 遗留（既有死代码，用户可按需再清）：`beef/compat/AppFluxCompat`、`beef/core/component/ExternalInventoryKind|Reference`、`beef/core/constants/NBTConstants`、`beef/energy/{EnergyManager,IEnergyManager}`、`beef/client/gui/{ScaledEnergyAmount,PinyinSearch}`、`beef/api/enums/EnumColor` + `content/blocks/IColoredBlock`、`ConfigManager` 里未接线的 `recipe_conversion` 那套（~60 个开关）与另外约 40 个零调用 getter。

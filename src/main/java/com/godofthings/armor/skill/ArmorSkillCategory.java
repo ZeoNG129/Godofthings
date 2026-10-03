@@ -13,7 +13,10 @@ package com.godofthings.armor.skill;
 public enum ArmorSkillCategory
 {
     /** 神之增幅（7 个开关式节点：让神之系列机器/掉落产出翻倍或附加效果） */
-    ULTIMATE("ultimate");
+    ULTIMATE("ultimate"),
+
+    /** 神之共鸣（7 个开关，**默认关**：打开后对应的神之系列机器会继承上面同名的那个增幅） */
+    MACHINE("machine");
 
     private final String key;
 

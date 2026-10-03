@@ -139,12 +139,13 @@ public class ArmorSkillHandler
     public static void onLivingDrops(net.neoforged.neoforge.event.entity.living.LivingDropsEvent event)
     {
         if (!(event.getSource().getEntity() instanceof ServerPlayer player)
-                || !effectAllowed(player))
+                || !effectAllowed(player, ArmorSkills.MACHINE_MOB_DROP))
         {
             return;
         }
         Map<String, Integer> levels = levelsFor(player);
-        double bomb = ArmorSkillEngine.lootBombMultiplier(levels);
+        double bomb = effectAllowed(player, ArmorSkills.MACHINE_LOOT_BOMB)
+                ? ArmorSkillEngine.lootBombMultiplier(levels) : 1.0;
         double mult = ArmorSkillEngine.mobDropMultiplier(levels) * bomb;
         if (mult <= 1.0)
         {
@@ -158,7 +159,8 @@ public class ArmorSkillHandler
         if (!(event.getEntity() instanceof ServerPlayer))
         {
             net.minecraft.world.entity.EntityType<?> type = event.getEntity().getType();
-            double eggChance = ArmorSkillEngine.spawnEggChance(levels);
+            double eggChance = effectAllowed(player, ArmorSkills.MACHINE_SPAWN_EGG)
+                    ? ArmorSkillEngine.spawnEggChance(levels) : 0.0;
             if (eggChance > 0 && player.getRandom().nextDouble() < eggChance)
             {
                 net.minecraft.world.item.Item egg = ArmorSkillEngine.spawnEggFor(type);
@@ -167,7 +169,8 @@ public class ArmorSkillHandler
                     event.getDrops().add(newDrop(event.getEntity(), new net.minecraft.world.item.ItemStack(egg)));
                 }
             }
-            double headChance = ArmorSkillEngine.headDropChance(levels);
+            double headChance = effectAllowed(player, ArmorSkills.MACHINE_MOB_HEAD)
+                    ? ArmorSkillEngine.headDropChance(levels) : 0.0;
             if (headChance > 0 && player.getRandom().nextDouble() < headChance)
             {
                 net.minecraft.world.item.Item head = ArmorSkillEngine.headItemFor(type);
@@ -191,12 +194,13 @@ public class ArmorSkillHandler
     public static void onBlockDrops(net.neoforged.neoforge.event.level.BlockDropsEvent event)
     {
         if (!(event.getBreaker() instanceof ServerPlayer player)
-                || !effectAllowed(player))
+                || !effectAllowed(player, ArmorSkills.MACHINE_BLOCK_DROP))
         {
             return;
         }
         Map<String, Integer> levels = levelsFor(player);
-        double bomb = ArmorSkillEngine.lootBombMultiplier(levels);
+        double bomb = effectAllowed(player, ArmorSkills.MACHINE_LOOT_BOMB)
+                ? ArmorSkillEngine.lootBombMultiplier(levels) : 1.0;
         double mult = ArmorSkillEngine.blockDropMultiplier(levels) * bomb;
         if (mult <= 1.0)
         {
@@ -207,7 +211,8 @@ public class ArmorSkillHandler
             growStack(drop.getItem(), mult);
         }
         // 自动熔炼：把可熔炼的掉落物换成熔炼产物
-        if (ArmorSkillEngine.isOn(levels, ArmorSkills.AUTO_SMELT))
+        if (effectAllowed(player, ArmorSkills.MACHINE_AUTO_SMELT)
+                && ArmorSkillEngine.isOn(levels, ArmorSkills.AUTO_SMELT))
         {
             for (net.minecraft.world.entity.item.ItemEntity drop : event.getDrops())
             {
@@ -231,7 +236,7 @@ public class ArmorSkillHandler
     public static void onExperienceDrop(net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent event)
     {
         if (!(event.getAttackingPlayer() instanceof ServerPlayer player)
-                || !effectAllowed(player))
+                || !effectAllowed(player, ArmorSkills.MACHINE_XP_GAIN))
         {
             return;
         }
@@ -297,16 +302,27 @@ public class ArmorSkillHandler
     /**
      * 效果是否允许对本次触发生效。
      * <ul>
-     *   <li><b>真玩家</b>：只要穿齐全套即生效</li>
-     *   <li><b>假玩家（机器）</b>：主人需在线且穿齐全套</li>
+     *   <li><b>真玩家</b>：只要穿齐全套即生效（不看共鸣开关）</li>
+     *   <li><b>假玩家（机器）</b>：主人需在线 + 穿齐全套 + <b>该节点对应的「神之共鸣」开关已打开</b></li>
      * </ul>
-     * <p><b>v5.9.0</b>：原「机械共鸣」的 8 个开关（{@code MACHINE_*}）随该分类一并删除，
-     * 因此机器继承不再需要额外开关——主人的穿齐状态是唯一条件。每次事件实时判定，无持久状态。
+     * <p><b>v5.11.0</b>：原「机械共鸣」按用户要求恢复并改名「神之共鸣」—— 7 个开关、<b>默认关</b>，
+     * 所以机器默认<b>不</b>继承增幅，要让某台机器吃到某个增幅就在对应节点上把共鸣打开。
+     * 每次事件实时判定，无持久状态。</p>
+     *
+     * @param machineSkillId 对应节点的共鸣开关 id（{@link ArmorSkills#MACHINE_LOOT_BOMB} 等）
      */
-    public static boolean effectAllowed(ServerPlayer player)
+    public static boolean effectAllowed(ServerPlayer player, String machineSkillId)
     {
         ServerPlayer owner = ownerOf(player);
-        return owner != null && isActive(owner);
+        if (owner == null || !isActive(owner))
+        {
+            return false;
+        }
+        if (!(player instanceof net.neoforged.neoforge.common.util.FakePlayer))
+        {
+            return true; // 真玩家：穿齐即生效
+        }
+        return ArmorSkillData.isEnabled(ArmorSkillData.get(owner), machineSkillId);
     }
 
     /** 取"生效用的等级表"：真玩家 = 自己；机器 = 主人 */

@@ -18,8 +18,16 @@ import java.util.Map;
  * 短距传送 / 建筑手杖三个上限 / 强制挖掘黑名单 / 强制击杀名单）。</p>
  *
  * <p>保留的配置项都还有活引用：无用维度地板黑白名单（{@code DimensionGenerationConfig}）、
- * 合金炉等级规则（{@code AlloyFurnaceTierRules}）、以及上游机器子系统带进来但本模组
- * 尚未接线的那些段（配方转换 / 万向炉 / 线圈 / AE2 礼物包等，未列入本次清理范围）。</p>
+ * 以及上游机器子系统带进来但本模组尚未接线的那些段（配方转换 / 万向炉 / 线圈 / AE2 礼物包等，
+ * 未列入本次清理范围）。</p>
+ *
+ * <p><b>高级合金炉（万象炉）配置已删除</b>：该模块在本模组里从未接线（既无方块 / 方块实体 /
+ * 菜单 / 配方类型注册，也没有任何调用方），因此 {@code advanced_alloy_furnace} 服务端段
+ * （从 AE 网络抽电、AE 批次成熟窗口、产物回网时间预算、单批并行解除，以及
+ * {@code furnace_tier_*_threads} / {@code catalyst_tier_*} 两组档位数组）、
+ * 对应的字段与 getter、配方等级规则（{@code FURNACE_RECIPE_TIER_RULES} 与其校验）以及
+ * {@code AlloyFurnaceTierRules} 类一并移除。COMMON 侧的 {@code advanced_alloy_furnace.recipe_conversion}
+ * 分组（配方转换开关）属于另一套（未接线的）配方转换子系统，未在本次范围内，原样保留。</p>
  */
 public class ConfigManager {
     public static final ModConfigSpec COMMON_SPEC;
@@ -40,25 +48,6 @@ public class ConfigManager {
     private static final ModConfigSpec.IntValue ELECTRICITY_MULTIPLIER;
     private static final ModConfigSpec.IntValue CAPACITY_MULTIPLIER;
     private static final ModConfigSpec.IntValue MAX_UPGRADE;
-
-    // 万象炉从AE网络抽取能量配置
-    private static final ModConfigSpec.BooleanValue FURNACE_DRAW_APPFLUX_ENERGY;
-    private static final ModConfigSpec.BooleanValue FURNACE_DRAW_AE_ENERGY;
-    private static final ModConfigSpec.ConfigValue<List<? extends String>> FURNACE_RECIPE_TIER_RULES;
-    // 万象炉 AE 批次成熟等待窗口
-    private static final ModConfigSpec.IntValue FURNACE_AE_BATCH_RIPE_TICKS;
-    // 万象炉产物回网每 tick 时间预算
-    private static final ModConfigSpec.IntValue FURNACE_AE_OUTPUT_RETURN_BUDGET_MILLIS;
-    // 万象炉是否解除「材料窗口」对单批规模的限制
-    private static final ModConfigSpec.BooleanValue FURNACE_AE_UNLIMITED_BIGINT_PARALLELISM;
-    private static final ModConfigSpec.IntValue[] FURNACE_TIER_THREADS =
-            new ModConfigSpec.IntValue[11];
-    private static final ModConfigSpec.IntValue[] CATALYST_TIER_PARALLEL =
-            new ModConfigSpec.IntValue[10];
-    private static final ModConfigSpec.IntValue[] CATALYST_TIER_ENERGY_DIVISOR =
-            new ModConfigSpec.IntValue[10];
-    private static final ModConfigSpec.DoubleValue[] CATALYST_TIER_TIME_MULTIPLIER =
-            new ModConfigSpec.DoubleValue[10];
 
     // 万象炉配方转换配置
     private static final ModConfigSpec.BooleanValue ENABLE_CRAFTING_RECIPE_CONVERSION;
@@ -265,71 +254,11 @@ public class ConfigManager {
                 .defineInRange("max_upgrade", 16, 1, 64);
         SERVER_BUILDER.pop();
 
-        SERVER_BUILDER.translation("godofthings.configuration.advanced_alloy_furnace")
-                .push("advanced_alloy_furnace");
-        FURNACE_DRAW_APPFLUX_ENERGY = SERVER_BUILDER
-                .comment("万象炉是否自动从所在AE网络抽取AppliedFlux(应用通量)存储的FE能量 / Whether the Advanced Alloy Furnace automatically draws FE stored by AppliedFlux from its AE network",
-                        "需要安装AppliedFlux且网络中有通量元件, 每tick抽取量受熔炉最大输入速率限制 / Requires AppliedFlux and flux cells in the network; the per-tick draw is limited by the furnace max input rate")
-                .define("draw_appflux_energy", true);
-
-        FURNACE_DRAW_AE_ENERGY = SERVER_BUILDER
-                .comment("万象炉是否直接抽取AE网络自身的能量(按 1 AE = 2 FE 折算) / Whether the Advanced Alloy Furnace draws the AE network energy directly (converted at 1 AE = 2 FE)",
-                        "警告: 会与网络中其他设备争抢供电, 网络储能不足时可能导致设备频繁掉线 / Warning: competes for power with other devices in the network and may cause frequent device disconnects when network storage is low",
-                        "在AppliedFlux抽取之后作为补充, 每tick总抽取量受熔炉最大输入速率限制 / Applied as a supplement after AppliedFlux extraction; the total per-tick draw is limited by the furnace max input rate")
-                .define("draw_ae_energy", false);
-
-        FURNACE_AE_BATCH_RIPE_TICKS = SERVER_BUILDER
-                .comment("万象炉收到 AE 推送的批次后，先等待多少个 tick 再投入执行 / How many ticks the Advanced Alloy Furnace waits after receiving a pushed AE batch before starting it",
-                        "这个窗口用于把连续推送合并成一个任务，等待期间 GUI 显示为「排队」 / This window merges consecutive pushes into a single task; the GUI shows Queued while waiting",
-                        "设为 0 表示推送即刻投入执行；机器完全空闲（无任何运行中任务）时会跳过该窗口 / Set to 0 to start immediately; the window is skipped when the machine is completely idle (no running task)")
-                .translation("godofthings.configuration.ae_batch_ripe_ticks")
-                .defineInRange("ae_batch_ripe_ticks", 10, 0, 200);
-
-        FURNACE_AE_UNLIMITED_BIGINT_PARALLELISM = SERVER_BUILDER
-                .comment("是否解除「材料窗口」对单批规模的限制（即去掉 线程数 × Long.MAX 这道闸） / Whether to remove the material-window cap on single-batch size (that is, drop the threads x Long.MAX gate)",
-                        "开启后单批规模只由「产物交付能力」决定，可以一次吃下任意大的份数， / When enabled, batch size is decided only by output delivery capacity, so a single dispatch can absorb arbitrarily large counts,",
-                        "不必再靠堆线程数来抬高单批上限 / without stacking thread counts to raise the single-batch cap",
-                        "代价：单次准入可能吃下极大量材料（由调用方自己的 BigInteger 账本扣除）； / Trade-off: a single admission may take an extremely large amount of materials (debited from the caller BigInteger ledger);",
-                        "低档线圈会转而受「能量」闸限制，有用线圈无能量闸、不受影响 / Low-tier coils then fall back to the energy gate, while the useful coil has no energy gate and is unaffected")
-                .translation("godofthings.configuration.ae_unlimited_bigint_parallelism")
-                .define("ae_unlimited_bigint_parallelism", false);
-
-        FURNACE_AE_OUTPUT_RETURN_BUDGET_MILLIS = SERVER_BUILDER
-                .comment("万象炉每 tick 最多花多少毫秒把产物写回 ME 网络 / How many milliseconds per tick the Advanced Alloy Furnace may spend writing outputs back to the ME network",
-                        "这个值直接决定「可持续合成速度」：AE2 存储接口单次只能写一个 long 分段， / This value directly sets the sustainable crafting speed: the AE2 storage interface accepts only one long chunk per call,",
-                        "产物必须逐段插入，所以每 tick 能插多少次就决定了能跑多快 / outputs must be inserted chunk by chunk, so the per-tick insert count limits throughput",
-                        "调大 = 合成更快，但单 tick 更重（可能掉 TPS）；调小 = 更省 tick，但合成变慢 / Higher = faster crafting but a heavier tick (may cost TPS); lower = cheaper tick but slower crafting",
-                        "机器或服务端过载时，本预算还会被全局降频系数按比例收窄（下限 250 微秒） / When the machine or server is overloaded this budget is scaled down by the global throttle factor (floor 250 microseconds)",
-                        "全局降频基准会跟随本值放大（= 本值×2，下限 10 毫秒），所以调大本值确实能生效 / The global throttle baseline scales with this value (this value x2, floor 10 ms), so raising it does take effect")
-                .translation("godofthings.configuration.ae_output_return_budget_millis")
-                .defineInRange("ae_output_return_budget_millis", 8, 1, 200);
-
-        for (int tier = 0; tier <= 10; tier++) {
-            FURNACE_TIER_THREADS[tier] = SERVER_BUILDER
-                    .comment("单方块熔炉 " + tier + " 阶的最大AE任务数 / Max AE jobs of this single-block furnace tier")
-                    .defineInRange("furnace_tier_" + tier + "_threads", tier + 1, 1, Integer.MAX_VALUE);
-        }
-        for (int tier = 0; tier <= 9; tier++) {
-            CATALYST_TIER_PARALLEL[tier] = SERVER_BUILDER
-                    .comment("催化剂 " + tier + " 阶的普通配方并行数 / Normal recipe parallel count of this catalyst tier")
-                    .defineInRange("catalyst_tier_" + tier + "_parallel", 1 << tier, 1, Integer.MAX_VALUE);
-            CATALYST_TIER_ENERGY_DIVISOR[tier] = SERVER_BUILDER
-                    .comment("催化剂 " + tier + " 阶的能耗除数 / Energy divisor of this catalyst tier")
-                    .defineInRange("catalyst_tier_" + tier + "_energy_divisor", 1, 1, Integer.MAX_VALUE);
-            CATALYST_TIER_TIME_MULTIPLIER[tier] = SERVER_BUILDER
-                    .comment("催化剂 " + tier + " 阶的处理时间倍率 / Processing time multiplier of this catalyst tier")
-                    .defineInRange("catalyst_tier_" + tier + "_time_multiplier",
-                            Math.max(0.1, 1.0 - tier * 0.1), 0.0, 1.0);
-        }
-
-        FURNACE_RECIPE_TIER_RULES = SERVER_BUILDER
-                .comment("万象炉配方等级限制，格式为 配方ID通配符,等级 / Advanced Alloy Furnace recipe tier limits, format: recipe ID wildcard,tier",
-                        "*可匹配任意字符；精确配方ID优先于通配符，匹配具体度相同时后面的规则覆盖前面的规则 / * matches any characters; exact recipe IDs take priority over wildcards, and later rules override earlier ones at the same specificity",
-                        "等级范围为0-10；未匹配规则的配方不受限制 / Tiers range from 0 to 10; recipes matching no rule are unrestricted")
-                .translation("godofthings.configuration.advanced_alloy_furnace.recipe_tier_rules")
-                .defineListAllowEmpty("recipe_tier_rules", List.<String>of(), () -> "",
-                        ConfigManager::isValidFurnaceRecipeTierRuleEntry);
-        SERVER_BUILDER.pop();
+        // 高级合金炉（万象炉）服务端配置段已随该模块整体删除：
+        // draw_appflux_energy / draw_ae_energy / ae_batch_ripe_ticks /
+        // ae_unlimited_bigint_parallelism / ae_output_return_budget_millis /
+        // furnace_tier_*_threads / catalyst_tier_* / recipe_tier_rules。
+        // 该模块在本模组里没有任何方块 / 方块实体 / 菜单 / 配方注册，这些 getter 也全无调用方。
 
         // Common config: adapter registration happens during common setup on both physical sides.
         COMMON_BUILDER.translation("godofthings.configuration.advanced_alloy_furnace")
@@ -561,10 +490,6 @@ public class ConfigManager {
                 .define(key, defaultValue);
     }
 
-    private static boolean isValidFurnaceRecipeTierRuleEntry(Object entry) {
-        return AlloyFurnaceTierRules.isValidEntry(entry);
-    }
-
     private static List<String> defaultAE2GiftPackageItems() {
         List<String> items = new ArrayList<>();
         items.add("ae2:creative_energy_cell,1");
@@ -639,59 +564,6 @@ public class ConfigManager {
 
     public static int getMaxUpgrade() {
         return getConfigValue(MAX_UPGRADE);
-    }
-
-    // 万象炉AE网络抽电配置
-    public static boolean isFurnaceDrawAppfluxEnergyEnabled() {
-        return getConfigValue(FURNACE_DRAW_APPFLUX_ENERGY);
-    }
-
-    public static boolean isFurnaceDrawAeEnergyEnabled() {
-        return getConfigValue(FURNACE_DRAW_AE_ENERGY);
-    }
-
-    public static List<String> getFurnaceRecipeTierRules() {
-        return readConfigList(FURNACE_RECIPE_TIER_RULES);
-    }
-
-    public static int getAdvancedAlloyFurnaceTierThreads(int tier) {
-        return getConfigValue(FURNACE_TIER_THREADS[Math.max(0, Math.min(10, tier))]);
-    }
-
-    /** 万象炉 AE 批次成熟等待窗口（tick）；0 表示推送即刻投入执行 */
-    public static int getAdvancedAlloyFurnaceAeBatchRipeTicks() {
-        return Math.max(0, getConfigValue(FURNACE_AE_BATCH_RIPE_TICKS));
-    }
-
-    /**
-     * 万象炉每 tick 的产物回网时间预算（毫秒）。
-     *
-     * <p>它直接决定可持续合成速度：AE2 存储接口单次只能写一个 long 分段，产物必须逐段插入，
-     * 所以每 tick 能插多少次就决定了能跑多快。</p>
-     */
-    public static int getAdvancedAlloyFurnaceAeOutputReturnBudgetMillis() {
-        return Math.max(1, getConfigValue(FURNACE_AE_OUTPUT_RETURN_BUDGET_MILLIS));
-    }
-
-    /**
-     * 是否解除「材料窗口」对单批规模的限制。
-     *
-     * <p>开启后 {@code maximumWindowedCount} 返回哨兵值，单批规模只受产物交付能力约束。</p>
-     */
-    public static boolean isFurnaceAeUnlimitedBigintParallelism() {
-        return getConfigValue(FURNACE_AE_UNLIMITED_BIGINT_PARALLELISM);
-    }
-
-    public static int getAdvancedAlloyFurnaceCatalystParallel(int tier) {
-        return getConfigValue(CATALYST_TIER_PARALLEL[Math.max(0, Math.min(9, tier))]);
-    }
-
-    public static int getAdvancedAlloyFurnaceCatalystEnergyDivisor(int tier) {
-        return getConfigValue(CATALYST_TIER_ENERGY_DIVISOR[Math.max(0, Math.min(9, tier))]);
-    }
-
-    public static double getAdvancedAlloyFurnaceCatalystTimeMultiplier(int tier) {
-        return getConfigValue(CATALYST_TIER_TIME_MULTIPLIER[Math.max(0, Math.min(9, tier))]);
     }
 
     public static int getOmniversalCoilThreads(int tier) {

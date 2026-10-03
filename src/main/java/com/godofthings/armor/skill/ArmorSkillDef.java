@@ -50,6 +50,8 @@ public record ArmorSkillDef(
         MOB_HEAD,
         /** 神之熔炼（原「自动熔炼」）：方块掉落自动熔炼 */
         AUTO_SMELT,
+        /** 神之共鸣：开关型，打开后机器才继承对应的那个增幅（默认关） */
+        MACHINE_RESONANCE,
     }
 
     /**

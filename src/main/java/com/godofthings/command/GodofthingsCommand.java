@@ -46,18 +46,32 @@ import java.util.List;
 @EventBusSubscriber(modid = Godofthings.MODID)
 public class GodofthingsCommand
 {
-    /** 有兼容代码的可选 mod（装了才生效的那些） */
+    /**
+     * 有兼容代码的可选 mod（装了才生效的那些）。
+     *
+     * <p>名单按「src/main/java 里真的存在该 mod 的接线」筛过一遍（2026-10 死代码清理）：
+     * 只剩 AE2（神之系列机器的并网）、JEI / EMI（各自插件类）、Ad Astra（{@code AdAstraCompat}）、
+     * GTCEu（{@code GodResourceBlockEntity} 的标签命名空间）。
+     * 原先还列着的一批 mod 在本仓库里已经找不到任何兼容代码 —— 它们的 id 只出现在
+     * 「牛排工具 / 造化杖 / AE 连接 / 玩家保护 / 高级合金炉」这些已删除的子系统的配置项里，
+     * 或者干脆一次都没出现过（jade / modonomicon / goety / ftbteams / lootr / constructionwand /
+     * omnitools / draconic 等），故一并从名单移除。</p>
+     */
     private static final String[] OPTIONAL_MODS = {
-            "ae2", "ae2wtlib", "extendedae", "extendedae_plus", "appliedflux", "appmek",
-            "jei", "emi", "jade", "modonomicon", "ad_astra",
-            "occultism", "malum", "mysticalagriculture", "goety", "irons_spellbooks", "ars_nouveau",
-            "enderio", "mekanism", "modern_industrialization", "productivebees", "constructionwand",
-            "gtceu", "lootr", "omnitools", "ftbteams"
+            "ae2", "jei", "emi", "ad_astra", "gtceu"
     };
 
-    /** 会覆盖本模组 Mixin 的上游 mod：{modId, 被覆盖的 Mixin 类名} */
+    /**
+     * 会覆盖本模组 Mixin 的上游 mod：{modId, 被覆盖的 Mixin 类名}。
+     *
+     * <p>原先登记的是 {@code {"useless_mod", "EntityGetterMixin"}} —— 上游 useless_mod 自带一个
+     * 与本模组逐字相同的 {@code EntityGetterMixin}（对 {@code EntityGetter#players()} 做
+     * {@code @Redirect}），而它的 mixin 配置写着 {@code injectors.defaultRequire = 1}，
+     * 一旦本模组那个优先级更高的重定向把它的挤掉，它就会在启动阶段直接崩。
+     * 本模组的 {@code EntityGetterMixin}（以及整套玩家保护 Mixin）已随玩家保护层删除，
+     * 冲突不存在了，因此该条目移除；机制保留，将来再出现同类冲突时往这里加即可。</p>
+     */
     private static final String[][] MIXIN_OVERRIDERS = {
-            { "useless_mod", "EntityGetterMixin" }
     };
 
     @SubscribeEvent

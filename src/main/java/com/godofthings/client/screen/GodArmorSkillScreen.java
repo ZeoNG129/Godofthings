@@ -25,10 +25,12 @@ import java.util.Map;
  *
  * <p><b>v5.9.0 起按用户要求大幅简化</b>：</p>
  * <ul>
- *   <li>只两页：<b>神之增幅</b>（7 个节点，全部是<b>开关</b> —— 开启即给到该节点的最大等级）
+ *   <li>三页：<b>神之增幅</b>（7 个节点，全部是<b>开关</b> —— 开启即给到该节点的最大等级）
+ *       + <b>神之共鸣</b>（7 个开关，<b>默认关</b>：打开后对应的神之系列机器才继承同名增幅）
  *       + <b>神之套装</b>（8 个功能开关）。</li>
- *   <li>原来的「基础属性 / 特殊增幅 / 机械共鸣 / 魔法增幅」四页与其余节点已整体删除。</li>
+ *   <li>原来的「基础属性 / 特殊增幅 / 魔法增幅」三页与其余节点已整体删除。</li>
  *   <li>「万民敬仰」不再占开关位：<b>穿齐套装即生效</b>，界面底部只写一行说明。</li>
+ *   <li>行尾只显示「开 / 关」，不带等级说明（用户要求）；说明文字鼠标悬停才显示。</li>
  * </ul>
  *
  * <p><b>坐标纪律</b>：面板左上角是 {@code (px0, py0)}，本文件所有坐标都是 {@code px0/py0 + 偏移}
@@ -36,10 +38,11 @@ import java.util.Map;
  */
 public class GodArmorSkillScreen extends Screen
 {
-    /** 页索引：0 = 神之增幅（K），1 = 神之套装（O） */
+    /** 页索引：0 = 神之增幅（K）、1 = 神之共鸣、2 = 神之套装（O） */
     public static final int TAB_ULTIMATE = 0;
-    public static final int TAB_FEATURE = 1;
-    private static final int TAB_COUNT = 2;
+    public static final int TAB_RESONANCE = 1;
+    public static final int TAB_FEATURE = 2;
+    private static final int TAB_COUNT = 3;
 
     private static final int PANEL_MAX_W = 420;
     private static final int PANEL_MAX_H = 250;
@@ -125,9 +128,23 @@ public class GodArmorSkillScreen extends Screen
 
     private Component tabLabel(int index)
     {
-        return index == TAB_ULTIMATE
-                ? Component.translatable(ArmorSkillCategory.ULTIMATE.getLangKey())
-                : Component.translatable("gui.godofthings.armor.config");
+        return switch (index)
+        {
+            case TAB_ULTIMATE -> Component.translatable(ArmorSkillCategory.ULTIMATE.getLangKey());
+            case TAB_RESONANCE -> Component.translatable(ArmorSkillCategory.MACHINE.getLangKey());
+            default -> Component.translatable("gui.godofthings.armor.config");
+        };
+    }
+
+    /** 当前页对应的技能列表（神之套装页没有技能，返回空表） */
+    private java.util.List<ArmorSkillDef> skillList()
+    {
+        return switch (tab)
+        {
+            case TAB_ULTIMATE -> ArmorSkills.of(ArmorSkillCategory.ULTIMATE);
+            case TAB_RESONANCE -> ArmorSkills.of(ArmorSkillCategory.MACHINE);
+            default -> java.util.List.of();
+        };
     }
 
     private int tabW()
@@ -135,10 +152,10 @@ public class GodArmorSkillScreen extends Screen
         return Math.max(60, (panelW - PAD * 2 - 4) / TAB_COUNT);
     }
 
-    /** 当前页的行数（神之增幅 = 节点个数；神之套装 = 开关位数） */
+    /** 当前页的行数（两个技能页 = 该分类的节点个数；神之套装页 = 开关位数） */
     private int rowCount()
     {
-        return tab == TAB_ULTIMATE ? ArmorSkills.all().size() : GodArmorFeatures.COUNT;
+        return tab == TAB_FEATURE ? GodArmorFeatures.COUNT : skillList().size();
     }
 
     private int listTop()
@@ -207,9 +224,9 @@ public class GodArmorSkillScreen extends Screen
     /** 当前页全部开 / 全部关 */
     private void setAll(boolean on)
     {
-        if (tab == TAB_ULTIMATE)
+        if (tab != TAB_FEATURE)
         {
-            for (ArmorSkillDef def : ArmorSkills.all())
+            for (ArmorSkillDef def : skillList())
             {
                 toggleSkill(def, on);
             }
@@ -244,14 +261,16 @@ public class GodArmorSkillScreen extends Screen
         int hoveredRow = rowIndexAt(mouseX, mouseY);
         if (hoveredRow >= 0)
         {
-            Component desc = tab == TAB_ULTIMATE
-                    ? Component.translatable(ArmorSkills.all().get(hoveredRow).nameKey() + ".desc")
+            Component desc = tab != TAB_FEATURE
+                    ? Component.translatable(skillList().get(hoveredRow).nameKey() + ".desc")
                     : Component.translatable(GodArmorFeatures.LANG_KEYS[hoveredRow] + ".desc");
             gui.renderTooltip(this.font, this.font.split(desc, Math.max(120, panelW - 60)), mouseX, mouseY);
         }
 
-        // 底部说明：常驻效果 + 未穿齐提示
-        Component note = Component.translatable(GodArmorFeatures.ALWAYS_ON_LANG_KEY);
+        // 底部说明：共鸣页写默认关提示，套装页写常驻效果说明；未穿齐时统一加一行警告
+        Component note = tab == TAB_RESONANCE
+                ? Component.translatable("gui.godofthings.armor.resonance_hint")
+                : Component.translatable(GodArmorFeatures.ALWAYS_ON_LANG_KEY);
         gui.drawString(this.font, this.font.plainSubstrByWidth(note.getString(), panelW - PAD * 2),
                 px0 + PAD, py0 + panelH - PAD - BOTTOM_H + 1, C_TEXT_DIM, false);
         if (!worn())
@@ -298,12 +317,12 @@ public class GodArmorSkillScreen extends Screen
             Component label;
             Component state;
             boolean on;
-            if (tab == TAB_ULTIMATE)
+            if (tab != TAB_FEATURE)
             {
-                ArmorSkillDef def = ArmorSkills.all().get(index);
+                ArmorSkillDef def = skillList().get(index);
                 label = Component.translatable(def.nameKey());
                 on = ArmorSkillData.isEnabled(levels, def.id());
-                state = Component.translatable("gui.godofthings.armor.skill_state", onOff(on), def.maxLevel());
+                state = onOff(on); // 只要开关字样，不带等级说明（用户要求）
             }
             else
             {
@@ -345,9 +364,9 @@ public class GodArmorSkillScreen extends Screen
         int index = rowIndexAt(mouseX, mouseY);
         if (button == 0 && index >= 0)
         {
-            if (tab == TAB_ULTIMATE)
+            if (tab != TAB_FEATURE)
             {
-                ArmorSkillDef def = ArmorSkills.all().get(index);
+                ArmorSkillDef def = skillList().get(index);
                 toggleSkill(def, !ArmorSkillData.isEnabled(levels(), def.id()));
             }
             else

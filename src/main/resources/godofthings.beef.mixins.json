@@ -4,18 +4,7 @@
   "package": "com.godofthings.beef.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "EntityMixin",
-    "EntityGetterMixin",
-    "LivingEntityMixin",
-    "PlayerMixin",
-    "ServerLevelMixin",
     "LevelMixin"
-  ],
-  "server": [
-    "ServerGamePacketListenerImplMixin"
-  ],
-  "client": [
-    "ClientLevelMixin"
   ],
   "injectors": {
     "defaultRequire": 0

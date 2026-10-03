@@ -36,6 +36,22 @@ public final class ArmorSkills
     /** 神之熔炼（原「自动熔炼」）：方块掉落自动熔炼 */
     public static final String AUTO_SMELT = "auto_smelt";
 
+    // ---- 神之共鸣（7 个开关，默认关：打开后机器继承对应的那个增幅；id 仍是上游的 machine_* 便于对照）----
+    /** 神之共鸣·掉落：机器继承「神之掉落」 */
+    public static final String MACHINE_LOOT_BOMB = "machine_loot_bomb";
+    /** 神之共鸣·生物：机器继承「神之生物」 */
+    public static final String MACHINE_MOB_DROP = "machine_mob_drop";
+    /** 神之共鸣·方块：机器继承「神之方块」 */
+    public static final String MACHINE_BLOCK_DROP = "machine_block_drop";
+    /** 神之共鸣·经验：机器继承「神之经验」 */
+    public static final String MACHINE_XP_GAIN = "machine_xp_gain";
+    /** 神之共鸣·怪蛋：机器继承「神之怪蛋」 */
+    public static final String MACHINE_SPAWN_EGG = "machine_spawn_egg";
+    /** 神之共鸣·头颅：机器继承「神之头颅」 */
+    public static final String MACHINE_MOB_HEAD = "machine_mob_head";
+    /** 神之共鸣·熔炼：机器继承「神之熔炼」 */
+    public static final String MACHINE_AUTO_SMELT = "machine_auto_smelt";
+
     /** 默认解锁等级（列表里"开关打开"时给的最低等级；终极节点开启时直接给满级，见界面代码） */
     public static final int UNLOCK_LEVEL = 1;
 
@@ -51,6 +67,15 @@ public final class ArmorSkills
         reg(MOB_SPAWN_EGG, ArmorSkillCategory.ULTIMATE, 10, ArmorSkillDef.EffectKind.MOB_SPAWN_EGG);
         reg(MOB_HEAD, ArmorSkillCategory.ULTIMATE, 5, ArmorSkillDef.EffectKind.MOB_HEAD);
         reg(AUTO_SMELT, ArmorSkillCategory.ULTIMATE, 1, ArmorSkillDef.EffectKind.AUTO_SMELT);
+
+        // 神之共鸣：7 个开关（默认关）—— 打开后对应的神之系列机器才继承上面同名的那个增幅
+        reg(MACHINE_LOOT_BOMB, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
+        reg(MACHINE_MOB_DROP, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
+        reg(MACHINE_BLOCK_DROP, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
+        reg(MACHINE_XP_GAIN, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
+        reg(MACHINE_SPAWN_EGG, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
+        reg(MACHINE_MOB_HEAD, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
+        reg(MACHINE_AUTO_SMELT, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
     }
 
     private ArmorSkills() {}

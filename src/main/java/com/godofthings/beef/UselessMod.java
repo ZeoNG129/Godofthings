@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * 为了不改动任何一行照抄代码，这里保留同名类型，只把 modid 指向本模组。</p>
  *
  * <p>本类<b>不</b>负责注册任何东西——物品、数据组件、网络包、菜单、实体等一律由
- * {@link com.godofthings.Godofthings} 与 {@link com.godofthings.beef.init.BeefRegistration} 接线。</p>
+ * {@link com.godofthings.Godofthings} 与 （已随牛排工具框架在 v5.10.0 删除） 接线。</p>
  */
 public final class UselessMod
 {

@@ -1,70 +1,29 @@
 package com.godofthings.beef.mixin;
 
-import com.godofthings.beef.event.EventHandler;
 import com.godofthings.beef.world.dimension.UselessDimensions;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.entity.EntityTypeTest;
-import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
-
+/**
+ * 「无用维度永远晴天」的等级层注入。
+ *
+ * <p><b>死代码清理</b>：本类原先还承载玩家保护层的两条注入
+ * （{@code godofthings$filterBeefProtectedPlayers} —— 把「高级隐身」玩家从
+ * {@code Level#getEntities} 的查询结果里过滤掉）。随着玩家保护层（无敌 / 高级隐身）
+ * 整套删除，那两条注入与其私有辅助方法一并移除。</p>
+ *
+ * <p><b>本类因此保留、未随其余 7 个保护 Mixin 一起删除</b>：下面这三个注入属于
+ * 「无用维度」子系统（{@code UselessDimensions} 的 uselessdim/2/3 三个维度），
+ * 与玩家保护无关，删掉会让无用维度重新出现昼夜与雷雨。</p>
+ *
+ * <p>注意 {@code godofthings$isUselessDimension()} 只认 UselessDimensions 里那三个维度键，
+ * 不会误伤本模组自己的超平坦 / 虚空维度。</p>
+ */
 @Mixin(value = Level.class)
 public class LevelMixin {
-    @Inject(method = "getEntities(Lnet/minecraft/world/level/entity/EntityTypeTest;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;", at = @At("RETURN"), cancellable = true)
-    private <T extends Entity> void godofthings$filterBeefProtectedPlayers(EntityTypeTest<Entity, T> entityTypeTest, AABB area, Predicate<? super T> predicate, CallbackInfoReturnable<List<T>> cir) {
-        List<T> filtered = godofthings$filterBeefProtectedPlayers(cir.getReturnValue());
-        if (filtered != null) {
-            cir.setReturnValue(filtered);
-        }
-    }
-
-    @Inject(method = "getEntities(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;", at = @At("RETURN"), cancellable = true)
-    private void godofthings$filterBeefProtectedPlayersFromEntityQuery(Entity except, AABB area, Predicate<? super Entity> predicate, CallbackInfoReturnable<List<Entity>> cir) {
-        List<Entity> filtered = godofthings$filterBeefProtectedPlayers(cir.getReturnValue());
-        if (filtered != null) {
-            cir.setReturnValue(filtered);
-        }
-    }
-
-    private static <T extends Entity> List<T> godofthings$filterBeefProtectedPlayers(List<T> entities) {
-        if (entities == null || entities.isEmpty()) {
-            return null;
-        }
-
-        List<T> filtered = null;
-        for (int i = 0; i < entities.size(); i++) {
-            T entity = entities.get(i);
-            if (entity instanceof Player player && EventHandler.hasBeefAdvancedStealthItem(player)) {
-                if (filtered == null) {
-                    filtered = new ArrayList<>(entities.size());
-                    for (T previous : entities.subList(0, i)) {
-                        filtered.add(previous);
-                    }
-                }
-                continue;
-            }
-
-            if (filtered != null) {
-                filtered.add(entity);
-            }
-        }
-
-        return filtered;
-    }
-
-    // ==== 以下三个注入随「无用维度」子系统一同补回（v4.1.0）====
-    // 之前只移植造化杖时被裁掉，因为那时无用维度没带进来；现在维度已照抄，
-    // 这层「无用维度永远晴天」的表现也必须一起回来。
-    // 注意 godofthings$isUselessDimension() 只认 UselessDimensions 里那三个维度键（uselessdim/2/3），
-    // 不会误伤本模组自己的超平坦 / 虚空维度。
 
     @Inject(
             method = "isDay",
