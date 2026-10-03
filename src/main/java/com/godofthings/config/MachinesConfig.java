@@ -15,6 +15,7 @@ public class MachinesConfig {
    public static final IntValue MINER_TICKS_PER_COLUMN_BASE;
    public static final IntValue RESOURCE_WORK_INTERVAL;
    public static final IntValue DROP_WORK_INTERVAL;
+   public static final IntValue SPAWN_EGG_WORK_INTERVAL;
 
    static {
       BUILDER.push("miner");
@@ -32,6 +33,11 @@ public class MachinesConfig {
 
       BUILDER.push("dropMachine");
       DROP_WORK_INTERVAL = BUILDER.comment("神之掉落机工作间隔（tick）：每 N tick 处理刷怪蛋一次。 / God Drop Machine work interval (ticks): processes one spawn egg every N ticks.")
+         .defineInRange("workInterval", 20, 1, 100000);
+      BUILDER.pop();
+
+      BUILDER.push("spawnEggMachine");
+      SPAWN_EGG_WORK_INTERVAL = BUILDER.comment("神之怪蛋工作间隔（tick）：每 N tick 复制一轮刷怪蛋（每种 64 个 × 并行倍率）。 / God Spawn Egg Machine work interval (ticks): duplicates the spawn eggs once per N ticks (64 per type x parallel multiplier).")
          .defineInRange("workInterval", 20, 1, 100000);
       BUILDER.pop();
 

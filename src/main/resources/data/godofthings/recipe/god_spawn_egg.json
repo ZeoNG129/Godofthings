@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EEE",
+    "EHE",
+    "EEE"
+  ],
+  "key": {
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "H": {
+      "item": "minecraft:egg"
+    }
+  },
+  "result": {
+    "id": "godofthings:god_spawn_egg"
+  }
+}

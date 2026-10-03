@@ -12,7 +12,7 @@ import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
-import com.godofthings.menu.GodDropMenu;
+import com.godofthings.menu.GodSpawnEggMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -39,18 +39,19 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * 神之掉落生物掉落物生产机方块实体。
- * - 无需能源，9 个输入槽（3×3）并行生产；每 20 tick 处理一轮所有非空刷怪蛋
- * - 放入刷怪蛋 → 按原版生物战利品表产出该生物**被击杀时的全部掉落物**
- *   （v5.1.6 起与原版同步：鸡 = 羽毛 + 生鸡肉，不再是固定的一种物品）
+ * 神之怪蛋方块实体：刷怪蛋复制机。
+ * - 无需能源，9 个输入槽（3×3）并行复制；每 20 tick 处理一轮所有非空刷怪蛋
+ * - 放入刷怪蛋 → 产出**同种**刷怪蛋（保留原物品的全部组件，所以模组刷怪蛋的实体数据一并复制）
+ * - **兼容所有刷怪蛋**：原版 / NeoForge 系直接认；其它模组自建的刷怪蛋只要按原版约定写了
+ *   ENTITY_DATA 组件也认（见 {@link com.godofthings.block.entity.machine.SpawnEggHelper}）
  * - 每种产物每周期 64 个（神之加速按并行倍率乘）
  * - 不消耗刷怪蛋（生产模板，按时间持续产出）
  * - 向下自动输出，内置无限储存；打掉不掉落
  */
-public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     /** 工作间隔（tick），可经 godofthings-machines.toml 调整 */
-    public static final int WORK_INTERVAL = MachinesConfig.DROP_WORK_INTERVAL.get();
+    public static final int WORK_INTERVAL = MachinesConfig.SPAWN_EGG_WORK_INTERVAL.get();
 
     /** 可放置输入槽数量（3×3 共 9 个） */
     public static final int INPUT_SLOTS = 9;
@@ -67,7 +68,6 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
         @Override
         public boolean isItemValid(int slot, ItemStack stack)
         {
-            // v5.7.0：不再只认原版 SpawnEggItem —— 任何能解析出实体类型的刷怪蛋（含模组自建的）都收
             return com.godofthings.block.entity.machine.SpawnEggHelper.isSpawnEgg(stack);
         }
 
@@ -111,9 +111,9 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
 
     private int tickCounter = 0;
 
-    public GodDropBlockEntity(BlockPos pos, BlockState state)
+    public GodSpawnEggBlockEntity(BlockPos pos, BlockState state)
     {
-        super(Godofthings.GOD_DROP_BE.get(), pos, state);
+        super(Godofthings.GOD_SPAWN_EGG_BE.get(), pos, state);
         itemHandler.setOnChange(this::setChanged);
     }
 
@@ -211,7 +211,7 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
 
     // ---- 每 tick 逻辑 ----
 
-    public static void tick(Level level, BlockPos pos, BlockState state, GodDropBlockEntity be)
+    public static void tick(Level level, BlockPos pos, BlockState state, GodSpawnEggBlockEntity be)
     {
         if (level.isClientSide)
         {
@@ -269,15 +269,16 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
         }
     }
 
-    /** 根据刷怪蛋，按本模组设定产出对应掉落物（每周期 64 个）。
-     *  <p>掷表逻辑已抽到 {@link com.godofthings.block.entity.machine.DropLootRoller}（那边能被 GameTest 直接测）。</p> */
+    /**
+     * 复制刷怪蛋：产出与输入**同种**的刷怪蛋（每周期 64 个，神之加速按倍率乘）。
+     *
+     * <p>用 {@code copyWithCount} 复制整份物品栈，所以输入蛋上挂的组件（实体数据等）一并带过去 ——
+     * 模组刷怪蛋的实体类型、甚至被改过名字/加了数据的蛋都能原样复制。
+     * 输入不是刷怪蛋时（正常插不进来，兜底）返回空表。</p>
+     */
     private List<ItemStack> produce(ItemStack input)
     {
-        if (!(level instanceof ServerLevel serverLevel))
-        {
-            return List.of();
-        }
-        return com.godofthings.block.entity.machine.DropLootRoller.roll(serverLevel, worldPosition, input);
+        return com.godofthings.block.entity.machine.SpawnEggHelper.duplicate(input);
     }
 
     /** 向下自动输出到下方容器 */
@@ -339,9 +340,9 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
         @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event)
         {
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_DROP_BE.get(),
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_SPAWN_EGG_BE.get(),
                     (be, side) -> be.getItemHandler());
-            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_DROP_BE.get(),
+            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_SPAWN_EGG_BE.get(),
                     (be, side) -> be);
         }
     }
@@ -384,13 +385,13 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
     @Override
     public Component getDisplayName()
     {
-        return Component.translatable("block.godofthings.god_drop");
+        return Component.translatable("block.godofthings.god_spawn_egg");
     }
 
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player)
     {
-        return new GodDropMenu(containerId, inventory, this);
+        return new GodSpawnEggMenu(containerId, inventory, this);
     }
 }

@@ -77,15 +77,15 @@ public final class DropLootRoller
 
     private DropLootRoller() {}
 
-    /** 根据刷怪蛋产出对应掉落物（每周期每种 64 个）；不是刷怪蛋 / 不是服务端就返回空表 */
+    /**
+     * 根据刷怪蛋产出对应掉落物（每周期每种 64 个）；不是刷怪蛋 / 不是服务端就返回空表。
+     *
+     * <p>v5.7.0：实体类型改由 {@link SpawnEggHelper} 解析 —— 以前只认 {@code SpawnEggItem} 实例，
+     * 模组自建的刷怪蛋物品会被当成「不是刷怪蛋」直接跳过，现在只要是刷怪蛋都能出掉落物。</p>
+     */
     public static List<ItemStack> roll(ServerLevel level, BlockPos pos, ItemStack input)
     {
-        if (!(input.getItem() instanceof SpawnEggItem egg))
-        {
-            return List.of();
-        }
-        // 1.21.1：SpawnEggItem.getType 直接收 ItemStack（实体数据存于 DataComponents.ENTITY_DATA，无 NBT 标签）
-        EntityType<?> type = egg.getType(input);
+        EntityType<?> type = SpawnEggHelper.typeOf(input);
         if (type == null)
         {
             return List.of();
