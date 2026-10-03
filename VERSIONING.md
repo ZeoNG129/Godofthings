@@ -1135,3 +1135,12 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 清理量：删 **30 个 java 文件 + 12 个空目录**，改 7 个文件；beef 包 **73 → 43 个文件**；语言键 1030 → **960**（删 70 个孤儿键：AE 链接/访问点 10、合金炉配置展示 18、档位数组展示 41、`tooltip.godofthings.omnitool_mode` 1）；两处失效 javadoc 顺手改掉。
   - 验证：`check-lang.ps1` **OK**（**217 个 java 文件**、20 方块、17 物品、0 实体）；GameTest **19/19**；`gradlew build` 成功并部署；开发服务端加载通过。
   - 遗留（既有死代码，用户可按需再清）：`beef/compat/AppFluxCompat`、`beef/core/component/ExternalInventoryKind|Reference`、`beef/core/constants/NBTConstants`、`beef/energy/{EnergyManager,IEnergyManager}`、`beef/client/gui/{ScaledEnergyAmount,PinyinSearch}`、`beef/api/enums/EnumColor` + `content/blocks/IColoredBlock`、`ConfigManager` 里未接线的 `recipe_conversion` 那套（~60 个开关）与另外约 40 个零调用 getter。
+- 5.11.0 → **5.12.0（按用户要求清掉最后一批既有死代码）** —— 死代码清理，按规则**第二位 +1、末位归零**。
+  - 删除 8 个文件（674 行）：`beef/compat/AppFluxCompat`、`beef/core/component/{ExternalInventoryKind,ExternalInventoryReference}`、`beef/core/constants/NBTConstants`、`beef/energy/{EnergyManager,IEnergyManager}`（整包；本模组自己的 `com/godofthings/energy/` 未动）、`beef/client/gui/{ScaledEnergyAmount,PinyinSearch}`。
+  - `ConfigManager` **825 → 155 行（−670）**：删掉整套未接线的「配方转换」子系统（`RECIPE_CONVERSION_OPTIONS` 60 条 + `isRecipeConversionEnabled` + 约 60 个 `ENABLE_*_RECIPE_CONVERSION` 开关 + 5 个 `is*RecipeConversionEnabled` + `defineRecipeConversionOption`）、万象炉多方块段、矿物生成器段、AE2 礼物包段、机械升级段、植物盆/矩阵段，以及上列的全部 getter 与 `normalizeInventorySlots`。
+    · **保留**：三个 `*_SPEC` 与 Builder（项目约定）、无用维度地板黑白名单整套（`DimensionGenerationConfig` 在用）。
+    · `COMMON_SPEC` / `CLIENT_SPEC` 现在是空表 —— 已核对 NeoForge 21.1.249 源码：`Builder#build()` 只做 `ensureEmpty()` 校验（检查有没有挂着的 comment/翻译键/range/restart 标记），空表在 `validateSpec` / `correct` / `acceptConfig` 里空转，**安全**；对应 toml 会生成空文件，旧键由 `correct()` 清掉。
+  - 语言键：删掉 **331 个孤儿键**（本轮 config 段 253 个 + v5.10.0 等更早清理遗留的 78 个），保留 `godofthings.configuration.{title, section.*, useless_dimension*}`；语言文件 960 → **629**。
+  - **纠正一处误判（重要）**：`EnumColor` / `IColoredBlock` / `PlatformPreview` **不是**死代码 —— `PlatformPreview` 被活的 `DimensionConfigScreen`（`DimensionConfigMenu`）使用，`IColoredBlock` 又是 `PlatformPreview` 里 `instanceof` 判定用的接口，三者全部保留（`IColoredBlock` 在本仓库无实现类，是给别的模组染色方块用的判定接口）。
+  - 验证：`check-lang.ps1` **OK**（**209 个 java 文件**、20 方块、17 物品、0 实体）；GameTest **19/19**；`gradlew build` 成功并部署；开发服务端加载通过。
+  - 顺带说明：删掉 `PinyinSearch` 意味着上游那条「jecharacters 拼音搜索」可选集成彻底消失（此前已无调用方，属清死代码而非砍功能）；日后便签 / 手册的搜索框若要拼音，需要重写。

@@ -551,10 +551,12 @@ public class Godofthings
         // 皮肤玩偶「HoYooG Fumo」（照抄 ae2lt 的 fumo 系统，源码 LGPL-3.0 / 模型 CC BY-NC-SA 3.0）
         com.godofthings.fumo.registry.ModFumos.register(modEventBus);
         modEventBus.addListener(com.godofthings.beef.init.ModNetwork::registerPayloadHandlers);
-        // beef 子系统配置（无用维度地板黑白名单、配方转换、AE 礼物包等，上游 ConfigManager）
+        // beef 子系统配置（如今只剩无用维度地板黑白名单这一块；上游 ConfigManager 的其余
+        // 机器 / 配方转换 / 礼物包 / 植物盆等段都已按「零调用方」删除）
         // 上游文件名是 useless_mod-{common,client,server}.toml；这里加 beef 前缀，
         // 避免与上面已有的 godofthings-client.toml 撞名。
-        // 注：其中「高级合金炉 / 万象炉」那一段（含配方等级规则）已随该模块删除。
+        // common / client 两个文件现在是空的（仍照常生成），server 里只剩 floor_block_blacklist /
+        // floor_block_whitelist 两项。
         modContainer.registerConfig(ModConfig.Type.COMMON,
                 com.godofthings.beef.core.config.ConfigManager.COMMON_SPEC, "godofthings-beef-common.toml");
         modContainer.registerConfig(ModConfig.Type.CLIENT,
