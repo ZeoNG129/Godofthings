@@ -1240,3 +1240,8 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **功能**：去皮机补上 AE 并网（照抄神之熔炉现成模式）——BE `implements IGridConnectedBlockEntity` + `AeGridNode`（onLoad 创建 / setRemoved 销毁、REQUIRE_CHANNEL 占一频道、setInWorldNode 线缆可连），tick 每 20 tick 节流把输出槽（9-17，输入槽是待去皮队列不推）产物 `MEStorage.insert` 进网络，能力注册补 `AECapabilities.IN_WORLD_GRID_NODE_HOST`，界面「AE」开关随 NBT `AeEnabled` 持久化（旧存档缺键默认开）。可并网机器 **8→9 台**。
   - **AE 按钮零重叠**：熔炉的 AE 按钮原在 (150,6)，**压住了第 9 输入槽（152..170×17..35）**——两台机器统一挪到右侧竖排第三格 **(178,57)**：齿轮(9) → 加速槽(35) → AE(57)，与任何槽位零重叠；去皮机同位。
   - 验证：`check-lang.ps1` OK（557 键）；GameTest **34/34** 回归全过（AE 网格行为与熔炉一致不做专属测试）；`gradlew build` 成功部署。
+- 5.15.9 → **5.15.10（按用户要求：仓库门面三项 + MIT 开源）** —— 文档 / 许可变更，按规则**末位 +1**。
+  - **图标修复**：仓库根 `logo.png` 已被 v5.15.6 解包 ToolBelt 时同名覆盖成它的图标（md5 比对实锤）——原始图标一直都在 `src/main/resources/logo.png`（`logoFile` 指向的 jar 内图标），已拷回根目录并**首次纳入版本库**（以后不会再丢）；同时清掉那次误提交的全部解包产物（`assets/toolbelt/`、`data/toolbelt/`、`META-INF/`、`.cache/`、`dev/` 等 60 个文件）。
+  - **README 精简 + 表情装饰**：内容一览 35 行全部重写为**一行一台**的短句（版本演进细节归 VERSIONING.md，关键数字保留：255 级 / ×1024 / 21.4 亿）；全部章节标题加 emoji（🌸 内容一览 / 🚀 快速开始 / 🛠️ 构建……）并加显式 HTML 锚点保证导航有效。
+  - **MIT 开源**：根 `LICENSE.txt` 由「保留所有权利」改为 **MIT**（`gradle.properties` 的 `mod_license` 同步）；README 徽章与许可节同步 —— 照抄部分（useless_mod MIT / PersonalSpace 与 AE2LT 源码 LGPL-3.0 / AE2LT 模型 CC BY-NC-SA 3.0 禁商用）**继续遵循各自原许可**。
+  - 验证：`check-lang.ps1` OK（557 键）；GameTest **34/34**；`gradlew build` 成功部署。
