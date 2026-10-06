@@ -1,8 +1,34 @@
+<div align="center">
+
+<img src="logo.png" width="160" alt="God of Things"/>
+
 # God of Things（万物之神）
 
-一个面向 **Minecraft 1.21.1 + NeoForge** 的集合型模组，全部内容为原创。
+**一个面向 Minecraft 1.21.1 + NeoForge 的集合型功能模组，全部内容为原创。**
 
-> 神之熔炉、神之矿机、天神附魔、神之工具…… 一整套"神之"工具与机器。
+*神之熔炉、神之矿机、天神附魔、神之工具…… 一整套「神之」工具与机器。*
+
+[![CI](https://img.shields.io/github/actions/workflow/status/ZeoNG129/Godofthings/build.yml?branch=1.21.1&label=CI)](https://github.com/ZeoNG129/Godofthings/actions/workflows/build.yml)
+![MC](https://img.shields.io/badge/MC-1.21.1-50586d)
+![NeoForge](https://img.shields.io/badge/NeoForge-21.1.249-F16436)
+![Java](https://img.shields.io/badge/Java-21-007396)
+![版本](https://img.shields.io/badge/模组-5.15.9-7c3aed)
+![许可](https://img.shields.io/badge/许可-保留所有权利-lightgrey)
+
+**[下载](https://github.com/ZeoNG129/Godofthings/releases)** ·
+[内容一览](#内容一览) ·
+[快速开始](#快速开始) ·
+[环境要求](#环境要求) ·
+[构建](#构建) ·
+[测试](#测试) ·
+[指令](#指令) ·
+[版本号](#版本号) ·
+[键位](#键位) ·
+[目录结构](#目录结构) ·
+[许可](#许可)
+
+</div>
+
 
 ## 内容一览
 
@@ -43,6 +69,13 @@
 | 成就树 | **29 个成就**：`root`（神之熔炉）往下分机器线（资源机 / 掉落机 / 附魔台 / 合成台 / 加速 / 砍杀 / 吸收 / 无线能量）、套装线、便签线、维度线（虚空 + 三个无用维度）（另有「神之机器全家桶」等挑战）；其中 3 个是**行为成就**（打开记事本 / 开悬浮窗 / 开自动更名，由代码授予） |
 | 神之手册 God Manual | **游戏内手册**：忘了哪个物品干嘛用的就翻它。**每个注册物品 / 方块都有条目**（条目直接从注册表生成，漏写会被 `check-lang.ps1` 挡下），另有 10 条系统条目（入门 / 按键与指令速查 / 杖 / 套装与技能树 / 便签 / 传送点 / 维度 / AE2 并网 / 兼容与共存 / 常见问题）。四种分类页签 + **顶部搜索框**（匹配名称、说明与注册名）+ 条目列表与正文各自滚动。**三种入口**：`P` 键 / 物品右键 / `/godofthings manual`。合成：书 ×1 + 金锭 ×4 |
 | 诊断与备份 | `/godofthings doctor` 一条指令打印：装了哪些可选 mod、魔法增幅属性解析成功几项、**是否有上游 mod 覆盖本模组的 Mixin**、便签与传送点数据统计；`/godofthings export|import note|points` 把便签 / 传送点导成 SNBT 文本（落在 `<存档>/godofthings/exports/`），换存档、备份、互相分享都用得上 |
+
+## 快速开始
+
+1. 安装 **Minecraft 1.21.1 + NeoForge 21.1.249**；
+2. 从 [Releases](https://github.com/ZeoNG129/Godofthings/releases) 下载 `godofthings-<版本>.jar`（**5.x 的全部 jar 都在 v5.1.7 那个 release 的 Assets 里**，按版本号取最新）；
+3. 放进 `mods/` 目录。⚠ 运行期**必须有 AE2**（若干机器直接实现了 AE2 接口，缺依赖会在加载阶段报错退出）；
+4. 进游戏按 `P` 打开神之手册，每个物品都有条目。
 
 ## 环境要求
 

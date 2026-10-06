@@ -1,0 +1,39 @@
+name: 🐛 Bug 报告
+description: 报告模组的问题或崩溃
+labels: [ "bug" ]
+body:
+  - type: markdown
+    attributes:
+      value: 请先确认使用的是最新版本 jar，并附上完整日志（不含隐私信息）。
+  - type: input
+    id: version
+    attributes:
+      label: 模组版本
+      description: 例如 godofthings-5.15.9.jar
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: 环境与已装模组
+      description: 单机 / 服务器；MC、NeoForge、AE2 等关键模组版本；完整 mods 列表
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: 1. 放置神之去皮 → 2. 放入原木 → 3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望与实际表现
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 崩溃报告
+      description: latest.log 或 crash report 的完整内容（粘贴或贴链接）
