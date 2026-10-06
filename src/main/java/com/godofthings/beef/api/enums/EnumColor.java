@@ -44,37 +44,6 @@ public enum EnumColor {
         this.mapColor = mapColor;
     }
 
-    /**
-     * 按定义顺序返回所有颜色
-     */
-    public static EnumColor[] valuesInOrder() {
-        return values();
-    }
-
-    /**
-     * 根据名称获取颜色（不区分大小写）
-     */
-    @Nullable
-    public static EnumColor byName(String name) {
-        for (EnumColor color : values()) {
-            if (color.registryPrefix.equalsIgnoreCase(name) ||
-                    color.englishName.equalsIgnoreCase(name)) {
-                return color;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 根据索引获取颜色
-     */
-    public static EnumColor byIndex(int index) {
-        if (index < 0 || index >= values().length) {
-            return WHITE; // 默认返回白色
-        }
-        return values()[index];
-    }
-
     public String getRegistryPrefix() {
         return this.registryPrefix;
     }

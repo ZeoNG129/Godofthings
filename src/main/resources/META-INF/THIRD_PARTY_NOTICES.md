@@ -8,7 +8,7 @@
 
 ## 1. Useless Mod（无用之物）—— MIT License
 
-- **照抄内容**：造化杖（太初洞见之杖 / 造化垂青之杖）子系统；无用维度（奇数维度 / 偶数维度 / 三维度）子系统。
+- **照抄内容**：无用维度（奇数维度 / 偶数维度 / 三维度）子系统（其原「造化杖」部分已在 v5.8.0 删除）。
 - **署名**：作者 `C-H716`、`水幕忘忧`；美术 `虾比`、`麦淇淋`。
 - **许可**：MIT（见 `LICENSES/useless-mod-MIT.txt`）。
 - 说明：上游仓库未随源码附独立 `LICENSE` 文件，其 MIT 许可在 `README.md` 的 License 一节中声明。
@@ -22,22 +22,7 @@
   沿用了这套被适配过的生成模型，因此**该部分同样适用 LGPL-3.0**。
 - **许可**：见 `LICENSES/PersonalSpace-LGPL-3.0.txt`。
 
-## 3. Useless Stretcher（万象担架）—— MIT License
-
-- **照抄内容**：荒辰移晷之杖子系统（时间加速 / 范围加速 / 召唤 / 战利品箱刷新 / 树叶掉落彩蛋，
-  以及加速实体、HUD 与四套配置界面）。
-- **署名**：作者 `2i学习`；**美术 `虾比`**（荒辰移晷之杖与四种区块维度方块的材质由该美术制作）。
-- **许可**：MIT，Copyright (c) 2026 2i学习（见 `LICENSES/useless-stretcher-MIT.txt`）。
-
-## 4. JDTE (JDT Extras) —— MIT License
-
-- **关联内容**：Useless Stretcher 的荒辰移晷之杖在**倍率档位设计**
-  （1 / 2 / 4 / 16 / 256 / 1024）与「retained virtual ticks + 每 tick 执行预算 + pending 上限」
-  的优化思路上引用了 JDTE（<https://github.com/rulanup/JDTE>）。
-- **对本模组的影响**：本模组照抄的是扩展模组的实现，故一并署名。
-- **署名 / 许可**：JDTE contributors，MIT（见 `LICENSES/JDTE-MIT.txt`）。
-
-## 5. AE2 Lightning Tech Reborn —— 源码 LGPL-3.0 / 素材 CC BY-NC-SA 3.0
+## 3. AE2 Lightning Tech Reborn —— 源码 LGPL-3.0 / 素材 CC BY-NC-SA 3.0
 
 - **照抄内容**：fumo 玩偶系统 —— `block/FumoBlock`、`blockentity/FumoBlockEntity`、
   `item/FumoBlockItem`、`client/FumoBlockRenderer`、`client/SpinningFumoBakedModel`，
@@ -56,6 +41,5 @@
 ## 本模组自身原创部分
 
 除上述逐字照抄的部分以外，本模组的其余代码与素材（神之熔炉 / 矿机 / 资源机 / 掉落机 / 附魔 /
-剑 / 炮 / 加速 / 改造 / 合成 / 护甲 / 不毁 / 请神 / 吞噬 / 记录 / 时空永恒 / 生物覆灭 / 传送器 /
-超平坦与虚空维度 / 生物群系 / 玩偶贴图等）由本模组作者创作，
+加速 / 改造 / 合成 / 护甲 / 不毁 / 请神 / 吞噬 / 时空永恒 / 生物覆灭 / 虚空维度 / 玩偶贴图等）由本模组作者创作，
 按 `gradle.properties` 的 `mod_license`（All Rights Reserved）分发。

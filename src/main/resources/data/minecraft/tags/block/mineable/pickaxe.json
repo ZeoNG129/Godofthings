@@ -4,10 +4,8 @@
     "godofthings:void_teleporter",
     "godofthings:god_furnace",
     "godofthings:god_miner",
-    "godofthings:god_resource",
     "godofthings:god_drop",
     "godofthings:god_enchant",
-    "godofthings:god_heaven_enchant",
     "godofthings:creative_energy_cube",
     "godofthings:space_time_eternity",
     "godofthings:creature_annihilation",
@@ -18,6 +16,9 @@
     "godofthings:teleport_block",
     "godofthings:teleport_block_2",
     "godofthings:teleport_block_3",
-    "godofthings:god_spawn_egg"
+    "godofthings:god_spawn_egg",
+    "godofthings:god_ore_machine",
+    "godofthings:god_crop_machine",
+    "godofthings:god_duplicate_machine"
   ]
 }

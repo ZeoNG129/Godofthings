@@ -193,23 +193,6 @@ public final class BlackBoxData
         }
     }
 
-    /** 吸收物品入盒（批量）：一次深拷贝处理多个物品，白名单模式堆叠进过滤槽，黑名单模式进隐藏存储。 */
-    public static void addToBoxBatch(ItemStack box, List<ItemStack> toAdd, HolderLookup.Provider provider)
-    {
-        if (toAdd.isEmpty())
-        {
-            return;
-        }
-        if (isWhitelistMode(box))
-        {
-            addToFilterBatch(box, toAdd, provider);
-        }
-        else
-        {
-            addToStorageBatch(box, toAdd, provider);
-        }
-    }
-
     // ---- 无限储存（同类恒单堆、数量无上限）----
     public static void addToStorage(ItemStack box, ItemStack toAdd, HolderLookup.Provider provider)
     {

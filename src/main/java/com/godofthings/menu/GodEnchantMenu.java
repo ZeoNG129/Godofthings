@@ -23,14 +23,14 @@ import java.util.List;
 
 /**
  * 神之附魔菜单：任意物品 + 自选附魔与等级（无需条件）。
- * heavenly=true 时选择附魔等级默认为最大上限（天神附魔）。
+ * v5.13.0：天神附魔台并入，全部按最高上限 {@link Godofthings#HEAVENLY_ENCHANT_MAX_LEVEL}（255）处理，
+ * 选择附魔时等级默认 255（原天神附魔行为）。
  * 按钮：0=应用；1=等级+；2=等级-；10+索引=选择附魔。
  */
 public class GodEnchantMenu extends AbstractContainerMenu
 {
     private final GodEnchantBlockEntity be;
     private final ContainerLevelAccess access;
-    private final boolean heavenly;
     /** 当前侧（服务端 ServerLevel / 客户端 ClientLevel）附魔注册表。绝不能静态缓存：
      *  单人游戏中服务端与客户端在同一 JVM，静态字段会被稍后构造的客户端菜单实例覆盖成客户端注册表，
      *  导致服务端 applyEnchant 用客户端注册表的 Enchantment 对象写入附魔，序列化 container_set_slot
@@ -43,15 +43,13 @@ public class GodEnchantMenu extends AbstractContainerMenu
     public GodEnchantMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
         this(containerId, playerInv,
-                (GodEnchantBlockEntity) playerInv.player.level().getBlockEntity(extraData.readBlockPos()),
-                extraData.readBoolean());
+                (GodEnchantBlockEntity) playerInv.player.level().getBlockEntity(extraData.readBlockPos()));
     }
 
-    public GodEnchantMenu(int containerId, Inventory playerInv, GodEnchantBlockEntity be, boolean heavenly)
+    public GodEnchantMenu(int containerId, Inventory playerInv, GodEnchantBlockEntity be)
     {
         super(Godofthings.GOD_ENCHANT_MENU.get(), containerId);
         this.be = be;
-        this.heavenly = heavenly;
         this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
         // 1.21.1：附魔注册表为数据驱动（无 BuiltInRegistries.ENCHANTMENT）。用本菜单实例所在侧（服务端/客户端）
         // 的注册表，MappedRegistry 迭代顺序即注册表 ID 顺序（等价旧 ForgeRegistries.getValues()）。
@@ -101,19 +99,13 @@ public class GodEnchantMenu extends AbstractContainerMenu
         return selectedLevel;
     }
 
-    public boolean isHeavenly()
-    {
-        return heavenly;
-    }
-
-    /** 当前附魔的等级上限：天神附魔突破原版上限（255），普通附魔为原版上限 */
+    /** 当前附魔的等级上限：v5.13.0 起统一突破原版上限（255） */
     public int currentMaxLevel()
     {
         List<Enchantment> list = currentList();
         if (selectedIndex >= 0 && selectedIndex < list.size())
         {
-            Enchantment ench = list.get(selectedIndex);
-            return heavenly ? Godofthings.HEAVENLY_ENCHANT_MAX_LEVEL : ench.getMaxLevel();
+            return Godofthings.HEAVENLY_ENCHANT_MAX_LEVEL;
         }
         return 1;
     }
@@ -185,8 +177,7 @@ public class GodEnchantMenu extends AbstractContainerMenu
         {
             if (selectedIndex >= 0 && selectedIndex < list.size())
             {
-                Enchantment ench = list.get(selectedIndex);
-                int max = heavenly ? Godofthings.HEAVENLY_ENCHANT_MAX_LEVEL : ench.getMaxLevel();
+                int max = Godofthings.HEAVENLY_ENCHANT_MAX_LEVEL;
                 if (selectedLevel < max)
                 {
                     selectedLevel++;
@@ -210,8 +201,8 @@ public class GodEnchantMenu extends AbstractContainerMenu
             if (index >= 0 && index < list.size())
             {
                 selectedIndex = index;
-                // 天神附魔：选择即默认最高等级（突破原版，255）
-                selectedLevel = heavenly ? Godofthings.HEAVENLY_ENCHANT_MAX_LEVEL : 1;
+                // v5.13.0：选择即默认最高等级（255，原天神附魔行为）
+                selectedLevel = Godofthings.HEAVENLY_ENCHANT_MAX_LEVEL;
             }
             this.broadcastChanges();
             return true;
@@ -305,9 +296,7 @@ public class GodEnchantMenu extends AbstractContainerMenu
     @Override
     public boolean stillValid(Player player)
     {
-        // 神之附魔 / 天神附魔 两个方块都有效
-        return stillValid(this.access, player, Godofthings.GOD_ENCHANT.get())
-                || stillValid(this.access, player, Godofthings.GOD_HEAVEN_ENCHANT.get());
+        return stillValid(this.access, player, Godofthings.GOD_ENCHANT.get());
     }
 
     @Override

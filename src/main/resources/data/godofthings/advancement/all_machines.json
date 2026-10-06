@@ -28,18 +28,6 @@
         ]
       }
     },
-    "has_resource": {
-      "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [
-          {
-            "items": [
-              "godofthings:god_resource"
-            ]
-          }
-        ]
-      }
-    },
     "has_drop": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
@@ -75,10 +63,57 @@
           }
         ]
       }
+    },
+    "has_resource_ore": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_ore_machine"
+            ]
+          }
+        ]
+      }
+    },
+    "has_resource_crop": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_crop_machine"
+            ]
+          }
+        ]
+      }
+    },
+    "has_duplicate": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_duplicate_machine"
+            ]
+          }
+        ]
+      }
     }
   },
   "rewards": {
     "experience": 500
   },
-  "sends_telemetry_event": false
+  "sends_telemetry_event": false,
+  "requirements": [
+    [
+      "has_miner",
+      "has_drop",
+      "has_enchant",
+      "has_craft",
+      "has_resource_ore",
+      "has_resource_crop",
+      "has_duplicate"
+    ]
+  ]
 }

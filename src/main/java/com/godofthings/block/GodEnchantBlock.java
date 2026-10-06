@@ -45,19 +45,9 @@ public class GodEnchantBlock extends BaseEntityBlock
     {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer)
         {
-            serverPlayer.openMenu(state.getMenuProvider(level, pos), buf ->
-            {
-                buf.writeBlockPos(pos);
-                buf.writeBoolean(isHeavenly());
-            });
+            serverPlayer.openMenu(state.getMenuProvider(level, pos), buf -> buf.writeBlockPos(pos));
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
-    }
-
-    /** 是否为升级版天神附魔（选择附魔默认最高等级） */
-    public boolean isHeavenly()
-    {
-        return false;
     }
 
     @Nullable

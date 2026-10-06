@@ -57,12 +57,6 @@ public final class JEIPlugin implements IModPlugin {
         runtime = null;
     }
 
-    /** 供其它界面查询 JEI 物品列表；JEI 缺席时为 {@code null}。 */
-    @Nullable
-    public static IJeiRuntime getRuntime() {
-        return runtime;
-    }
-
     /* ==================== JEI 拖拽（照抄上游 registerGuiHandlers） ==================== */
 
     @Override

@@ -19,9 +19,10 @@ import net.minecraft.world.level.block.Block;
 public class GodCraftTemplateMenu extends AbstractContainerMenu {
    private final GodCraftBlockEntity be;
    private final ContainerLevelAccess access;
-   public static final int BUTTON_SAVE_BASE = 10;
-   public static final int BUTTON_LOAD_BASE = 20;
-   public static final int BUTTON_BACK = 30;
+   // 按钮 id 与 GodCraftTemplateScreen 的发送端一致（保存 10-17 / 加载 20-27 / 返回 30）
+   private static final int BUTTON_SAVE_BASE = 10;
+   private static final int BUTTON_LOAD_BASE = 20;
+   private static final int BUTTON_BACK = 30;
 
    public GodCraftTemplateMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData) {
       this(containerId, playerInv, (GodCraftBlockEntity)playerInv.player.level().getBlockEntity(extraData.readBlockPos()));
@@ -67,8 +68,8 @@ public class GodCraftTemplateMenu extends AbstractContainerMenu {
             )
             > 64.0) {
          return false;
-      } else if (buttonId >= 10 && buttonId < 18) {
-         int slot = buttonId - 10;
+      } else if (buttonId >= BUTTON_SAVE_BASE && buttonId < BUTTON_SAVE_BASE + GodCraftBlockEntity.TEMPLATE_COUNT) {
+         int slot = buttonId - BUTTON_SAVE_BASE;
          boolean ok = this.be.saveTemplate(slot);
          if (ok) {
             player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_saved", new Object[]{slot + 1}), true);
@@ -78,8 +79,8 @@ public class GodCraftTemplateMenu extends AbstractContainerMenu {
 
          this.broadcastChanges();
          return true;
-      } else if (buttonId >= 20 && buttonId < 28) {
-         int slot = buttonId - 20;
+      } else if (buttonId >= BUTTON_LOAD_BASE && buttonId < BUTTON_LOAD_BASE + GodCraftBlockEntity.TEMPLATE_COUNT) {
+         int slot = buttonId - BUTTON_LOAD_BASE;
          if (!this.be.hasTemplate(slot)) {
             player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_none", new Object[]{slot + 1}), true);
          } else if (this.be.loadTemplateFromInventory(player, slot)) {
@@ -90,7 +91,7 @@ public class GodCraftTemplateMenu extends AbstractContainerMenu {
 
          this.broadcastChanges();
          return true;
-      } else if (buttonId == 30 && player instanceof ServerPlayer serverPlayer) {
+      } else if (buttonId == BUTTON_BACK && player instanceof ServerPlayer serverPlayer) {
          serverPlayer.openMenu(new MenuProvider() {
             public Component getDisplayName() {
                return Component.translatable("container.godofthings.god_craft");

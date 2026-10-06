@@ -46,12 +46,6 @@ public final class ManualCatalog
         return cache;
     }
 
-    /** 语言 / 资源重载后可以清缓存（条目里的标题与正文都是语言键的即时结果） */
-    public static void invalidate()
-    {
-        cache = null;
-    }
-
     /** 按分类 + 关键词筛选（关键词空串 = 不筛） */
     public static List<ManualEntry> filtered(ManualCategory category, String query)
     {
@@ -65,20 +59,6 @@ public final class ManualCatalog
             }
         }
         return out;
-    }
-
-    /** 那个页签下一共有多少条（不受搜索影响） */
-    public static int countIn(ManualCategory category)
-    {
-        int n = 0;
-        for (ManualEntry entry : all())
-        {
-            if (entry.category() == category)
-            {
-                n++;
-            }
-        }
-        return n;
     }
 
     private static List<ManualEntry> build()

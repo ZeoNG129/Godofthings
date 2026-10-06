@@ -19,9 +19,8 @@ neoForge {
     // NeoForge 版本（gradle.properties）
     version = neoforge_version
 
-    // 访问转换器：造化杖（照抄 useless_mod）需要放开若干原版 protected/private 成员
-    // （LivingEntity.dead/deathScore/dropAllDeathLoot、ServerLevel.entityManager 等）。
-    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
+    // v5.12.1：accesstransformer.cfg 已删除 —— 其 13 条 AT 全部服务于 v5.10.0 删除的
+    // 玩家保护层 / 造化杖（EntityGetterMixin 等），目标字段在代码里 0 处引用。
 
     runs {
         client {
@@ -68,6 +67,12 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 dependencies {
     // 可选集成（compile-only，运行时由整合包提供对应 mod；缺失时代码内 ModList 检查自动跳过）
     // jar 均为本仓库 libs/ 下预下载的 1.21.1 NeoForge 版本，避免构建期联网
+    //
+    // v5.12.1 死依赖清理：原先这里还有 14 个「造化杖照抄自 useless_mod 的可选集成」jar
+    // （Draconic / BrandonsCore / CodeChickenLib / enderio / Mekanism / Applied-Mekanistics /
+    //  AppliedFlux / FluxNetworks / productivebees / occultism / modonomicon / geckolib /
+    //  SmartBrainLib / ftb-teams）。造化杖已在 v5.8.0 整体删除，这些 jar 在代码里 0 处 import，
+    // 故连同 libs/ 内的 jar 与 fetch-libs.ps1 的下载清单一并移除。
 
     // JEI (配方查看器) —— 神之合成在 JEI 里显示/转移配方（common-api + neoforge-api）
     compileOnly files('libs/jei-1.21.1-common-api-19.51.0.417.jar', 'libs/jei-1.21.1-neoforge-api-19.51.0.417.jar')
@@ -75,34 +80,9 @@ dependencies {
     // EMI (配方查看器) —— 神之熔炉在 EMI 里显示可熔炼配方
     compileOnly files('libs/emi-1.1.24+1.21.1+neoforge.jar')
 
-    // AE2 (应用能源2) —— 神之工具的“AE存储优先”模式（掉落优先存入ME网络）
+    // AE2 (应用能源2) —— 7 台机器的并网方块实体直接 implements AE2 接口（运行期硬依赖）
     compileOnly files('libs/ae2-1.21.1-neoforge.jar')
-
-    // ===== 造化杖（太初洞见之杖）照抄自 useless_mod 的可选集成 =====
-    // 这些 jar 只用于编译：运行时由整合包提供对应 mod，缺失时代码里的 ModList 检查
-    // 与反射加载器（com.godofthings.beef.compat.*Loader）会自动跳过，不影响工具本体。
-    compileOnly files(
-            // 龙之研究（混沌水晶保护）
-            'libs/Draconic-Evolution-1.21.1-3.1.4.632.jar',
-            'libs/BrandonsCore-1.21.1-3.2.1.309.jar',
-            'libs/CodeChickenLib-1.21.1-4.6.1.526.jar',
-            // 末影 IO（传送锚点）
-            'libs/enderio-8.2.12-beta.jar',
-            // 通用机械 + 应用通量 + 通量网络（AE 化学品/FE 端点）
-            'libs/Mekanism-1.21.1-10.7.19.85.jar',
-            'libs/Applied-Mekanistics-1.6.3.jar',
-            'libs/AppliedFlux-1.21-2.1.5-neoforge.jar',
-            'libs/FluxNetworks-1.21.1-8.0.0.jar',
-            // 资源蜜蜂（捕捉）
-            'libs/productivebees-1.21.1-13.13.5.jar',
-            // 神秘学 + 其前置（匠心仪式挎包模式）
-            'libs/occultism-1.21.1-neoforge-1.224.4.jar',
-            'libs/modonomicon-1.21.1-neoforge-1.120.3.jar',
-            'libs/geckolib-neoforge-1.21.1-4.9.2.jar',
-            'libs/SmartBrainLib-neoforge-1.21.1-1.16.11.jar',
-            // FTB 团队（无线物流网络按队伍共享）
-            'libs/ftb-teams-neoforge-2101.1.10.jar',
-    )}
+}
 
 // This block of code expands all declared replace properties in the specified resource targets.
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.

@@ -159,9 +159,4 @@ public final class ArmorSkillData
     {
         return level(clientLevels, skillId);
     }
-
-    public static boolean clientEnabled(String skillId)
-    {
-        return isEnabled(clientLevels, skillId);
-    }
 }

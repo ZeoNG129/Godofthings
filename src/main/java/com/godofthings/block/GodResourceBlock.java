@@ -2,6 +2,7 @@ package com.godofthings.block;
 
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodResourceBlockEntity;
+import com.godofthings.block.entity.GodResourceVariant;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,13 +19,30 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * 神之资源系列方块（v5.13.0：矿物 / 作物 / 方块三台共用本类，构造时传入 {@link GodResourceVariant}）。
+ * 三台共用同一个方块实体类型 {@link Godofthings#GOD_RESOURCE_BE}（与神之附魔/天神附魔共用 BE 类型同一做法）。
+ */
 public class GodResourceBlock extends BaseEntityBlock
 {
-    public static final MapCodec<GodResourceBlock> CODEC = simpleCodec(GodResourceBlock::new);
+    /**
+     * 三台共用一个 codec：本方块无状态属性，codec 仅用于方块状态序列化框架；
+     * 反序列化得到的实例来自注册表里的三个注册对象之一，其变体字段由注册时的工厂闭包决定，与 codec 无关。
+     */
+    public static final MapCodec<GodResourceBlock> CODEC =
+            simpleCodec(props -> new GodResourceBlock(GodResourceVariant.ORE, props));
 
-    public GodResourceBlock(Properties properties)
+    private final GodResourceVariant variant;
+
+    public GodResourceBlock(GodResourceVariant variant, net.minecraft.world.level.block.state.BlockBehaviour.Properties properties)
     {
         super(properties);
+        this.variant = variant;
+    }
+
+    public GodResourceVariant getVariant()
+    {
+        return variant;
     }
 
     @Override
@@ -36,7 +54,7 @@ public class GodResourceBlock extends BaseEntityBlock
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
     {
-        return new GodResourceBlockEntity(pos, state);
+        return new GodResourceBlockEntity(variant, pos, state);
     }
 
     @Nullable

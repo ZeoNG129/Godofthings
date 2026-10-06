@@ -46,8 +46,9 @@ import java.util.Optional;
  */
 public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
 {
-    public static final int INPUT_SLOT_COUNT = 6;
-    public static final int OUTPUT_SLOT_COUNT = 6;
+    // v5.13.0：输入/输出槽 6 → 9（与界面 3×3 对齐；旧存档迁移逻辑按 oldSize/2 推断旧输出区，自动兼容）
+    public static final int INPUT_SLOT_COUNT = 9;
+    public static final int OUTPUT_SLOT_COUNT = 9;
     public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
 
@@ -139,11 +140,10 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
         return accelSlot;
     }
 
-    /** 并行倍率：每个神之加速 16 倍，最多一组（64 个）= 1024 倍。无加速时为 1。 */
+    /** 并行倍率：每个神之加速 16 倍，最多一组（64 个）= 1024 倍。无加速时为 1。（倍率权威值见 {@link GodAcceleratorItem#PARALLEL_PER_ITEM}） */
     public int getParallelMultiplier()
     {
-        int count = accelSlot.getStackInSlot(0).getCount();
-        return count <= 0 ? 1 : count * 16;
+        return GodAcceleratorItem.multiplierFor(accelSlot.getStackInSlot(0).getCount());
     }
 
     /** 判断物品是否拥有熔炼配方。不能熔炼的物品不允许进入输入槽。 */

@@ -34,7 +34,7 @@ public class GodFurnaceMenu extends AbstractContainerMenu
         this.be = be;
         this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
 
-        // 6 输入槽（上一行）+ 6 输出槽（下一行）对称布局
+        // 9 输入槽（上一行）+ 9 输出槽（下一行）对称布局（v5.13.0：6 → 9）
         for (int i = 0; i < GodFurnaceBlockEntity.INPUT_SLOT_COUNT; i++)
         {
             this.addSlot(new SlotItemHandler(be.getItemHandler(), i, 8 + i * 18, 17));
@@ -53,8 +53,8 @@ public class GodFurnaceMenu extends AbstractContainerMenu
             });
         }
 
-        // 神之加速槽（只接受神之加速，最多 64 个），位于输入/输出行右侧
-        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 116, 35));
+        // 神之加速槽（只接受神之加速，最多 64 个），右侧竖排区（v5.13.0：116,35 → 178,35）
+        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 178, 35));
 
         // 玩家物品栏 3x9 + 快捷栏 1x9
         for (int row = 0; row < 3; row++)

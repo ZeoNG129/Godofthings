@@ -275,7 +275,16 @@ public class WaypointMessages
                 if (ctx.player() instanceof ServerPlayer serverPlayer)
                 {
                     WaypointData data = WaypointData.get(serverPlayer.server);
-                    data.create(serverPlayer, msg.name(), msg.x(), msg.y(), msg.z());
+                    if (!data.create(serverPlayer, msg.name(), msg.x(), msg.y(), msg.z()))
+                    {
+                        // 失败（重名 / 名字为空 / 达到数量上限）：给玩家一条提示而不是静默吞掉
+                        serverPlayer.displayClientMessage(Component.translatable(
+                                data.get(msg.name()) != null || msg.name().isEmpty()
+                                        ? "message.godofthings.waypoint.create_failed"
+                                        : "message.godofthings.waypoint.limit",
+                                WaypointData.MAX_WAYPOINTS), true);
+                        return;
+                    }
                     sendListTo(serverPlayer, data.list());
                 }
             });

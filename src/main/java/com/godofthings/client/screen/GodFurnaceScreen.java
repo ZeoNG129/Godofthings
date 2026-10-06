@@ -16,17 +16,22 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
     private static final ResourceLocation TEXTURE =
             ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/god_furnace.png");
 
-    // 齿轮图标按钮（打开面配置界面），位于面板右上角
-    private static final int GEAR_X = 150;
-    private static final int GEAR_Y = 17;
+    // v5.13.0：9+9 布局，画布 176 → 212 宽。齿轮按钮与加速槽竖排在右侧空白区。
+    // 齿轮图标按钮（打开面配置界面），右上角
+    private static final int GEAR_X = 179;
+    private static final int GEAR_Y = 9;
     private static final int GEAR_SIZE = 20;
 
-    // v5.1.3：原「AE 接入开关」按钮（GEAR 下方 AE_X/AE_Y）已随 AE 功能一并删除。
+    // 神之加速槽（菜单槽位与贴图槽框都在此坐标）
+    private static final int ACCEL_X = 178;
+    private static final int ACCEL_Y = 35;
+
+    // v5.1.3：原「AE 接入开关」按钮已随 AE 功能一并删除。
 
     public GodFurnaceScreen(GodFurnaceMenu menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
-        this.imageWidth = 176;
+        this.imageWidth = 212;
         this.imageHeight = 172;
     }
 
@@ -36,18 +41,10 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
 
-        gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);  // 背景（含输入/输出槽）
+        // 背景（含 9 输入 / 9 输出槽框与右侧加速槽框；贴图 212 宽区域在 256 画布内）
+        gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight - 6);
 
-        // 输入/输出行标签（画在槽位右侧空白区，高对比度）
-        gui.drawString(this.font, Component.translatable("gui.godofthings.furnace.input"), x + 122, y + 22, 0xFFFFFF);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.furnace.output"), x + 122, y + 58, 0xFFFFFF);
-
-        // 神之加速槽框（复用输入槽框贴图 UV 8,17，画在 x=116,y=35）+ 标签
-        // 加速文字位于加速槽左边、输入槽(y=17)与输出槽(y=53)中间，避免与右上「输入」文字重合
-        gui.blit(TEXTURE, x + 116, y + 35, 8, 17, 18, 18);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.accelerator"), x + 86, y + 40, 0xFFFFFF);
-
-        // 齿轮图标按钮（点击打开面配置界面）
+        // 齿轮图标按钮（点击打开面配置界面）；图标 UV 在贴图 (8,170) 备用区
         int bx = x + GEAR_X;
         int by = y + GEAR_Y;
         int relX = mouseX - x;
@@ -57,7 +54,7 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
         gui.fill(bx, by, bx + GEAR_SIZE, by + GEAR_SIZE, 0xFF16181D);
         gui.fill(bx + 1, by + 1, bx + GEAR_SIZE - 1, by + GEAR_SIZE - 1,
                 hovering ? 0xFF5A5A5A : 0xFF3A3A3A);
-        gui.blit(TEXTURE, bx + 1, by + 1, 176, 16, 18, 18);  // 齿轮图标
+        gui.blit(TEXTURE, bx + 1, by + 1, 8, 170, 18, 18);  // 齿轮图标（新 UV）
     }
 
     @Override
@@ -83,9 +80,9 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
     @Override
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
-        // 高对比度文字（面板被 renderBackground 遮罩压暗后仍清晰）
+        // 标题/物品栏标签恢复与菜单槽位的原始相对位置（物品栏第一个槽 x=8）
         gui.drawString(this.font, this.title, 8, 6, 0x404040, false);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8, 72, 0x404040, false); // 物品格子顶行 84 - 12（原版标准）
+        gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8, 72, 0x404040, false);
     }
 
     @Override
@@ -96,7 +93,7 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
         super.render(gui, mouseX, mouseY, partialTick);
         this.renderTooltip(gui, mouseX, mouseY);
         // 神之加速槽 hover：显示当前并行倍率（槽内有物品时让位给物品 tooltip，避免覆盖）
-        if (isHovering(116, 35, 18, 18, mouseX, mouseY) && (this.hoveredSlot == null || !this.hoveredSlot.hasItem()))
+        if (isHovering(ACCEL_X, ACCEL_Y, 18, 18, mouseX, mouseY) && (this.hoveredSlot == null || !this.hoveredSlot.hasItem()))
         {
             int mult = this.menu.getBlockEntity().getParallelMultiplier();
             gui.renderTooltip(this.font, Component.translatable("tooltip.godofthings.parallel", mult), mouseX, mouseY);

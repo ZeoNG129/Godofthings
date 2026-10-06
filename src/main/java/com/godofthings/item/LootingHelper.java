@@ -21,7 +21,7 @@ public final class LootingHelper {
     private LootingHelper() {}
 
     /** 抢劫强度 → 掠夺附魔等级（指数增长：每 +30 翻倍，0 关闭，≥240 封顶 255）。 */
-    public static int lootingLevel(int power)
+    private static int lootingLevel(int power)
     {
         if (power <= 0)
         {

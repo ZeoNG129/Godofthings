@@ -59,10 +59,19 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  */
 public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
-    /** 矿机最大挖掘半径（格，方形半径），可经 godofthings-machines.toml 调整 */
-    public static final int MAX_RADIUS = MachinesConfig.MINER_MAX_RADIUS.get();
-    /** 每个 tick 最多处理的方块数，防止卡顿 */
-    public static final int MAX_BLOCKS_PER_TICK = MachinesConfig.MINER_MAX_BLOCKS_PER_TICK.get();
+    /** 矿机最大挖掘半径（格，方形半径），可经 godofthings-machines.toml 调整。
+     *  <p>v5.12.1 起实时读配置（此前 static final 快照需重启；MAX_RADIUS 是热路径上的 UI/挖掘共用量，
+     *  保留为方法以统一入口）。</p> */
+    public static int maxRadius()
+    {
+        return MachinesConfig.MINER_MAX_RADIUS.get();
+    }
+
+    /** 每个 tick 最多处理的方块数，防止卡顿（实时读配置）。 */
+    public static int maxBlocksPerTick()
+    {
+        return MachinesConfig.MINER_MAX_BLOCKS_PER_TICK.get();
+    }
 
     private final InfiniteItemHandler itemHandler = new InfiniteItemHandler();
     private final FluidTank tank = new FluidTank(Integer.MAX_VALUE);
@@ -395,7 +404,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
 
     public void setRadius(int value)
     {
-        int newRadius = Math.max(1, Math.min(MAX_RADIUS, value));
+        int newRadius = Math.max(1, Math.min(maxRadius(), value));
         if (newRadius == radius)
         {
             return; // 半径未变，不重置进度
@@ -706,7 +715,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     {
         int y = currentY;
         int mined = 0;
-        while (y >= level.getMinBuildHeight() && mined < MAX_BLOCKS_PER_TICK)
+        while (y >= level.getMinBuildHeight() && mined < maxBlocksPerTick())
         {
             mineBlock(columnBlockPos().atY(y));
             y--;

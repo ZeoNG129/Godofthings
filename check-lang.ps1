@@ -244,6 +244,38 @@ if ($staleModels.Count -gt 0) {
     $staleModels | ForEach-Object { Write-Host ("        {0}" -f $_) }
 }
 
+# ---------------------------------------------------------------- tag entries must reference registered ids
+# A tag json referencing an id that is no longer registered makes the WHOLE tag fail to load
+# at runtime (every block in it silently loses e.g. its mining tier) - this really happened
+# with mineable/pickaxe when god_heaven_enchant was deleted but its tag entry survived.
+# Only godofthings: entries are validated (other namespaces are not ours); "#..." tag
+# references point at other tags, not registry entries, and are skipped.
+$reTagId = [regex]'"godofthings:([a-z0-9_./-]+)"'
+$staleTagEntries = New-Object System.Collections.Generic.SortedSet[string]
+$tagFiles = 0
+foreach ($tagFile in Get-ChildItem -Path (Join-Path $root 'src\main\resources\data') -Recurse -Filter *.json) {
+    $tagDirMatch = [regex]::Match($tagFile.FullName, '\\tags\\([a-z_]+)\\')
+    if (-not $tagDirMatch.Success) { continue }
+    $tagRegistry = $tagDirMatch.Groups[1].Value
+    if ($tagRegistry -ne 'block' -and $tagRegistry -ne 'item') { continue }
+    $tagFiles++
+    $tagText = [System.IO.File]::ReadAllText($tagFile.FullName, [System.Text.Encoding]::UTF8)
+    foreach ($m in $reTagId.Matches($tagText)) {
+        $id = $m.Groups[1].Value
+        $registered = if ($tagRegistry -eq 'block') { $blocks.Contains($id) } else { $items.Contains($id) }
+        if (-not $registered) {
+            [void]$staleTagEntries.Add(('{0} {1}  <- {2}' -f $tagRegistry, $id, $tagFile.FullName.Substring($root.Length + 1)))
+        }
+    }
+}
+if ($staleTagEntries.Count -gt 0) {
+    Write-Host ("[FAIL] tag entries referencing unregistered godofthings ids ({0}) across {1} tag file(s):" -f $staleTagEntries.Count, $tagFiles)
+    foreach ($e in $staleTagEntries) { Write-Host ("        {0}" -f $e) }
+    $problems++
+} else {
+    Write-Host ("tags: {0} block/item tag file(s), all godofthings entries registered" -f $tagFiles)
+}
+
 # ---------------------------------------------------------------- scripts must stay ASCII-only
 # A UTF-8-no-BOM .ps1 containing non-ASCII can be misread by PowerShell 5.1, and a mangled
 # comment can even swallow the next line of code (this really happened to fetch-libs.ps1).

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EEE",
+    "ENE",
+    "EEE"
+  ],
+  "key": {
+    "E": {
+      "item": "minecraft:quartz_block"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "result": {
+    "id": "godofthings:god_duplicate_machine"
+  }
+}

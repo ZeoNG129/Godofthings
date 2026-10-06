@@ -16,6 +16,7 @@ public class MachinesConfig {
    public static final IntValue RESOURCE_WORK_INTERVAL;
    public static final IntValue DROP_WORK_INTERVAL;
    public static final IntValue SPAWN_EGG_WORK_INTERVAL;
+   public static final IntValue TRANSMITTER_RANGE;
 
    static {
       BUILDER.push("miner");
@@ -39,6 +40,11 @@ public class MachinesConfig {
       BUILDER.push("spawnEggMachine");
       SPAWN_EGG_WORK_INTERVAL = BUILDER.comment("神之怪蛋工作间隔（tick）：每 N tick 复制一轮刷怪蛋（每种 64 个 × 并行倍率）。 / God Spawn Egg Machine work interval (ticks): duplicates the spawn eggs once per N ticks (64 per type x parallel multiplier).")
          .defineInRange("workInterval", 20, 1, 100000);
+      BUILDER.pop();
+
+      BUILDER.push("transmitter");
+      TRANSMITTER_RANGE = BUILDER.comment("神之传输的无线充能范围（方块）。0 = 无限距离（同维度内不限距离；跨维度仍由机器界面上的跨维度开关控制）。 / God Transmitter wireless charging range in blocks. 0 = unlimited distance (same dimension only; cross-dimension is still controlled by the transmitter's own cross-dimension toggle).")
+         .defineInRange("range", 64, 0, 1000000);
       BUILDER.pop();
 
       SPEC = BUILDER.build();

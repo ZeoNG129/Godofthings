@@ -50,9 +50,6 @@ import java.util.List;
  */
 public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
-    /** 工作间隔（tick），可经 godofthings-machines.toml 调整 */
-    public static final int WORK_INTERVAL = MachinesConfig.SPAWN_EGG_WORK_INTERVAL.get();
-
     /** 可放置输入槽数量（3×3 共 9 个） */
     public static final int INPUT_SLOTS = 9;
 
@@ -181,11 +178,10 @@ public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider,
         return accelSlot;
     }
 
-    /** 并行倍率：每个神之加速 16 倍，最多一组（64 个）= 1024 倍。无加速时为 1。 */
+    /** 并行倍率：每个神之加速 16 倍，最多一组（64 个）= 1024 倍。无加速时为 1。（倍率权威值见 {@link GodAcceleratorItem#PARALLEL_PER_ITEM}） */
     public int getParallelMultiplier()
     {
-        int count = accelSlot.getStackInSlot(0).getCount();
-        return count <= 0 ? 1 : count * 16;
+        return GodAcceleratorItem.multiplierFor(accelSlot.getStackInSlot(0).getCount());
     }
 
     public int getStorageCount()
@@ -223,7 +219,7 @@ public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider,
     private void tickServer()
     {
         tickCounter++;
-        if (tickCounter >= WORK_INTERVAL)
+        if (tickCounter >= MachinesConfig.SPAWN_EGG_WORK_INTERVAL.get())
         {
             tickCounter = 0;
             for (int i = 0; i < INPUT_SLOTS; i++)

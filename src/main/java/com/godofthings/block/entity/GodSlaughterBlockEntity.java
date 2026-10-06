@@ -49,7 +49,7 @@ import java.util.List;
 /**
  * 神之砍杀方块实体：
  * <ul>
- *   <li>功能：开关、范围（0-300）、抢夺开关与强度（0-300）、秒杀开关。击杀范围内生物，
+ *   <li>功能：开关、范围（0-{@link #MAX_RANGE}）、抢夺开关与强度（0-{@link #MAX_LOOTING}）、秒杀开关。击杀范围内生物，
  *       掉落物直接进内部存储（无堆叠上限，同类恒单堆），不在世界生成。</li>
  *   <li>存储：{@link InfiniteItemHandler}（无堆叠上限），UI 显示 27 格。</li>
  *   <li>输入输出：六面 FaceMode 配置（NONE/INPUT/OUTPUT/BOTH），自动抽入/推出。</li>
@@ -59,7 +59,12 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
 {
     /** UI 显示的存储槽位数量（内部为无限存储，前 27 个堆叠映射到槽位）。 */
     public static final int STORAGE_SLOTS = 27;
+    /** 击杀范围上限（方块）。 */
     public static final int MAX_RANGE = 1600;
+    /** 抢夺强度上限（面板值；经 {@link LootingHelper#lootingLevel} 指数映射到掠夺附魔等级 0-255）。
+     *  <p>此前误复用 {@link #MAX_RANGE} 作为 clamp 上限 —— 两个语义不同的量共用一个常量，
+     *  改范围上限会连带改抢夺上限，故拆开。</p> */
+    public static final int MAX_LOOTING = 1600;
 
     private static final int SCAN_INTERVAL = 10;
 
@@ -147,7 +152,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
 
     public void setLooting(int value)
     {
-        this.looting = Math.max(0, Math.min(MAX_RANGE, value));
+        this.looting = Math.max(0, Math.min(MAX_LOOTING, value));
         this.swordPower = -1; // 抢夺强度变化，重建剑
         setChanged();
     }

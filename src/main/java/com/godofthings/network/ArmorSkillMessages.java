@@ -71,11 +71,6 @@ public final class ArmorSkillMessages
         PacketDistributor.sendToServer(new ArmorSkillActionPayload(skillId, action, value));
     }
 
-    public static void sendBulk(int categoryOrdinal, int level)
-    {
-        PacketDistributor.sendToServer(new ArmorSkillBulkPayload(categoryOrdinal, level));
-    }
-
 
     public static void requestSync()
     {
@@ -141,7 +136,6 @@ public final class ArmorSkillMessages
                 {
                     ArmorSkillData.setLevel(player, def.id(), next);
                 }
-                com.godofthings.handler.ArmorSkillHandler.refresh(player);
                 sendSync(player);
             });
         }
@@ -194,7 +188,6 @@ public final class ArmorSkillMessages
                         ArmorSkillData.setCategoryLevel(player, category, level);
                     }
                 }
-                com.godofthings.handler.ArmorSkillHandler.refresh(player);
                 sendSync(player);
             });
         }

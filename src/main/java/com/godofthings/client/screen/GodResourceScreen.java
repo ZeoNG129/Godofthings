@@ -18,8 +18,7 @@ import net.minecraft.world.entity.player.Inventory;
  */
 public class GodResourceScreen extends AbstractContainerScreen<GodResourceMenu>
 {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/god_resource.png");
+    private final ResourceLocation texture;
 
     // AE 接入开关按钮（右上角空位）
     private static final int AE_X = 150;
@@ -31,6 +30,8 @@ public class GodResourceScreen extends AbstractContainerScreen<GodResourceMenu>
         super(menu, playerInventory, title);
         this.imageWidth = 176;
         this.imageHeight = 166;
+        this.texture = ResourceLocation.tryBuild(Godofthings.MODID,
+                "textures/gui/" + menu.getBlockEntity().getVariant().getGuiTexture() + ".png");
     }
 
     @Override
@@ -39,10 +40,10 @@ public class GodResourceScreen extends AbstractContainerScreen<GodResourceMenu>
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
 
-        gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        gui.blit(texture, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
         // 神之加速槽框（复用输入槽框贴图 UV 79,35，画在 x=43,y=35）
-        gui.blit(TEXTURE, x + 43, y + 35, 79, 35, 18, 18);
+        gui.blit(texture, x + 43, y + 35, 79, 35, 18, 18);
 
         // AE 接入开关按钮
         int ax = x + AE_X;

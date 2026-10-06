@@ -7,7 +7,6 @@ import com.godofthings.block.GodDevourerBlock;
 import com.godofthings.block.GodDropBlock;
 import com.godofthings.block.GodEnchantBlock;
 import com.godofthings.block.GodFurnaceBlock;
-import com.godofthings.block.GodHeavenEnchantBlock;
 import com.godofthings.block.GodMinerBlock;
 import com.godofthings.block.GodResourceBlock;
 import com.godofthings.block.GodSpawnEggBlock;
@@ -43,6 +42,7 @@ import com.godofthings.item.GodInviteItem;
 import com.godofthings.item.GodMinerItem;
 import com.godofthings.item.GodNoteItem;
 import com.godofthings.item.GodUnbreakableItem;
+import com.godofthings.measurement.GodMeasureItem;
 import com.godofthings.menu.GodBlackBoxMenu;
 import com.godofthings.menu.GodChangeMenu;
 import com.godofthings.menu.GodCraftConfigMenu;
@@ -174,15 +174,33 @@ public class Godofthings
     public static final DeferredItem<GodMinerItem> GOD_MINER_ITEM =
             ITEMS.registerItem("god_miner", props -> new GodMinerItem(GOD_MINER.get(), props.stacksTo(1)));
 
-    // ---- 神之资源 ----
-    public static final DeferredBlock<GodResourceBlock> GOD_RESOURCE = BLOCKS.registerBlock("god_resource",
-            GodResourceBlock::new,
+    // ---- 神之资源系列（v5.13.0：矿物 / 作物 / 复制三台，共用 BE 类型，输入过滤各不相同）----
+    public static final DeferredBlock<GodResourceBlock> GOD_ORE_MACHINE = BLOCKS.registerBlock("god_ore_machine",
+            props -> new GodResourceBlock(com.godofthings.block.entity.GodResourceVariant.ORE, props),
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_YELLOW)
                     .strength(5.0F, 6.0F)
                     .sound(SoundType.METAL));
-    public static final DeferredItem<BlockItem> GOD_RESOURCE_ITEM =
-            ITEMS.registerSimpleBlockItem(GOD_RESOURCE, new Item.Properties());
+    public static final DeferredItem<BlockItem> GOD_ORE_MACHINE_ITEM =
+            ITEMS.registerSimpleBlockItem(GOD_ORE_MACHINE, new Item.Properties());
+
+    public static final DeferredBlock<GodResourceBlock> GOD_CROP_MACHINE = BLOCKS.registerBlock("god_crop_machine",
+            props -> new GodResourceBlock(com.godofthings.block.entity.GodResourceVariant.CROP, props),
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_GREEN)
+                    .strength(5.0F, 6.0F)
+                    .sound(SoundType.METAL));
+    public static final DeferredItem<BlockItem> GOD_CROP_MACHINE_ITEM =
+            ITEMS.registerSimpleBlockItem(GOD_CROP_MACHINE, new Item.Properties());
+
+    public static final DeferredBlock<GodResourceBlock> GOD_DUPLICATE_MACHINE = BLOCKS.registerBlock("god_duplicate_machine",
+            props -> new GodResourceBlock(com.godofthings.block.entity.GodResourceVariant.DUPLICATE, props),
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .strength(5.0F, 6.0F)
+                    .sound(SoundType.METAL));
+    public static final DeferredItem<BlockItem> GOD_DUPLICATE_MACHINE_ITEM =
+            ITEMS.registerSimpleBlockItem(GOD_DUPLICATE_MACHINE, new Item.Properties());
 
     // ---- 神之掉落 ----
     public static final DeferredBlock<GodDropBlock> GOD_DROP = BLOCKS.registerBlock("god_drop",
@@ -205,7 +223,7 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_SPAWN_EGG, new Item.Properties());
 
 
-    // ---- 神之附魔 ----
+    // ---- 神之附魔（v5.13.0：天神附魔并入，最高 255 级）----
     public static final DeferredBlock<GodEnchantBlock> GOD_ENCHANT = BLOCKS.registerBlock("god_enchant",
             GodEnchantBlock::new,
             BlockBehaviour.Properties.of()
@@ -214,14 +232,6 @@ public class Godofthings
                     .sound(SoundType.STONE));
     public static final DeferredItem<BlockItem> GOD_ENCHANT_ITEM =
             ITEMS.registerSimpleBlockItem(GOD_ENCHANT, new Item.Properties());
-    public static final DeferredBlock<GodHeavenEnchantBlock> GOD_HEAVEN_ENCHANT =
-            BLOCKS.registerBlock("god_heaven_enchant", GodHeavenEnchantBlock::new,
-                    BlockBehaviour.Properties.of()
-                            .mapColor(MapColor.COLOR_LIGHT_BLUE)
-                            .strength(3.0F, 6.0F)
-                            .sound(SoundType.STONE));
-    public static final DeferredItem<BlockItem> GOD_HEAVEN_ENCHANT_ITEM =
-            ITEMS.registerSimpleBlockItem(GOD_HEAVEN_ENCHANT, new Item.Properties());
 
     // ---- 神装 ----
     // 1.21.1 ArmorItem 不再自动设置耐久，需显式 .durability(...)（下界合金系数 37）
@@ -359,6 +369,10 @@ public class Godofthings
     public static final DeferredItem<GodChangeItem> GOD_CHANGE =
             ITEMS.registerItem("god_change", props -> new GodChangeItem(props.stacksTo(1)));
 
+    // ---- 神之测量（卷尺：两定点画线框显三轴尺寸，纯客户端；自 Measurements 移植）----
+    public static final DeferredItem<GodMeasureItem> GOD_MEASURE =
+            ITEMS.registerItem("god_measure", GodMeasureItem::new);
+
     // ---- 神之合成 ----
     public static final DeferredBlock<GodCraftBlock> GOD_CRAFT = BLOCKS.registerBlock("god_craft",
             GodCraftBlock::new,
@@ -440,7 +454,18 @@ public class Godofthings
                     () -> BlockEntityType.Builder.of(GodMinerBlockEntity::new, GOD_MINER.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodResourceBlockEntity>> GOD_RESOURCE_BE =
             BLOCK_ENTITIES.register("god_resource",
-                    () -> BlockEntityType.Builder.of(GodResourceBlockEntity::new, GOD_RESOURCE.get()).build(null));
+                    () -> BlockEntityType.Builder.of(
+                            // 工厂只能给 (pos, state)：按 state 归属的方块实例回填变体
+                            // （newBlockEntity 已正确传入；旧存档读回走这条 lambda）
+                            (pos, state) -> {
+                                GodResourceBlockEntity be = new GodResourceBlockEntity(pos, state);
+                                if (state.getBlock() instanceof GodResourceBlock resource)
+                                {
+                                    be.setVariant(resource.getVariant());
+                                }
+                                return be;
+                            },
+                            GOD_ORE_MACHINE.get(), GOD_CROP_MACHINE.get(), GOD_DUPLICATE_MACHINE.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodDropBlockEntity>> GOD_DROP_BE =
             BLOCK_ENTITIES.register("god_drop",
                     () -> BlockEntityType.Builder.of(GodDropBlockEntity::new, GOD_DROP.get()).build(null));
@@ -450,7 +475,7 @@ public class Godofthings
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodEnchantBlockEntity>> GOD_ENCHANT_BE =
             BLOCK_ENTITIES.register("god_enchant",
                     () -> BlockEntityType.Builder.of(GodEnchantBlockEntity::new,
-                            GOD_ENCHANT.get(), GOD_HEAVEN_ENCHANT.get()).build(null));
+                            GOD_ENCHANT.get()).build(null));
 
     // ---- 菜单 ----
     public static final DeferredHolder<MenuType<?>, MenuType<GodFurnaceMenu>> GOD_FURNACE_MENU =
@@ -485,11 +510,12 @@ public class Godofthings
                     {
                         output.accept(GOD_FURNACE_ITEM.get());
                         output.accept(GOD_MINER_ITEM.get());
-                        output.accept(GOD_RESOURCE_ITEM.get());
+                        output.accept(GOD_ORE_MACHINE_ITEM.get());
+                        output.accept(GOD_CROP_MACHINE_ITEM.get());
+                        output.accept(GOD_DUPLICATE_MACHINE_ITEM.get());
                         output.accept(GOD_DROP_ITEM.get());
                         output.accept(GOD_SPAWN_EGG_ITEM.get());
                         output.accept(GOD_ENCHANT_ITEM.get());
-                        output.accept(GOD_HEAVEN_ENCHANT_ITEM.get());
                         output.accept(GOD_HELMET.get());
                         output.accept(GOD_CHESTPLATE.get());
                         output.accept(GOD_LEGGINGS.get());
@@ -498,6 +524,7 @@ public class Godofthings
                         output.accept(GOD_ACCELERATOR.get());
                         output.accept(GOD_INVITE.get());
                         output.accept(GOD_CHANGE.get());
+                        output.accept(GOD_MEASURE.get());
                         output.accept(GOD_CRAFT_ITEM.get());
                         output.accept(VOID_TELEPORTER_ITEM.get());
                         output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
@@ -529,7 +556,8 @@ public class Godofthings
         MENUS.register(modEventBus);
         RECIPE_SERIALIZERS.register(modEventBus);
         ATTACHMENT_TYPES.register(modEventBus);
-        com.godofthings.armor.skill.ModAttributes.ATTRIBUTES.register(modEventBus); // 自定义属性：物理减伤（金身真解）
+        // 神之护甲材质（穿戴图层指向本模组贴图；漏注册会在玩家 tick 查询护甲属性时 unbound 崩溃）
+        com.godofthings.item.GodArmorMaterials.register(modEventBus);
 
         // 神之机器参数配置（矿机/资源机/掉落机，godofthings-machines.toml）
         // 显式指定文件名，避免依赖默认命名规则（默认 godofthings-server.toml）。
@@ -569,25 +597,8 @@ public class Godofthings
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
-        event.enqueueWork(this::registerGridLinkables);
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         LOGGER.info("Godofthings loaded");
-    }
-
-    /** 注册神之工具到 AE2 无线访问点链接（AE2 未安装时跳过）。 */
-    private void registerGridLinkables()
-    {
-        if (!ModList.get().isLoaded("ae2"))
-        {
-            return;
-        }
-        try
-        {
-        }
-        catch (Exception e)
-        {
-            // AE2 未正确加载时忽略，避免影响模组加载
-        }
     }
 
     private void onServerStarting(ServerStartingEvent event)

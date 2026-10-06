@@ -83,7 +83,7 @@ public final class ArmorSkills
     private static ArmorSkillDef reg(String id, ArmorSkillCategory category, int maxLevel,
                                      ArmorSkillDef.EffectKind kind)
     {
-        ArmorSkillDef def = new ArmorSkillDef(id, category, maxLevel, List.of(), kind);
+        ArmorSkillDef def = new ArmorSkillDef(id, category, maxLevel, kind);
         BY_ID.put(id, def);
         ALL.add(def);
         return def;

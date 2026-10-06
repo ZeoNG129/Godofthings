@@ -272,16 +272,28 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
         }
     }
 
+    /**
+     * 从相邻容器抽入物品。v5.12.1 修复吞吐 bug：原先每个面每 tick 只抽 1 个就 break
+     * （extractItem(s, 1) 后立即中断），大箱子补货时吸收速度被锁死在 1 个/tick/面；
+     * 现改为整个槽位表扫完、按堆叠抽取（与 {@link #pushTo} 的全量语义对称）。
+     */
     private void pullFrom(IItemHandler neighbor)
     {
         for (int s = 0; s < neighbor.getSlots(); s++)
         {
             ItemStack src = neighbor.getStackInSlot(s);
             if (src.isEmpty()) continue;
-            ItemStack leftover = storage.insertItem(-1, neighbor.extractItem(s, 1, false), false);
-            if (!leftover.isEmpty()) InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
+            ItemStack pulled = neighbor.extractItem(s, src.getCount(), false);
+            if (pulled.isEmpty()) continue;
+            ItemStack leftover = storage.insertItem(-1, pulled, false);
+            if (!leftover.isEmpty())
+            {
+                // 容器塞不下：余量塞回原槽（抽多了才回退，而不是抽 1 个试错）
+                neighbor.insertItem(s, leftover, false);
+                setChanged();
+                break;
+            }
             setChanged();
-            break;
         }
     }
 

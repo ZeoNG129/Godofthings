@@ -27,22 +27,15 @@
           }
         ]
       }
-    },
-    "has_heaven": {
-      "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [
-          {
-            "items": [
-              "godofthings:god_heaven_enchant"
-            ]
-          }
-        ]
-      }
     }
   },
   "rewards": {
     "experience": 500
   },
-  "sends_telemetry_event": false
+  "sends_telemetry_event": false,
+  "requirements": [
+    [
+      "has_enchant"
+    ]
+  ]
 }

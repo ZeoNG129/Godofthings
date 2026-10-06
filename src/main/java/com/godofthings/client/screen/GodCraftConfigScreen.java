@@ -121,11 +121,6 @@ public class GodCraftConfigScreen extends AbstractContainerScreen<GodCraftConfig
     }
 
     @Override
-    protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
-    {
-    }
-
-    @Override
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick)
     {
         // 1.21.1：AbstractContainerScreen.render 内部已调用 renderBackground(gui, mouseX, mouseY, partialTick)（含 renderBg），

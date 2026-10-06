@@ -14,7 +14,7 @@ logoFile="logo.png"
 displayURL="https://github.com/ZeoNG129/Godofthings"
 issueTrackerURL="https://github.com/ZeoNG129/Godofthings/issues"
 credits='''整合与维护：ZeoNG129。
-部分子系统照抄自开源项目：useless_mod、useless_stretcher（MIT）、PersonalSpace（LGPL-3.0）、
+部分子系统照抄自开源项目：useless_mod、PersonalSpace（LGPL-3.0）、
 AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁止商用）；
 神之套装技能树移植自 Zifeng Skill Tree（MIT）。
 各部分的适用范围、署名与许可全文见 THIRD_PARTY_NOTICES.md 与 jar 内 META-INF/LICENSE-*。'''
@@ -33,7 +33,7 @@ AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁
     ordering="AFTER"
     side="BOTH"
 
-# ⚠ AE2 是**硬依赖**（不是可选）：矿机 / 资源机 / 掉落机 / 合成台 / 砍杀 / 吸收这 6 个方块实体
+# ⚠ AE2 是**硬依赖**（不是可选）：矿机 / 资源机 / 掉落机 / 怪蛋机 / 合成台 / 砍杀 / 吸收这 7 个方块实体
 # 在类声明上直接 implements 了 AE2 的 IGridConnectedBlockEntity，没有 AE2 时本模组会在**加载阶段**
 # NoClassDefFoundError 崩掉。如实声明为 required，好在缺依赖时给出「缺 ae2」的明确提示而不是崩溃堆栈。
 [[dependencies.${mod_id}]]
@@ -44,6 +44,10 @@ AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁
     side="BOTH"
 
 # ===== 以下均为可选兼容（装了才生效，没装自动跳过）=====
+# v5.12.1 精简：只保留代码里真实存在兼容接线的 mod（与 GodofthingsCommand.OPTIONAL_MODS 对齐）。
+# 此前登记的一批 mod（ae2wtlib/extendedae/appliedflux/appmek/occultism/malum/
+# mysticalagriculture/goety/irons_spellbooks/ars_nouveau/enderio/mekanism/productivebees/
+# constructionwand）服务于已删除的造化杖 / 牛排工具子系统，现已无任何兼容代码，声明一并移除。
 # 统一写 optional + AFTER：既是给整合包工具看的兼容清单，
 # 也保证本模组的兼容代码在这些模组的注册表就绪之后才跑。
 [[dependencies.${mod_id}]]
@@ -61,105 +65,7 @@ AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁
     side="BOTH"
 
 [[dependencies.${mod_id}]]
-    modId="ae2wtlib"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="extendedae"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="appliedflux"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="appmek"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
     modId="ad_astra"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="occultism"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="malum"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="mysticalagriculture"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="goety"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="irons_spellbooks"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="ars_nouveau"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="enderio"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="mekanism"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="productivebees"
-    type="optional"
-    versionRange="*"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="constructionwand"
     type="optional"
     versionRange="*"
     ordering="AFTER"

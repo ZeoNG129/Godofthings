@@ -233,11 +233,6 @@ public abstract class AbstractWaypointScreen<T extends AbstractContainerMenu & W
     }
 
     @Override
-    protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
-    {
-    }
-
-    @Override
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick)
     {
         super.render(gui, mouseX, mouseY, partialTick);

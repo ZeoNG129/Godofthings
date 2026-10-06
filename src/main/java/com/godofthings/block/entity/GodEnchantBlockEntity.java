@@ -86,8 +86,7 @@ public class GodEnchantBlockEntity extends BlockEntity implements MenuProvider
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player)
     {
-        // 天神附魔方块 → 选择附魔默认最高等级
-        boolean heavenly = this.getBlockState().is(com.godofthings.Godofthings.GOD_HEAVEN_ENCHANT.get());
-        return new GodEnchantMenu(containerId, inventory, this, heavenly);
+        // v5.13.0：天神附魔并入神之附魔，统一 255 级
+        return new GodEnchantMenu(containerId, inventory, this);
     }
 }

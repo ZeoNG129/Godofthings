@@ -40,13 +40,6 @@ public class UselessDimensions {
                 || USELESSDIM_3_KEY.equals(dimension);
     }
 
-    public static AbstractDimensionTeleporter teleporterFor(ResourceKey<Level> dimension) {
-        if (USELESSDIM_KEY.equals(dimension)) return new UselessDimTeleporter();
-        if (USELESSDIM_2_KEY.equals(dimension)) return new UselessDimTeleporter2();
-        if (USELESSDIM_3_KEY.equals(dimension)) return new UselessDimTeleporter3();
-        return null;
-    }
-
     /**
      * 该维度的平台样式。样式是纯数据、双侧安全，客户端可直接用它驱动生成预览，
      * 无需实例化 {@code ChunkGenerator}。非本模组维度返回 {@code null}。

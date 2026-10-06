@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "godofthings:block/god_duplicate_machine_side",
+    "down": "godofthings:block/god_duplicate_machine_top",
+    "up": "godofthings:block/god_duplicate_machine_top",
+    "north": "godofthings:block/god_duplicate_machine_side",
+    "east": "godofthings:block/god_duplicate_machine_side",
+    "south": "godofthings:block/god_duplicate_machine_side",
+    "west": "godofthings:block/god_duplicate_machine_side"
+  }
+}

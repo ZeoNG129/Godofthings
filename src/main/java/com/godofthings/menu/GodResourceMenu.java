@@ -98,7 +98,10 @@ public class GodResourceMenu extends AbstractContainerMenu
     @Override
     public boolean stillValid(Player player)
     {
-        return stillValid(this.access, player, Godofthings.GOD_RESOURCE.get());
+        // 三台机器共用本菜单：任意一台神之资源系列方块都算有效
+        return stillValid(this.access, player, Godofthings.GOD_ORE_MACHINE.get())
+                || stillValid(this.access, player, Godofthings.GOD_CROP_MACHINE.get())
+                || stillValid(this.access, player, Godofthings.GOD_DUPLICATE_MACHINE.get());
     }
 
     @Override

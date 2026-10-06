@@ -128,11 +128,6 @@ public class GodSlaughterConfigScreen extends AbstractContainerScreen<GodSlaught
     }
 
     @Override
-    protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
-    {
-    }
-
-    @Override
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick)
     {
         super.render(gui, mouseX, mouseY, partialTick);

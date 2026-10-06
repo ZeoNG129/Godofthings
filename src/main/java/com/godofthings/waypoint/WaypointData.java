@@ -27,6 +27,9 @@ public class WaypointData extends SavedData
 {
     private static final String NAME = "godofthings_waypoints";
 
+    /** 传送点数量上限：便签侧有 8 本 × 64 条的严格上限，传送点此前完全无上限（可被无限新建撑大存档），对齐补上 */
+    public static final int MAX_WAYPOINTS = 256;
+
     /** 名称 → 点位（LinkedHashMap 保插入顺序） */
     private final Map<String, Waypoint> waypoints = new LinkedHashMap<>();
 
@@ -107,12 +110,12 @@ public class WaypointData extends SavedData
     }
 
     /**
-     * 新建点位：名字不能为空且不能与已有点位重名；维度 / 面对方向取玩家当前状态。
-     * 返回是否成功。
+     * 新建点位：名字不能为空且不能与已有点位重名、不能超过 {@link #MAX_WAYPOINTS}；
+     * 维度 / 面对方向取玩家当前状态。返回是否成功。
      */
     public boolean create(ServerPlayer player, String name, double x, double y, double z)
     {
-        if (name.isEmpty() || waypoints.containsKey(name))
+        if (name.isEmpty() || waypoints.containsKey(name) || waypoints.size() >= MAX_WAYPOINTS)
         {
             return false;
         }

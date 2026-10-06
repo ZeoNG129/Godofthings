@@ -49,8 +49,15 @@ import java.util.List;
  */
 public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
-    /** 工作间隔（tick），可经 godofthings-machines.toml 调整 */
-    public static final int WORK_INTERVAL = MachinesConfig.DROP_WORK_INTERVAL.get();
+    /**
+     * 工作间隔（tick），可经 godofthings-machines.toml 调整。
+     * <p>v5.12.1 起每次调用实时读配置（此前是 {@code static final} 在类加载时快照，
+     * 改配置必须重启才生效；实时读后重进世界即可生效）。</p>
+     */
+    public static int workInterval()
+    {
+        return MachinesConfig.DROP_WORK_INTERVAL.get();
+    }
 
     /** 可放置输入槽数量（3×3 共 9 个） */
     public static final int INPUT_SLOTS = 9;
@@ -181,11 +188,10 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
         return accelSlot;
     }
 
-    /** 并行倍率：每个神之加速 16 倍，最多一组（64 个）= 1024 倍。无加速时为 1。 */
+    /** 并行倍率：每个神之加速 16 倍，最多一组（64 个）= 1024 倍。无加速时为 1。（倍率权威值见 {@link GodAcceleratorItem#PARALLEL_PER_ITEM}） */
     public int getParallelMultiplier()
     {
-        int count = accelSlot.getStackInSlot(0).getCount();
-        return count <= 0 ? 1 : count * 16;
+        return GodAcceleratorItem.multiplierFor(accelSlot.getStackInSlot(0).getCount());
     }
 
     public int getStorageCount()
@@ -223,7 +229,7 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
     private void tickServer()
     {
         tickCounter++;
-        if (tickCounter >= WORK_INTERVAL)
+        if (tickCounter >= workInterval())
         {
             tickCounter = 0;
             for (int i = 0; i < INPUT_SLOTS; i++)

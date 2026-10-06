@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " G ",
+    "GIY",
+    " GY"
+  ],
+  "key": {
+    "G": { "item": "minecraft:gray_wool" },
+    "I": { "tag": "c:ingots/iron" },
+    "Y": { "item": "minecraft:yellow_wool" }
+  },
+  "result": {
+    "id": "godofthings:god_measure"
+  }
+}

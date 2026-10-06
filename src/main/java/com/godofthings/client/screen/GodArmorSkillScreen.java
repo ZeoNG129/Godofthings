@@ -257,9 +257,10 @@ public class GodArmorSkillScreen extends Screen
 
         drawList(gui, mouseX, mouseY);
 
-        // 悬停某一行时显示该功能的说明（键与旧版一致，内容已按合并后的语义改写）
+        // 悬停某一行时显示该功能的说明（键与旧版一致，内容已按合并后的语义改写）。
+        // v5.12.1：神之共鸣页按用户要求不再显示技能介绍（那 7 个开关的名字本身就是全部信息）。
         int hoveredRow = rowIndexAt(mouseX, mouseY);
-        if (hoveredRow >= 0)
+        if (hoveredRow >= 0 && tab != TAB_RESONANCE)
         {
             Component desc = tab != TAB_FEATURE
                     ? Component.translatable(skillList().get(hoveredRow).nameKey() + ".desc")

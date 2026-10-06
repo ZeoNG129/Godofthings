@@ -33,26 +33,14 @@ $baseUrl = "https://github.com/$owner/$repoName/releases/download/$tag"
 
 # local name as build.gradle expects it  ->  asset name on the release.
 # Only EMI differs: GitHub replaces '+' in an asset name with '.'.
+# v5.12.1: trimmed to the 4 jars actually imported by the code (JEI x2 / EMI / AE2).
+# The 15 former "wandering staff" integration jars (Draconic, Mekanism, occultism, ...)
+# were removed together with the dead compileOnly entries in build.gradle.
 $files = @(
     @{ local = 'ae2-1.21.1-neoforge.jar'; remote = '' },
-    @{ local = 'Applied-Mekanistics-1.6.3.jar'; remote = '' },
-    @{ local = 'AppliedFlux-1.21-2.1.5-neoforge.jar'; remote = '' },
-    @{ local = 'BrandonsCore-1.21.1-3.2.1.309.jar'; remote = '' },
-    @{ local = 'CodeChickenLib-1.21.1-4.6.1.526.jar'; remote = '' },
-    @{ local = 'Draconic-Evolution-1.21.1-3.1.4.632.jar'; remote = '' },
     @{ local = 'emi-1.1.24+1.21.1+neoforge.jar'; remote = 'emi-1.1.24.1.21.1.neoforge.jar' },
-    @{ local = 'enderio-8.2.12-beta.jar'; remote = '' },
-    @{ local = 'FluxNetworks-1.21.1-8.0.0.jar'; remote = '' },
-    @{ local = 'ftb-teams-neoforge-2101.1.10.jar'; remote = '' },
-    @{ local = 'geckolib-neoforge-1.21.1-4.9.2.jar'; remote = '' },
-    @{ local = 'jade-1.21.1-neoforge.jar'; remote = '' },
     @{ local = 'jei-1.21.1-common-api-19.51.0.417.jar'; remote = '' },
-    @{ local = 'jei-1.21.1-neoforge-api-19.51.0.417.jar'; remote = '' },
-    @{ local = 'Mekanism-1.21.1-10.7.19.85.jar'; remote = '' },
-    @{ local = 'modonomicon-1.21.1-neoforge-1.120.3.jar'; remote = '' },
-    @{ local = 'occultism-1.21.1-neoforge-1.224.4.jar'; remote = '' },
-    @{ local = 'productivebees-1.21.1-13.13.5.jar'; remote = '' },
-    @{ local = 'SmartBrainLib-neoforge-1.21.1-1.16.11.jar'; remote = '' }
+    @{ local = 'jei-1.21.1-neoforge-api-19.51.0.417.jar'; remote = '' }
 )
 
 if ($IncludeTestMods) {

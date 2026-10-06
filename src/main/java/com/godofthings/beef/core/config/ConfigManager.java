@@ -92,10 +92,6 @@ public class ConfigManager {
         return readConfigList(USELESS_DIMENSION_FLOOR_BLOCK_WHITELIST);
     }
 
-    public static boolean isUselessDimensionFloorBlockBlacklisted(ResourceLocation blockId) {
-        return uselessDimensionFloorBlockBlacklistMatcher().matches(blockId);
-    }
-
     public static boolean isUselessDimensionFloorBlockAllowed(ResourceLocation blockId) {
         return isUselessDimensionFloorBlockAllowed(blockId,
                 uselessDimensionFloorBlockBlacklistMatcher(),

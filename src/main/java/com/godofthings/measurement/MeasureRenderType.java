@@ -1,0 +1,37 @@
+package com.godofthings.measurement;
+
+// 基于 Measurements（作者 Mrbysco，MIT License）移植并改名「神之测量」：
+// https://github.com/Mrbysco/measurements
+// 测量线框专用 RenderType：无深度测试画到 outline 目标层，隔着方块也能看见线框。
+// 继承 RenderType 只是为了访问其 protected 静态成员（上游同款写法）。
+
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
+import net.minecraft.client.renderer.RenderType;
+
+import java.util.OptionalDouble;
+
+public class MeasureRenderType extends RenderType
+{
+    public MeasureRenderType(String nameIn, VertexFormat formatIn, Mode drawMode, int bufferSizeIn, boolean useDelegateIn, boolean needsSortingIn, Runnable setupTaskIn, Runnable clearTaskIn)
+    {
+        super(nameIn, formatIn, drawMode, bufferSizeIn, useDelegateIn, needsSortingIn, setupTaskIn, clearTaskIn);
+    }
+
+    public static RenderType lineRenderType(float lineWidth)
+    {
+        return create("lines_no_depth",
+                DefaultVertexFormat.POSITION_COLOR_NORMAL, Mode.LINES, 256, false, false,
+                CompositeState.builder()
+                        .setShaderState(RENDERTYPE_LINES_SHADER)
+                        .setLineState(new LineStateShard(OptionalDouble.of(lineWidth)))
+                        .setLayeringState(VIEW_OFFSET_Z_LAYERING)
+                        .setTransparencyState(NO_TRANSPARENCY)
+                        .setOutputState(OUTLINE_TARGET)
+                        .setWriteMaskState(COLOR_WRITE)
+                        .setCullState(NO_CULL)
+                        .setDepthTestState(NO_DEPTH_TEST)
+                        .createCompositeState(false));
+    }
+}

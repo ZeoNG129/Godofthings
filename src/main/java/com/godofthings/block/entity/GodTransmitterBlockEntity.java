@@ -48,7 +48,26 @@ import java.util.WeakHashMap;
  */
 public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvider
 {
-    public static final int RANGE = 64;
+    /** 无线充能范围（方块），可经 godofthings-machines.toml 的 transmitter.range 调整。
+     *  <p>v5.12.1 配置化：此前硬编码 64。约定 <b>0 = 无限距离</b>（同维度内不限距离；
+     *  跨维度仍由机器界面上的跨维度开关独立控制）。原默认 64 保持不变。</p> */
+    public static final int DEFAULT_RANGE = 64;
+    /** 无限距离标记值（配置 transmitter.range=0 时生效）。 */
+    public static final int UNLIMITED_RANGE = 0;
+
+    /** 当前生效的充能范围（实时读配置；0 = 无限距离）。 */
+    public static int range()
+    {
+        return com.godofthings.config.MachinesConfig.TRANSMITTER_RANGE.get();
+    }
+
+    /** 距离判定：配置为 0（无限距离）时恒在范围内，否则按平方距离比较。 */
+    private static boolean inRange(double distSqr)
+    {
+        int r = range();
+        return r <= UNLIMITED_RANGE || distSqr <= (double) r * r;
+    }
+
     public static final int MIN_RATE = 1;
     public static final int MAX_RATE = 9999999;
     /** 机器速率滑块预设档位。 */
@@ -336,8 +355,8 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
                 {
                     continue;
                 }
-                if (player.distanceToSqr(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5,
-                        worldPosition.getZ() + 0.5) > (double) RANGE * RANGE)
+                if (!inRange(player.distanceToSqr(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5,
+                        worldPosition.getZ() + 0.5)))
                 {
                     continue;
                 }
@@ -387,7 +406,7 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
             }
             for (BlockPos target : entry.getValue().keySet())
             {
-                if (!machineCrossDimension && target.distSqr(worldPosition) > (long) RANGE * RANGE)
+                if (!machineCrossDimension && !inRange(target.distSqr(worldPosition)))
                 {
                     continue;
                 }
