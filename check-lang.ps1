@@ -5,6 +5,8 @@
 #   2. no empty values in either file
 #   3. every translatable("literal") found in the Java sources has a lang entry
 #   4. each runtime-concatenated key prefix still resolves to at least one real key
+#   5. doc count claims in AGENTS.md / README.md match the source tree
+#   6. repo root is free of extracted-jar contamination (v5.15.6 incident)
 #   5. every registered block has a blockstate json
 #   6. every registered non-block item has a models/item json
 #   7. every registered item / block has a display-name lang key
@@ -287,6 +289,155 @@ foreach ($script in Get-ChildItem -Path $root -Filter *.ps1) {
         Write-Host ("[FAIL] {0} contains {1} non-ASCII byte(s); keep repo scripts ASCII-only" -f $script.Name, $bad)
         $problems++
     }
+}
+
+
+# ---------------------------------------------------------------- docs must match the source of truth
+# Count claims in AGENTS.md / README.md are checked against the actual source tree, so a
+# stale doc like the 5.14.0-era "19 tests / 7 grid BEs / 30 jars" cannot happen again.
+# Chinese claims are matched via codepoint-built patterns so this file stays ASCII-only.
+function Get-CjkPattern([int[]]$cp) { return -join ($cp | ForEach-Object { [char]$_ }) }
+$actualGameTests = 0
+$gtActual = @{}
+foreach ($f in Get-ChildItem -Path (Join-Path $root 'src/main/java/com/godofthings/gametest') -Filter *.java) {
+    $n = ([regex]::Matches((Get-Content $f.FullName -Raw), '@GameTest\(')).Count
+    $gtActual[$f.BaseName] = $n
+    $actualGameTests += $n
+}
+$actualAe2Bes = 0
+foreach ($f in Get-ChildItem -Path (Join-Path $root 'src/main/java/com/godofthings/block/entity') -Filter *.java) {
+    if ((Get-Content $f.FullName -Raw) -match 'implements[^\r\n]*IGridConnectedBlockEntity') { $actualAe2Bes++ }
+}
+$actualAdvancements = @(Get-ChildItem -Path (Join-Path $root 'src/main/resources/data/godofthings/advancement') -Filter *.json -File).Count
+$agentsText = Get-Content (Join-Path $root 'AGENTS.md') -Raw -Encoding UTF8
+$readmeText = Get-Content (Join-Path $root 'README.md') -Raw -Encoding UTF8
+$docsText = $agentsText + $readmeText
+$cjkRegTest    = Get-CjkPattern 0x56DE,0x5F52,0x6D4B,0x8BD5
+$cjkParenOpen  = Get-CjkPattern 0xFF08
+$cjkParenClose = Get-CjkPattern 0xFF09
+$cjkGong       = Get-CjkPattern 0x5171
+$cjkTiao       = Get-CjkPattern 0x6761
+$cjkXiang      = Get-CjkPattern 0x9879
+$cjkBlockEnt   = Get-CjkPattern 0x4E2A,0x65B9,0x5757,0x5B9E,0x4F53
+$cjkGridMach   = Get-CjkPattern 0x53F0,0x4EA7,0x8D44,0x6E90,0x673A,0x5668
+$cjkAchieve    = Get-CjkPattern 0x4E2A,0x6210,0x5C31
+$cjkRegistered = Get-CjkPattern 0x6CE8,0x518C,0x7684
+$cjkBlocks     = Get-CjkPattern 0x4E2A,0x65B9,0x5757
+$cjkEntities   = Get-CjkPattern 0x4E2A,0x5B9E,0x4F53
+$cjkItems      = Get-CjkPattern 0x4E2A,0x7269,0x54C1
+$cjkPrefixes   = Get-CjkPattern 0x4E2A,0x952E,0x524D,0x7F00
+$reTotalClaim = $cjkRegTest + $cjkParenOpen + '\s*' + $cjkGong + '\s*(\d+)\s*(' + $cjkTiao + '|' + $cjkXiang + ')' + $cjkParenClose
+$totalClaims = [regex]::Matches($docsText, $reTotalClaim)
+if ($totalClaims.Count -lt 1) {
+    Write-Host '[FAIL] docs: no regression-test total claim found in AGENTS.md/README.md'
+    $problems++
+} else {
+    foreach ($m in $totalClaims) {
+        if ([int]$m.Groups[1].Value -ne $actualGameTests) {
+            Write-Host ('[FAIL] docs claim {0} game tests but source has {1}' -f $m.Groups[1].Value, $actualGameTests)
+            $problems++
+        }
+    }
+}
+foreach ($cls in $gtActual.Keys) {
+    $reCls = [regex]::Escape($cls) + '`' + $cjkParenOpen + '\s*(\d+)\s*' + $cjkTiao + $cjkParenClose
+    $m = [regex]::Match($agentsText, $reCls)
+    if (-not $m.Success) {
+        Write-Host ('[FAIL] docs: no per-class count claim for game test {0}' -f $cls)
+        $problems++
+    } elseif ([int]$m.Groups[1].Value -ne $gtActual[$cls]) {
+        Write-Host ('[FAIL] docs claim {0} tests in {1} but source has {2}' -f $m.Groups[1].Value, $cls, $gtActual[$cls])
+        $problems++
+    }
+}
+$reAe2Agents = '(\d+)\s*' + $cjkBlockEnt
+$ae2Matched = $false
+foreach ($m in [regex]::Matches($agentsText, $reAe2Agents)) {
+    $ae2Matched = $true
+    if ([int]$m.Groups[1].Value -ne $actualAe2Bes) {
+        Write-Host ('[FAIL] docs claim {0} AE2 grid BEs but source has {1}' -f $m.Groups[1].Value, $actualAe2Bes)
+        $problems++
+    }
+}
+if (-not $ae2Matched) {
+    Write-Host '[FAIL] docs: no AE2 grid-connected block-entity count claim in AGENTS.md'
+    $problems++
+}
+$reAe2Readme = '(\d+)\s*' + $cjkGridMach
+$ae2rMatched = $false
+foreach ($m in [regex]::Matches($readmeText, $reAe2Readme)) {
+    $ae2rMatched = $true
+    if ([int]$m.Groups[1].Value -ne $actualAe2Bes) {
+        Write-Host ('[FAIL] docs claim {0} AE2 grid machines but source has {1}' -f $m.Groups[1].Value, $actualAe2Bes)
+        $problems++
+    }
+}
+if (-not $ae2rMatched) {
+    Write-Host '[FAIL] docs: no AE2 grid-machine count claim in README.md'
+    $problems++
+}
+$reAdv = '(\d+)\s*' + $cjkAchieve
+$advMatched = $false
+foreach ($m in [regex]::Matches($docsText, $reAdv)) {
+    $advMatched = $true
+    if ([int]$m.Groups[1].Value -ne $actualAdvancements) {
+        Write-Host ('[FAIL] docs claim {0} advancements but source has {1}' -f $m.Groups[1].Value, $actualAdvancements)
+        $problems++
+    }
+}
+if (-not $advMatched) {
+    Write-Host '[FAIL] docs: no advancement count claim found in AGENTS.md/README.md'
+    $problems++
+}
+$reCounts = $cjkRegistered + '\s*(\d+)\s*' + $cjkBlocks + '\s*/\s*(\d+)\s*' + $cjkItems + '\s*/\s*(\d+)\s*' + $cjkEntities
+$mCounts = [regex]::Match($readmeText, $reCounts)
+if (-not $mCounts.Success) {
+    Write-Host '[FAIL] docs: no registered block/item/entity count claim in README.md'
+    $problems++
+} else {
+    if ([int]$mCounts.Groups[1].Value -ne $blocks.Count) {
+        Write-Host ('[FAIL] README claims {0} blocks but check-lang found {1}' -f $mCounts.Groups[1].Value, $blocks.Count)
+        $problems++
+    }
+    if ([int]$mCounts.Groups[2].Value -ne $items.Count) {
+        Write-Host ('[FAIL] README claims {0} items but check-lang found {1}' -f $mCounts.Groups[2].Value, $items.Count)
+        $problems++
+    }
+    if ([int]$mCounts.Groups[3].Value -ne $entities.Count) {
+        Write-Host ('[FAIL] README claims {0} entities but check-lang found {1}' -f $mCounts.Groups[3].Value, $entities.Count)
+        $problems++
+    }
+}
+$rePrefix = '(\d+)\s*' + $cjkPrefixes
+$mPrefix = [regex]::Match($readmeText, $rePrefix)
+if (-not $mPrefix.Success) {
+    Write-Host '[FAIL] docs: no key-prefix count claim in README.md'
+    $problems++
+} elseif ([int]$mPrefix.Groups[1].Value -ne $prefixAllow.Count) {
+    Write-Host ('[FAIL] README claims {0} key prefixes but check-lang has {1}' -f $mPrefix.Groups[1].Value, $prefixAllow.Count)
+    $problems++
+}
+Write-Host ('docs: gametests {0} / ae2 grid BEs {1} / advancements {2} -- claims in AGENTS.md + README.md verified' -f $actualGameTests, $actualAe2Bes, $actualAdvancements)
+
+# ------------------------------------------------- repo root must stay free of extracted jars
+# v5.15.6 accidentally committed an extracted ToolBelt jar at the repo root (assets/, data/,
+# META-INF/, dev/, .cache/, loadscreens/, lowercase licenses/ ...). Windows is case-insensitive,
+# so all names below are matched case-insensitively EXCEPT 'licenses', which is compared
+# case-SENSITIVELY (-ceq) so our real uppercase LICENSES/ archive is not flagged.
+foreach ($badName in @('.cache', 'assets', 'data', 'dev', 'loadscreens', 'meta-inf')) {
+    $hit = Get-ChildItem -Path $root -Directory | Where-Object { $_.Name -ieq $badName }
+    if ($hit) {
+        Write-Host ('[FAIL] repo root contains extracted-jar directory {0} (delete it; the mod lives under src/main/resources)' -f $badName)
+        $problems++
+    }
+}
+$lowerLic = Get-ChildItem -Path $root -Directory | Where-Object { $_.Name -ceq 'licenses' }
+if ($lowerLic) {
+    Write-Host "[FAIL] repo root contains lowercase 'licenses' (our archive is uppercase LICENSES/; a lowercase copy means an extracted jar was dumped here)"
+    $problems++
+}
+if ($problems -eq 0) {
+    Write-Host 'root: clean (no extracted-jar contamination)'
 }
 
 if ($problems -eq 0) {
