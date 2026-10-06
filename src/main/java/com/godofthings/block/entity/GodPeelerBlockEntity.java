@@ -3,6 +3,7 @@ package com.godofthings.block.entity;
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.machine.LogStripper;
 import com.godofthings.config.MachinesConfig;
+import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodPeelerMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -25,16 +26,28 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 神之去皮方块实体：1 输入槽 + 1 输出槽，无需能源。
+ * 神之去皮方块实体（v5.15.1：1+1 槽改为与神之熔炉相同的 9+9 布局）。
  *
- * <p>每 {@link MachinesConfig#PEELER_WORK_INTERVAL} tick 把 1 个原木去皮成对应去皮原木
- * （映射见 {@link LogStripper}）。漏斗 / 管道可从任意面塞入原木（只进不出）、取走去皮原木（只出不进）。
+ * <p>9 个输入槽（0-8）+ 9 个输出槽（9-17，一一对应：输入 i → 输出 {@link #OUTPUT_SLOT_START} + i）+
+ * 1 个神之加速槽（提升并行数量与槽位容量）。无需能源。</p>
+ *
+ * <p>每 {@link MachinesConfig#PEELER_WORK_INTERVAL} tick 处理一轮：<b>每个</b>非空输入槽把最多
+ * 「并行倍率」个原木去皮塞进对应输出槽（同物品可叠、容量够才动）。
+ * 漏斗 / 管道可从任意面塞入原木（只进输入槽）、取走去皮原木（只出输出槽）；
+ * 输出槽对外部插入恒拒绝（GUI 里 Shift 点击也塞不进去）。
  * 打掉时物品一并消失，不掉落（同神之资源系列做法）。</p>
  */
 public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
 {
-    /** 输入槽：只收可去皮原木 */
-    private final ItemStackHandler inputSlot = new ItemStackHandler(1)
+    public static final int INPUT_SLOT_COUNT = 9;
+    public static final int OUTPUT_SLOT_COUNT = 9;
+    public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
+    public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
+    /** 加速槽在自动化视图里的下标（总 19 槽：18 物品槽 + 1 加速槽，加速槽对外不可读写） */
+    public static final int AUTOMATION_SLOT_COUNT = TOTAL_SLOTS + 1;
+
+    /** 神之加速槽：放入神之加速提升并行数量（最多一组 64 个 = 1024 倍） */
+    private final ItemStackHandler accelSlot = new ItemStackHandler(1)
     {
         @Override
         protected void onContentsChanged(int slot)
@@ -45,11 +58,11 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
         @Override
         public boolean isItemValid(int slot, ItemStack stack)
         {
-            return LogStripper.isStrippable(stack);
+            return stack.getItem() instanceof GodAcceleratorItem;
         }
     };
-    /** 输出槽：只出不进（对外 insert 恒拒绝，GUI 里 Shift 点击也塞不进去） */
-    private final ItemStackHandler outputSlot = new ItemStackHandler(1)
+
+    private final ItemStackHandler itemHandler = new ItemStackHandler(TOTAL_SLOTS)
     {
         @Override
         protected void onContentsChanged(int slot)
@@ -57,60 +70,75 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
             setChanged();
         }
 
+        // 规则：输入槽只收可去皮原木；输出槽对外部插入恒拒绝（内部转化走 setStackInSlot 直写）
         @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate)
+        public boolean isItemValid(int slot, ItemStack stack)
         {
-            return stack;
+            return slot < INPUT_SLOT_COUNT && LogStripper.isStrippable(stack);
+        }
+
+        // 神之加速：输入/输出槽容量随并行倍率提升，但单堆上限 99
+        // （ItemStack 的 count 序列化硬上限是 99，ExtraCodecs.intRange(1,99)，超 99 存档/掉落时崩溃）
+        @Override
+        public int getSlotLimit(int slot)
+        {
+            return Math.min(99, 64 * getParallelMultiplier());
+        }
+
+        @Override
+        protected int getStackLimit(int slot, ItemStack stack)
+        {
+            return getSlotLimit(slot);
         }
     };
 
     private int tickCounter = 0;
 
-    /** 漏斗 / 管道用的组合视图：槽 0 = 输入（只进），槽 1 = 输出（只出）。 */
+    /** 漏斗 / 管道用的组合视图：槽 0-8 = 输入（只进），槽 9-17 = 输出（只出），槽 18 = 加速槽（对外封闭）。 */
     private final IItemHandler automationHandler = new IItemHandler()
     {
         @Override
         public int getSlots()
         {
-            return 2;
+            return AUTOMATION_SLOT_COUNT;
         }
 
         @Override
         public ItemStack getStackInSlot(int slot)
         {
-            return slot == 0 ? inputSlot.getStackInSlot(0) : outputSlot.getStackInSlot(0);
+            return slot < TOTAL_SLOTS ? itemHandler.getStackInSlot(slot) : accelSlot.getStackInSlot(0);
         }
 
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate)
         {
-            if (slot != 0 || stack.isEmpty())
+            if (slot >= INPUT_SLOT_COUNT || stack.isEmpty())
             {
                 return stack;
             }
-            return inputSlot.insertItem(0, stack, simulate);
+            return itemHandler.insertItem(slot, stack, simulate);
         }
 
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate)
         {
-            if (slot != 1 || amount <= 0)
+            if (slot < OUTPUT_SLOT_START || slot >= TOTAL_SLOTS || amount <= 0)
             {
                 return ItemStack.EMPTY;
             }
-            return outputSlot.extractItem(0, amount, simulate);
+            return itemHandler.extractItem(slot, amount, simulate);
         }
 
         @Override
         public int getSlotLimit(int slot)
         {
-            return 64;
+            return slot < TOTAL_SLOTS ? itemHandler.getSlotLimit(slot) : 64;
         }
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack)
         {
-            return slot == 0 && inputSlot.isItemValid(0, stack);
+            return slot < INPUT_SLOT_COUNT && itemHandler.isItemValid(slot, stack);
         }
     };
 
@@ -119,19 +147,26 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
         super(Godofthings.GOD_PEELER_BE.get(), pos, state);
     }
 
-    public ItemStackHandler getInputSlot()
+    public ItemStackHandler getItemHandler()
     {
-        return inputSlot;
+        return itemHandler;
     }
 
-    public ItemStackHandler getOutputSlot()
+    /** 神之加速槽（只接受神之加速，最多 64 个） */
+    public ItemStackHandler getAccelSlot()
     {
-        return outputSlot;
+        return accelSlot;
     }
 
     public IItemHandler getAutomationHandler()
     {
         return automationHandler;
+    }
+
+    /** 并行倍率：每个神之加速 16 倍，最多一组（64 个）= 1024 倍。无加速时为 1。（倍率权威值见 {@link GodAcceleratorItem#PARALLEL_PER_ITEM}） */
+    public int getParallelMultiplier()
+    {
+        return GodAcceleratorItem.multiplierFor(accelSlot.getStackInSlot(0).getCount());
     }
 
     // ---- 每 tick 逻辑 ----
@@ -146,48 +181,72 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
 
     private void tickServer()
     {
-        if (inputSlot.getStackInSlot(0).isEmpty())
+        boolean hasWork = false;
+        for (int i = 0; i < INPUT_SLOT_COUNT; i++)
+        {
+            if (!itemHandler.getStackInSlot(i).isEmpty())
+            {
+                hasWork = true;
+                break;
+            }
+        }
+        if (!hasWork)
         {
             tickCounter = 0;
             return;
         }
-        // 每 workInterval tick 去皮 1 个（实时读配置，改 toml 重进世界即生效）
+        // 每 workInterval tick 处理一轮：每个输入槽并行去皮（实时读配置，改 toml 重进世界即生效）
         tickCounter++;
         if (tickCounter >= MachinesConfig.PEELER_WORK_INTERVAL.get())
         {
             tickCounter = 0;
-            convertOne(inputSlot, outputSlot);
+            int mult = getParallelMultiplier();
+            for (int i = 0; i < INPUT_SLOT_COUNT; i++)
+            {
+                convertOne(itemHandler, i, OUTPUT_SLOT_START + i, mult);
+            }
         }
     }
 
     /**
-     * 纯逻辑：把输入槽 1 个原木去皮并放入输出槽（输出为同物品且未满才动；供 GameTest 直接调用）。
+     * 纯逻辑：把输入槽最多 mult 个原木去皮放进对应输出槽（输出为空或同物品且未满才动；供 GameTest 直接调用）。
      *
-     * @return 是否发生了转化
+     * @return 实际去皮的数量（0 = 没动）
      */
-    public static boolean convertOne(ItemStackHandler input, ItemStackHandler output)
+    public static int convertOne(ItemStackHandler handler, int inputSlot, int outputSlot, int mult)
     {
-        ItemStack result = LogStripper.strip(input.getStackInSlot(0));
+        if (mult <= 0)
+        {
+            return 0;
+        }
+        ItemStack in = handler.getStackInSlot(inputSlot);
+        ItemStack result = LogStripper.strip(in);
         if (result.isEmpty())
         {
-            return false;
+            return 0;
         }
-        ItemStack out = output.getStackInSlot(0);
-        if (!out.isEmpty() && (!ItemStack.isSameItem(out, result) || out.getCount() >= out.getMaxStackSize()))
+        ItemStack out = handler.getStackInSlot(outputSlot);
+        if (!out.isEmpty() && !ItemStack.isSameItem(out, result))
         {
-            return false;
+            return 0;
         }
-        input.extractItem(0, 1, false);
+        int space = out.isEmpty() ? handler.getSlotLimit(outputSlot) : handler.getSlotLimit(outputSlot) - out.getCount();
+        int n = Math.min(Math.min(mult, in.getCount()), space);
+        if (n <= 0)
+        {
+            return 0;
+        }
+        handler.extractItem(inputSlot, n, false);
         if (out.isEmpty())
         {
-            output.setStackInSlot(0, result.copyWithCount(1));
+            handler.setStackInSlot(outputSlot, result.copyWithCount(n));
         }
         else
         {
-            out.grow(1);
-            output.setStackInSlot(0, out);
+            out.grow(n);
+            handler.setStackInSlot(outputSlot, out);
         }
-        return true;
+        return n;
     }
 
     // ---- capability：任意面塞入原木 / 取走成品 ----
@@ -209,8 +268,8 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.saveAdditional(tag, provider);
-        tag.put("InputSlot", inputSlot.serializeNBT(provider));
-        tag.put("OutputSlot", outputSlot.serializeNBT(provider));
+        tag.put("Inventory", itemHandler.serializeNBT(provider));
+        tag.put("AccelSlot", accelSlot.serializeNBT(provider));
         tag.putInt("TickCounter", tickCounter);
     }
 
@@ -218,13 +277,29 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.loadAdditional(tag, provider);
-        if (tag.contains("InputSlot"))
+        if (tag.contains("Inventory"))
         {
-            inputSlot.deserializeNBT(provider, tag.getCompound("InputSlot"));
+            itemHandler.deserializeNBT(provider, tag.getCompound("Inventory"));
         }
-        if (tag.contains("OutputSlot"))
+        else if (tag.contains("InputSlot") || tag.contains("OutputSlot"))
         {
-            outputSlot.deserializeNBT(provider, tag.getCompound("OutputSlot"));
+            // v5.15.0（1 输入 + 1 输出）旧存档迁移：单槽内容搬进新布局的槽 0 / 槽 9
+            ItemStackHandler legacyIn = new ItemStackHandler(1);
+            ItemStackHandler legacyOut = new ItemStackHandler(1);
+            if (tag.contains("InputSlot"))
+            {
+                legacyIn.deserializeNBT(provider, tag.getCompound("InputSlot"));
+            }
+            if (tag.contains("OutputSlot"))
+            {
+                legacyOut.deserializeNBT(provider, tag.getCompound("OutputSlot"));
+            }
+            itemHandler.setStackInSlot(0, legacyIn.getStackInSlot(0));
+            itemHandler.setStackInSlot(OUTPUT_SLOT_START, legacyOut.getStackInSlot(0));
+        }
+        if (tag.contains("AccelSlot"))
+        {
+            accelSlot.deserializeNBT(provider, tag.getCompound("AccelSlot"));
         }
         tickCounter = tag.getInt("TickCounter");
     }

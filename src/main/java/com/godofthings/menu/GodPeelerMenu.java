@@ -12,18 +12,12 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
 /**
- * 神之去皮界面：槽 0 = 输入（只收可去皮原木）、槽 1 = 输出（只出不进）、2.. = 玩家物品栏。
+ * 神之去皮界面（v5.15.1：与神之熔炉相同布局）——
+ * 9 输入槽（上一行）+ 9 输出槽（下一行，一一对应）+ 右侧神之加速槽 + 玩家物品栏。
  * 机器逻辑无需客户端同步值，纯 vanilla 菜单同步。
  */
 public class GodPeelerMenu extends AbstractContainerMenu
 {
-    /** 输入槽（GUI 坐标） */
-    public static final int INPUT_X = 61;
-    public static final int INPUT_Y = 30;
-    /** 输出槽（GUI 坐标） */
-    public static final int OUTPUT_X = 97;
-    public static final int OUTPUT_Y = 30;
-
     private final GodPeelerBlockEntity be;
     private final ContainerLevelAccess access;
 
@@ -39,10 +33,29 @@ public class GodPeelerMenu extends AbstractContainerMenu
         this.be = be;
         this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
 
-        this.addSlot(new SlotItemHandler(be.getInputSlot(), 0, INPUT_X, INPUT_Y));
-        this.addSlot(new SlotItemHandler(be.getOutputSlot(), 0, OUTPUT_X, OUTPUT_Y));
+        // 9 输入槽（上一行）+ 9 输出槽（下一行）一一对应（坐标同神之熔炉）
+        for (int i = 0; i < GodPeelerBlockEntity.INPUT_SLOT_COUNT; i++)
+        {
+            this.addSlot(new SlotItemHandler(be.getItemHandler(), i, 8 + i * 18, 17));
+        }
+        for (int i = 0; i < GodPeelerBlockEntity.OUTPUT_SLOT_COUNT; i++)
+        {
+            final int outSlot = GodPeelerBlockEntity.OUTPUT_SLOT_START + i;
+            this.addSlot(new SlotItemHandler(be.getItemHandler(), outSlot, 8 + i * 18, 53)
+            {
+                // 输出格只能取走，不能手动放入
+                @Override
+                public boolean mayPlace(ItemStack stack)
+                {
+                    return false;
+                }
+            });
+        }
 
-        // 玩家物品栏 3x9 + 快捷栏
+        // 神之加速槽（只接受神之加速，最多 64 个），右侧（坐标同神之熔炉）
+        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 178, 35));
+
+        // 玩家物品栏 3x9 + 快捷栏 1x9
         for (int row = 0; row < 3; row++)
         {
             for (int col = 0; col < 9; col++)
@@ -76,18 +89,19 @@ public class GodPeelerMenu extends AbstractContainerMenu
         {
             ItemStack stack = slot.getItem();
             itemstack = stack.copy();
-            if (index < 2)
+            if (index < GodPeelerBlockEntity.TOTAL_SLOTS + 1)
             {
-                // 机器槽 → 玩家物品栏（输出槽的物品也只往玩家栏走）
-                if (!this.moveItemStackTo(stack, 2, this.slots.size(), true))
+                // 从机器（9 输入 + 9 输出 + 1 加速槽）移到玩家物品栏
+                if (!this.moveItemStackTo(stack, GodPeelerBlockEntity.TOTAL_SLOTS + 1, this.slots.size(), true))
                 {
                     return ItemStack.EMPTY;
                 }
             }
             else
             {
-                // 玩家物品栏 → 只试输入槽（输出槽 handler 拒绝插入，天然塞不进）
-                if (!this.moveItemStackTo(stack, 0, 1, false))
+                // 从玩家物品栏：先试加速槽（只收神之加速），再试输入槽（输出槽 mayPlace=false 自动拒绝）
+                if (!this.moveItemStackTo(stack, GodPeelerBlockEntity.TOTAL_SLOTS, GodPeelerBlockEntity.TOTAL_SLOTS + 1, false)
+                        && !this.moveItemStackTo(stack, 0, GodPeelerBlockEntity.INPUT_SLOT_COUNT, false))
                 {
                     return ItemStack.EMPTY;
                 }
