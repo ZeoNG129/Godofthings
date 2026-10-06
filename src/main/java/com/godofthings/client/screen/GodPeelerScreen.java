@@ -30,6 +30,11 @@ public class GodPeelerScreen extends AbstractContainerScreen<GodPeelerMenu>
     private static final int ACCEL_X = 178;
     private static final int ACCEL_Y = 35;
 
+    // AE 接入开关按钮（右侧竖排第三格，与神之熔炉同一位置——与任何槽位零重叠）
+    private static final int AE_X = 178;
+    private static final int AE_Y = 57;
+    private static final int AE_SIZE = 20;
+
     public GodPeelerScreen(GodPeelerMenu menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
@@ -56,6 +61,15 @@ public class GodPeelerScreen extends AbstractContainerScreen<GodPeelerMenu>
         gui.fill(bx + 1, by + 1, bx + GEAR_SIZE - 1, by + GEAR_SIZE - 1,
                 hovering ? 0xFF5A5A5A : 0xFF3A3A3A);
         gui.blit(TEXTURE, bx + 1, by + 1, 8, 170, 18, 18);  // 齿轮图标（熔炉贴图备用区同一 UV）
+
+        // AE 接入开关按钮（绿=推送产物进网络，灰=关闭；与神之熔炉同一画法）
+        int ax = x + AE_X;
+        int ay = y + AE_Y;
+        boolean aeOn = this.menu.isAeEnabled();
+        gui.fill(ax, ay, ax + AE_SIZE, ay + AE_SIZE, 0xFF16181D);
+        gui.fill(ax + 1, ay + 1, ax + AE_SIZE - 1, ay + AE_SIZE - 1, aeOn ? 0xFF57B757 : 0xFF3A4048);
+        Component aeLabel = Component.literal("AE");
+        gui.drawString(this.font, aeLabel, ax + (AE_SIZE - this.font.width(aeLabel)) / 2, ay + 6, 0xFFFFFF);
     }
 
     @Override
@@ -71,6 +85,17 @@ public class GodPeelerScreen extends AbstractContainerScreen<GodPeelerMenu>
             if (conn != null)
             {
                 conn.send(new ServerboundContainerButtonClickPacket(this.menu.containerId, 6));
+            }
+            return true;
+        }
+
+        if (relX >= AE_X && relX < AE_X + AE_SIZE && relY >= AE_Y && relY < AE_Y + AE_SIZE)
+        {
+            // AE 接入开关（服务端在 clickMenuButton(10) 中切换）
+            ClientPacketListener conn = Minecraft.getInstance().getConnection();
+            if (conn != null)
+            {
+                conn.send(new ServerboundContainerButtonClickPacket(this.menu.containerId, 10));
             }
             return true;
         }

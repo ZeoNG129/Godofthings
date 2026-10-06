@@ -26,9 +26,10 @@ public class GodFurnaceScreen extends AbstractContainerScreen<GodFurnaceMenu>
     private static final int ACCEL_X = 178;
     private static final int ACCEL_Y = 35;
 
-    // AE 接入开关按钮（v5.15.5 恢复并网：加速槽左侧空位，渲染与交互同神之资源系列）
-    private static final int AE_X = 150;
-    private static final int AE_Y = 6;
+    // AE 接入开关按钮（v5.15.9 挪位：右侧竖排第三格 齿轮(9)→加速槽(35)→AE(57)，
+    // 与任何槽位零重叠——原 (150,6) 压住了第 9 输入槽 152..170×17..35）
+    private static final int AE_X = 178;
+    private static final int AE_Y = 57;
     private static final int AE_SIZE = 20;
 
     public GodFurnaceScreen(GodFurnaceMenu menu, Inventory playerInventory, Component title)

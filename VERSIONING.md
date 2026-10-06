@@ -1236,3 +1236,7 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **实现**：新增 `handler/ToolBeltCompat.java`——在 ToolBelt 配置重建之后的时机（`ServerStartingEvent` + `PlayerLoggedInEvent` 兜底）反射把五件物品（请神 / 神之更改 / 神之测量 / 神之黑盒 / 神之绑定）注入其 `ConfigData.whiteList` 私有静态集（`modId=toolbelt`、字段名均经用户实例里的真实 jar 复核）。**零配置、零硬依赖**：未装 ToolBelt 时直接跳过；注入幂等（`ItemStack.isSameItem` 查重），配置重载重建集合后由下一次事件再注入；手动改配置的条目与注入并存（白名单优先于黑名单）。
   - **同步**：手册条目（zh/en ×5）与 README 绑定行改为「模组自动注入白名单，换包无需改配置」；测试实例 toml 的 whitelist 回滚为空（由自动注入接管）。
   - 验证：`check-lang.ps1` OK（557 键）；GameTest **34/34**（新增 ToolBelt 兼容测试：未装 ToolBelt 时注入为无操作不抛错）；`gradlew build` 成功部署。
+- 5.15.8 → **5.15.9（按用户要求：神之去皮接入 AE 网络 + AE 按钮零重叠）** —— 功能 / 优化，按规则**末位 +1**。
+  - **功能**：去皮机补上 AE 并网（照抄神之熔炉现成模式）——BE `implements IGridConnectedBlockEntity` + `AeGridNode`（onLoad 创建 / setRemoved 销毁、REQUIRE_CHANNEL 占一频道、setInWorldNode 线缆可连），tick 每 20 tick 节流把输出槽（9-17，输入槽是待去皮队列不推）产物 `MEStorage.insert` 进网络，能力注册补 `AECapabilities.IN_WORLD_GRID_NODE_HOST`，界面「AE」开关随 NBT `AeEnabled` 持久化（旧存档缺键默认开）。可并网机器 **8→9 台**。
+  - **AE 按钮零重叠**：熔炉的 AE 按钮原在 (150,6)，**压住了第 9 输入槽（152..170×17..35）**——两台机器统一挪到右侧竖排第三格 **(178,57)**：齿轮(9) → 加速槽(35) → AE(57)，与任何槽位零重叠；去皮机同位。
+  - 验证：`check-lang.ps1` OK（557 键）；GameTest **34/34** 回归全过（AE 网格行为与熔炉一致不做专属测试）；`gradlew build` 成功部署。

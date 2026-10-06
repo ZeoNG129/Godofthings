@@ -1,6 +1,15 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.config.Actionable;
+import appeng.api.networking.IManagedGridNode;
+import appeng.api.networking.security.IActionSource;
+import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.storage.MEStorage;
+import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.AeGridNode;
 import com.godofthings.block.entity.machine.LogStripper;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
@@ -43,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>打掉时物品一并消失，不掉落（同神之资源系列做法）。</p>
  */
-public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
+public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     public static final int INPUT_SLOT_COUNT = 9;
     public static final int OUTPUT_SLOT_COUNT = 9;
@@ -100,6 +109,13 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
     private final int[] faceModes = new int[6];
 
     private final IItemHandler[] sideHandlers = new IItemHandler[6];
+
+    /** 是否接入 AE（v5.15.9 加入：并网后去皮产物自动输出进 AE 网络，占一个频道）。 */
+    private boolean aeEnabled = true;
+
+    /** AE 网格节点（线缆直连并网，照抄神之熔炉）。 */
+    private final AeGridNode aeNode = new AeGridNode(this);
+    private int aeTick = 0;
 
     private int tickCounter = 0;
 
@@ -174,6 +190,9 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_PEELER_BE.get(),
                     (be, side) -> be.getSideCapability(side));
+            // v5.15.9：加入 AE 并网（照抄神之熔炉）——线缆直连、占一个频道、产物自动输出进网络。
+            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_PEELER_BE.get(),
+                    (be, side) -> be);
         }
     }
 
@@ -247,12 +266,94 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
 
     // ---- 每 tick 逻辑：先自动抽推，再去皮 ----
 
+    // ---- AE 网格节点（v5.15.9 加入：线缆直连并网，产物自动输出进 AE，占一个频道） ----
+
+    @Override
+    public IManagedGridNode getMainNode()
+    {
+        return aeNode.getMainNode();
+    }
+
+    @Override
+    public void saveChanges()
+    {
+        setChanged();
+    }
+
+    @Override
+    public void onLoad()
+    {
+        super.onLoad();
+        aeNode.create(level, worldPosition);
+    }
+
+    @Override
+    public void setRemoved()
+    {
+        aeNode.destroy();
+        super.setRemoved();
+    }
+
+    /** 是否接入 AE（并网后去皮产物自动输出进 AE 网络）。 */
+    public boolean isAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    public void toggleAeEnabled()
+    {
+        this.aeEnabled = !this.aeEnabled;
+        setChanged();
+    }
+
+    /** 把输出槽产物推入 AE 网络（只推输出槽 9-17；输入槽是待去皮队列不推）。 */
+    private void pushOutputToAe()
+    {
+        if (!aeEnabled || !aeNode.isActive())
+        {
+            return;
+        }
+        IStorageService storage = aeNode.getStorage();
+        if (storage == null)
+        {
+            return;
+        }
+        MEStorage inv = storage.getInventory();
+        IActionSource source = aeNode.actionSource();
+        for (int slot = OUTPUT_SLOT_START; slot < TOTAL_SLOTS; slot++)
+        {
+            ItemStack stack = itemHandler.getStackInSlot(slot);
+            if (stack.isEmpty())
+            {
+                continue;
+            }
+            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
+            if (inserted > 0)
+            {
+                itemHandler.extractItem(slot, (int) inserted, false);
+            }
+        }
+    }
+
+    /** AE 产物输出节流：每 20 tick（1 秒）推一次。 */
+    private void pushOutputToAeThrottled()
+    {
+        aeTick++;
+        if (aeTick >= 20)
+        {
+            aeTick = 0;
+            pushOutputToAe();
+        }
+    }
+
     public static void tick(Level level, BlockPos pos, BlockState state, GodPeelerBlockEntity be)
     {
         if (!level.isClientSide)
         {
             be.autoTransfer();
             be.tickServer();
+            // AE 产物输出节流：每 20 tick（1 秒）推一次（v5.15.9 加入并网）
+            be.pushOutputToAeThrottled();
         }
     }
 
@@ -473,6 +574,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
         tag.put("Inventory", itemHandler.serializeNBT(provider));
         tag.put("AccelSlot", accelSlot.serializeNBT(provider));
         tag.putIntArray("FaceModes", faceModes);
+        tag.putBoolean("AeEnabled", aeEnabled);
         tag.putInt("TickCounter", tickCounter);
     }
 
@@ -509,6 +611,8 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
             int[] modes = tag.getIntArray("FaceModes");
             System.arraycopy(modes, 0, faceModes, 0, Math.min(6, modes.length));
         }
+        // AE 接入开关（v5.15.9 加入；旧存档缺键默认开）
+        this.aeEnabled = !tag.contains("AeEnabled") || tag.getBoolean("AeEnabled");
         tickCounter = tag.getInt("TickCounter");
     }
 

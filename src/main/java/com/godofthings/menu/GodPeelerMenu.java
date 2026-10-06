@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
@@ -23,6 +24,7 @@ public class GodPeelerMenu extends AbstractContainerMenu
 {
     private final GodPeelerBlockEntity be;
     private final ContainerLevelAccess access;
+    private int cachedAeEnabled = 1;
 
     public GodPeelerMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
@@ -58,6 +60,16 @@ public class GodPeelerMenu extends AbstractContainerMenu
         // 神之加速槽（只接受神之加速，最多 64 个），右侧（坐标同神之熔炉）
         this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 178, 35));
 
+        // AE 接入开关状态（客户端同步；v5.15.9 加入并网）
+        this.addDataSlot(new DataSlot()
+        {
+            @Override
+            public int get() { return be.isAeEnabled() ? 1 : 0; }
+
+            @Override
+            public void set(int value) { cachedAeEnabled = value; }
+        });
+
         // 玩家物品栏 3x9 + 快捷栏 1x9
         for (int row = 0; row < 3; row++)
         {
@@ -77,11 +89,24 @@ public class GodPeelerMenu extends AbstractContainerMenu
         return be;
     }
 
+    /** AE 接入开关状态（客户端渲染用）。 */
+    public boolean isAeEnabled()
+    {
+        return cachedAeEnabled == 1;
+    }
+
     // 客户端点击右上角齿轮 → ServerboundContainerButtonClickPacket(containerId, 6)
     // 服务端在此打开面配置界面（与神之熔炉同一套）
     @Override
     public boolean clickMenuButton(Player player, int buttonId)
     {
+        if (buttonId == 10)
+        {
+            // AE 接入开关（界面右侧竖排按钮，与神之熔炉同一画法与按钮位）
+            be.toggleAeEnabled();
+            this.broadcastChanges();
+            return true;
+        }
         if (buttonId == 6 && player instanceof ServerPlayer serverPlayer)
         {
             // 1.21.1：NetworkHooks.openScreen → IPlayerExtension.openMenu(provider, Consumer<RegistryFriendlyByteBuf>)
