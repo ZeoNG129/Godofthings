@@ -47,8 +47,26 @@ import java.util.List;
  * - 不消耗刷怪蛋（生产模板，按时间持续产出）
  * - 向下自动输出，内置无限储存；打掉不掉落
  */
-public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner
 {
+    /** 主人（放置者）：神之共鸣判定用（主人在线 + 穿齐全套 + 共鸣开关开才生效）。 */
+    @org.jetbrains.annotations.Nullable
+    private java.util.UUID owner;
+
+    @Override
+    public void setOwner(@org.jetbrains.annotations.Nullable java.util.UUID owner)
+    {
+        this.owner = owner;
+        setChanged();
+    }
+
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public java.util.UUID getOwner()
+    {
+        return owner;
+    }
+
     /**
      * 工作间隔（tick），可经 godofthings-machines.toml 调整。
      * <p>v5.12.1 起每次调用实时读配置（此前是 {@code static final} 在类加载时快照，
@@ -283,7 +301,21 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
         {
             return List.of();
         }
-        return com.godofthings.block.entity.machine.DropLootRoller.roll(serverLevel, worldPosition, input);
+        List<ItemStack> rolled = com.godofthings.block.entity.machine.DropLootRoller.roll(serverLevel, worldPosition, input);
+        // 神之共鸣·掉落（v5.15.4）：战利品爆炸倍率（主人在线 + 穿齐全套 + 共鸣开关开）
+        double bomb = com.godofthings.handler.ArmorSkillHandler.lootBombBoost(serverLevel, owner);
+        if (bomb <= 1.0)
+        {
+            return rolled;
+        }
+        List<ItemStack> boosted = new java.util.ArrayList<>(rolled.size());
+        for (ItemStack stack : rolled)
+        {
+            boosted.add(stack.isEmpty() ? stack
+                    : stack.copyWithCount((int) Math.min(Integer.MAX_VALUE / 2L,
+                            Math.round(stack.getCount() * bomb))));
+        }
+        return boosted;
     }
 
     /** 向下自动输出到下方容器 */
@@ -358,6 +390,10 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries)
     {
         super.saveAdditional(tag, registries);
+        if (owner != null)
+        {
+            tag.putUUID("Owner", owner);
+        }
         tag.put("InputSlot", inputSlot.serializeNBT(registries));
         tag.put("AccelSlot", accelSlot.serializeNBT(registries));
         tag.put("Inventory", itemHandler.serializeNBT(registries));
@@ -369,6 +405,10 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries)
     {
         super.loadAdditional(tag, registries);
+        if (tag.hasUUID("Owner"))
+        {
+            owner = tag.getUUID("Owner");
+        }
         this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
         if (tag.contains("InputSlot"))
         {

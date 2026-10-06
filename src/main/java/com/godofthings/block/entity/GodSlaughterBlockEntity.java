@@ -55,8 +55,26 @@ import java.util.List;
  *   <li>输入输出：六面 FaceMode 配置（NONE/INPUT/OUTPUT/BOTH），自动抽入/推出。</li>
  * </ul>
  */
-public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner
 {
+    /** 主人（放置者）：神之共鸣判定用（主人在线 + 穿齐全套 + 共鸣开关开才生效）。 */
+    @org.jetbrains.annotations.Nullable
+    private java.util.UUID owner;
+
+    @Override
+    public void setOwner(@org.jetbrains.annotations.Nullable java.util.UUID owner)
+    {
+        this.owner = owner;
+        setChanged();
+    }
+
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public java.util.UUID getOwner()
+    {
+        return owner;
+    }
+
     /** UI 显示的存储槽位数量（内部为无限存储，前 27 个堆叠映射到槽位）。 */
     public static final int STORAGE_SLOTS = 27;
     /** 击杀范围上限（方块）。 */
@@ -555,7 +573,11 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     {
         if (fakePlayer == null)
         {
-            fakePlayer = FakePlayerFactory.getMinecraft(level);
+            // 神之共鸣（v5.15.4 修复）：假玩家以主人 UUID 归属——事件侧 ownerOf 按 UUID 反查在线主人判共鸣
+            // （生物掉落 / 头颅 / 怪蛋 / 经验四条共鸣全经此生效）。主人未记录时退回共享假玩家（同旧版）。
+            fakePlayer = owner != null
+                    ? FakePlayerFactory.get(level, new com.mojang.authlib.GameProfile(owner, "GodofThings"))
+                    : FakePlayerFactory.getMinecraft(level);
         }
         return fakePlayer;
     }
@@ -721,6 +743,10 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     protected void loadAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries)
     {
         super.loadAdditional(tag, registries);
+        if (tag.hasUUID("Owner"))
+        {
+            owner = tag.getUUID("Owner");
+        }
         this.enabled = tag.getBoolean("Enabled");
         this.range = tag.contains("Range") ? tag.getInt("Range") : 16;
         this.lootingEnabled = tag.getBoolean("LootingEnabled");
@@ -743,6 +769,10 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     protected void saveAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries)
     {
         super.saveAdditional(tag, registries);
+        if (owner != null)
+        {
+            tag.putUUID("Owner", owner);
+        }
         tag.putBoolean("Enabled", this.enabled);
         tag.putInt("Range", this.range);
         tag.putBoolean("LootingEnabled", this.lootingEnabled);

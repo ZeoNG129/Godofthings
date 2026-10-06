@@ -5,6 +5,7 @@ import com.godofthings.armor.skill.ArmorSkillData;
 import com.godofthings.armor.skill.ArmorSkillEngine;
 import com.godofthings.armor.skill.ArmorSkills;
 import com.godofthings.network.ArmorSkillMessages;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -12,6 +13,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * 神之套装技能树的运行时：掉落类节点（v5.9.0 起技能表只剩 7 个开关式节点）。
@@ -199,7 +201,13 @@ public class ArmorSkillHandler
     /** 自动熔炼：把方块掉落里可熔炼的物品换成熔炼产物（查原版熔炉配方表） */
     private static net.minecraft.world.item.ItemStack smeltResult(ServerPlayer player, net.minecraft.world.item.ItemStack in)
     {
-        var server = player.getServer();
+        return smeltResult(player.getServer(), in);
+    }
+
+    /** 自动熔炼（机器直查重载）：按原版熔炉配方表把输入换成产物（无配方返回空）。 */
+    public static net.minecraft.world.item.ItemStack smeltResult(@org.jetbrains.annotations.Nullable net.minecraft.server.MinecraftServer server,
+                                                                 net.minecraft.world.item.ItemStack in)
+    {
         if (server == null)
         {
             return net.minecraft.world.item.ItemStack.EMPTY;
@@ -265,5 +273,59 @@ public class ArmorSkillHandler
     {
         ServerPlayer owner = ownerOf(player);
         return owner == null ? Map.of() : ArmorSkillData.get(owner);
+    }
+
+    // ══════════ 机器共鸣直查（v5.15.4：不经过 FakePlayer 事件的机器用） ══════════
+    // 适用：矿机（方块/熔炼）、资源三机 / 掉落机 / 怪蛋机（掉落）、吸收器（经验）——
+    // 它们不产生 LivingDrops / BlockDrops / 经验事件，无法走上面的 effectAllowed 链路。
+
+    /** 共鸣基础判定：主人在线 + 穿齐全套 + 对应共鸣开关打开；返回主人的等级表，未生效返回 null。 */
+    private static Map<String, Integer> resonantLevels(ServerLevel level, UUID owner, String machineSkillId)
+    {
+        if (owner == null)
+        {
+            return null;
+        }
+        ServerPlayer player = level.getServer().getPlayerList().getPlayer(owner);
+        if (player == null || !isActive(player))
+        {
+            return null; // 主人不在线或未穿齐全套
+        }
+        Map<String, Integer> levels = ArmorSkillData.get(player);
+        return ArmorSkillData.isEnabled(levels, machineSkillId) ? levels : null;
+    }
+
+    /** 共鸣直查（机器直连用）：主人在线 + 穿齐全套 + 对应共鸣开关开（不经过 FakePlayer 事件的机器判定入口）。 */
+    public static boolean resonanceFor(ServerLevel level, UUID owner, String machineSkillId)
+    {
+        return resonantLevels(level, owner, machineSkillId) != null;
+    }
+
+    /** 共鸣·掉落（战利品爆炸）倍率；未生效 = 1。资源三机 / 掉落机 / 怪蛋机 / 矿机用。 */
+    public static double lootBombBoost(ServerLevel level, UUID owner)
+    {
+        Map<String, Integer> levels = resonantLevels(level, owner, ArmorSkills.MACHINE_LOOT_BOMB);
+        return levels == null ? 1.0 : ArmorSkillEngine.lootBombMultiplier(levels);
+    }
+
+    /** 共鸣·方块（点石成金）倍率；未生效 = 1。矿机用。 */
+    public static double blockDropBoost(ServerLevel level, UUID owner)
+    {
+        Map<String, Integer> levels = resonantLevels(level, owner, ArmorSkills.MACHINE_BLOCK_DROP);
+        return levels == null ? 1.0 : ArmorSkillEngine.blockDropMultiplier(levels);
+    }
+
+    /** 共鸣·经验（经验飞涨）倍率；未生效 = 1。吸收器用。 */
+    public static double xpBoost(ServerLevel level, UUID owner)
+    {
+        Map<String, Integer> levels = resonantLevels(level, owner, ArmorSkills.MACHINE_XP_GAIN);
+        return levels == null ? 1.0 : ArmorSkillEngine.xpMultiplier(levels);
+    }
+
+    /** 共鸣·熔炼：机器继承「神之熔炼」（基础增幅与共鸣都开才生效）。矿机用。 */
+    public static boolean autoSmeltOn(ServerLevel level, UUID owner)
+    {
+        Map<String, Integer> levels = resonantLevels(level, owner, ArmorSkills.MACHINE_AUTO_SMELT);
+        return levels != null && ArmorSkillEngine.isOn(levels, ArmorSkills.AUTO_SMELT);
     }
 }

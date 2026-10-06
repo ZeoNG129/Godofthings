@@ -57,8 +57,26 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  * - 挖完后可再次点击开始：自动从顶部重新挖（支持改半径后重新工作）
  * - 内置无限大小物品储存，六面默认全部自动输出
  */
-public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner
 {
+    /** 主人（放置者）：神之共鸣判定用（主人在线 + 穿齐全套 + 共鸣开关开才生效）。 */
+    @org.jetbrains.annotations.Nullable
+    private java.util.UUID owner;
+
+    @Override
+    public void setOwner(@org.jetbrains.annotations.Nullable java.util.UUID owner)
+    {
+        this.owner = owner;
+        setChanged();
+    }
+
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public java.util.UUID getOwner()
+    {
+        return owner;
+    }
+
     /** 矿机最大挖掘半径（格，方形半径），可经 godofthings-machines.toml 调整。
      *  <p>v5.12.1 起实时读配置（此前 static final 快照需重启；MAX_RADIUS 是热路径上的 UI/挖掘共用量，
      *  保留为方法以统一入口）。</p> */
@@ -771,12 +789,34 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         }
         List<ItemStack> drops = getDrops(state, pos);
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+        // 神之共鸣（v5.15.4）：点石成金 × 财源滚滚 + 自动熔炼（主人在线 + 穿齐全套 + 对应开关开）
+        ServerLevel serverLevel = (ServerLevel) level; // 矿机只在服务端 tick（getDrops 同样强转）
+        double bomb = com.godofthings.handler.ArmorSkillHandler.lootBombBoost(serverLevel, owner);
+        double blockMult = com.godofthings.handler.ArmorSkillHandler.blockDropBoost(serverLevel, owner) * bomb;
+        boolean autoSmelt = com.godofthings.handler.ArmorSkillHandler.autoSmeltOn(serverLevel, owner);
         for (ItemStack drop : drops)
         {
-            if (!drop.isEmpty())
+            if (drop.isEmpty())
             {
-                insertDrop(drop);
+                continue;
             }
+            ItemStack toInsert = drop;
+            if (autoSmelt)
+            {
+                // 同玩家侧「神之熔炼」：产物数量 = 配方产物数 × 输入个数
+                net.minecraft.world.item.ItemStack out = com.godofthings.handler.ArmorSkillHandler
+                        .smeltResult(serverLevel.getServer(), drop);
+                if (!out.isEmpty())
+                {
+                    toInsert = out.copyWithCount(Math.max(1, out.getCount() * drop.getCount()));
+                }
+            }
+            if (blockMult > 1.0)
+            {
+                toInsert = toInsert.copyWithCount((int) Math.min(Integer.MAX_VALUE / 2L,
+                        Math.round(toInsert.getCount() * blockMult)));
+            }
+            insertDrop(toInsert);
         }
     }
 
@@ -989,6 +1029,10 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.saveAdditional(tag, provider);
+        if (owner != null)
+        {
+            tag.putUUID("Owner", owner);
+        }
         tag.putBoolean("AeEnabled", aeEnabled);
         tag.putBoolean("Running", running);
         tag.putInt("Radius", radius);
@@ -1009,6 +1053,10 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.loadAdditional(tag, provider);
+        if (tag.hasUUID("Owner"))
+        {
+            owner = tag.getUUID("Owner");
+        }
         this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
         running = tag.getBoolean("Running");
         radius = tag.getInt("Radius");

@@ -48,8 +48,26 @@ import java.util.List;
  *   <li>面配置（六面输入输出）+ AE 并网（产物自动输出进 AE）。</li>
  * </ul>
  */
-public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner
 {
+    /** 主人（放置者）：神之共鸣判定用（主人在线 + 穿齐全套 + 共鸣开关开才生效）。 */
+    @org.jetbrains.annotations.Nullable
+    private java.util.UUID owner;
+
+    @Override
+    public void setOwner(@org.jetbrains.annotations.Nullable java.util.UUID owner)
+    {
+        this.owner = owner;
+        setChanged();
+    }
+
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public java.util.UUID getOwner()
+    {
+        return owner;
+    }
+
     public static final int STORAGE_SLOTS = 27;
     public static final int MAX_RANGE = 1600;
     private static final int SCAN_INTERVAL = 10;
@@ -247,11 +265,14 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
             item.discard();
         }
 
+        // 神之共鸣·经验（v5.15.4）：经验飞涨倍率（主人在线 + 穿齐全套 + 共鸣开关开）
+        double xpMult = level instanceof ServerLevel serverLevel
+                ? com.godofthings.handler.ArmorSkillHandler.xpBoost(serverLevel, owner) : 1.0;
         for (ExperienceOrb orb : level.getEntitiesOfClass(ExperienceOrb.class, aabb))
         {
             if (orb.isRemoved()) continue;
             if (orb.distanceToSqr(cx, cy, cz) > rangeSq) continue;
-            addExperience(orb.getValue());
+            addExperience((int) Math.min(Integer.MAX_VALUE, Math.round(orb.getValue() * xpMult)));
             orb.discard();
         }
     }
@@ -320,6 +341,10 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
     protected void loadAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries)
     {
         super.loadAdditional(tag, registries);
+        if (tag.hasUUID("Owner"))
+        {
+            owner = tag.getUUID("Owner");
+        }
         this.enabled = tag.getBoolean("Enabled");
         this.range = tag.contains("Range") ? tag.getInt("Range") : 16;
         this.experiencePoints = tag.contains("ExperiencePoints") ? tag.getInt("ExperiencePoints") : 0;
@@ -336,6 +361,10 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
     protected void saveAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries)
     {
         super.saveAdditional(tag, registries);
+        if (owner != null)
+        {
+            tag.putUUID("Owner", owner);
+        }
         tag.putBoolean("Enabled", this.enabled);
         tag.putInt("Range", this.range);
         tag.putInt("ExperiencePoints", this.experiencePoints);

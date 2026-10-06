@@ -71,4 +71,19 @@ public class GodSpawnEggBlock extends BaseEntityBlock
     }
 
     // 打掉时物品一并消失，不掉落
+    @Override
+    public void setPlacedBy(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos,
+                               net.minecraft.world.level.block.state.BlockState state,
+                               @org.jetbrains.annotations.Nullable net.minecraft.world.entity.LivingEntity placer,
+                               net.minecraft.world.item.ItemStack stack)
+    {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        // 神之共鸣（v5.15.4）：记录放置者为主人（共鸣判定：主人在线 + 穿齐全套 + 对应共鸣开关开）
+        if (placer instanceof net.minecraft.server.level.ServerPlayer player
+                && level.getBlockEntity(pos) instanceof GodSpawnEggBlockEntity be)
+        {
+            be.setOwner(player.getUUID());
+        }
+    }
+
 }

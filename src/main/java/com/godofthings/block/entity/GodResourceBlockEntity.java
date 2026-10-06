@@ -46,8 +46,26 @@ import java.util.List;
  * 快配方每 tick、慢配方每 20 tick；神之加速并行倍率；向下自动输出；内置无限储存；
  * AE2 并网（产物自动输出进网络）；打掉不掉落。</p>
  */
-public class GodResourceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodResourceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner
 {
+    /** 主人（放置者）：神之共鸣判定用（主人在线 + 穿齐全套 + 共鸣开关开才生效）。 */
+    @org.jetbrains.annotations.Nullable
+    private java.util.UUID owner;
+
+    @Override
+    public void setOwner(@org.jetbrains.annotations.Nullable java.util.UUID owner)
+    {
+        this.owner = owner;
+        setChanged();
+    }
+
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public java.util.UUID getOwner()
+    {
+        return owner;
+    }
+
     /** 可放置输入槽数量（3×3 共 9 个） */
     public static final int INPUT_SLOTS = 9;
 
@@ -284,12 +302,16 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
             return; // 无效输入
         }
         int mult = getParallelMultiplier();
+        // 神之共鸣·掉落（v5.15.4）：战利品爆炸倍率（主人在线 + 穿齐全套 + 共鸣开关开）
+        double bomb = level instanceof net.minecraft.server.level.ServerLevel serverLevel
+                ? com.godofthings.handler.ArmorSkillHandler.lootBombBoost(serverLevel, owner) : 1.0;
         // 不消耗原材料：输入只是生产模板，按时间持续产出（神之加速提升并行数量）
         for (ItemStack out : outputs)
         {
             if (!out.isEmpty())
             {
-                ItemStack toInsert = out.copyWithCount(out.getCount() * mult);
+                ItemStack toInsert = out.copyWithCount((int) Math.min(Integer.MAX_VALUE / 2L,
+                        Math.round(out.getCount() * mult * bomb)));
                 ItemStack leftover = itemHandler.insertItem(-1, toInsert, false);
                 if (!leftover.isEmpty())
                 {
@@ -370,6 +392,10 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.saveAdditional(tag, provider);
+        if (owner != null)
+        {
+            tag.putUUID("Owner", owner);
+        }
         tag.put("InputSlot", inputSlot.serializeNBT(provider));
         tag.put("AccelSlot", accelSlot.serializeNBT(provider));
         tag.put("Inventory", itemHandler.serializeNBT(provider));
@@ -381,6 +407,10 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.loadAdditional(tag, provider);
+        if (tag.hasUUID("Owner"))
+        {
+            owner = tag.getUUID("Owner");
+        }
         if (tag.contains("InputSlot"))
         {
             inputSlot.deserializeNBT(provider, tag.getCompound("InputSlot"));
