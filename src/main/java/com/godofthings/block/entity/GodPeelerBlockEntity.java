@@ -6,6 +6,7 @@ import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodPeelerMenu;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -26,16 +27,21 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * 神之去皮方块实体（v5.15.1：1+1 槽改为与神之熔炉相同的 9+9 布局）。
+ * 神之去皮方块实体（v5.15.3：加入与神之熔炉相同的六面输入/输出配置）。
  *
  * <p>9 个输入槽（0-8）+ 9 个输出槽（9-17，一一对应：输入 i → 输出 {@link #OUTPUT_SLOT_START} + i）+
  * 1 个神之加速槽（提升并行数量与槽位容量）。无需能源。</p>
  *
  * <p>每 {@link MachinesConfig#PEELER_WORK_INTERVAL} tick 处理一轮：<b>每个</b>非空输入槽把最多
- * 「并行倍率」个原木去皮塞进对应输出槽（同物品可叠、容量够才动）。
- * 漏斗 / 管道可从任意面塞入原木（只进输入槽）、取走去皮原木（只出输出槽）；
- * 输出槽对外部插入恒拒绝（GUI 里 Shift 点击也塞不进去）。
- * 打掉时物品一并消失，不掉落（同神之资源系列做法）。</p>
+ * 「并行倍率」个原木去皮塞进对应输出槽（同物品可叠、容量够才动）。</p>
+ *
+ * <p><b>面配置（与神之熔炉同一套）</b>：六个面各自可配置
+ * {@link FaceMode#NONE}（不启用）/ {@link FaceMode#INPUT}（自动从相邻容器抽入原木）/
+ * {@link FaceMode#OUTPUT}（自动把成品推给相邻容器）/ {@link FaceMode#BOTH}（同一面既抽入又推出），
+ * 默认全部 NONE——漏斗 / 管道要在界面右上角齿轮的面配置里开启对应面才会互动。
+ * 面配置界面右上角齿轮按钮打开（菜单按钮 6），见 {@link GodPeelerMenu}。</p>
+ *
+ * <p>打掉时物品一并消失，不掉落（同神之资源系列做法）。</p>
  */
 public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
 {
@@ -43,8 +49,6 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
     public static final int OUTPUT_SLOT_COUNT = 9;
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
     public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
-    /** 加速槽在自动化视图里的下标（总 19 槽：18 物品槽 + 1 加速槽，加速槽对外不可读写） */
-    public static final int AUTOMATION_SLOT_COUNT = TOTAL_SLOTS + 1;
 
     /** 神之加速槽：放入神之加速提升并行数量（最多一组 64 个 = 1024 倍） */
     private final ItemStackHandler accelSlot = new ItemStackHandler(1)
@@ -92,59 +96,21 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
         }
     };
 
+    // 每个面一个模式，索引 = Direction.get3DDataValue()，取值见 FaceMode.getId()
+    private final int[] faceModes = new int[6];
+
+    private final IItemHandler[] sideHandlers = new IItemHandler[6];
+
     private int tickCounter = 0;
-
-    /** 漏斗 / 管道用的组合视图：槽 0-8 = 输入（只进），槽 9-17 = 输出（只出），槽 18 = 加速槽（对外封闭）。 */
-    private final IItemHandler automationHandler = new IItemHandler()
-    {
-        @Override
-        public int getSlots()
-        {
-            return AUTOMATION_SLOT_COUNT;
-        }
-
-        @Override
-        public ItemStack getStackInSlot(int slot)
-        {
-            return slot < TOTAL_SLOTS ? itemHandler.getStackInSlot(slot) : accelSlot.getStackInSlot(0);
-        }
-
-        @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate)
-        {
-            if (slot >= INPUT_SLOT_COUNT || stack.isEmpty())
-            {
-                return stack;
-            }
-            return itemHandler.insertItem(slot, stack, simulate);
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate)
-        {
-            if (slot < OUTPUT_SLOT_START || slot >= TOTAL_SLOTS || amount <= 0)
-            {
-                return ItemStack.EMPTY;
-            }
-            return itemHandler.extractItem(slot, amount, simulate);
-        }
-
-        @Override
-        public int getSlotLimit(int slot)
-        {
-            return slot < TOTAL_SLOTS ? itemHandler.getSlotLimit(slot) : 64;
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack)
-        {
-            return slot < INPUT_SLOT_COUNT && itemHandler.isItemValid(slot, stack);
-        }
-    };
 
     public GodPeelerBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.GOD_PEELER_BE.get(), pos, state);
+        for (int i = 0; i < 6; i++)
+        {
+            final int idx = i;
+            sideHandlers[idx] = new SideHandler(idx);
+        }
     }
 
     public ItemStackHandler getItemHandler()
@@ -158,23 +124,134 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
         return accelSlot;
     }
 
-    public IItemHandler getAutomationHandler()
-    {
-        return automationHandler;
-    }
-
     /** 并行倍率：每个神之加速 16 倍，最多一组（64 个）= 1024 倍。无加速时为 1。（倍率权威值见 {@link GodAcceleratorItem#PARALLEL_PER_ITEM}） */
     public int getParallelMultiplier()
     {
         return GodAcceleratorItem.multiplierFor(accelSlot.getStackInSlot(0).getCount());
     }
 
-    // ---- 每 tick 逻辑 ----
+    // ---- 面模式（与神之熔炉同一套）----
+
+    public int getFaceMode(Direction dir)
+    {
+        return faceModes[dir.get3DDataValue()];
+    }
+
+    public void setFaceMode(Direction dir, int mode)
+    {
+        faceModes[dir.get3DDataValue()] = ((mode % 4) + 4) % 4;
+        setChanged();
+    }
+
+    public void cycleFaceMode(Direction dir)
+    {
+        setFaceMode(dir, getFaceMode(dir) + 1);
+    }
+
+    // ---- capability：每个面按模式暴露受限的 IItemHandler ----
+
+    // NeoForge 1.21.1：BlockEntity 不可覆写 getCapability（LazyOptional 机制已移除），
+    // 能力统一在 RegisterCapabilitiesEvent（MOD 总线）注册，见下方 CapabilityRegistration。
+    // 注意：faceModes 在运行时可改，SideHandler 每次调用动态读取当前模式，故无需失效缓存。
+
+    /** NeoForge 能力查询入口：按面模式返回受限 handler；side == null 或 NONE 面返回 null（与神之熔炉逻辑一致）。 */
+    @Nullable
+    IItemHandler getSideCapability(@Nullable Direction side)
+    {
+        if (side == null)
+        {
+            return null;
+        }
+        int idx = side.get3DDataValue();
+        return faceModes[idx] != FaceMode.NONE.getId() ? sideHandlers[idx] : null;
+    }
+
+    @EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD)
+    public static class CapabilityRegistration
+    {
+        @SubscribeEvent
+        public static void registerCapabilities(RegisterCapabilitiesEvent event)
+        {
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_PEELER_BE.get(),
+                    (be, side) -> be.getSideCapability(side));
+        }
+    }
+
+    /**
+     * 某个面的包装 handler：INPUT 面只能插入输入槽，OUTPUT 面只能从输出槽提取（照抄神之熔炉）。
+     */
+    private class SideHandler implements IItemHandler
+    {
+        private final int dirIndex;
+
+        SideHandler(int dirIndex)
+        {
+            this.dirIndex = dirIndex;
+        }
+
+        private FaceMode mode()
+        {
+            return FaceMode.fromId(faceModes[dirIndex]);
+        }
+
+        @Override
+        public int getSlots()
+        {
+            return TOTAL_SLOTS;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot)
+        {
+            return itemHandler.getStackInSlot(slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate)
+        {
+            if (slot < 0 || slot >= INPUT_SLOT_COUNT)
+            {
+                return stack; // 只能插入输入槽
+            }
+            return (mode() == FaceMode.INPUT || mode() == FaceMode.BOTH)
+                    ? itemHandler.insertItem(slot, stack, simulate)
+                    : stack;
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate)
+        {
+            if (slot < OUTPUT_SLOT_START || slot >= TOTAL_SLOTS)
+            {
+                return ItemStack.EMPTY; // 只能从输出槽提取
+            }
+            return (mode() == FaceMode.OUTPUT || mode() == FaceMode.BOTH)
+                    ? itemHandler.extractItem(slot, amount, simulate)
+                    : ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getSlotLimit(int slot)
+        {
+            return itemHandler.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack)
+        {
+            return slot < INPUT_SLOT_COUNT
+                    && (mode() == FaceMode.INPUT || mode() == FaceMode.BOTH)
+                    && LogStripper.isStrippable(stack);
+        }
+    }
+
+    // ---- 每 tick 逻辑：先自动抽推，再去皮 ----
 
     public static void tick(Level level, BlockPos pos, BlockState state, GodPeelerBlockEntity be)
     {
         if (!level.isClientSide)
         {
+            be.autoTransfer();
             be.tickServer();
         }
     }
@@ -206,6 +283,144 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
                 convertOne(itemHandler, i, OUTPUT_SLOT_START + i, mult);
             }
         }
+    }
+
+    /** 每 tick 按各面模式自动抽入原木 / 推出成品（照抄神之熔炉 autoTransfer，过滤条件换成可去皮原木）。 */
+    private void autoTransfer()
+    {
+        for (Direction dir : Direction.values())
+        {
+            int mode = getFaceMode(dir);
+            if (mode == FaceMode.NONE.getId())
+            {
+                continue;
+            }
+
+            BlockPos neighborPos = worldPosition.relative(dir);
+            if (!level.isLoaded(neighborPos))
+            {
+                continue;
+            }
+
+            // NeoForge 1.21.1：邻居能力查询改为 Level.getCapability(BlockCapability, BlockPos, side)，null = 无能力
+            IItemHandler neighborCap = level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, dir.getOpposite());
+            if (neighborCap == null)
+            {
+                continue;
+            }
+
+            if (mode == FaceMode.INPUT.getId())
+            {
+                pullFrom(neighborCap);
+            }
+            else if (mode == FaceMode.OUTPUT.getId())
+            {
+                pushTo(neighborCap);
+            }
+            else if (mode == FaceMode.BOTH.getId())
+            {
+                // 同一个面既自动抽入原木，又自动推出成品
+                pullFrom(neighborCap);
+                pushTo(neighborCap);
+            }
+        }
+    }
+
+    /** 从邻居抽取可去皮原木到任意有空位的输入槽（同物品优先，否则找空槽；照抄神之熔炉 pullFrom）。 */
+    private void pullFrom(IItemHandler neighbor)
+    {
+        for (int s = 0; s < neighbor.getSlots(); s++)
+        {
+            ItemStack src = neighbor.getStackInSlot(s);
+            if (src.isEmpty() || !LogStripper.isStrippable(src))
+            {
+                continue;
+            }
+
+            int targetSlot = findInputSlotFor(src);
+            if (targetSlot < 0)
+            {
+                continue;
+            }
+
+            ItemStack leftoverSim = itemHandler.insertItem(targetSlot, src, true);
+            int canMove = src.getCount() - leftoverSim.getCount();
+            if (canMove <= 0)
+            {
+                continue;
+            }
+
+            ItemStack extracted = neighbor.extractItem(s, canMove, true);
+            if (extracted.isEmpty())
+            {
+                continue;
+            }
+            int toMove = Math.min(extracted.getCount(), canMove);
+            if (toMove <= 0)
+            {
+                continue;
+            }
+
+            ItemStack remaining = itemHandler.insertItem(targetSlot, extracted, false);
+            int placed = toMove - remaining.getCount();
+            if (placed > 0)
+            {
+                neighbor.extractItem(s, placed, false);
+                setChanged();
+            }
+        }
+    }
+
+    /** 找到可接受该原木的输入槽（同物品优先，否则找空槽）；没有则 -1（照抄神之熔炉）。 */
+    private int findInputSlotFor(ItemStack stack)
+    {
+        int emptySlot = -1;
+        for (int i = 0; i < INPUT_SLOT_COUNT; i++)
+        {
+            ItemStack cur = itemHandler.getStackInSlot(i);
+            if (cur.isEmpty())
+            {
+                if (emptySlot < 0)
+                {
+                    emptySlot = i;
+                }
+            }
+            // 1.21.1：isSameItemSameTags → isSameItemSameComponents
+            else if (ItemStack.isSameItemSameComponents(cur, stack))
+            {
+                return i;
+            }
+        }
+        return emptySlot;
+    }
+
+    /** 把输出槽的去皮原木推送给邻居，直到清空或插不下（照抄神之熔炉 pushTo）。 */
+    private void pushTo(IItemHandler neighbor)
+    {
+        for (int out = OUTPUT_SLOT_START; out < TOTAL_SLOTS; out++)
+        {
+            ItemStack output = itemHandler.getStackInSlot(out);
+            if (output.isEmpty())
+            {
+                continue;
+            }
+            ItemStack toPush = output.copy();
+            for (int s = 0; s < neighbor.getSlots(); s++)
+            {
+                ItemStack leftover = neighbor.insertItem(s, toPush, false);
+                int moved = toPush.getCount() - leftover.getCount();
+                if (moved > 0)
+                {
+                    itemHandler.extractItem(out, moved, false);
+                }
+                toPush = leftover;
+                if (toPush.isEmpty())
+                {
+                    break;
+                }
+            }
+        }
+        setChanged();
     }
 
     /**
@@ -249,19 +464,6 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
         return n;
     }
 
-    // ---- capability：任意面塞入原木 / 取走成品 ----
-
-    @EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD)
-    public static class CapabilityRegistration
-    {
-        @SubscribeEvent
-        public static void registerCapabilities(RegisterCapabilitiesEvent event)
-        {
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_PEELER_BE.get(),
-                    (be, side) -> be.getAutomationHandler());
-        }
-    }
-
     // ---- NBT ----
 
     @Override
@@ -270,6 +472,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
         super.saveAdditional(tag, provider);
         tag.put("Inventory", itemHandler.serializeNBT(provider));
         tag.put("AccelSlot", accelSlot.serializeNBT(provider));
+        tag.putIntArray("FaceModes", faceModes);
         tag.putInt("TickCounter", tickCounter);
     }
 
@@ -300,6 +503,11 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider
         if (tag.contains("AccelSlot"))
         {
             accelSlot.deserializeNBT(provider, tag.getCompound("AccelSlot"));
+        }
+        if (tag.contains("FaceModes"))
+        {
+            int[] modes = tag.getIntArray("FaceModes");
+            System.arraycopy(modes, 0, faceModes, 0, Math.min(6, modes.length));
         }
         tickCounter = tag.getInt("TickCounter");
     }

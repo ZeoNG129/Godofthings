@@ -1210,3 +1210,7 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **根因**：v5.15.1 重做的 GUI 贴图存成 212×166，而全套 house GUI 惯例是 **256×256 画布**（熔炉 / 资源三机等均为 256×256，实测确认）；1.21.1 六参 `GuiGraphics.blit` 默认按 256×256 采样 —— 采样区 (0,0)-(212,166) 映射到贴图实际像素只有左上约 176×108，整个界面被拉伸裁切成完全错乱的画面，槽位位置全错（看起来像机器「停了」）。
   - **修复**：贴图按惯例重制为 256×256 画布（内容仍画在左上 212×166，9+9 槽 / 向下箭头 / 加速槽不变）；机器逻辑零改动。
   - 验证：`check-lang.ps1` OK（556 键）；GameTest **29/29** 复跑全过；`gradlew build` 成功部署。
+- 5.15.2 → **5.15.3（按用户要求：GUI 直接复制神之熔炉 + 面配置照搬）** —— 优化 / 小新增，按规则**末位 +1**。
+  - **功能**：去皮机 GUI **直接复制神之熔炉的贴图**（`god_peeler.png` / `god_peeler_config.png` = 熔炉对应贴图的逐字节复制——两者槽位坐标完全一致，齿轮图标在备用区 UV (8,170) 一并带来）；并加入**与神之熔炉同一套的六面输入 / 输出配置**：主界面右上角齿轮按钮 → 面配置界面（3×2 方向磁贴：无 / 输入 / 输出 / 输入和输出，循环切换），**默认全部无**（先配置面，漏斗 / 管道才能进出——与熔炉行为一致）；INPUT 面自动从相邻容器抽入可去皮原木（同物品优先、否则空槽），OUTPUT 面自动把成品推给相邻容器，BOTH 面两者都做。
+  - **实现**：GodPeelerBlockEntity 加 `faceModes[6]` + 每面 `SideHandler`（照抄熔炉：insert 只进输入槽 / extract 只出输出槽 / isItemValid 按 LogStripper 过滤），`getSideCapability(side)`（NONE 面返回 null）替换原「任意面通用」的 19 槽组合视图；tick 先 autoTransfer（每 tick 抽推）再去皮（每间隔一轮）；NBT 存 `FaceModes`。新增 `GodPeelerConfigMenu`（6 个面模式 DataSlot + 按钮 0-5 循环 / 6 返回）与 `GodPeelerConfigScreen`（照抄熔炉面配置界面，语言键全部复用 face_config / mode.* / dir.*，仅新增 `container.godofthings.god_peeler` 标题键）。
+  - 验证：`check-lang.ps1` OK（557 键）；GameTest **30/30**（新增 FaceMode 往返 / 越界折回测试，与熔炉取模语义一致）；`gradlew build` 成功部署。

@@ -3,6 +3,9 @@ package com.godofthings.menu;
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodPeelerBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -72,6 +75,33 @@ public class GodPeelerMenu extends AbstractContainerMenu
     public GodPeelerBlockEntity getBlockEntity()
     {
         return be;
+    }
+
+    // 客户端点击右上角齿轮 → ServerboundContainerButtonClickPacket(containerId, 6)
+    // 服务端在此打开面配置界面（与神之熔炉同一套）
+    @Override
+    public boolean clickMenuButton(Player player, int buttonId)
+    {
+        if (buttonId == 6 && player instanceof ServerPlayer serverPlayer)
+        {
+            // 1.21.1：NetworkHooks.openScreen → IPlayerExtension.openMenu(provider, Consumer<RegistryFriendlyByteBuf>)
+            serverPlayer.openMenu(new MenuProvider()
+            {
+                @Override
+                public Component getDisplayName()
+                {
+                    return Component.translatable("container.godofthings.god_peeler");
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player p)
+                {
+                    return new GodPeelerConfigMenu(containerId, inventory, be);
+                }
+            }, buf -> buf.writeBlockPos(be.getBlockPos()));
+            return true;
+        }
+        return false;
     }
 
     @Override

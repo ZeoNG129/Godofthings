@@ -2,20 +2,29 @@ package com.godofthings.client.screen;
 
 import com.godofthings.Godofthings;
 import com.godofthings.menu.GodPeelerMenu;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 /**
- * 神之去皮界面（v5.15.1：与神之熔炉相同布局）——
- * 9 输入槽（上一行）→ 9 输出槽（下一行），中间向下箭头表示转化方向；右侧神之加速槽。
+ * 神之去皮界面（与神之熔炉相同布局）——
+ * 9 输入槽（上一行）→ 9 输出槽（下一行），中间向下箭头表示转化方向；右侧神之加速槽；
+ * 右上角齿轮按钮打开面配置界面（六面 输入/输出/双向，与神之熔炉同一套）。
  */
 public class GodPeelerScreen extends AbstractContainerScreen<GodPeelerMenu>
 {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/god_peeler.png");
+
+    // 齿轮图标按钮（打开面配置界面），右上角（坐标同神之熔炉）
+    private static final int GEAR_X = 179;
+    private static final int GEAR_Y = 9;
+    private static final int GEAR_SIZE = 20;
 
     // 神之加速槽（菜单槽位与贴图槽框都在此坐标，同神之熔炉）
     private static final int ACCEL_X = 178;
@@ -35,6 +44,38 @@ public class GodPeelerScreen extends AbstractContainerScreen<GodPeelerMenu>
         int y = (this.height - this.imageHeight) / 2;
         // 背景（含 9 输入 / 9 输出槽框、中间转化箭头与右侧加速槽框）
         gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+
+        // 齿轮图标按钮（点击打开面配置界面）；图标 UV 在贴图 (8,170) 备用区（随熔炉贴图一并复制）
+        int bx = x + GEAR_X;
+        int by = y + GEAR_Y;
+        int relX = mouseX - x;
+        int relY = mouseY - y;
+        boolean hovering = relX >= GEAR_X && relX < GEAR_X + GEAR_SIZE
+                && relY >= GEAR_Y && relY < GEAR_Y + GEAR_SIZE;
+        gui.fill(bx, by, bx + GEAR_SIZE, by + GEAR_SIZE, 0xFF16181D);
+        gui.fill(bx + 1, by + 1, bx + GEAR_SIZE - 1, by + GEAR_SIZE - 1,
+                hovering ? 0xFF5A5A5A : 0xFF3A3A3A);
+        gui.blit(TEXTURE, bx + 1, by + 1, 8, 170, 18, 18);  // 齿轮图标（熔炉贴图备用区同一 UV）
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button)
+    {
+        int relX = (int) mouseX - this.leftPos;
+        int relY = (int) mouseY - this.topPos;
+
+        if (relX >= GEAR_X && relX < GEAR_X + GEAR_SIZE && relY >= GEAR_Y && relY < GEAR_Y + GEAR_SIZE)
+        {
+            // 打开面配置界面（服务端在 clickMenuButton(6) 中打开新菜单）
+            ClientPacketListener conn = Minecraft.getInstance().getConnection();
+            if (conn != null)
+            {
+                conn.send(new ServerboundContainerButtonClickPacket(this.menu.containerId, 6));
+            }
+            return true;
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.godofthings.gametest;
 
 import com.godofthings.Godofthings;
+import com.godofthings.block.entity.FaceMode;
 import com.godofthings.block.entity.GodPeelerBlockEntity;
 import com.godofthings.block.entity.machine.LogStripper;
 import net.minecraft.gametest.framework.GameTest;
@@ -150,6 +151,22 @@ public class GodPeelerGameTest
         helper.assertTrue(handler.getStackInSlot(4).getCount() == 3 && handler.getStackInSlot(0).getCount() == 8,
                 "各输入槽消耗互不干扰");
 
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void faceModesCycleLikeFurnace(GameTestHelper helper)
+    {
+        // 面模式与神之熔炉同一套：id 0-3 = 无 / 输入 / 输出 / 输入和输出，往返一致
+        helper.assertTrue(FaceMode.NONE.getId() == 0 && FaceMode.INPUT.getId() == 1
+                && FaceMode.OUTPUT.getId() == 2 && FaceMode.BOTH.getId() == 3, "面模式 id 应与神之熔炉一致");
+        for (int id = 0; id < 4; id++)
+        {
+            helper.assertTrue(FaceMode.fromId(id).getId() == id, "面模式 " + id + " 往返应一致");
+        }
+        // 越界折回语义与熔炉 setFaceMode 的 ((id % 4) + 4) % 4 一致：4 → 无，5 → 输入，-1 → 输入和输出
+        helper.assertTrue(FaceMode.fromId(4) == FaceMode.NONE && FaceMode.fromId(5) == FaceMode.INPUT
+                && FaceMode.fromId(-1) == FaceMode.BOTH, "越界 id 应按取模折回（与神之熔炉一致）");
         helper.succeed();
     }
 

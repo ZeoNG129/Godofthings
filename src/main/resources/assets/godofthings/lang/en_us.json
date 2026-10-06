@@ -88,6 +88,7 @@
   "container.godofthings.god_change": "God Change",
   "container.godofthings.god_craft": "God Craft",
   "container.godofthings.god_furnace": "God Furnace",
+  "container.godofthings.god_peeler": "God Peeler",
   "container.godofthings.god_miner": "God Miner",
   "container.godofthings.god_slaughter": "God Slaughter",
   "container.godofthings.god_transmitter": "God Transmitter",
@@ -554,5 +555,5 @@
   "advancements.godofthings.god_peeler.title": "Bark Be Gone",
   "block.godofthings.god_peeler": "God Peeler",
   "item.godofthings.god_peeler": "God Peeler",
-  "manual.godofthings.god_peeler": "What: God Peeler -- an auto-stripping machine: logs in, matching stripped logs out. Every vanilla log / wood / stem / hyphae / bamboo block works; modded logs are recognized automatically when they follow the usual stripped_ naming convention (already-stripped logs are not accepted).\nObtain: crafting (8 any logs + nether star).\nUsage: put logs into the 3x3 input slots (9 slots, same layout as the God Furnace) and take stripped logs from the matching output slots; hoppers / pipes can insert logs or extract results from any face (output slots reject outside inserts). Every 5 ticks each input slot strips 1 log -- 9 slots in parallel; God Accelerators raise parallelism and slot capacity (x16 each, a full stack of 64 = x1024). Interval configurable in the [peeler] section of godofthings-machines.toml."
+  "manual.godofthings.god_peeler": "What: God Peeler -- an auto-stripping machine: logs in, matching stripped logs out. Every vanilla log / wood / stem / hyphae / bamboo block works; modded logs are recognized automatically when they follow the usual stripped_ naming convention (already-stripped logs are not accepted).\nObtain: crafting (8 any logs + nether star).\nUsage: put logs into the 3x3 input slots (9 slots, same layout as the God Furnace) and take stripped logs from the matching output slots. Hoppers / pipes work per **face config**: the gear button at the top-right opens the face config, where each of the six faces can be None / Input / Output / Both (all default to None -- configure a face before hoppers can interact); input faces auto-pull logs from adjacent containers, output faces auto-push results to them. Every 5 ticks each input slot strips 1 log -- 9 slots in parallel; God Accelerators raise parallelism and slot capacity (x16 each, a full stack of 64 = x1024). Interval configurable in the [peeler] section of godofthings-machines.toml."
 }

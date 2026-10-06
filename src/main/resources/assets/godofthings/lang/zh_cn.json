@@ -88,6 +88,7 @@
   "container.godofthings.god_change": "神之更改",
   "container.godofthings.god_craft": "神之合成",
   "container.godofthings.god_furnace": "神之熔炉",
+  "container.godofthings.god_peeler": "神之去皮",
   "container.godofthings.god_miner": "神之矿机",
   "container.godofthings.god_slaughter": "神之砍杀",
   "container.godofthings.god_transmitter": "神之传输",
@@ -554,5 +555,5 @@
   "advancements.godofthings.god_peeler.title": "褪去树皮",
   "block.godofthings.god_peeler": "神之去皮",
   "item.godofthings.god_peeler": "神之去皮",
-  "manual.godofthings.god_peeler": "作用：神之去皮 —— 自动去皮机：原木放进去，出来就是对应的去皮原木。原版全部原木 / 木头 / 菌柄 / 蕈柄 / 竹块都认识；模组原木只要按 stripped_ 惯例命名也会自动识别（已经是去皮原木的不再处理）。\n获取：合成（8 任意原木 + 下界星）。\n用法：原木放进 3×3 输入槽（9 格，与神之熔炉相同布局），去皮原木从对应输出槽取走；漏斗 / 管道可从任意面塞入原木 / 取走成品（输出槽外部插不进）。每 5 tick 每个输入槽去皮 1 个（9 格并行）；神之加速提升并行数量与槽位容量（每个 ×16，一组 64 个 = ×1024）。间隔可在 godofthings-machines.toml 的 [peeler] 段调。"
+  "manual.godofthings.god_peeler": "作用：神之去皮 —— 自动去皮机：原木放进去，出来就是对应的去皮原木。原版全部原木 / 木头 / 菌柄 / 蕈柄 / 竹块都认识；模组原木只要按 stripped_ 惯例命名也会自动识别（已经是去皮原木的不再处理）。\n获取：合成（8 任意原木 + 下界星）。\n用法：原木放进 3×3 输入槽（9 格，与神之熔炉相同布局），去皮原木从对应输出槽取走。漏斗 / 管道按**面配置**工作：界面右上角齿轮打开面配置，六个面各自可设 无 / 输入 / 输出 / 输入和输出（默认全部无，先配置面漏斗才能进出）；输入面自动从相邻容器抽入原木，输出面自动把成品推给相邻容器。每 5 tick 每个输入槽去皮 1 个（9 格并行）；神之加速提升并行数量与槽位容量（每个 ×16，一组 64 个 = ×1024）。间隔可在 godofthings-machines.toml 的 [peeler] 段调。"
 }

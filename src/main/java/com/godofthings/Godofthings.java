@@ -64,6 +64,7 @@ import com.godofthings.menu.GodFurnaceConfigMenu;
 import com.godofthings.menu.GodFurnaceMenu;
 import com.godofthings.menu.GodMinerMenu;
 import com.godofthings.menu.GodMinerConfigMenu;
+import com.godofthings.menu.GodPeelerConfigMenu;
 import com.godofthings.menu.GodPeelerMenu;
 import com.godofthings.menu.GodResourceMenu;
 import com.godofthings.menu.GodSpawnEggMenu;
@@ -529,6 +530,8 @@ public class Godofthings
             MENUS.register("god_resource", () -> IMenuTypeExtension.create(GodResourceMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodPeelerMenu>> GOD_PEELER_MENU =
             MENUS.register("god_peeler", () -> IMenuTypeExtension.create(GodPeelerMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodPeelerConfigMenu>> GOD_PEELER_CONFIG_MENU =
+            MENUS.register("god_peeler_config", () -> IMenuTypeExtension.create(GodPeelerConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodDropMenu>> GOD_DROP_MENU =
             MENUS.register("god_drop", () -> IMenuTypeExtension.create(GodDropMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodSpawnEggMenu>> GOD_SPAWN_EGG_MENU =
