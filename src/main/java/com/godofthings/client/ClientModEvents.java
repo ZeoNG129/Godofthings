@@ -14,6 +14,7 @@ import com.godofthings.client.screen.GodDropScreen;
 import com.godofthings.client.screen.GodEnchantScreen;
 import com.godofthings.client.screen.GodMinerScreen;
 import com.godofthings.client.screen.GodMinerConfigScreen;
+import com.godofthings.client.screen.GodPeelerScreen;
 import com.godofthings.client.screen.GodResourceScreen;
 import com.godofthings.client.screen.GodSpawnEggScreen;
 import com.godofthings.client.screen.GodAbsorberConfigScreen;
@@ -41,6 +42,7 @@ public class ClientModEvents
         event.register(Godofthings.GOD_MINER_MENU.get(), GodMinerScreen::new);
         event.register(Godofthings.GOD_MINER_CONFIG_MENU.get(), GodMinerConfigScreen::new);
         event.register(Godofthings.GOD_RESOURCE_MENU.get(), GodResourceScreen::new);
+        event.register(Godofthings.GOD_PEELER_MENU.get(), GodPeelerScreen::new);
         event.register(Godofthings.GOD_DEVOURER_MENU.get(), GodDevourerScreen::new);
         event.register(Godofthings.PORTABLE_DEVOURER_MENU.get(), GodDevourerScreen::new);
         event.register(Godofthings.GOD_DROP_MENU.get(), GodDropScreen::new);

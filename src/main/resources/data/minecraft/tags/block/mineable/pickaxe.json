@@ -19,6 +19,7 @@
     "godofthings:god_spawn_egg",
     "godofthings:god_ore_machine",
     "godofthings:god_crop_machine",
-    "godofthings:god_duplicate_machine"
+    "godofthings:god_duplicate_machine",
+    "godofthings:god_peeler"
   ]
 }

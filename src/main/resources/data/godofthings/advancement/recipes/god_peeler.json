@@ -1,0 +1,35 @@
+{
+  "parent": "godofthings:root",
+  "criteria": {
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "godofthings:god_peeler"
+      }
+    },
+    "has": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:god_peeler"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "godofthings:god_peeler"
+    ]
+  },
+  "sends_telemetry_event": false
+}

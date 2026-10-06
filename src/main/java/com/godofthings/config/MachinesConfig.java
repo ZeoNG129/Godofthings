@@ -14,6 +14,7 @@ public class MachinesConfig {
    public static final IntValue MINER_MAX_BLOCKS_PER_TICK;
    public static final IntValue MINER_TICKS_PER_COLUMN_BASE;
    public static final IntValue RESOURCE_WORK_INTERVAL;
+   public static final IntValue PEELER_WORK_INTERVAL;
    public static final IntValue DROP_WORK_INTERVAL;
    public static final IntValue SPAWN_EGG_WORK_INTERVAL;
    public static final IntValue TRANSMITTER_RANGE;
@@ -30,6 +31,11 @@ public class MachinesConfig {
       BUILDER.push("resourceMachine");
       RESOURCE_WORK_INTERVAL = BUILDER.comment("神之资源机工作间隔（tick）：每 N tick 处理输入槽 1 个物品。 / God Resource Machine work interval (ticks): processes 1 item from the input slot every N ticks.")
          .defineInRange("workInterval", 20, 1, 100000);
+      BUILDER.pop();
+
+      BUILDER.push("peeler");
+      PEELER_WORK_INTERVAL = BUILDER.comment("神之去皮工作间隔（tick）：每 N tick 去皮 1 个原木。 / God Peeler work interval (ticks): strips 1 log every N ticks.")
+         .defineInRange("workInterval", 5, 1, 100000);
       BUILDER.pop();
 
       BUILDER.push("dropMachine");

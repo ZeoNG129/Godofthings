@@ -549,5 +549,10 @@
   "manual.godofthings.infinity_water_cell": "作用：ME无限水元件 —— 放入 ME 驱动器后，网络内永远有 21.4 亿 mB 水可无限存取（不占字节、不存实际数据，拆下重放依旧）。闲置耗电 8 AE/t。\n获取：合成（石英玻璃 + 水桶 + 16k 存储组件 + 钻石）。\n用法：插入 ME 驱动器即可；配合无限样板可实现零成本无限供水/浇地/导热。",
   "manual.godofthings.infinity_lava_cell": "作用：ME无限熔岩元件 —— 放入 ME 驱动器后，网络内永远有 21.4 亿 mB 熔岩可无限存取（不占字节、不存实际数据）。闲置耗电 8 AE/t。\n获取：合成（石英玻璃 + 熔岩桶 + 16k 存储组件 + 钻石）。\n用法：插入 ME 驱动器即可；配合无限样板可实现零成本无限取熔岩/燃料。",
   "manual.godofthings.infinity_cobblestone_cell": "作用：ME无限圆石元件 —— 放入 ME 驱动器后，网络内永远有 21.4 亿个圆石可无限存取（不占字节、不存实际数据）。闲置耗电 8 AE/t。\n获取：合成（石英玻璃 + 水桶 + 熔岩桶 + 16k 存储组件 + 钻石）。\n用法：插入 ME 驱动器即可；配合无限样板可实现零成本无限取圆石。",
-  "manual.godofthings.infinity_blank_pattern_cell": "作用：ME无限空白样板元件 —— 网络内永远有 21.4 亿个空白样板可无限存取（不占字节、不存实际数据）。闲置耗电 8 AE/t。\n获取：合成（石英玻璃 + 空白样板 + 16k 存储组件 + 钻石）。\n用法：插入 ME 驱动器即可；样板供应器编码合成再也不愁空白样板不够。"
+  "manual.godofthings.infinity_blank_pattern_cell": "作用：ME无限空白样板元件 —— 网络内永远有 21.4 亿个空白样板可无限存取（不占字节、不存实际数据）。闲置耗电 8 AE/t。\n获取：合成（石英玻璃 + 空白样板 + 16k 存储组件 + 钻石）。\n用法：插入 ME 驱动器即可；样板供应器编码合成再也不愁空白样板不够。",
+  "advancements.godofthings.god_peeler.description": "做出一台神之去皮",
+  "advancements.godofthings.god_peeler.title": "褪去树皮",
+  "block.godofthings.god_peeler": "神之去皮",
+  "item.godofthings.god_peeler": "神之去皮",
+  "manual.godofthings.god_peeler": "作用：神之去皮 —— 自动去皮机：原木放进去，出来就是对应的去皮原木。原版全部原木 / 木头 / 菌柄 / 蕈柄 / 竹块都认识；模组原木只要按 stripped_ 惯例命名也会自动识别（已经是去皮原木的不再处理）。\n获取：合成（8 任意原木 + 下界星）。\n用法：原木放进输入槽（漏斗 / 管道可从任意面塞入），去皮原木从输出槽取走（任意面可抽取）；每 5 tick 去皮 1 个，间隔可在 godofthings-machines.toml 的 [peeler] 段调。"
 }

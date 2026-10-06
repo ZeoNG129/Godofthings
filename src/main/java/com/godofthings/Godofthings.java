@@ -8,6 +8,7 @@ import com.godofthings.block.GodDropBlock;
 import com.godofthings.block.GodEnchantBlock;
 import com.godofthings.block.GodFurnaceBlock;
 import com.godofthings.block.GodMinerBlock;
+import com.godofthings.block.GodPeelerBlock;
 import com.godofthings.block.GodResourceBlock;
 import com.godofthings.block.GodSpawnEggBlock;
 import com.godofthings.block.GodAbsorberBlock;
@@ -21,6 +22,7 @@ import com.godofthings.block.entity.GodDropBlockEntity;
 import com.godofthings.block.entity.GodEnchantBlockEntity;
 import com.godofthings.block.entity.GodFurnaceBlockEntity;
 import com.godofthings.block.entity.GodMinerBlockEntity;
+import com.godofthings.block.entity.GodPeelerBlockEntity;
 import com.godofthings.block.entity.GodResourceBlockEntity;
 import com.godofthings.block.entity.GodSpawnEggBlockEntity;
 import com.godofthings.block.entity.GodAbsorberBlockEntity;
@@ -62,6 +64,7 @@ import com.godofthings.menu.GodFurnaceConfigMenu;
 import com.godofthings.menu.GodFurnaceMenu;
 import com.godofthings.menu.GodMinerMenu;
 import com.godofthings.menu.GodMinerConfigMenu;
+import com.godofthings.menu.GodPeelerMenu;
 import com.godofthings.menu.GodResourceMenu;
 import com.godofthings.menu.GodSpawnEggMenu;
 import com.godofthings.menu.GodSlaughterConfigMenu;
@@ -210,6 +213,16 @@ public class Godofthings
                     .sound(SoundType.METAL));
     public static final DeferredItem<BlockItem> GOD_DUPLICATE_MACHINE_ITEM =
             ITEMS.registerSimpleBlockItem(GOD_DUPLICATE_MACHINE, new Item.Properties());
+
+    // ---- 神之去皮（原木进 → 对应去皮原木出，1 输入槽 + 1 输出槽）----
+    public static final DeferredBlock<GodPeelerBlock> GOD_PEELER = BLOCKS.registerBlock("god_peeler",
+            GodPeelerBlock::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(5.0F, 6.0F)
+                    .sound(SoundType.WOOD));
+    public static final DeferredItem<BlockItem> GOD_PEELER_ITEM =
+            ITEMS.registerSimpleBlockItem(GOD_PEELER, new Item.Properties());
 
     // ---- 神之掉落 ----
     public static final DeferredBlock<GodDropBlock> GOD_DROP = BLOCKS.registerBlock("god_drop",
@@ -499,6 +512,9 @@ public class Godofthings
             BLOCK_ENTITIES.register("god_enchant",
                     () -> BlockEntityType.Builder.of(GodEnchantBlockEntity::new,
                             GOD_ENCHANT.get()).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodPeelerBlockEntity>> GOD_PEELER_BE =
+            BLOCK_ENTITIES.register("god_peeler",
+                    () -> BlockEntityType.Builder.of(GodPeelerBlockEntity::new, GOD_PEELER.get()).build(null));
 
     // ---- 菜单 ----
     public static final DeferredHolder<MenuType<?>, MenuType<GodFurnaceMenu>> GOD_FURNACE_MENU =
@@ -511,6 +527,8 @@ public class Godofthings
             MENUS.register("god_miner_config", () -> IMenuTypeExtension.create(GodMinerConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodResourceMenu>> GOD_RESOURCE_MENU =
             MENUS.register("god_resource", () -> IMenuTypeExtension.create(GodResourceMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodPeelerMenu>> GOD_PEELER_MENU =
+            MENUS.register("god_peeler", () -> IMenuTypeExtension.create(GodPeelerMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodDropMenu>> GOD_DROP_MENU =
             MENUS.register("god_drop", () -> IMenuTypeExtension.create(GodDropMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodSpawnEggMenu>> GOD_SPAWN_EGG_MENU =
@@ -536,6 +554,7 @@ public class Godofthings
                         output.accept(GOD_ORE_MACHINE_ITEM.get());
                         output.accept(GOD_CROP_MACHINE_ITEM.get());
                         output.accept(GOD_DUPLICATE_MACHINE_ITEM.get());
+                        output.accept(GOD_PEELER_ITEM.get());
                         output.accept(GOD_DROP_ITEM.get());
                         output.accept(GOD_SPAWN_EGG_ITEM.get());
                         output.accept(GOD_ENCHANT_ITEM.get());
