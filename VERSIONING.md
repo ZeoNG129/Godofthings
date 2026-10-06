@@ -1231,3 +1231,8 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **准入来源**：`ConfigData$ServerConfig` 的 `whitelist` / `blacklist`（TOML 字符串列表）+ `allowAllNonStackableItems` 开关；解析方法 `parseItemStack` = `BuiltInRegistries.ITEM.get(ResourceLocation.parse(str))`——**仅支持物品 id、不支持标签**（ToolBelt.class 里的 `itemTag` 工厂为零调用的死代码）。
   - **修正**：①用户实例 `config/toolbelt-server.toml` 的 whitelist 加入五件物品 id（`godofthings:god_invite / god_change / god_measure / god_black_box / god_binder`），重启后即可放入；②手册条目（zh/en ×5）与 README 绑定行改为如实说明「在 toolbelt-server.toml 白名单加物品 id」（默认仅收不可堆叠物品，不支持标签）；③本模组代码零改动。
   - 验证：`check-lang.ps1` OK（557 键）；GameTest **33/33**；`gradlew build` 成功部署。
+- 5.15.7 → **5.15.8（按用户要求：换新包不改配置也能放进工具皮带）** —— 功能 / 体验优化，按规则**末位 +1**。
+  - **需求**：上一版的「改实例配置白名单」方案要求每个整合包都手动加 id——用户要的是**开箱即用**：换任何新包、不动 ToolBelt 配置，五件物品照样能放进腰带。
+  - **实现**：新增 `handler/ToolBeltCompat.java`——在 ToolBelt 配置重建之后的时机（`ServerStartingEvent` + `PlayerLoggedInEvent` 兜底）反射把五件物品（请神 / 神之更改 / 神之测量 / 神之黑盒 / 神之绑定）注入其 `ConfigData.whiteList` 私有静态集（`modId=toolbelt`、字段名均经用户实例里的真实 jar 复核）。**零配置、零硬依赖**：未装 ToolBelt 时直接跳过；注入幂等（`ItemStack.isSameItem` 查重），配置重载重建集合后由下一次事件再注入；手动改配置的条目与注入并存（白名单优先于黑名单）。
+  - **同步**：手册条目（zh/en ×5）与 README 绑定行改为「模组自动注入白名单，换包无需改配置」；测试实例 toml 的 whitelist 回滚为空（由自动注入接管）。
+  - 验证：`check-lang.ps1` OK（557 键）；GameTest **34/34**（新增 ToolBelt 兼容测试：未装 ToolBelt 时注入为无操作不抛错）；`gradlew build` 成功部署。
