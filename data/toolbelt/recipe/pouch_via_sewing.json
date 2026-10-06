@@ -1,0 +1,45 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "sewingkit"
+    },
+    {
+      "type": "toolbelt:enable_sewing_crafting"
+    }
+  ],
+  "type": "sewingkit:sewing",
+  "materials": [
+    {
+      "count": 2,
+      "ingredient": {
+        "item": "sewingkit:leather_strip"
+      }
+    },
+    {
+      "count": 3,
+      "ingredient": {
+        "item": "sewingkit:leather_sheet"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "minecraft:gold_ingot"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "minecraft:string"
+      }
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "toolbelt:pouch"
+  },
+  "tool": {
+    "tag": "sewingkit:needles/wood_or_higher"
+  }
+}

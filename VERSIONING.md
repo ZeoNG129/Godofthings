@@ -1222,7 +1222,7 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **功能**：熔炉重新接回 AE 网络（v5.1.3 时按当时要求拆除，本次照抄资源三机现成模式恢复）——线缆直连、**占一个频道**、`REQUIRE_CHANNEL`；熔炼产物自动输出进 ME 网络（**只推输出槽 9-17**，输入槽是熔炼队列不推），每 20 tick 节流推一次；界面加速槽左侧「AE」开关（绿=推送 / 灰=关闭，与资源系列同一画法与按钮位），开关状态随 NBT 持久化（旧存档缺键默认开）。荒辰移晷之杖已在 v5.8.0 删除，本次只恢复线缆直连一条路。
   - **实现**：GodFurnaceBlockEntity `implements IGridConnectedBlockEntity`（appeng.me.helpers）+ `AeGridNode`（`setInWorldNode(true)` + `setVisualRepresentation` 方块图标）；`getMainNode`/`saveChanges`/`onLoad`/`setRemoved` 四钩子 + `pushOutputToAe`（MEStorage.insert + extractItem 回收）+ `pushOutputToAeThrottled`；能力注册恢复 `AECapabilities.IN_WORLD_GRID_NODE_HOST`（替换 v5.1.3 注释）；Menu 加 DataSlot 同步 + `clickMenuButton(10)`（与面配置按钮 6 并存）；Screen 加 AE 按钮（150,6，齿轮 179,9 旁不重叠）。
   - 验证：`check-lang.ps1` OK（557 键，手册 god_furnace 与 system.ae2 双语 7→8 台同步）；GameTest **33/33** 复跑全过（AE 网格行为与其余机器一致，无新增测试——AE2 并网无法在纯 GameTest 里架设网格）；`gradlew build` 成功部署。
-- 5.15.5 → **5.15.6（按用户要求：五件工具物品加入 curios:belt 工具皮带标签 + 神之绑定器改名神之绑定）** —— 新增小物品（标签）/ 改名，按规则**末位 +1**。
-  - **功能**：请神 / 神之更改 / 神之测量 / 神之黑盒 / 神之绑定（原「神之绑定器」，仅显示名改名，物品 id `god_binder` 不变）五件加入 **`curios:belt` 物品标签** —— 可放进 Curios 工具皮带槽（测试实例已装 curios-neoforge-9.5.1，皮带即 Curios 自带 belt 槽位）。
-  - **实现**：新数据文件 `data/curios/tags/item/belt.json`（5 个物品，replace=false）；语言键改名 zh「神之绑定器 → 神之绑定」/ en「God Binder → God Binding」并同步神之传输手册里的引用（「神之绑定器」→「神之绑定」/ "God Binder" → "God Binding"）；5 条手册条目（zh/en）补「可放进工具皮带」说明；README 绑定器行改名并注明标签。
-  - 验证：`check-lang.ps1` OK（557 键、标签文件 4→5 个、全部 godofthings 条目已注册）；GameTest **34/34**（新增 GodToolBeltGameTest：5 件物品 ∈ curios:belt 标签断言）；`gradlew build` 成功部署。
+- 5.15.5 → **5.15.6（按用户要求：五件物品可放进工具皮带 + 神之绑定器改名神之绑定）** —— 改名 / 澄清，按规则**末位 +1**。
+  - **考证**：解包用户提供的 `D:\下载\ToolBelt-1.21.1-2.2.10.jar`（dev.gigaherz.toolbelt）全量反汇编——腰带收纳格（`BeltAttachment` 的匿名 `ItemStackHandler$1`）**只覆写 `onContentsChanged`（同步通知），整个模组没有任何 isItemValid / mayPlace / 标签准入**：工具皮带收纳格不挑物品，任何物品都能直接放进去快捷切换；它唯一自带的标签是 `data/curios/tags/item/belt.json = ["toolbelt:belt"]`（把自己的腰带物品装备进 Curios 默认 belt 槽）。
+  - **修正**：删除上一轮误加的 `curios:belt` 标签文件（那是「把物品**当腰带穿**」的准入标签，会让五件物品与真正的腰带竞争装备槽，并非「放进腰带收纳」）——**五件物品（请神 / 神之更改 / 神之测量 / 神之黑盒 / 神之绑定）无需任何改动即可放进工具皮带**；手册条目（zh/en ×5）与 README 绑定行改为如实说明「可直接放进 ToolBelt 快捷切换、不限物品类型」。神之绑定器 → **神之绑定**改名保留（仅显示名，物品 id `god_binder` 不变，旧存档无损）。
+  - 验证：`check-lang.ps1` OK（557 键、标签文件回至 4 个）；GameTest **33/33**；`gradlew build` 成功部署。

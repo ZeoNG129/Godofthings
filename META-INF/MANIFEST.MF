@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Specification-Title: toolbelt
+Specification-Vendor: gigaherz
+Specification-Version: 1
+Implementation-Title: toolbelt
+Implementation-Version: 2.2.10
+Implementation-Vendor: gigaherz
+Implementation-Timestamp: 2026-06-24T02:41:22+0200
+

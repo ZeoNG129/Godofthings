@@ -1,0 +1,44 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "sewingkit"
+    },
+    {
+      "type": "toolbelt:enable_sewing_crafting"
+    }
+  ],
+  "type": "toolbelt:sewing_upgrade",
+  "group": "toolbelt_belt_upgrade",
+  "materials": [
+    {
+      "count": 1,
+      "ingredient": {
+        "type": "toolbelt:belt_upgrade_level",
+        "size": 3
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "toolbelt:pouch"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "minecraft:string"
+      }
+    }
+  ],
+  "result": {
+    "components": {
+      "toolbelt:belt_size": 4
+    },
+    "count": 1,
+    "id": "toolbelt:belt"
+  },
+  "tool": {
+    "tag": "sewingkit:needles/bone_or_higher"
+  }
+}

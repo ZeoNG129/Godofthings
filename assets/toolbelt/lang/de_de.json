@@ -1,0 +1,12 @@
+{
+  "item.toolbelt.belt": "Werkzeuggürtel",
+  "item.toolbelt.pouch": "Gürteltasche",
+  "key.toolbelt.open": "Werkzeug wechseln",
+  "key.toolbelt.category": "Werkzeuggürtel",
+  "text.toolbelt.empty": "Leer",
+  "text.toolbelt.swap": "Wechseln",
+  "text.toolbelt.insert": "Einfügen",
+  "text.toolbelt.extract": "Entfernen",
+  "text.toolbelt.tooltip": "Upgrades: %s (%s Plätze)",
+  "text.toolbelt.jei.belt.upgrade": "Amboss (Gürtelupgrade)"
+}
