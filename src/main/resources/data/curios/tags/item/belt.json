@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "godofthings:god_invite",
+    "godofthings:god_change",
+    "godofthings:god_measure",
+    "godofthings:god_black_box",
+    "godofthings:god_binder"
+  ]
+}
