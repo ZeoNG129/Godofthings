@@ -36,6 +36,15 @@
 - **例外**：`assets/godofthings/textures/block/hoyoog_fumo.png` **不是**上游素材，
   它是本模组作者自己的 Minecraft 皮肤（64×64），随本模组按 `mod_license` 分发。
 
+## 4. ExtendedAE —— LGPL-3.0
+
+- **照抄内容**：ME 无限存储元件 —— `infinitecell/InfinityCellItem`、`infinitecell/InfinityCellInventory`
+  （移植自上游 `ItemInfinityCell` / `InfinityCellInventory` 并改名），对应水 / 熔岩 / 圆石 / 空白样板
+  四个元件与其物品 / 驱动器模型、配方。
+- **署名**：作者 `glodblock` 与 ExtendedAE contributors。
+- **源码许可**：GNU LGPL 3.0 —— 见 `LICENSES/ExtendedAE-LGPL-3.0.txt`
+  （上述两个类保持 LGPL-3.0，不得按本模组的 ARR 条款再许可）。
+
 ---
 
 ## 本模组自身原创部分

@@ -414,6 +414,7 @@
   "gui.godofthings.waypoint.tp": "TP",
   "hud.godofthings.health.absorption": "Absorb %s",
   "hud.godofthings.health.value": "%s / %s",
+  "infinity.godofthings.tooltip": "It is an infinity source.",
   "item.godofthings.god_accelerator": "God Accelerator",
   "item.godofthings.god_binder": "God Binder",
   "item.godofthings.god_black_box": "God Black Box",
@@ -539,5 +540,14 @@
   "manual.godofthings.god_crop_machine": "God Crop Machine -- accepts crops and plants only: seeds / crops / saplings / kelp / sugar cane / cactus / berries / nether wart and every modded plant. Produces per vanilla harvest loot or duplicates, 64 per cycle.\nCraft: 8 hay bales + nether star.\nUsage: put crops or saplings in the input slots; God Accelerators add parallelism; can join an AE2 network.",
   "block.godofthings.god_duplicate_machine": "God Duplicate",
   "item.godofthings.god_duplicate_machine": "God Duplicate",
-  "manual.godofthings.god_duplicate_machine": "God Duplicate -- accepts everything: any item from vanilla or any mod can be duplicated, 64 per cycle (fast-list blocks and AE2 sky stone every tick, everything else every 20 ticks).\nCraft: 8 quartz blocks + nether star.\nUsage: put any item in the input slots; God Accelerators add parallelism; can join an AE2 network. Outputs are fresh stacks and do not carry the input's enchantments / durability / container contents."
+  "item.godofthings.infinity_blank_pattern_cell": "ME Infinity Blank Pattern Cell",
+  "item.godofthings.infinity_cell_name": "ME Infinity %s Cell",
+  "item.godofthings.infinity_cobblestone_cell": "ME Infinity Cobblestone Cell",
+  "item.godofthings.infinity_lava_cell": "ME Infinity Lava Cell",
+  "item.godofthings.infinity_water_cell": "ME Infinity Water Cell",
+  "manual.godofthings.god_duplicate_machine": "God Duplicate -- accepts everything: any item from vanilla or any mod can be duplicated, 64 per cycle (fast-list blocks and AE2 sky stone every tick, everything else every 20 ticks).\nCraft: 8 quartz blocks + nether star.\nUsage: put any item in the input slots; God Accelerators add parallelism; can join an AE2 network. Outputs are fresh stacks and do not carry the input's enchantments / durability / container contents.",
+  "manual.godofthings.infinity_water_cell": "What: ME Infinity Water Cell -- put it in an ME drive and the network always holds 2.147 billion mB of water for unlimited access (costs no bytes, stores no real data, survives drive removal). Idle drain 8 AE/t.\nObtain: crafting (quartz glass + water bucket + 16k cell part + diamonds).\nUse: insert into an ME drive; pair with patterns for free infinite water.",
+  "manual.godofthings.infinity_lava_cell": "What: ME Infinity Lava Cell -- put it in an ME drive and the network always holds 2.147 billion mB of lava for unlimited access (costs no bytes, stores no real data). Idle drain 8 AE/t.\nObtain: crafting (quartz glass + lava bucket + 16k cell part + diamonds).\nUse: insert into an ME drive; pair with patterns for free infinite lava/fuel.",
+  "manual.godofthings.infinity_cobblestone_cell": "What: ME Infinity Cobblestone Cell -- put it in an ME drive and the network always holds 2.147 billion cobblestone for unlimited access (costs no bytes, stores no real data). Idle drain 8 AE/t.\nObtain: crafting (quartz glass + water bucket + lava bucket + 16k cell part + diamonds).\nUse: insert into an ME drive; pair with patterns for free infinite cobblestone.",
+  "manual.godofthings.infinity_blank_pattern_cell": "What: ME Infinity Blank Pattern Cell -- the network always holds 2.147 billion blank patterns for unlimited access (costs no bytes, stores no real data). Idle drain 8 AE/t.\nObtain: crafting (quartz glass + blank pattern + 16k cell part + diamonds).\nUse: insert into an ME drive; pattern providers never run out of blank patterns again."
 }

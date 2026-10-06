@@ -414,6 +414,7 @@
   "gui.godofthings.waypoint.tp": "传送",
   "hud.godofthings.health.absorption": "吸收 %s",
   "hud.godofthings.health.value": "%s / %s",
+  "infinity.godofthings.tooltip": "它是一个无限的来源。",
   "item.godofthings.god_accelerator": "神之加速",
   "item.godofthings.god_binder": "神之绑定器",
   "item.godofthings.god_black_box": "神之黑盒",
@@ -539,5 +540,14 @@
   "manual.godofthings.god_crop_machine": "作用：神之作物 —— 只收作物与植物：种子 / 作物 / 树苗 / 海带 / 甘蔗 / 仙人掌 / 浆果 / 地狱疣及一切模组植物，按原版种植收获概率或复制产出，每轮 64 个。\n获取：合成（8 干草块 + 下界星）。\n用法：把作物或树苗放进输入槽；可用神之加速提升并行；可作为 AE2 网格节点并网。",
   "block.godofthings.god_duplicate_machine": "神之复制",
   "item.godofthings.god_duplicate_machine": "神之复制",
-  "manual.godofthings.god_duplicate_machine": "作用：神之复制 —— 收一切物品：原版 / 模组的任何物品都可复制，每轮 64 个（原快配方名单的方块与 AE2 天陨石每 tick 产出，其余每 20 tick）。\n获取：合成（8 石英块 + 下界星）。\n用法：把任何物品放进输入槽；可用神之加速提升并行；可作为 AE2 网格节点并网。产物是全新堆叠，不带输入上的附魔 / 耐久 / 容器内容等数据。"
+  "item.godofthings.infinity_blank_pattern_cell": "ME无限空白样板元件",
+  "item.godofthings.infinity_cell_name": "ME无限%s元件",
+  "item.godofthings.infinity_cobblestone_cell": "ME无限圆石元件",
+  "item.godofthings.infinity_lava_cell": "ME无限熔岩元件",
+  "item.godofthings.infinity_water_cell": "ME无限水元件",
+  "manual.godofthings.god_duplicate_machine": "作用：神之复制 —— 收一切物品：原版 / 模组的任何物品都可复制，每轮 64 个（原快配方名单的方块与 AE2 天陨石每 tick 产出，其余每 20 tick）。\n获取：合成（8 石英块 + 下界星）。\n用法：把任何物品放进输入槽；可用神之加速提升并行；可作为 AE2 网格节点并网。产物是全新堆叠，不带输入上的附魔 / 耐久 / 容器内容等数据。",
+  "manual.godofthings.infinity_water_cell": "作用：ME无限水元件 —— 放入 ME 驱动器后，网络内永远有 21.4 亿 mB 水可无限存取（不占字节、不存实际数据，拆下重放依旧）。闲置耗电 8 AE/t。\n获取：合成（石英玻璃 + 水桶 + 16k 存储组件 + 钻石）。\n用法：插入 ME 驱动器即可；配合无限样板可实现零成本无限供水/浇地/导热。",
+  "manual.godofthings.infinity_lava_cell": "作用：ME无限熔岩元件 —— 放入 ME 驱动器后，网络内永远有 21.4 亿 mB 熔岩可无限存取（不占字节、不存实际数据）。闲置耗电 8 AE/t。\n获取：合成（石英玻璃 + 熔岩桶 + 16k 存储组件 + 钻石）。\n用法：插入 ME 驱动器即可；配合无限样板可实现零成本无限取熔岩/燃料。",
+  "manual.godofthings.infinity_cobblestone_cell": "作用：ME无限圆石元件 —— 放入 ME 驱动器后，网络内永远有 21.4 亿个圆石可无限存取（不占字节、不存实际数据）。闲置耗电 8 AE/t。\n获取：合成（石英玻璃 + 水桶 + 熔岩桶 + 16k 存储组件 + 钻石）。\n用法：插入 ME 驱动器即可；配合无限样板可实现零成本无限取圆石。",
+  "manual.godofthings.infinity_blank_pattern_cell": "作用：ME无限空白样板元件 —— 网络内永远有 21.4 亿个空白样板可无限存取（不占字节、不存实际数据）。闲置耗电 8 AE/t。\n获取：合成（石英玻璃 + 空白样板 + 16k 存储组件 + 钻石）。\n用法：插入 ME 驱动器即可；样板供应器编码合成再也不愁空白样板不够。"
 }

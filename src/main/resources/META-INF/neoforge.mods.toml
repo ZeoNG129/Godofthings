@@ -14,7 +14,7 @@ logoFile="logo.png"
 displayURL="https://github.com/ZeoNG129/Godofthings"
 issueTrackerURL="https://github.com/ZeoNG129/Godofthings/issues"
 credits='''整合与维护：ZeoNG129。
-部分子系统照抄自开源项目：useless_mod、PersonalSpace（LGPL-3.0）、
+部分子系统照抄自开源项目：useless_mod、PersonalSpace（LGPL-3.0）、ExtendedAE（LGPL-3.0）、
 AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁止商用）；
 神之套装技能树移植自 Zifeng Skill Tree（MIT）。
 各部分的适用范围、署名与许可全文见 THIRD_PARTY_NOTICES.md 与 jar 内 META-INF/LICENSE-*。'''

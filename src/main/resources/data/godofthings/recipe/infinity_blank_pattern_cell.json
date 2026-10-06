@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "ae2:quartz_glass"
+    },
+    "I": {
+      "tag": "c:gems/diamond"
+    },
+    "B": {
+      "item": "ae2:blank_pattern"
+    },
+    "X": {
+      "item": "ae2:cell_component_16k"
+    }
+  },
+  "pattern": [
+    "CBC",
+    "BXB",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "godofthings:infinity_blank_pattern_cell"
+  }
+}

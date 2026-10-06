@@ -42,7 +42,14 @@ import com.godofthings.item.GodInviteItem;
 import com.godofthings.item.GodMinerItem;
 import com.godofthings.item.GodNoteItem;
 import com.godofthings.item.GodUnbreakableItem;
+import com.godofthings.infinitecell.InfinityCellInventory;
+import com.godofthings.infinitecell.InfinityCellItem;
 import com.godofthings.measurement.GodMeasureItem;
+import appeng.api.client.StorageCellModels;
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.storage.StorageCells;
+import appeng.core.definitions.AEItems;
 import com.godofthings.menu.GodBlackBoxMenu;
 import com.godofthings.menu.GodChangeMenu;
 import com.godofthings.menu.GodCraftConfigMenu;
@@ -77,12 +84,14 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -373,6 +382,20 @@ public class Godofthings
     public static final DeferredItem<GodMeasureItem> GOD_MEASURE =
             ITEMS.registerItem("god_measure", GodMeasureItem::new);
 
+    // ---- ME 无限存储元件（自 ExtendedAE LGPL-3.0 移植：固定资源无限存取，不写 NBT）----
+    public static final DeferredItem<InfinityCellItem> INFINITY_WATER_CELL =
+            ITEMS.registerItem("infinity_water_cell",
+                    props -> new InfinityCellItem(() -> AEFluidKey.of(Fluids.WATER), props.stacksTo(1)));
+    public static final DeferredItem<InfinityCellItem> INFINITY_LAVA_CELL =
+            ITEMS.registerItem("infinity_lava_cell",
+                    props -> new InfinityCellItem(() -> AEFluidKey.of(Fluids.LAVA), props.stacksTo(1)));
+    public static final DeferredItem<InfinityCellItem> INFINITY_COBBLESTONE_CELL =
+            ITEMS.registerItem("infinity_cobblestone_cell",
+                    props -> new InfinityCellItem(() -> AEItemKey.of(Blocks.COBBLESTONE), props.stacksTo(1)));
+    public static final DeferredItem<InfinityCellItem> INFINITY_BLANK_PATTERN_CELL =
+            ITEMS.registerItem("infinity_blank_pattern_cell",
+                    props -> new InfinityCellItem(() -> AEItemKey.of(AEItems.BLANK_PATTERN), props.stacksTo(1)));
+
     // ---- 神之合成 ----
     public static final DeferredBlock<GodCraftBlock> GOD_CRAFT = BLOCKS.registerBlock("god_craft",
             GodCraftBlock::new,
@@ -525,6 +548,10 @@ public class Godofthings
                         output.accept(GOD_INVITE.get());
                         output.accept(GOD_CHANGE.get());
                         output.accept(GOD_MEASURE.get());
+                        output.accept(INFINITY_WATER_CELL.get());
+                        output.accept(INFINITY_LAVA_CELL.get());
+                        output.accept(INFINITY_COBBLESTONE_CELL.get());
+                        output.accept(INFINITY_BLANK_PATTERN_CELL.get());
                         output.accept(GOD_CRAFT_ITEM.get());
                         output.accept(VOID_TELEPORTER_ITEM.get());
                         output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
@@ -597,8 +624,22 @@ public class Godofthings
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
+        // ME 无限元件：存储处理器 + 驱动器槽位模型注册（enqueueWork 保证注册表就绪且主线程执行；
+        // StorageCellModels 虽在 api.client 包里，但上游 ExtendedAE 同样在双侧通用初始化中调用）
+        event.enqueueWork(() -> {
+            StorageCells.addCellHandler(InfinityCellInventory.HANDLER);
+            StorageCellModels.registerModel(INFINITY_WATER_CELL.get(), godofthingsId("block/drive/infinity_water_cell"));
+            StorageCellModels.registerModel(INFINITY_LAVA_CELL.get(), godofthingsId("block/drive/infinity_lava_cell"));
+            StorageCellModels.registerModel(INFINITY_COBBLESTONE_CELL.get(), godofthingsId("block/drive/infinity_cobblestone_cell"));
+            StorageCellModels.registerModel(INFINITY_BLANK_PATTERN_CELL.get(), godofthingsId("block/drive/infinity_blank_pattern_cell"));
+        });
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         LOGGER.info("Godofthings loaded");
+    }
+
+    private static net.minecraft.resources.ResourceLocation godofthingsId(String path)
+    {
+        return net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 
     private void onServerStarting(ServerStartingEvent event)

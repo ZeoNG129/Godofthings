@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "godofthings:item/infinity_cell_blank_pattern",
+    "layer1": "ae2:item/storage_cell_led"
+  }
+}
