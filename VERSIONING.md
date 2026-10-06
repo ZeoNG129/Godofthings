@@ -1226,3 +1226,8 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **考证**：解包用户提供的 `D:\下载\ToolBelt-1.21.1-2.2.10.jar`（dev.gigaherz.toolbelt）全量反汇编——腰带收纳格（`BeltAttachment` 的匿名 `ItemStackHandler$1`）**只覆写 `onContentsChanged`（同步通知），整个模组没有任何 isItemValid / mayPlace / 标签准入**：工具皮带收纳格不挑物品，任何物品都能直接放进去快捷切换；它唯一自带的标签是 `data/curios/tags/item/belt.json = ["toolbelt:belt"]`（把自己的腰带物品装备进 Curios 默认 belt 槽）。
   - **修正**：删除上一轮误加的 `curios:belt` 标签文件（那是「把物品**当腰带穿**」的准入标签，会让五件物品与真正的腰带竞争装备槽，并非「放进腰带收纳」）——**五件物品（请神 / 神之更改 / 神之测量 / 神之黑盒 / 神之绑定）无需任何改动即可放进工具皮带**；手册条目（zh/en ×5）与 README 绑定行改为如实说明「可直接放进 ToolBelt 快捷切换、不限物品类型」。神之绑定器 → **神之绑定**改名保留（仅显示名，物品 id `god_binder` 不变，旧存档无损）。
   - 验证：`check-lang.ps1` OK（557 键、标签文件回至 4 个）；GameTest **33/33**；`gradlew build` 成功部署。
+- 5.15.6 → **5.15.7（修正工具皮带考证结论：准入是配置白名单，不是「不挑物品」）** —— 澄清 / 文档更正，按规则**末位 +1**。
+  - **上轮结论有误**：v5.15.6 只反汇编了 `BeltAttachment$1`（它确实只覆写 onContentsChanged），但漏了真正的闸门——**`common/BeltSlot.mayPlace → ConfigData.isItemStackAllowed`**：白名单命中→放行、黑名单命中→拒绝、腰带本身→拒绝、`allowAllNonStackableItems=true` 且不可堆叠（maxStackSize==1）→放行、**其余一律拒绝**。用户实测五件物品（四件可堆叠 64）全部放不进去，即被此闸门拦下。
+  - **准入来源**：`ConfigData$ServerConfig` 的 `whitelist` / `blacklist`（TOML 字符串列表）+ `allowAllNonStackableItems` 开关；解析方法 `parseItemStack` = `BuiltInRegistries.ITEM.get(ResourceLocation.parse(str))`——**仅支持物品 id、不支持标签**（ToolBelt.class 里的 `itemTag` 工厂为零调用的死代码）。
+  - **修正**：①用户实例 `config/toolbelt-server.toml` 的 whitelist 加入五件物品 id（`godofthings:god_invite / god_change / god_measure / god_black_box / god_binder`），重启后即可放入；②手册条目（zh/en ×5）与 README 绑定行改为如实说明「在 toolbelt-server.toml 白名单加物品 id」（默认仅收不可堆叠物品，不支持标签）；③本模组代码零改动。
+  - 验证：`check-lang.ps1` OK（557 键）；GameTest **33/33**；`gradlew build` 成功部署。
