@@ -1,6 +1,15 @@
 package com.godofthings.block.entity;
 
+import appeng.api.AECapabilities;
+import appeng.api.config.Actionable;
+import appeng.api.networking.IManagedGridNode;
+import appeng.api.networking.security.IActionSource;
+import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.storage.MEStorage;
+import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
+import com.godofthings.ae2.AeGridNode;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodFurnaceMenu;
 import net.minecraft.core.BlockPos;
@@ -44,7 +53,7 @@ import java.util.Optional;
  * 要先取到目标方块的这个能力，取不到就会直接拒绝，见 {@code AeDeviceLinker}）。
  * 其余 6 台（矿机 / 资源机 / 掉落机 / 砍杀 / 合成台 / 吸收）的 AE 并网不受影响。</p>
  */
-public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
+public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
 {
     // v5.13.0：输入/输出槽 6 → 9（与界面 3×3 对齐；旧存档迁移逻辑按 oldSize/2 推断旧输出区，自动兼容）
     public static final int INPUT_SLOT_COUNT = 9;
@@ -118,6 +127,13 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
     private final int[] faceModes = new int[6];
 
     private final IItemHandler[] sideHandlers = new IItemHandler[6];
+
+    /** 是否接入 AE（v5.15.5 恢复：并网后熔炼产物自动输出进 AE 网络，占一个频道）。 */
+    private boolean aeEnabled = true;
+
+    /** AE 网格节点（线缆直连并网，照抄资源三机）。 */
+    private final AeGridNode aeNode = new AeGridNode(this);
+    private int aeTick = 0;
 
     public GodFurnaceBlockEntity(BlockPos pos, BlockState state)
     {
@@ -205,8 +221,9 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_FURNACE_BE.get(),
                     (be, side) -> be.getSideCapability(side));
-            // v5.1.3：不再注册 AECapabilities.IN_WORLD_GRID_NODE_HOST —— 神之熔炉不能接 AE 网络。
-            // （线缆与荒辰移晷之杖的无线并网都要求这个能力，撤掉后两条路同时失效。）
+            // v5.15.5：恢复 AE 并网（照抄资源三机）——线缆直连、占一个频道、产物自动输出进网络。
+            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, Godofthings.GOD_FURNACE_BE.get(),
+                    (be, side) -> be);
         }
     }
 
@@ -288,6 +305,8 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
         }
         be.autoTransfer();
         be.smelt();
+        // AE 产物输出节流：每 20 tick（1 秒）推一次（v5.15.5 恢复并网）
+        be.pushOutputToAeThrottled();
     }
 
     private void autoTransfer()
@@ -427,6 +446,86 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
+    // ---- AE 网格节点（v5.15.5 恢复：线缆直连并网，产物自动输出进 AE，占一个频道） ----
+
+    @Override
+    public IManagedGridNode getMainNode()
+    {
+        return aeNode.getMainNode();
+    }
+
+    @Override
+    public void saveChanges()
+    {
+        setChanged();
+    }
+
+    @Override
+    public void onLoad()
+    {
+        super.onLoad();
+        aeNode.create(level, worldPosition);
+    }
+
+    @Override
+    public void setRemoved()
+    {
+        aeNode.destroy();
+        super.setRemoved();
+    }
+
+    /** 是否接入 AE（并网后熔炼产物自动输出进 AE 网络）。 */
+    public boolean isAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    public void toggleAeEnabled()
+    {
+        this.aeEnabled = !this.aeEnabled;
+        setChanged();
+    }
+
+    /** 把输出槽产物推入 AE 网络（只推输出槽 9-17；输入槽是熔炼队列不推）。 */
+    private void pushOutputToAe()
+    {
+        if (!aeEnabled || !aeNode.isActive())
+        {
+            return;
+        }
+        IStorageService storage = aeNode.getStorage();
+        if (storage == null)
+        {
+            return;
+        }
+        MEStorage inv = storage.getInventory();
+        IActionSource source = aeNode.actionSource();
+        for (int slot = OUTPUT_SLOT_START; slot < TOTAL_SLOTS; slot++)
+        {
+            ItemStack stack = itemHandler.getStackInSlot(slot);
+            if (stack.isEmpty())
+            {
+                continue;
+            }
+            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
+            if (inserted > 0)
+            {
+                itemHandler.extractItem(slot, (int) inserted, false);
+            }
+        }
+    }
+
+    /** AE 产物输出节流：每 20 tick（1 秒）推一次。 */
+    private void pushOutputToAeThrottled()
+    {
+        aeTick++;
+        if (aeTick >= 20)
+        {
+            aeTick = 0;
+            pushOutputToAe();
+        }
+    }
+
     // ---- 熔炼：无燃料，每个输入槽每 tick 最多熔一整组 ----
 
     private void smelt()
@@ -545,6 +644,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
         tag.put("Inventory", itemHandler.serializeNBT(registries));
         tag.put("AccelSlot", accelSlot.serializeNBT(registries));
         tag.putIntArray("FaceModes", faceModes);
+        tag.putBoolean("AeEnabled", aeEnabled);
     }
 
     // 1.21.1（1.20.5+ 破坏性变更）：load(CompoundTag) → loadAdditional(CompoundTag, HolderLookup.Provider)
@@ -596,6 +696,8 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider
             int[] modes = tag.getIntArray("FaceModes");
             System.arraycopy(modes, 0, faceModes, 0, Math.min(6, modes.length));
         }
+        // AE 接入开关（v5.15.5 恢复；旧存档缺键默认开）
+        this.aeEnabled = !tag.contains("AeEnabled") || tag.getBoolean("AeEnabled");
     }
 
     /** 第一个空输出槽；没有则 -1 */

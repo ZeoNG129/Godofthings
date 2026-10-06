@@ -19,6 +19,7 @@ public class GodFurnaceMenu extends AbstractContainerMenu
 {
     private final GodFurnaceBlockEntity be;
     private final ContainerLevelAccess access;
+    private int cachedAeEnabled = 1;
 
     // 客户端构造：从 extraData 读取 BlockPos，再查客户端 BE 副本
     public GodFurnaceMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
@@ -56,6 +57,16 @@ public class GodFurnaceMenu extends AbstractContainerMenu
         // 神之加速槽（只接受神之加速，最多 64 个），右侧竖排区（v5.13.0：116,35 → 178,35）
         this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 178, 35));
 
+        // AE 接入开关状态（客户端同步；v5.15.5 恢复并网）
+        this.addDataSlot(new DataSlot()
+        {
+            @Override
+            public int get() { return be.isAeEnabled() ? 1 : 0; }
+
+            @Override
+            public void set(int value) { cachedAeEnabled = value; }
+        });
+
         // 玩家物品栏 3x9 + 快捷栏 1x9
         for (int row = 0; row < 3; row++)
         {
@@ -76,11 +87,24 @@ public class GodFurnaceMenu extends AbstractContainerMenu
         return be;
     }
 
+    /** AE 接入开关状态（客户端渲染用）。 */
+    public boolean isAeEnabled()
+    {
+        return cachedAeEnabled == 1;
+    }
+
     // 客户端点击「配置」按钮 → ServerboundContainerButtonClickPacket(containerId, 6)
     // 服务端在此打开独立的配置界面
     @Override
     public boolean clickMenuButton(Player player, int buttonId)
     {
+        if (buttonId == 10)
+        {
+            // AE 接入开关（界面右上角按钮，与神之资源系列同一按钮位）
+            be.toggleAeEnabled();
+            this.broadcastChanges();
+            return true;
+        }
         if (buttonId == 6 && player instanceof ServerPlayer serverPlayer)
         {
             // 1.21.1：NetworkHooks.openScreen → IPlayerExtension.openMenu(provider, Consumer<RegistryFriendlyByteBuf>)
