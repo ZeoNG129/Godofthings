@@ -17,6 +17,9 @@ import java.util.List;
  *
  * <p><b>序列化</b>：NBT 用 {@link ItemStack#OPTIONAL_CODEC}（空格编码成空 map，而不是 {@code {id:"minecraft:air"}}），
  * 网络用 {@link ItemStack#OPTIONAL_LIST_STREAM_CODEC}（带上 registry 上下文，附魔 / 药水这类组件才编得动）。</p>
+ *
+ * <p><b>注意 equals</b>：1.21.1 的 {@link ItemStack} 没有重写 {@code equals}（是引用比较），
+ * 所以本记录的 {@code equals} 只能比「同一批对象」；要判内容是否一致，逐格用 {@link ItemStack#matches}。</p>
  */
 public record GodBackpackContents(List<ItemStack> items)
 {

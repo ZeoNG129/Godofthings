@@ -24,6 +24,10 @@ import java.util.Set;
  * <p><b>记忆格与忽略整理格互斥</b>：一个格子要么「记住某个物品」，要么「整理时原地不动」。
  * {@link #withMemory(int, ItemStack)} 会把该格从忽略整理集合里摘掉，
  * {@link #toggleNoSort(int)} 打开时会把该格从记忆集合里摘掉 —— 与界面上「忽略整理格不作为记忆格」一致。</p>
+ *
+ * <p><b>注意 equals</b>：1.21.1 的 {@link ItemStack} 没有重写 {@code equals}（是引用比较），
+ * 记忆格里的堆叠一编解码就是新对象，所以本记录的 {@code equals} 判内容会假阴性；
+ * 要比两份设置，逐字段比、堆叠用 {@link ItemStack#matches}。</p>
  */
 public record GodBackpackSettings(
         Map<Integer, ItemStack> memory,

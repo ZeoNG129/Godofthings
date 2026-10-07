@@ -8,10 +8,14 @@ import com.godofthings.backpack.GodBackpackMenu;
 import com.godofthings.backpack.GodBackpackSettings;
 import com.godofthings.backpack.GodBackpackSorting;
 import com.godofthings.backpack.SortBy;
+import com.godofthings.network.GodBackpackActionPayload;
+import com.godofthings.network.GodBackpackSyncPayload;
+import io.netty.buffer.Unpooled;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
@@ -33,8 +37,8 @@ import java.util.Set;
 /**
  * 神之背包回归测试（{@code gradlew runGameTestServer} 跑）。
  *
- * <p>覆盖四条最怕静默出错的数据层行为：120 格内容的 NBT 往返、设置组件的 NBT 往返、
- * 整理时「记忆格 / 忽略整理格原地不动」、以及「存入时记忆格优先」。</p>
+ * <p>覆盖四条最怕静默出错的数据层行为：120 格内容的编解码往返（NBT + 封包）、设置组件的编解码往返
+ * （NBT + 封包 + 同步包 / 动作包）、整理时「记忆格 / 忽略整理格原地不动」、以及「存入时记忆格优先」。</p>
  *
  * <p>模板沿用 {@code data/godofthings/structure/note_data.nbt}（1×1×1 空气），
  * 所以 {@code @PrefixGameTestTemplate(false)} 让四条共用它。</p>
@@ -102,6 +106,35 @@ public class GodBackpackGameTest
         return map;
     }
 
+    /**
+     * 逐字段比两份设置。
+     *
+     * <p>不能直接用记录的 {@code equals}：1.21.1 的 {@link ItemStack} 没有重写 {@code equals}
+     * （是引用比较），记忆格里的堆叠一编解码就是新对象，记录相等会假阴性。堆叠一律用
+     * {@link ItemStack#matches} 比。</p>
+     */
+    private static void assertSettingsEqual(GameTestHelper helper, String label,
+                                            GodBackpackSettings expected, GodBackpackSettings actual)
+    {
+        helper.assertTrue(expected.sortBy() == actual.sortBy(),
+                label + "：排序方式不一致 " + expected.sortBy() + " → " + actual.sortBy());
+        helper.assertTrue(expected.ignoreDurability() == actual.ignoreDurability(), label + "：「忽略耐久」不一致");
+        helper.assertTrue(expected.ignoreNbt() == actual.ignoreNbt(), label + "：「忽略 NBT」不一致");
+        helper.assertTrue(expected.keepSearch() == actual.keepSearch(), label + "：「保留搜索词」不一致");
+        helper.assertTrue(expected.searchPhrase().equals(actual.searchPhrase()),
+                label + "：搜索词不一致 " + expected.searchPhrase() + " → " + actual.searchPhrase());
+        helper.assertTrue(expected.noSort().equals(actual.noSort()),
+                label + "：忽略整理格不一致 " + expected.noSort() + " → " + actual.noSort());
+        helper.assertTrue(expected.memory().size() == actual.memory().size(),
+                label + "：记忆格数量不一致 " + expected.memory().size() + " → " + actual.memory().size());
+        for (Map.Entry<Integer, ItemStack> entry : expected.memory().entrySet())
+        {
+            ItemStack remembered = actual.memory().get(entry.getKey());
+            helper.assertTrue(remembered != null && ItemStack.matches(remembered, entry.getValue()),
+                    label + "：第 " + entry.getKey() + " 格记住的物品不一致 " + entry.getValue() + " → " + remembered);
+        }
+    }
+
     /** 存档路径：120 格内容（含空、含自定义名字、含附魔）→ NBT → 内容，逐格比对 */
     @GameTest(template = TEMPLATE)
     public static void contentsRoundTrip(GameTestHelper helper)
@@ -126,6 +159,19 @@ public class GodBackpackGameTest
             helper.assertTrue(ItemStack.matches(before, after),
                     "第 " + i + " 格往返后不一致：" + before + " → " + after);
         }
+
+        // 网络路径：内容 → RegistryFriendlyByteBuf → 内容（数据组件的 networkSynchronized 走这条）
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), level.registryAccess());
+        GodBackpackContents.STREAM_CODEC.encode(buf, original);
+        GodBackpackContents networkRound = GodBackpackContents.STREAM_CODEC.decode(buf);
+        helper.assertTrue(original.items().size() == networkRound.items().size(), "封包往返后格数变了");
+        for (int i = 0; i < GodBackpackItem.SIZE; i++)
+        {
+            helper.assertTrue(ItemStack.matches(original.items().get(i), networkRound.items().get(i)),
+                    "第 " + i + " 格封包往返后不一致：" + original.items().get(i) + " → " + networkRound.items().get(i));
+        }
+        helper.assertTrue(buf.readableBytes() == 0,
+                "内容封包读完后还剩 " + buf.readableBytes() + " 字节（读写不对称）");
         helper.succeed();
     }
 
@@ -150,21 +196,36 @@ public class GodBackpackGameTest
         helper.assertFalse(loaded.isEmpty(), "背包没能在 NBT 往返后读回来");
 
         GodBackpackSettings round = GodBackpackItem.settings(loaded);
-        helper.assertTrue(round.sortBy() == SortBy.TAG, "排序方式没保住：" + round.sortBy());
-        helper.assertTrue(round.ignoreDurability(), "「忽略耐久」开关没保住");
-        helper.assertTrue(round.ignoreNbt(), "「忽略 NBT」开关没保住");
-        helper.assertTrue(round.keepSearch(), "「保留搜索词」开关没保住");
-        helper.assertTrue("@minecraft 钻石".equals(round.searchPhrase()),
-                "搜索词没保住：" + round.searchPhrase());
-        helper.assertTrue(round.noSort().equals(noSort), "忽略整理格没保住：" + round.noSort());
-        helper.assertTrue(round.memory().size() == memory.size(),
-                "记忆格数量不对：" + round.memory().size() + "（期望 " + memory.size() + "）");
-        for (Map.Entry<Integer, ItemStack> entry : memory.entrySet())
-        {
-            ItemStack remembered = round.memory().get(entry.getKey());
-            helper.assertTrue(remembered != null && ItemStack.matches(remembered, entry.getValue()),
-                    "第 " + entry.getKey() + " 格记住的物品没保住：" + remembered);
-        }
+        assertSettingsEqual(helper, "NBT 往返", original, round);
+
+        // 网络路径：设置 → RegistryFriendlyByteBuf → 设置（同步包与「客户端动作」都靠它）
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), level.registryAccess());
+        GodBackpackSettings.STREAM_CODEC.encode(buf, original);
+        GodBackpackSettings networkRound = GodBackpackSettings.STREAM_CODEC.decode(buf);
+        assertSettingsEqual(helper, "封包往返", original, networkRound);
+        helper.assertTrue(buf.readableBytes() == 0,
+                "设置封包读完后还剩 " + buf.readableBytes() + " 字节（读写不对称）");
+
+        // 同步包整体往返（服务端 → 客户端：设置 + 滚动）
+        GodBackpackSyncPayload sync = new GodBackpackSyncPayload(3, original, 5);
+        buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), level.registryAccess());
+        GodBackpackSyncPayload.STREAM_CODEC.encode(buf, sync);
+        GodBackpackSyncPayload syncRound = GodBackpackSyncPayload.STREAM_CODEC.decode(buf);
+        helper.assertTrue(syncRound.containerId() == 3 && syncRound.scroll() == 5,
+                "同步包往返后 containerId / scroll 不对：" + syncRound.containerId() + " / " + syncRound.scroll());
+        assertSettingsEqual(helper, "同步包往返", original, syncRound.settings());
+        helper.assertTrue(buf.readableBytes() == 0,
+                "同步包读完后还剩 " + buf.readableBytes() + " 字节（读写不对称）");
+
+        // 动作包（客户端 → 服务端：标记记忆格 / 忽略整理格、搜索词、滚动）也顺手往返一次
+        GodBackpackActionPayload action = new GodBackpackActionPayload(
+                GodBackpackActionPayload.ACTION_SET_SEARCH, 0, "@minecraft 钻石");
+        buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), level.registryAccess());
+        GodBackpackActionPayload.STREAM_CODEC.encode(buf, action);
+        GodBackpackActionPayload actionRound = GodBackpackActionPayload.STREAM_CODEC.decode(buf);
+        helper.assertTrue(actionRound.equals(action), "动作包往返后不一致：" + actionRound);
+        helper.assertTrue(buf.readableBytes() == 0,
+                "动作包读完后还剩 " + buf.readableBytes() + " 字节（读写不对称）");
         helper.succeed();
     }
 
