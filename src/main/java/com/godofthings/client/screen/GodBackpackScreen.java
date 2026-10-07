@@ -58,14 +58,18 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
     private static final int[] BTN_X = {8, 40, 82, 122, 164};
     private static final int[] BTN_W = {30, 40, 38, 40, 26};
 
-    // 设置浮层里的 5 个开关
-    private static final int SET_W = 150;
-    private static final int SET_ROW_H = 20;
+    // 设置模式：顶部区域原地换成 2 行开关（**不覆盖下面的格子**，避免挡住背包槽位）
+    private static final int SET_BTN_W = 58;
+    private static final int SET_ROW1_Y = 4;
+    private static final int SET_ROW2_Y = 20;
+    private static final int SET_BTN_H = 14;
+    private static final int[] SET_X = {8, 70, 132};
 
     // ---- 状态 ----
     /** 标记模式：0 = 无，1 = 记忆，2 = 忽略整理 */
     private int markMode;
-    private boolean settingsOpen;
+    /** true = 顶部显示设置开关行（搜索框隐藏），false = 显示搜索框与主按钮行 */
+    private boolean settingsMode;
     private EditBox searchBox;
     /** 上次发给服务端的搜索词（避免每次重绘都发包） */
     private String sentSearch = "";
@@ -83,7 +87,7 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
     {
         super.init();
         this.markMode = 0;
-        this.settingsOpen = false;
+        this.settingsMode = false;
 
         this.searchBox = new EditBox(this.font, this.leftPos + SEARCH_X, this.topPos + SEARCH_Y,
                 SEARCH_W, SEARCH_H, Component.translatable("gui.godofthings.backpack.search"));
@@ -110,13 +114,21 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
     protected void renderBg(GuiGraphics gui, float partialTick, int mouseX, int mouseY)
     {
         gui.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-        drawButtons(gui, mouseX, mouseY);
+        // 设置模式：顶部区域换成开关行，搜索框隐藏（**不覆盖下面的背包格子**）
+        if (this.searchBox != null)
+        {
+            this.searchBox.setVisible(!this.settingsMode);
+        }
+        if (this.settingsMode)
+        {
+            drawSettingsBar(gui, mouseX, mouseY);
+        }
+        else
+        {
+            drawButtons(gui, mouseX, mouseY);
+        }
         drawScrollbar(gui);
         drawGhostsAndMarks(gui);
-        if (this.settingsOpen)
-        {
-            drawSettings(gui, mouseX, mouseY);
-        }
     }
 
     /**
@@ -157,8 +169,7 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
         for (int i = 0; i < labels.length; i++)
         {
             boolean hovered = isHovering(BTN_X[i], BTN_Y, BTN_W[i], BTN_H, mouseX, mouseY);
-            boolean active = i != 4 || this.settingsOpen;
-            int bg = active ? (hovered ? 0xFF6E6E6E : 0xFF4A4A4A) : (hovered ? 0xFF5A5A5A : 0xFF3A3A3A);
+            int bg = hovered ? 0xFF6E6E6E : 0xFF4A4A4A;
             int bx = this.leftPos + BTN_X[i];
             int by = this.topPos + BTN_Y;
             gui.fill(bx, by, bx + BTN_W[i], by + BTN_H, bg);
@@ -234,35 +245,45 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
         }
     }
 
-    /** 设置浮层：记忆标记 / 忽略整理标记 / 忽略耐久 / 忽略 NBT / 保留搜索词 */
-    private void drawSettings(GuiGraphics gui, int mouseX, int mouseY)
+    /**
+     * 设置行：**占用顶部区域**（搜索行 + 主按钮行那 34 像素），
+     * 两行各 3 个按钮 —— 记忆 / 忽略整理 / 忽略耐久 + 忽略 NBT / 保留搜索 / 返回。
+     * <p>刻意做成「原地替换」而不是弹浮层：浮层会盖住背包格子，用户看不到自己标记的是哪一格。</p>
+     */
+    private void drawSettingsBar(GuiGraphics gui, int mouseX, int mouseY)
     {
-        int x = this.leftPos + (this.imageWidth - SET_W) / 2;
-        int y = this.topPos + 52;
-        int h = 5 * SET_ROW_H + 8;
-        gui.fill(x - 2, y - 2, x + SET_W + 2, y + h + 2, 0xFF202020);
-        gui.fill(x, y, x + SET_W, y + h, 0xFF3A3A3A);
-
-        GodBackpackSettings s = this.menu.settings();
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
-            int by = y + 4 + i * SET_ROW_H;
-            boolean hovered = mouseX >= x + 2 && mouseX < x + SET_W - 2 && mouseY >= by && mouseY < by + SET_ROW_H - 2;
+            int col = i % 3;
+            int row = i / 3;
+            int x = this.leftPos + SET_X[col];
+            int y = this.topPos + (row == 0 ? SET_ROW1_Y : SET_ROW2_Y);
+            boolean hovered = mouseX >= x && mouseX < x + SET_BTN_W && mouseY >= y && mouseY < y + SET_BTN_H;
             boolean on = switch (i)
             {
                 case 0 -> this.markMode == 1;
                 case 1 -> this.markMode == 2;
                 case 2 -> this.menu.ignoreDurability();
                 case 3 -> this.menu.ignoreNbt();
-                default -> this.menu.keepSearch();
+                case 4 -> this.menu.keepSearch();
+                default -> false;   // 返回按钮
             };
-            gui.fill(x + 2, by, x + SET_W - 2, by + SET_ROW_H - 2,
-                    on ? (hovered ? 0xFF6F9E6F : 0xFF4E7A4E) : (hovered ? 0xFF5A5A5A : 0xFF474747));
-            gui.drawString(this.font, settingsLabel(i), x + 6, by + 3, 0xFFFFFF, false);
-            gui.drawString(this.font, Component.translatable(on ? "gui.godofthings.armor.on" : "gui.godofthings.armor.off"),
-                    x + SET_W - 22, by + 3, on ? 0x9CFF9C : 0xC0C0C0, false);
+            int bg;
+            if (i == 5)
+            {
+                bg = hovered ? 0xFF6E6E6E : 0xFF4A4A4A;                 // 返回：中性
+            }
+            else
+            {
+                bg = on ? (hovered ? 0xFF6F9E6F : 0xFF4E7A4E)           // 开：绿
+                        : (hovered ? 0xFF5A5A5A : 0xFF474747);          // 关：灰
+            }
+            gui.fill(x, y, x + SET_BTN_W, y + SET_BTN_H, bg);
+            gui.fill(x, y, x + SET_BTN_W, y + 1, 0xFF8A8A8A);
+            gui.fill(x, y + SET_BTN_H - 1, x + SET_BTN_W, y + SET_BTN_H, 0xFF2A2A2A);
+            String label = this.font.plainSubstrByWidth(settingsLabel(i).getString(), SET_BTN_W - 4);
+            gui.drawString(this.font, label, x + (SET_BTN_W - this.font.width(label)) / 2, y + 3, 0xFFFFFF, false);
         }
-
     }
 
     private Component settingsLabel(int i)
@@ -273,16 +294,28 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
             case 1 -> Component.translatable("gui.godofthings.backpack.no_sort");
             case 2 -> Component.translatable("gui.godofthings.backpack.ignore_durability");
             case 3 -> Component.translatable("gui.godofthings.backpack.ignore_nbt");
-            default -> Component.translatable("gui.godofthings.backpack.keep_search");
+            case 4 -> Component.translatable("gui.godofthings.backpack.keep_search");
+            default -> Component.translatable("gui.godofthings.back");
         };
     }
 
     @Override
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
-        gui.drawString(this.font, this.title, 8, 6 - 1, 0x404040, false);
+        // 设置模式下不画标题（那行被开关行占用）
+        if (!this.settingsMode)
+        {
+            gui.drawString(this.font, this.title, 8, 6 - 1, 0x404040, false);
+        }
         gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"),
                 8, this.inventoryLabelY, 0x404040, false);
+        // 标记模式提示：画在「物品栏」标签同一行的右侧空白处（不挡格子）
+        if (this.markMode != 0)
+        {
+            Component hint = Component.translatable("gui.godofthings.backpack.marking");
+            gui.drawString(this.font, hint, this.imageWidth - 8 - this.font.width(hint),
+                    this.inventoryLabelY, 0xC06000, false);
+        }
     }
 
     @Override
@@ -290,13 +323,27 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
     {
         super.render(gui, mouseX, mouseY, partialTick);
 
-        // 标记模式提示
-        if (this.markMode != 0)
+        // 按钮与滚动条提示（设置模式下提示那 6 个开关）
+        if (this.settingsMode)
         {
-            gui.drawString(this.font, Component.translatable("gui.godofthings.backpack.marking"),
-                    8, this.topPos + 40 - 12, 0xFFD060, false);
+            for (int i = 0; i < 6; i++)
+            {
+                int x = SET_X[i % 3];
+                int y = i / 3 == 0 ? SET_ROW1_Y : SET_ROW2_Y;
+                if (isHovering(x, y, SET_BTN_W, SET_BTN_H, mouseX, mouseY))
+                {
+                    Component tip = switch (i)
+                    {
+                        case 0 -> Component.translatable("gui.godofthings.backpack.memory.hint");
+                        case 1 -> Component.translatable("gui.godofthings.backpack.no_sort.hint");
+                        default -> settingsLabel(i);
+                    };
+                    gui.renderTooltip(this.font, tip, mouseX, mouseY);
+                    return;
+                }
+            }
+            return;
         }
-        // 按钮与滚动条提示
         if (isHovering(BTN_X[0], BTN_Y, BTN_W[0], BTN_H, mouseX, mouseY))
         {
             gui.renderTooltip(this.font, Component.translatable("gui.godofthings.backpack.sort"), mouseX, mouseY);
@@ -317,7 +364,7 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
         {
             gui.renderTooltip(this.font, Component.translatable("gui.godofthings.backpack.search.hint"), mouseX, mouseY);
         }
-        else if (!this.settingsOpen && isHovering(SB_X, SB_Y, SB_W, SB_H, mouseX, mouseY))
+        else if (!this.settingsMode && isHovering(SB_X, SB_Y, SB_W, SB_H, mouseX, mouseY))
         {
             gui.renderTooltip(this.font, Component.translatable("gui.godofthings.backpack.scroll"), mouseX, mouseY);
         }
@@ -335,26 +382,21 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
         int relX = (int) mouseX - this.leftPos;
         int relY = (int) mouseY - this.topPos;
 
-        // ① 设置浮层打开时，点击只作用于浮层
-        if (this.settingsOpen)
+        // ① 设置模式：点击只作用于顶部那 6 个开关（不覆盖格子，所以格子仍可正常操作）
+        if (this.settingsMode)
         {
-            int x = (this.imageWidth - SET_W) / 2;
-            int y = 52;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 6; i++)
             {
-                int by = y + 4 + i * SET_ROW_H;
-                if (relX >= x + 2 && relX < x + SET_W - 2 && relY >= by && relY < by + SET_ROW_H - 2)
+                int col = i % 3;
+                int row = i / 3;
+                int x = SET_X[col];
+                int y = row == 0 ? SET_ROW1_Y : SET_ROW2_Y;
+                if (relX >= x && relX < x + SET_BTN_W && relY >= y && relY < y + SET_BTN_H)
                 {
-                    onSettingsRow(i);
+                    onSettingsButton(i);
                     return true;
                 }
             }
-            if (relX < x - 2 || relX > x + SET_W + 2 || relY < y - 2 || relY > y + 5 * SET_ROW_H + 10)
-            {
-                this.settingsOpen = false;
-                return true;
-            }
-            return true;
         }
 
         // ② 顶部按钮
@@ -364,7 +406,7 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
             {
                 if (i == 4)
                 {
-                    this.settingsOpen = true;
+                    this.settingsMode = true;
                     return true;
                 }
                 int btnId = switch (i)
@@ -406,15 +448,17 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    private void onSettingsRow(int row)
+    /** 设置行按钮：0 记忆标记 / 1 忽略整理标记 / 2 忽略耐久 / 3 忽略 NBT / 4 保留搜索词 / 5 返回 */
+    private void onSettingsButton(int index)
     {
-        switch (row)
+        switch (index)
         {
             case 0 -> this.markMode = this.markMode == 1 ? 0 : 1;
             case 1 -> this.markMode = this.markMode == 2 ? 0 : 2;
             case 2 -> sendButton(GodBackpackMenu.BTN_TOGGLE_IGNORE_DURABILITY);
             case 3 -> sendButton(GodBackpackMenu.BTN_TOGGLE_IGNORE_NBT);
-            default -> sendButton(GodBackpackMenu.BTN_TOGGLE_KEEP_SEARCH);
+            case 4 -> sendButton(GodBackpackMenu.BTN_TOGGLE_KEEP_SEARCH);
+            default -> this.settingsMode = false;
         }
     }
 
@@ -454,7 +498,7 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
     {
         int maxScroll = maxScroll();
-        if (maxScroll > 0 && !this.settingsOpen)
+        if (maxScroll > 0 && !this.settingsMode)
         {
             int next = this.menu.scroll() - (int) Math.signum(scrollY);
             setScroll(Math.max(0, Math.min(maxScroll, next)));
