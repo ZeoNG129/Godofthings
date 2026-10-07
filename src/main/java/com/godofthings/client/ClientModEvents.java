@@ -2,6 +2,7 @@ package com.godofthings.client;
 
 import com.godofthings.Godofthings;
 import com.godofthings.client.screen.GodBlackBoxScreen;
+import com.godofthings.client.screen.GodBackpackScreen;
 import com.godofthings.client.screen.GodFurnaceConfigScreen;
 import com.godofthings.energy.CreativeEnergyCubeScreen;
 import com.godofthings.client.screen.GodFurnaceScreen;
@@ -62,6 +63,8 @@ public class ClientModEvents
         event.register(Godofthings.GOD_SLAUGHTER_CONFIG_MENU.get(), GodSlaughterConfigScreen::new);
         event.register(Godofthings.GOD_ABSORBER_MENU.get(), GodAbsorberScreen::new);
         event.register(Godofthings.GOD_ABSORBER_CONFIG_MENU.get(), GodAbsorberConfigScreen::new);
+        // 神之背包（120 格随身仓库，右键打开）
+        event.register(Godofthings.GOD_BACKPACK_MENU.get(), GodBackpackScreen::new);
         // 无用维度配置界面（潜行右键传送方块打开；照抄 useless_mod 的 DimensionConfigScreen）
         event.register(com.godofthings.beef.init.ModMenuType.DIMENSION_CONFIG_MENU.get(),
                 com.godofthings.beef.client.gui.DimensionConfigScreen::new);

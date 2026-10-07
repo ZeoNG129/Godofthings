@@ -2,6 +2,8 @@ package com.godofthings.beef.init;
 
 import com.godofthings.beef.network.DimensionConfigGhostSlotPacket;
 import com.godofthings.beef.network.DimensionConfigSubmitPacket;
+import com.godofthings.network.GodBackpackActionPayload;
+import com.godofthings.network.GodBackpackSyncPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 /**
@@ -35,5 +37,13 @@ public class ModNetwork {
         registrar.playToServer(DimensionConfigSubmitPacket.TYPE,
                                DimensionConfigSubmitPacket.STREAM_CODEC,
                                DimensionConfigSubmitPacket::handle);
+        // 神之背包（只加不改）：动作包（客户端 → 服务端：标记记忆格 / 忽略整理格、搜索词、滚动）
+        // 与设置同步包（服务端 → 客户端：设置 + 滚动全量推送），见 com.godofthings.network
+        registrar.playToServer(GodBackpackActionPayload.TYPE,
+                               GodBackpackActionPayload.STREAM_CODEC,
+                               GodBackpackActionPayload::handle);
+        registrar.playToClient(GodBackpackSyncPayload.TYPE,
+                               GodBackpackSyncPayload.STREAM_CODEC,
+                               GodBackpackSyncPayload::handle);
     }
 }

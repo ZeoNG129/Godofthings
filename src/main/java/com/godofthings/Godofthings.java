@@ -30,6 +30,10 @@ import com.godofthings.block.entity.GodSlaughterBlockEntity;
 import com.godofthings.block.entity.GodTransmitterBlockEntity;
 import com.godofthings.block.entity.SpaceTimeEternityBlockEntity;
 import com.godofthings.armor.GodArmorFeatures;
+import com.godofthings.backpack.GodBackpackContents;
+import com.godofthings.backpack.GodBackpackItem;
+import com.godofthings.backpack.GodBackpackMenu;
+import com.godofthings.backpack.GodBackpackSettings;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.energy.CreativeEnergyCubeBlock;
 import com.godofthings.energy.CreativeEnergyCubeEntity;
@@ -77,6 +81,7 @@ import com.godofthings.menu.WaypointMenu;
 import com.godofthings.recipe.GodUnbreakableRecipe;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -134,6 +139,9 @@ public class Godofthings
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, MODID);
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
             DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
+    /** 物品数据组件（神之背包的内容与设置；带持久化 + 网络同步 codec，掉地上 / 进箱子都不丢） */
+    public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS =
+            DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MODID);
 
     /** 神之套装功能开关：按玩家保存的位图（见 GodArmorFeatures / GodArmorState） */
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
@@ -163,6 +171,20 @@ public class Godofthings
                             () -> new java.util.HashMap<String, Integer>())
                     .serialize(Codec.unboundedMap(Codec.STRING, Codec.INT))
                     .copyOnDeath()
+                    .build());
+
+    // ---- 神之背包的数据组件 ----
+    // 内容 120 格 + 设置（记忆格 / 忽略整理格 / 排序方式 / 开关 / 搜索词），都跟着物品走：
+    // persistent = 存档 NBT，networkSynchronized = 物品栏同步时一起发给客户端。
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GodBackpackContents>> GOD_BACKPACK_CONTENTS =
+            DATA_COMPONENTS.register("god_backpack_contents", () -> DataComponentType.<GodBackpackContents>builder()
+                    .persistent(GodBackpackContents.CODEC)
+                    .networkSynchronized(GodBackpackContents.STREAM_CODEC)
+                    .build());
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GodBackpackSettings>> GOD_BACKPACK_SETTINGS =
+            DATA_COMPONENTS.register("god_backpack_settings", () -> DataComponentType.<GodBackpackSettings>builder()
+                    .persistent(GodBackpackSettings.CODEC)
+                    .networkSynchronized(GodBackpackSettings.STREAM_CODEC)
                     .build());
 
     // ---- 方块 ----
@@ -295,6 +317,10 @@ public class Godofthings
     /** 神之手册：游戏内查「这东西是干嘛的」（条目从注册表生成，见 manual 包） */
     public static final DeferredItem<com.godofthings.item.GodManualItem> GOD_MANUAL =
             ITEMS.registerItem("god_manual", props -> new com.godofthings.item.GodManualItem(props.stacksTo(1)));
+
+    /** 神之背包：120 格随身仓库（右键打开；内容与设置存在物品数据组件里，见 backpack 包） */
+    public static final DeferredItem<GodBackpackItem> GOD_BACKPACK_ITEM =
+            ITEMS.registerItem("god_backpack", props -> new GodBackpackItem(props.stacksTo(1)));
 
     // ---- 神之工具 ----
     // GT 扳手模式子类（通过模式轮盘切换，不直接出现在创造标签）
@@ -540,6 +566,10 @@ public class Godofthings
             MENUS.register("god_enchant", () -> IMenuTypeExtension.create(GodEnchantMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodChangeMenu>> GOD_CHANGE_MENU =
             MENUS.register("god_change", () -> IMenuTypeExtension.create(GodChangeMenu::new));
+    /** 神之背包界面：额外数据是「背包在哪个物品栏槽位」（主手 = 快捷栏下标，副手 = -1） */
+    public static final DeferredHolder<MenuType<?>, MenuType<GodBackpackMenu>> GOD_BACKPACK_MENU =
+            MENUS.register("god_backpack", () -> IMenuTypeExtension.create(
+                    (id, inv, buf) -> new GodBackpackMenu(id, inv, buf.readVarInt())));
 
     // ---- 神之不毁配方序列化器（使用 DeferredHolder 常规注册）----
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> GOD_UNBREAKABLE_SERIALIZER =
@@ -584,6 +614,7 @@ public class Godofthings
                         output.accept(GOD_BINDER.get());
                         output.accept(GOD_NOTE.get());
                         output.accept(GOD_MANUAL.get());
+                        output.accept(GOD_BACKPACK_ITEM.get());
                         output.accept(GOD_TRANSMITTER_ITEM.get());
                         output.accept(GOD_SLAUGHTER_ITEM.get());
                         output.accept(GOD_ABSORBER_ITEM.get());
@@ -604,6 +635,7 @@ public class Godofthings
         BLOCK_ENTITIES.register(modEventBus);
         MENUS.register(modEventBus);
         RECIPE_SERIALIZERS.register(modEventBus);
+        DATA_COMPONENTS.register(modEventBus);
         ATTACHMENT_TYPES.register(modEventBus);
         // 神之护甲材质（穿戴图层指向本模组贴图；漏注册会在玩家 tick 查询护甲属性时 unbound 崩溃）
         com.godofthings.item.GodArmorMaterials.register(modEventBus);

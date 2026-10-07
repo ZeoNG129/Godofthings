@@ -32,6 +32,7 @@ $javaDir = Join-Path $root 'src\main\java'
 $prefixAllow = @(
     'gui.godofthings.dimension_config.mode.',
     'gui.godofthings.dimension_config.preview.role.',
+    'gui.godofthings.backpack.sort.',
     'gui.godofthings.god_change.time_',
     'gui.godofthings.god_change.weather_',
     # Two more runtime concatenations come from the manual:
