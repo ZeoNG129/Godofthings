@@ -3,6 +3,7 @@ package com.godofthings.beef.init;
 import com.godofthings.beef.network.DimensionConfigGhostSlotPacket;
 import com.godofthings.beef.network.DimensionConfigSubmitPacket;
 import com.godofthings.network.GodBackpackActionPayload;
+import com.godofthings.network.GodBackpackOpenPayload;
 import com.godofthings.network.GodBackpackSyncPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
@@ -45,5 +46,9 @@ public class ModNetwork {
         registrar.playToClient(GodBackpackSyncPayload.TYPE,
                                GodBackpackSyncPayload.STREAM_CODEC,
                                GodBackpackSyncPayload::handle);
+        // 神之背包快捷键（只加不改）：空包，服务端自己找背包（饰品栏背部槽 / 主物品栏 / 副手）再开界面
+        registrar.playToServer(GodBackpackOpenPayload.TYPE,
+                               GodBackpackOpenPayload.STREAM_CODEC,
+                               GodBackpackOpenPayload::handle);
     }
 }

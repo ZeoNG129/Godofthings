@@ -72,6 +72,15 @@ public class WandKeyBindings
             CATEGORY
     ));
 
+    /** 打开神之背包（B）：背包在身上任何地方（饰品栏背部槽 / 主物品栏 / 副手）都能开 */
+    public static final Lazy<KeyMapping> OPEN_BACKPACK_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.open_backpack",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_B,
+            CATEGORY
+    ));
+
     private WandKeyBindings() {}
 
     public static void register(RegisterKeyMappingsEvent event)
@@ -82,5 +91,6 @@ public class WandKeyBindings
         event.register(OPEN_NOTE_KEY.get());
         event.register(EDIT_NOTE_HUD_KEY.get());
         event.register(OPEN_MANUAL_KEY.get());
+        event.register(OPEN_BACKPACK_KEY.get());
     }
 }

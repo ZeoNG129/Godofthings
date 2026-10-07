@@ -1293,3 +1293,14 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 新增语言键 3 个（全选记忆 / 全选忽略 / 全选提示），中英同步。
   - **新增回归测试**：`GodBackpackGameTest.selectAllTogglesEverySlot` —— 验证「全选记忆只标记有物品的格子且记住各自物品」「再点一次全部取消」「全选忽略覆盖 120 格并可取消」。回归测试 38 → **39 条**。
   - 验证：`check-lang.ps1` **OK**；GameTest **39/39**；`gradlew build` 成功并部署。
+- 5.16.4 → **5.17.0（神之背包：可装备到饰品栏 + 快捷键打开）** —— 新增功能，按规则**第二位 +1、末位归零**。
+  - **① 能放进饰品栏（Curios）的「背部」槽**：Curios 的 back 槽定义 `data/curios/curios/slots/back.json` 里是 `"validators": ["curios:tag"]` —— 靠**物品标签**判定。新增 `data/curios/tags/item/back.json`（`replace:false` + `godofthings:god_backpack`）即可装备。内容与设置仍写在同一个 ItemStack 的数据组件里，**放进饰品栏也不丢**；死亡掉落按 Curios 自己的规则（本模组不做死亡保护，与既有约定一致）。
+  - **② 快捷键打开**：新增 `OPEN_BACKPACK_KEY`（默认 **B**，可在「选项 → 按键控制 → 神之」改）+ 客户端处理器 `BackpackKeyHandler` + 空包 `GodBackpackOpenPayload`；服务端按「**饰品槽 → 主物品栏 → 副手**」找背包再开界面，都没有就在 actionbar 提示「没找到神之背包…」。物品悬停也加了一行提示；右键与快捷键共用同一个 `GodBackpackItem.openMenu(ServerPlayer, int)`。
+  - **③ Curios 保持可选依赖，走反射**：新增 `backpack/CuriosCompat.java` —— 先 `ModList.isLoaded("curios")`，再用**静态缓存的 Method** 反射调
+    `CuriosApi.getCuriosInventory(LivingEntity)`（static）→ `ICuriosItemHandler.findFirstCurio(Predicate<ItemStack>)` → `SlotResult.stack()`；
+    **任何异常（含 `NoClassDefFoundError` / `ExceptionInInitializerError`）都吞掉并返回空**，没装 Curios 时连 `Class.forName` 都不做。菜单新增 `SLOT_CURIOS = -3`，解析不到继续走物品栏 / 副手 / directStack 兜底，绝不崩。
+  - 语言键 +3：`key.godofthings.open_backpack`、`gui.godofthings.backpack.not_found`、`tooltip.godofthings.god_backpack.open`；手册条目与 README 行同步补「快捷键 + 饰品栏」说明。
+  - **测试**：新增 `openKeyWithoutCuriosIsSafe`（gametest 环境**没装** Curios）：断言 `CuriosCompat.isLoaded() == false`、`findBackpackInBackSlot` 返回空且不抛异常、菜单在 `SLOT_CURIOS` 下退化成空且 `stillValid == false`、把背包放回物品栏后兜底能解析出来。回归测试 39 → **40 条**。
+  - 协作：**反射签名由 teammate 在真实 `curios-neoforge-9.5.1+1.21.1.jar` 上写一次性探针实测 `getMethod` 解析通过**（GameTest 只覆盖「没装」分支，探针补上「装了」那半边的签名正确性）；代码由 teammate 实现，标签 / 语言 / 文档 / 发版由主 agent 完成。
+  - 验证：`check-lang.ps1` **OK**（5 个标签文件）；GameTest **40/40**；`gradlew build` 成功并部署；开发服务端（把 Curios 一起放进 `run-server/mods`）加载通过。
+  - 已知限制：背包装在饰品栏时**不会渲染在角色背后**（自定义背部渲染需要编译期 Curios 依赖，本轮走反射所以没做）；`B` 键若与其它模组冲突可在选项里改；Curios 需**两侧都装**（客户端要用同一套反射解析菜单，缺一侧会退化成空界面）。

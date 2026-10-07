@@ -1,6 +1,7 @@
 package com.godofthings.gametest;
 
 import com.godofthings.Godofthings;
+import com.godofthings.backpack.CuriosCompat;
 import com.godofthings.backpack.GodBackpackContainer;
 import com.godofthings.backpack.GodBackpackContents;
 import com.godofthings.backpack.GodBackpackItem;
@@ -389,6 +390,32 @@ public class GodBackpackGameTest
         after = GodBackpackItem.settings(backpack);
         helper.assertTrue(!after.isNoSort(0) && !after.isNoSort(119),
                 "再次点「全选忽略整理」应当把所有标记取消");
+        helper.succeed();
+    }
+
+    /**
+     * 快捷键（B）链路在<b>没装 Curios</b> 的环境下必须安静降级：反射工具返回空、饰品槽解析退化成空堆叠，
+     * 全程不抛异常（GameTest 服务器没有 Curios，正好覆盖「模组未装直接跳过」分支，同 GodToolBeltGameTest）。
+     */
+    @GameTest(template = TEMPLATE)
+    public static void openKeyWithoutCuriosIsSafe(GameTestHelper helper)
+    {
+        // gametest 运行目录里只有 AE2 + guideme，没装 Curios
+        helper.assertFalse(CuriosCompat.isLoaded(), "gametest 环境不该装 Curios");
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.assertTrue(CuriosCompat.findBackpackInBackSlot(player).isEmpty(),
+                "没装 Curios 时查背部槽应返回空堆叠（而不是抛异常）");
+
+        // 按「背包装备在饰品槽」开菜单：解析不到必须退化成空堆叠，不能崩
+        GodBackpackMenu menu = new GodBackpackMenu(0, player.getInventory(), GodBackpackMenu.SLOT_CURIOS);
+        helper.assertTrue(menu.backpackStack().isEmpty(), "没装 Curios 时饰品槽解析应该退化成空堆叠");
+        helper.assertFalse(menu.stillValid(player), "解析不到背包时菜单不该算「还能用」");
+
+        // 兜底顺序不受影响：物品栏里有背包时仍能解析出来（饰品槽 → 主物品栏 → 副手的第 2 档）
+        ItemStack backpack = new ItemStack(Godofthings.GOD_BACKPACK_ITEM.get());
+        player.getInventory().setItem(0, backpack);
+        helper.assertTrue(menu.backpackStack() == backpack, "兜底应该能找到主物品栏里的背包");
+        helper.assertTrue(menu.stillValid(player), "背包回到物品栏后菜单应重新可用");
         helper.succeed();
     }
 }

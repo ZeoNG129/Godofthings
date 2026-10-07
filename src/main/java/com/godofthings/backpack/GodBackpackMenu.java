@@ -62,9 +62,11 @@ public class GodBackpackMenu extends AbstractContainerMenu
 
     /** 「背包不在物品栏里」时的兜底分支（测试直接塞一个堆叠进来） */
     private static final int SLOT_DIRECT = -2;
+    /** 背包装备在 Curios 背部槽（反射查，见 {@link CuriosCompat}；客户端同样能解析） */
+    public static final int SLOT_CURIOS = -3;
 
     private final Inventory playerInventory;
-    /** 背包所在的物品栏槽位：0..35 主物品栏 / -1 副手 / -2 直接用传入的堆叠 */
+    /** 背包在哪：0..35 主物品栏 / -1 副手 / -3 Curios 背部槽 / -2 直接用传入的堆叠 */
     private final int backpackSlot;
     /** 传入的背包堆叠（不在物品栏里时的兜底，例如测试） */
     private final ItemStack directStack;
@@ -179,6 +181,16 @@ public class GodBackpackMenu extends AbstractContainerMenu
             if (offhand.getItem() instanceof GodBackpackItem)
             {
                 return offhand;
+            }
+        }
+        else if (backpackSlot == SLOT_CURIOS)
+        {
+            // Curios 背部槽：没装 Curios / 反射失败都返回空，继续往下兜底找物品栏
+            // （客户端同样装了 Curios，所以这一条在两侧都能解析；解析不到也不会崩）
+            ItemStack curio = CuriosCompat.findBackpackInBackSlot(playerInventory.player);
+            if (curio.getItem() instanceof GodBackpackItem)
+            {
+                return curio;
             }
         }
         else if (backpackSlot >= 0 && backpackSlot < playerInventory.items.size())
