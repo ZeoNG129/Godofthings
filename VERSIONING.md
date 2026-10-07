@@ -1304,3 +1304,11 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 协作：**反射签名由 teammate 在真实 `curios-neoforge-9.5.1+1.21.1.jar` 上写一次性探针实测 `getMethod` 解析通过**（GameTest 只覆盖「没装」分支，探针补上「装了」那半边的签名正确性）；代码由 teammate 实现，标签 / 语言 / 文档 / 发版由主 agent 完成。
   - 验证：`check-lang.ps1` **OK**（5 个标签文件）；GameTest **40/40**；`gradlew build` 成功并部署；开发服务端（把 Curios 一起放进 `run-server/mods`）加载通过。
   - 已知限制：背包装在饰品栏时**不会渲染在角色背后**（自定义背部渲染需要编译期 Curios 依赖，本轮走反射所以没做）；`B` 键若与其它模组冲突可在选项里改；Curios 需**两侧都装**（客户端要用同一套反射解析菜单，缺一侧会退化成空界面）。
+- 5.17.0 → **5.17.1（自动开启饰品栏「背部」槽）** —— 修复，按规则**末位 +1**。
+  - **问题**（用户反馈「装的是 Curios，但没有背包这一个栏位」）：Curios 的槽位定义 `data/curios/curios/slots/back.json` 里**没有 size 字段** → 玩家默认容量 **0** → 格子根本不显示（v5.17.0 只加了 `curios:back` 物品标签，管的是「能不能放进去」，管不了「格子存不存在」）。
+    · 交叉验证：Curios 自带指令能开这个槽（`/curios <玩家> add back 1`，lang 键 `commands.curios.add.success`），用的就是同一套 API。
+  - **修复**：`CuriosCompat.ensureBackSlot(ServerPlayer)` —— 反射 `CuriosApi.getSlotHelper()` → `ISlotHelper.getSlotsForType(player, "back")` 查容量，**小于 1 才** `growSlotType("back", 1 - current, player)` 补到 1（**幂等**：已有格子的玩家不动、不重复加）；**玩家登录时**调用一次。反射照旧：`isLoaded()` 预检 + Method 静态缓存 + `catch (Throwable)` 全吞 + debug 日志，没装 Curios 时连 `Class.forName` 都不做。
+    · 反射签名（javap 在真实 `curios-neoforge-9.5.1` 上实测）：`CuriosApi#getSlotHelper()`（static）、`ISlotHelper#getSlotsForType(LivingEntity, String)`、`ISlotHelper#growSlotType(String, int, LivingEntity)`。
+  - 测试：在既有 `openKeyWithoutCuriosIsSafe` 里补断言（未装 Curios 时 `ensureBackSlot` 是安全无操作），**测试条数不变（40 条）**。
+  - 效果：装 Curios 的整合包里，**每个玩家登录后都会看到「背部」槽**（不需要手动跑指令）；再配合 v5.17.0 的 `curios:back` 标签，背包就能装备进去、按 `B` 打开。
+  - 验证：`check-lang.ps1` OK；GameTest 40/40；`gradlew build` 成功并部署。

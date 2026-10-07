@@ -11,6 +11,7 @@ import com.godofthings.backpack.GodBackpackSorting;
 import com.godofthings.backpack.SortBy;
 import com.godofthings.network.GodBackpackActionPayload;
 import com.godofthings.network.GodBackpackSyncPayload;
+import com.mojang.authlib.GameProfile;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
@@ -19,6 +20,8 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -34,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * 神之背包回归测试（{@code gradlew runGameTestServer} 跑）。
@@ -416,6 +420,17 @@ public class GodBackpackGameTest
         player.getInventory().setItem(0, backpack);
         helper.assertTrue(menu.backpackStack() == backpack, "兜底应该能找到主物品栏里的背包");
         helper.assertTrue(menu.stillValid(player), "背包回到物品栏后菜单应重新可用");
+
+        // 登录时自动开背部槽：没装 Curios 必须是安全无操作（不抛异常、也不改任何东西）
+        // 这里直接造一个 ServerPlayer（不进玩家列表，免得给共享的测试服务器留下假玩家；
+        // 也不要用已标记删除的 GameTestHelper#makeMockServerPlayerInLevel）
+        CommonListenerCookie cookie = CommonListenerCookie.createInitial(
+                new GameProfile(UUID.randomUUID(), "test-backpack"), false);
+        ServerPlayer serverPlayer = new ServerPlayer(helper.getLevel().getServer(), helper.getLevel(),
+                cookie.gameProfile(), cookie.clientInformation());
+        CuriosCompat.ensureBackSlot(serverPlayer);
+        helper.assertTrue(CuriosCompat.findBackpackInBackSlot(serverPlayer).isEmpty(),
+                "没装 Curios 时开完槽再查背部槽仍应为空堆叠");
         helper.succeed();
     }
 }
