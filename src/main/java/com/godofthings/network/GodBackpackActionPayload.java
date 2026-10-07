@@ -12,12 +12,14 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 /**
  * 神之背包：客户端 → 服务端的动作包。
  *
- * <p>四种动作（{@code action} 字段，取下面的常量；{@code value} / {@code text} 按动作解释）：</p>
+ * <p>六种动作（{@code action} 字段，取下面的常量；{@code value} / {@code text} 按动作解释）：</p>
  * <ul>
  *   <li>{@link #ACTION_TOGGLE_MEMORY}：切换某背包槽位的记忆（value = 背包槽位下标 0..119）</li>
  *   <li>{@link #ACTION_TOGGLE_NO_SORT}：切换某背包槽位是否「整理时原地不动」（value = 背包槽位下标）</li>
  *   <li>{@link #ACTION_SET_SEARCH}：设置搜索词（text = 搜索词）</li>
  *   <li>{@link #ACTION_SET_SCROLL}：设置滚动行数（value = 行数，服务端 clamp 到 0..8）</li>
+ *   <li>{@link #ACTION_SELECT_ALL_MEMORY}：全选 / 取消全选「记忆」（智能切换，value 忽略）</li>
+ *   <li>{@link #ACTION_SELECT_ALL_NO_SORT}：全选 / 取消全选「忽略整理」（智能切换，value 忽略）</li>
  * </ul>
  *
  * <p>不带 containerId：服务端用 {@code player.containerMenu} 找到当前开着的
@@ -29,6 +31,8 @@ public record GodBackpackActionPayload(int action, int value, String text) imple
     public static final int ACTION_TOGGLE_NO_SORT = 1;
     public static final int ACTION_SET_SEARCH = 2;
     public static final int ACTION_SET_SCROLL = 3;
+    public static final int ACTION_SELECT_ALL_MEMORY = 4;
+    public static final int ACTION_SELECT_ALL_NO_SORT = 5;
 
     /** 文本字段的长度上限（搜索词本身还会被 GodBackpackSettings 再截一次） */
     private static final int MAX_TEXT_LENGTH = 64;
@@ -77,6 +81,8 @@ public record GodBackpackActionPayload(int action, int value, String text) imple
             {
                 case ACTION_TOGGLE_MEMORY -> menu.toggleMemory(payload.value());
                 case ACTION_TOGGLE_NO_SORT -> menu.toggleNoSort(payload.value());
+                case ACTION_SELECT_ALL_MEMORY -> menu.selectAllMemory();
+                case ACTION_SELECT_ALL_NO_SORT -> menu.selectAllNoSort();
                 case ACTION_SET_SEARCH -> menu.setSearchPhrase(payload.text());
                 case ACTION_SET_SCROLL -> menu.setScroll(payload.value());
                 default -> { }

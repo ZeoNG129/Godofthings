@@ -350,4 +350,45 @@ public class GodBackpackGameTest
         helper.assertTrue(player.getInventory().getItem(9).isEmpty(), "玩家物品栏里的钻石应该被搬空了");
         helper.succeed();
     }
+
+    /** 全选记忆 / 全选忽略整理：一次点全部标记，再点一次全部取消（智能切换） */
+    @GameTest(template = TEMPLATE)
+    public static void selectAllTogglesEverySlot(GameTestHelper helper)
+    {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack backpack = new ItemStack(Godofthings.GOD_BACKPACK_ITEM.get());
+        player.getInventory().setItem(0, backpack);
+        GodBackpackMenu menu = new GodBackpackMenu(0, player.getInventory(), backpack);
+
+        // 往背包里放三样东西（此时 scroll = 0，可见窗口下标 = 背包下标）
+        menu.getSlot(0).set(new ItemStack(Items.DIAMOND));
+        menu.getSlot(5).set(new ItemStack(Items.IRON_INGOT));
+        menu.getSlot(20).set(new ItemStack(Items.APPLE));
+
+        // ① 全选记忆：有物品的格子全部变成记忆格，并记住各自的物品；空格不标记
+        menu.selectAllMemory();
+        GodBackpackSettings after = GodBackpackItem.settings(backpack);
+        helper.assertTrue(after.isMemory(0) && after.isMemory(5) && after.isMemory(20),
+                "全选记忆没有标记上「有物品」的格子");
+        helper.assertTrue(!after.isMemory(1), "全选记忆不该标记空格");
+        helper.assertTrue(after.memory().get(0).is(Items.DIAMOND), "记忆格 0 记住的物品不对");
+        helper.assertTrue(after.memory().get(20).is(Items.APPLE), "记忆格 20 记住的物品不对");
+
+        // ② 再点一次全选记忆：全部取消
+        menu.selectAllMemory();
+        after = GodBackpackItem.settings(backpack);
+        helper.assertTrue(!after.isMemory(0) && !after.isMemory(5) && !after.isMemory(20),
+                "再次点「全选记忆」应当把所有记忆标记取消");
+
+        // ③ 全选忽略整理：120 格全覆盖；再点一次全部取消
+        menu.selectAllNoSort();
+        after = GodBackpackItem.settings(backpack);
+        helper.assertTrue(after.isNoSort(0) && after.isNoSort(60) && after.isNoSort(119),
+                "全选忽略整理没有覆盖全部格子");
+        menu.selectAllNoSort();
+        after = GodBackpackItem.settings(backpack);
+        helper.assertTrue(!after.isNoSort(0) && !after.isNoSort(119),
+                "再次点「全选忽略整理」应当把所有标记取消");
+        helper.succeed();
+    }
 }

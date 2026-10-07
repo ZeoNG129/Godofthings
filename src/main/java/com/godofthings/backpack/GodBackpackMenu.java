@@ -482,6 +482,66 @@ public class GodBackpackMenu extends AbstractContainerMenu
         updateSettings(settings().toggleNoSort(storageIndex));
     }
 
+    /**
+     * 服务端：**全选 / 取消全选「记忆」**（智能切换）。
+     * <p>如果所有「有物品的格子」都已经是记忆格 → 全部取消；否则把所有有物品的格子设为记忆格。
+     * 空格没有可记的物品，直接跳过（与单格标记的规则一致）。</p>
+     */
+    public void selectAllMemory()
+    {
+        GodBackpackSettings current = settings();
+        boolean allMarked = true;
+        for (int i = 0; i < GodBackpackItem.SIZE; i++)
+        {
+            if (!backpackContainer.getItem(i).isEmpty() && !current.isMemory(i))
+            {
+                allMarked = false;
+                break;
+            }
+        }
+        GodBackpackSettings next = current;
+        for (int i = 0; i < GodBackpackItem.SIZE; i++)
+        {
+            ItemStack stack = backpackContainer.getItem(i);
+            if (allMarked)
+            {
+                if (next.isMemory(i))
+                {
+                    next = next.withMemory(i, ItemStack.EMPTY);
+                }
+            }
+            else if (!stack.isEmpty() && !next.isMemory(i))
+            {
+                next = next.withMemory(i, stack);
+            }
+        }
+        updateSettings(next);
+    }
+
+    /** 服务端：**全选 / 取消全选「忽略整理」**（智能切换：全部已标记则全部取消，否则全部标记） */
+    public void selectAllNoSort()
+    {
+        GodBackpackSettings current = settings();
+        boolean allMarked = true;
+        for (int i = 0; i < GodBackpackItem.SIZE; i++)
+        {
+            if (!current.isNoSort(i))
+            {
+                allMarked = false;
+                break;
+            }
+        }
+        GodBackpackSettings next = current;
+        for (int i = 0; i < GodBackpackItem.SIZE; i++)
+        {
+            if (allMarked ? next.isNoSort(i) : !next.isNoSort(i))
+            {
+                next = next.toggleNoSort(i);
+            }
+        }
+        updateSettings(next);
+    }
+
     /** 服务端：设置搜索词（长度由 GodBackpackSettings 统一截断） */
     public void setSearchPhrase(String phrase)
     {

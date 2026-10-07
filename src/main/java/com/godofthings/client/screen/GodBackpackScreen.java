@@ -58,12 +58,16 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
     private static final int[] BTN_X = {8, 40, 82, 122, 164};
     private static final int[] BTN_W = {30, 40, 38, 40, 26};
 
-    // 设置模式：顶部区域原地换成 2 行开关（**不覆盖下面的格子**，避免挡住背包槽位）
-    private static final int SET_BTN_W = 58;
+    // 设置模式：顶部区域原地换成 2 行 × 4 个按钮（**不覆盖下面的格子**，避免挡住背包槽位）
+    //   第 1 行：记忆 / 忽略整理 / 忽略耐久 / 忽略 NBT
+    //   第 2 行：保留搜索 / 全选记忆 / 全选忽略 / 返回
+    private static final int SET_BTN_W = 44;
+    private static final int SET_BTN_H = 14;
     private static final int SET_ROW1_Y = 4;
     private static final int SET_ROW2_Y = 20;
-    private static final int SET_BTN_H = 14;
-    private static final int[] SET_X = {8, 70, 132};
+    private static final int SET_COLS = 4;
+    private static final int SET_STEP = 46;      // 44 + 2 间隙
+    private static final int SET_X0 = 8;
 
     // ---- 状态 ----
     /** 标记模式：0 = 无，1 = 记忆，2 = 忽略整理 */
@@ -246,18 +250,16 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
     }
 
     /**
-     * 设置行：**占用顶部区域**（搜索行 + 主按钮行那 34 像素），
-     * 两行各 3 个按钮 —— 记忆 / 忽略整理 / 忽略耐久 + 忽略 NBT / 保留搜索 / 返回。
+     * 设置行：**占用顶部区域**（搜索行 + 主按钮行那 34 像素），两行各 4 个按钮 ——
+     * 记忆 / 忽略整理 / 忽略耐久 / 忽略 NBT ＋ 保留搜索 / 全选记忆 / 全选忽略 / 返回。
      * <p>刻意做成「原地替换」而不是弹浮层：浮层会盖住背包格子，用户看不到自己标记的是哪一格。</p>
      */
     private void drawSettingsBar(GuiGraphics gui, int mouseX, int mouseY)
     {
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < SET_COLS * 2; i++)
         {
-            int col = i % 3;
-            int row = i / 3;
-            int x = this.leftPos + SET_X[col];
-            int y = this.topPos + (row == 0 ? SET_ROW1_Y : SET_ROW2_Y);
+            int x = this.leftPos + SET_X0 + (i % SET_COLS) * SET_STEP;
+            int y = this.topPos + (i < SET_COLS ? SET_ROW1_Y : SET_ROW2_Y);
             boolean hovered = mouseX >= x && mouseX < x + SET_BTN_W && mouseY >= y && mouseY < y + SET_BTN_H;
             boolean on = switch (i)
             {
@@ -266,22 +268,15 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
                 case 2 -> this.menu.ignoreDurability();
                 case 3 -> this.menu.ignoreNbt();
                 case 4 -> this.menu.keepSearch();
-                default -> false;   // 返回按钮
+                default -> false;   // 全选记忆 / 全选忽略 / 返回：中性色（状态看格子角标）
             };
-            int bg;
-            if (i == 5)
-            {
-                bg = hovered ? 0xFF6E6E6E : 0xFF4A4A4A;                 // 返回：中性
-            }
-            else
-            {
-                bg = on ? (hovered ? 0xFF6F9E6F : 0xFF4E7A4E)           // 开：绿
-                        : (hovered ? 0xFF5A5A5A : 0xFF474747);          // 关：灰
-            }
+            boolean neutral = i >= 5;
+            int bg = neutral ? (hovered ? 0xFF6E6E6E : 0xFF4A4A4A)
+                    : (on ? (hovered ? 0xFF6F9E6F : 0xFF4E7A4E) : (hovered ? 0xFF5A5A5A : 0xFF474747));
             gui.fill(x, y, x + SET_BTN_W, y + SET_BTN_H, bg);
             gui.fill(x, y, x + SET_BTN_W, y + 1, 0xFF8A8A8A);
             gui.fill(x, y + SET_BTN_H - 1, x + SET_BTN_W, y + SET_BTN_H, 0xFF2A2A2A);
-            String label = this.font.plainSubstrByWidth(settingsLabel(i).getString(), SET_BTN_W - 4);
+            String label = this.font.plainSubstrByWidth(settingsLabel(i).getString(), SET_BTN_W - 3);
             gui.drawString(this.font, label, x + (SET_BTN_W - this.font.width(label)) / 2, y + 3, 0xFFFFFF, false);
         }
     }
@@ -295,6 +290,8 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
             case 2 -> Component.translatable("gui.godofthings.backpack.ignore_durability");
             case 3 -> Component.translatable("gui.godofthings.backpack.ignore_nbt");
             case 4 -> Component.translatable("gui.godofthings.backpack.keep_search");
+            case 5 -> Component.translatable("gui.godofthings.backpack.select_all_memory");
+            case 6 -> Component.translatable("gui.godofthings.backpack.select_all_no_sort");
             default -> Component.translatable("gui.godofthings.back");
         };
     }
@@ -326,16 +323,18 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
         // 按钮与滚动条提示（设置模式下提示那 6 个开关）
         if (this.settingsMode)
         {
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < SET_COLS * 2; i++)
             {
-                int x = SET_X[i % 3];
-                int y = i / 3 == 0 ? SET_ROW1_Y : SET_ROW2_Y;
+                int x = SET_X0 + (i % SET_COLS) * SET_STEP;
+                int y = i < SET_COLS ? SET_ROW1_Y : SET_ROW2_Y;
                 if (isHovering(x, y, SET_BTN_W, SET_BTN_H, mouseX, mouseY))
                 {
                     Component tip = switch (i)
                     {
                         case 0 -> Component.translatable("gui.godofthings.backpack.memory.hint");
                         case 1 -> Component.translatable("gui.godofthings.backpack.no_sort.hint");
+                        case 5 -> Component.translatable("gui.godofthings.backpack.select_all.hint");
+                        case 6 -> Component.translatable("gui.godofthings.backpack.select_all.hint");
                         default -> settingsLabel(i);
                     };
                     gui.renderTooltip(this.font, tip, mouseX, mouseY);
@@ -382,15 +381,13 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
         int relX = (int) mouseX - this.leftPos;
         int relY = (int) mouseY - this.topPos;
 
-        // ① 设置模式：点击只作用于顶部那 6 个开关（不覆盖格子，所以格子仍可正常操作）
+        // ① 设置模式：点击只作用于顶部那 8 个按钮（不覆盖格子，所以格子仍可正常操作）
         if (this.settingsMode)
         {
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < SET_COLS * 2; i++)
             {
-                int col = i % 3;
-                int row = i / 3;
-                int x = SET_X[col];
-                int y = row == 0 ? SET_ROW1_Y : SET_ROW2_Y;
+                int x = SET_X0 + (i % SET_COLS) * SET_STEP;
+                int y = i < SET_COLS ? SET_ROW1_Y : SET_ROW2_Y;
                 if (relX >= x && relX < x + SET_BTN_W && relY >= y && relY < y + SET_BTN_H)
                 {
                     onSettingsButton(i);
@@ -448,7 +445,11 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    /** 设置行按钮：0 记忆标记 / 1 忽略整理标记 / 2 忽略耐久 / 3 忽略 NBT / 4 保留搜索词 / 5 返回 */
+    /**
+     * 设置行按钮：
+     * 0 记忆标记 / 1 忽略整理标记 / 2 忽略耐久 / 3 忽略 NBT /
+     * 4 保留搜索词 / 5 全选记忆 / 6 全选忽略整理 / 7 返回
+     */
     private void onSettingsButton(int index)
     {
         switch (index)
@@ -458,6 +459,10 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
             case 2 -> sendButton(GodBackpackMenu.BTN_TOGGLE_IGNORE_DURABILITY);
             case 3 -> sendButton(GodBackpackMenu.BTN_TOGGLE_IGNORE_NBT);
             case 4 -> sendButton(GodBackpackMenu.BTN_TOGGLE_KEEP_SEARCH);
+            case 5 -> PacketDistributor.sendToServer(new GodBackpackActionPayload(
+                    GodBackpackActionPayload.ACTION_SELECT_ALL_MEMORY, 0, ""));
+            case 6 -> PacketDistributor.sendToServer(new GodBackpackActionPayload(
+                    GodBackpackActionPayload.ACTION_SELECT_ALL_NO_SORT, 0, ""));
             default -> this.settingsMode = false;
         }
     }
