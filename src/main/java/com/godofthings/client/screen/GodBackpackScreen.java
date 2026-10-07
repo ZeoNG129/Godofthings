@@ -47,9 +47,10 @@ public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
     private static final int SB_W = 12;
     private static final int SB_H = 108;
 
-    private static final int SEARCH_X = 8;
-    private static final int SEARCH_Y = 5;
-    private static final int SEARCH_W = 184;
+    // 标题占左侧一小段，搜索框放同一行右侧（避免和标题文字重叠）
+    private static final int SEARCH_X = 62;
+    private static final int SEARCH_Y = 4;
+    private static final int SEARCH_W = 130;
     private static final int SEARCH_H = 14;
 
     private static final int BTN_Y = 22;
