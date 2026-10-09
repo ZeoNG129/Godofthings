@@ -23,6 +23,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -415,11 +416,17 @@ public class GodBackpackGameTest
         helper.assertTrue(menu.backpackStack().isEmpty(), "没装 Curios 时饰品槽解析应该退化成空堆叠");
         helper.assertFalse(menu.stillValid(player), "解析不到背包时菜单不该算「还能用」");
 
-        // 兜底顺序不受影响：物品栏里有背包时仍能解析出来（饰品槽 → 主物品栏 → 副手的第 2 档）
+        // 槽位解析不到时**不能**退化成「物品栏里第一个背包」：
+        // 那样玩家有多个背包时会静默显示成另一个背包的内容（用户实测报过这个 bug）
         ItemStack backpack = new ItemStack(Godofthings.GOD_BACKPACK_ITEM.get());
         player.getInventory().setItem(0, backpack);
-        helper.assertTrue(menu.backpackStack() == backpack, "兜底应该能找到主物品栏里的背包");
-        helper.assertTrue(menu.stillValid(player), "背包回到物品栏后菜单应重新可用");
+        helper.assertTrue(menu.backpackStack().isEmpty(), "解析不到槽位时不该退化成物品栏里第一个背包");
+        helper.assertFalse(menu.stillValid(player), "解析不到背包时菜单不该算「还能用」");
+
+        // 按正确槽位打开时才解析得到（0 = 快捷栏第一格）
+        GodBackpackMenu bySlot = new GodBackpackMenu(1, player.getInventory(), 0);
+        helper.assertTrue(bySlot.backpackStack() == backpack, "按槽位应当解析到物品栏里的那个背包");
+        helper.assertTrue(bySlot.stillValid(player), "背包在物品栏里时菜单应当可用");
 
         // 登录时自动开背部槽：没装 Curios 必须是安全无操作（不抛异常、也不改任何东西）
         // 这里直接造一个 ServerPlayer（不进玩家列表，免得给共享的测试服务器留下假玩家；
@@ -431,6 +438,71 @@ public class GodBackpackGameTest
         CuriosCompat.ensureBackSlot(serverPlayer);
         helper.assertTrue(CuriosCompat.findBackpackInBackSlot(serverPlayer).isEmpty(),
                 "没装 Curios 时开完槽再查背部槽仍应为空堆叠");
+        helper.succeed();
+    }
+
+    /** 多个背包必须各自独立：按槽位打开谁就是谁的内容（不能都指向物品栏里第一个背包） */
+    @GameTest(template = TEMPLATE)
+    public static void multipleBackpacksResolveIndependently(GameTestHelper helper)
+    {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack first = new ItemStack(Godofthings.GOD_BACKPACK_ITEM.get());
+        ItemStack second = new ItemStack(Godofthings.GOD_BACKPACK_ITEM.get());
+        GodBackpackItem.setContents(first, sampleContents(helper.getLevel()));
+        // 快捷栏 0 = 第一个（有内容）；主物品栏第一格（物品栏下标 9）= 第二个（空的）
+        player.getInventory().setItem(0, first);
+        player.getInventory().setItem(9, second);
+
+        GodBackpackMenu menuFirst = new GodBackpackMenu(0, player.getInventory(), 0);
+        helper.assertTrue(menuFirst.backpackStack() == first, "槽位 0 打开的应当是第一个背包");
+        helper.assertTrue(!menuFirst.getSlot(0).getItem().isEmpty(), "第一个背包的第 0 格应当有东西");
+
+        GodBackpackMenu menuSecond = new GodBackpackMenu(1, player.getInventory(), 9);
+        helper.assertTrue(menuSecond.backpackStack() == second, "槽位 9 打开的应当是第二个背包");
+        helper.assertTrue(menuSecond.getSlot(0).getItem().isEmpty(),
+                "第二个背包应当是空的（不该显示第一个背包的内容）");
+
+        // 把第一个背包从记录槽位挪走：必须解析成空，**绝不能**退化成「物品栏里第一个背包」，
+        // 否则玩家有多个背包时会静默显示成另一个背包的内容（用户实测报过这个 bug）
+        player.getInventory().setItem(0, ItemStack.EMPTY);
+        helper.assertTrue(menuFirst.backpackStack().isEmpty(),
+                "原槽位空了以后不该退化成物品栏里第一个背包");
+        helper.succeed();
+    }
+
+    /** 不许把神之背包放进神之背包：数字键交换 / Shift 快捷移动 / 槽位放置校验都要拦住 */
+    @GameTest(template = TEMPLATE)
+    public static void noBackpackInsideBackpack(GameTestHelper helper)
+    {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack open = new ItemStack(Godofthings.GOD_BACKPACK_ITEM.get());
+        ItemStack spare = new ItemStack(Godofthings.GOD_BACKPACK_ITEM.get());
+        player.getInventory().setItem(0, open);    // 快捷栏 0：正开着的背包
+        player.getInventory().setItem(1, spare);   // 快捷栏 1：备用背包
+        GodBackpackMenu menu = new GodBackpackMenu(0, player.getInventory(), 0);
+
+        // ① 数字键交换（button = 快捷栏下标 1）：不该把备用背包换进背包格
+        menu.clicked(0, 1, ClickType.SWAP, player);
+        helper.assertTrue(menu.getSlot(0).getItem().isEmpty(), "数字键交换把背包塞进了背包");
+
+        // ② Shift 快捷移动：把备用背包挪到主物品栏第一格（菜单槽位 54）再 Shift 点击
+        player.getInventory().setItem(1, ItemStack.EMPTY);
+        player.getInventory().setItem(9, spare);
+        menu.quickMoveStack(player, 54);
+        helper.assertTrue(menu.getSlot(0).getItem().isEmpty(), "Shift 快捷移动把背包塞进了背包");
+
+        // ③ 槽位校验：背包格本身就不该允许放入神之背包
+        helper.assertTrue(spare.getItem() instanceof GodBackpackItem,
+                "备用背包不该在测试过程中被消耗掉：" + spare);
+        helper.assertFalse(menu.getSlot(0).container.canPlaceItem(0, spare),
+                "可见窗口容器层就该拒绝神之背包");
+        helper.assertTrue(!menu.getSlot(0).mayPlace(spare),
+                "背包格不该允许放入神之背包（容器=" + menu.getSlot(0).container.getClass().getSimpleName()
+                        + "，spare=" + spare + "）");
+        helper.assertTrue(menu.backpackStack() == open, "正开着的背包不该被替换掉");
+
+        // ④ 背包自己那一格是锁住的（背包在快捷栏 0 → 菜单槽位 81）
+        helper.assertTrue(!menu.getSlot(81).mayPickup(player), "背包自己那一格不该能被拿走");
         helper.succeed();
     }
 }

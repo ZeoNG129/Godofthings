@@ -62,6 +62,12 @@ public final class GodBackpackMemory
         {
             return 0;
         }
+        // 神之背包一律不往背包里塞（不许套娃）：这里是所有「存入」路径的公共入口
+        // （快捷移动、存入按钮……），校验放在这一层，将来新增调用点也不会漏。
+        if (stack.getItem() instanceof GodBackpackItem)
+        {
+            return stack.getCount();
+        }
         int remaining = stack.getCount();
         remaining = fillMemory(container, settings, stack, remaining);
         if (remaining > 0)

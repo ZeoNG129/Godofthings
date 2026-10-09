@@ -110,7 +110,7 @@ public class GodBackpackMenu extends AbstractContainerMenu
         {
             for (int col = 0; col < COLUMNS; col++)
             {
-                this.addSlot(new Slot(this.visibleContainer, row * COLUMNS + col,
+                this.addSlot(new BackpackSlot(this.visibleContainer, row * COLUMNS + col,
                         GRID_X + col * 18, GRID_Y + row * 18));
             }
         }
@@ -136,6 +136,28 @@ public class GodBackpackMenu extends AbstractContainerMenu
     }
 
     // ------------------------------------------------------------------ 背包自身槽位锁定
+
+    /**
+     * 背包可见格：**重写 {@link Slot#mayPlace}** 拒绝神之背包（不许套娃）。
+     *
+     * <p><b>为什么必须写在这里</b>：1.21 原版的 {@code Slot#mayPlace} 是<b>直接 return true</b> 的
+     * （实测字节码就是 {@code iconst_1; ireturn}），**根本不会去问 {@code Container#canPlaceItem}** ——
+     * 所以只在容器上写校验拦不住手动拖放与 Shift 快捷移动，这正是「背包套背包」最初没修掉的原因。
+     * 容器上的 {@code canPlaceItem} 仍然保留（作为容器层的兜底与语义表达）。</p>
+     */
+    private static final class BackpackSlot extends Slot
+    {
+        BackpackSlot(Container container, int index, int x, int y)
+        {
+            super(container, index, x, y);
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack)
+        {
+            return !(stack.getItem() instanceof GodBackpackItem);
+        }
+    }
 
     /**
      * 玩家物品栏槽位：**正在打开的那个背包所在的格子锁定**。
@@ -179,8 +201,14 @@ public class GodBackpackMenu extends AbstractContainerMenu
     }
 
     /**
-     * 拦下会「搬走背包自己」的点击：数字键快捷交换（SWAP）与创造模式中键复制（CLONE）
-     * 都不经过 {@link Slot#mayPickup}，必须在这里单独挡一道。
+     * 拦下两类会出问题的点击：
+     * <ol>
+     *   <li>会「搬走背包自己」的：数字键快捷交换（SWAP）与创造模式中键复制（CLONE）都不经过
+     *       {@link Slot#mayPickup}，必须单独挡；</li>
+     *   <li>会「把神之背包放进背包格」的：**原版的 SWAP 不检查 {@link Slot#mayPlace}**，
+     *       所以 {@code canPlaceItem} 拦不住数字键交换（实测漏过，见回归测试
+     *       {@code GodBackpackGameTest.noBackpackInsideBackpack}），这里按点击类型补一道。</li>
+     * </ol>
      */
     @Override
     public void clicked(int slotId, int button, ClickType clickType, Player player)
@@ -191,7 +219,28 @@ public class GodBackpackMenu extends AbstractContainerMenu
         {
             return;
         }
+        if (slotId >= 0 && slotId < VISIBLE_SLOTS && wouldInsertBackpack(button, clickType, player))
+        {
+            return;
+        }
         super.clicked(slotId, button, clickType, player);
+    }
+
+    /** 这次点击会不会把神之背包放进背包格（按点击类型判断「要放进去的是哪个堆叠」） */
+    private boolean wouldInsertBackpack(int button, ClickType clickType, Player player)
+    {
+        return switch (clickType)
+        {
+            // 数字键交换：换进来的是快捷栏 button 号那格
+            case SWAP -> button >= 0 && button < 9
+                    && player.getInventory().getItem(button).getItem() instanceof GodBackpackItem;
+            // Shift 快捷移动 / 双击收集：光标上的堆叠会整堆搬过来
+            case QUICK_MOVE, PICKUP_ALL -> getCarried().getItem() instanceof GodBackpackItem;
+            // 普通点击（含「把光标上的东西放下去」）：光标拿着背包时才算「放进去」
+            case PICKUP -> getCarried().getItem() instanceof GodBackpackItem;
+            // 其余（THROW 把东西丢出去、CLONE 复制到光标）不会直接放进格子
+            default -> false;
+        };
     }
 
     // ------------------------------------------------------------------ 背包解析
@@ -261,22 +310,10 @@ public class GodBackpackMenu extends AbstractContainerMenu
                 return stack;
             }
         }
-        // 兜底 1：背包被挪到别的格子了 → 物品栏里第一个神之背包
-        for (ItemStack stack : playerInventory.items)
-        {
-            if (stack.getItem() instanceof GodBackpackItem)
-            {
-                return stack;
-            }
-        }
-        for (ItemStack stack : playerInventory.offhand)
-        {
-            if (stack.getItem() instanceof GodBackpackItem)
-            {
-                return stack;
-            }
-        }
-        // 兜底 2：根本不在物品栏里
+        // 记下的槽位已经不含背包了（被搬走 / 被替换 / 被别的东西顶掉）：
+        // **绝不去猜「物品栏里第一个神之背包」** —— 玩家有多个背包时，那样会静默显示成另一个背包的内容
+        // （用户实测报过「不管我有多少个背包，打开显示的都是一个背包」）。这里返回空，
+        // 菜单随即判定失效并关闭，宁可让玩家重开一次，也不能张冠李戴。
         return directStack;
     }
 
@@ -673,9 +710,10 @@ public class GodBackpackMenu extends AbstractContainerMenu
         else
         {
             // 玩家物品栏 → 背包（记忆格优先）
-            if (isOpenBackpack(stack))
+            // 神之背包一律不搬：正开着的那个当然不能塞进自己，**别的背包也不许塞进来**（不许套娃）
+            if (stack.getItem() instanceof GodBackpackItem)
             {
-                return ItemStack.EMPTY; // 别把正开着的背包塞进它自己
+                return ItemStack.EMPTY;
             }
             int before = stack.getCount();
             GodBackpackMemory.insert(backpackContainer, settings(), stack);
@@ -699,13 +737,6 @@ public class GodBackpackMenu extends AbstractContainerMenu
         }
         slot.onTake(player, stack);
         return result;
-    }
-
-    /** 这个堆叠是不是当前开着的那个背包（防止背包套自己） */
-    private boolean isOpenBackpack(ItemStack stack)
-    {
-        ItemStack backpack = resolveBackpack();
-        return !backpack.isEmpty() && stack == backpack;
     }
 
     /** 「存入背包」：把玩家物品栏（36 格，不含盔甲 / 副手）里匹配搜索词的物品尽量塞进背包，记忆格优先 */

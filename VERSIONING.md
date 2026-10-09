@@ -1320,3 +1320,23 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **新增回归测试** `GodSlaughterGameTest.protectsFriendlyMobs`（新测试类，共 **9** 个测试类）：断言盔甲架 / 村民 / 流浪商人受保护、未驯服的狼不受保护、驯服后受保护、普通牛不受保护、起名后受保护。回归测试 40 → **41 条**。
   - 手册条目同步：吸收机与砍杀机的「范围 0-1600」改为「0-480」；砍杀机补一句保护名单说明。
   - 验证：`check-lang.ps1` OK；GameTest **41/41**；`gradlew build` 成功并部署。
+- 5.17.2 → **5.17.3（「背包套背包」真正修好 + 多个背包不再张冠李戴）** —— 修复，按规则**末位 +1**。
+  - **问题 1（用户复报「背包套背包依然存在」）**：v5.17.2 只在 `GodBackpackContainer.canPlaceItem` 上做了校验 ——
+    **但 1.21 原版 `Slot#mayPlace` 的字节码就是 `iconst_1; ireturn`（直接 return true），根本不会去问 `Container#canPlaceItem`**，
+    所以手动拖放与 Shift 快捷移动全都绕过了校验；而 `ClickType.SWAP`（数字键交换）在原版里**也不检查 `mayPlace`**。
+    · **修法**：① 54 个可见格改用新的内部类 `BackpackSlot`，**重写 `Slot#mayPlace`** 拒绝 `GodBackpackItem`（这才是真正拦得住的层）；
+    ② `clicked` 里按点击类型再拦一道（SWAP 看快捷栏那一格、QUICK_MOVE/PICKUP_ALL/PICKUP 看光标上的堆叠）；
+    ③ `GodBackpackMemory#insert`（所有「存入」路径的公共入口）与 `quickMoveStack` 各加一道同类判断。
+    · 定位方式：**先写复现测试**再改代码 —— `GodBackpackGameTest.noBackpackInsideBackpack` 第一次跑就精确报出
+    「数字键交换把背包塞进了背包」，改完 SWAP 后又报出「Shift 快捷移动把背包塞进了背包」，最后断言到容器层已拒绝、
+    但 `mayPlace` 仍为 true，才用 javap 反编译原版 `Slot` 确认了上面那条结论。
+  - **问题 2（用户复报「不管我有多少个背包，打开显示的都是一个背包」）**：
+    · **主因**：快捷键（B）原先的查找顺序是「Curios → **主物品栏 0..35 里第一个**」，于是有多个背包时永远打开那一个。
+      现在改成「**手上拿着的（主手 → 副手）→ Curios 背部槽 → 主物品栏第一个**」：手持哪个就开哪个，符合直觉。
+    · **次因（更危险）**：`GodBackpackMenu#resolveBackpack` 原先在「记下的槽位已经不含背包」时会**兜底去拿物品栏里第一个神之背包** ——
+      这会让界面静默显示成另一个背包的内容（张冠李戴）。**该兜底已彻底删除**：解析不到就返回空，菜单随即判定失效并关闭。
+  - **新增回归测试 2 条**（`GodBackpackGameTest`，6 → 8 条）：`multipleBackpacksResolveIndependently`（两个背包各自独立、
+    槽位空了以后**不许**退化成第一个背包）、`noBackpackInsideBackpack`（数字键交换 / Shift 快捷移动 / 槽位 `mayPlace` / 背包自身槽位锁定）。
+    同时把 v5.17.2 里那条断言「兜底应该能找到主物品栏里的背包」改成断言新行为（解析不到就该是空）。
+  - 回归测试 41 → **43 条**。
+  - 验证：`check-lang.ps1` OK；GameTest **43/43**；`gradlew build` 成功并部署。
