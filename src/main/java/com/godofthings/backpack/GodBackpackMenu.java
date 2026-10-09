@@ -9,6 +9,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -113,18 +114,18 @@ public class GodBackpackMenu extends AbstractContainerMenu
                         GRID_X + col * 18, GRID_Y + row * 18));
             }
         }
-        // 玩家物品栏 3×9 + 快捷栏 1×9
+        // 玩家物品栏 3×9 + 快捷栏 1×9（背包自身所在的那一格用 PlayerSlot 锁住，不能拿走）
         for (int row = 0; row < 3; row++)
         {
             for (int col = 0; col < COLUMNS; col++)
             {
-                this.addSlot(new Slot(playerInventory, col + row * COLUMNS + 9,
+                this.addSlot(new PlayerSlot(playerInventory, col + row * COLUMNS + 9,
                         GRID_X + col * 18, PLAYER_INV_Y + row * 18));
             }
         }
         for (int col = 0; col < COLUMNS; col++)
         {
-            this.addSlot(new Slot(playerInventory, col, GRID_X + col * 18, HOTBAR_Y));
+            this.addSlot(new PlayerSlot(playerInventory, col, GRID_X + col * 18, HOTBAR_Y));
         }
 
         if (playerInventory.player.level().isClientSide)
@@ -132,6 +133,65 @@ public class GodBackpackMenu extends AbstractContainerMenu
             // 客户端：先拿本地物品组件里的设置兜底，服务端随后用同步包覆盖
             this.syncedSettings = GodBackpackItem.settings(resolveBackpack());
         }
+    }
+
+    // ------------------------------------------------------------------ 背包自身槽位锁定
+
+    /**
+     * 玩家物品栏槽位：**正在打开的那个背包所在的格子锁定**。
+     *
+     * <p>背包内容存在物品堆叠的组件里，菜单的一切读写都以「这个堆叠还在原位」为前提。
+     * 界面开着却把背包拖走 / 丢出去 / 用数字键换到别处，菜单就失去了数据源
+     * （轻则界面空白，重则把内容写到一个已经不在手上的堆叠上）。所以那一格不许拿。</p>
+     */
+    private final class PlayerSlot extends Slot
+    {
+        PlayerSlot(Container container, int index, int x, int y)
+        {
+            super(container, index, x, y);
+        }
+
+        @Override
+        public boolean mayPickup(Player player)
+        {
+            return !isLockedBackpackSlot(this.getContainerSlot());
+        }
+    }
+
+    /** 该玩家物品栏下标是不是「正被打开的背包自己」（只有 0..35 会命中；副手 / Curios / 直传不锁） */
+    private boolean isLockedBackpackSlot(int inventoryIndex)
+    {
+        return this.backpackSlot >= 0 && this.backpackSlot <= 35 && this.backpackSlot == inventoryIndex;
+    }
+
+    /** 被锁定的那一格在本菜单里的槽位 id（不在本菜单里时返回 -1） */
+    private int lockedMenuSlot()
+    {
+        if (this.backpackSlot >= 9 && this.backpackSlot <= 35)
+        {
+            return 54 + (this.backpackSlot - 9);   // 主物品栏 3×9 → 菜单槽位 54..80
+        }
+        if (this.backpackSlot >= 0 && this.backpackSlot <= 8)
+        {
+            return 81 + this.backpackSlot;         // 快捷栏 → 菜单槽位 81..89
+        }
+        return -1;
+    }
+
+    /**
+     * 拦下会「搬走背包自己」的点击：数字键快捷交换（SWAP）与创造模式中键复制（CLONE）
+     * 都不经过 {@link Slot#mayPickup}，必须在这里单独挡一道。
+     */
+    @Override
+    public void clicked(int slotId, int button, ClickType clickType, Player player)
+    {
+        int locked = lockedMenuSlot();
+        if (locked >= 0 && slotId == locked
+                && (clickType == ClickType.SWAP || clickType == ClickType.CLONE))
+        {
+            return;
+        }
+        super.clicked(slotId, button, clickType, player);
     }
 
     // ------------------------------------------------------------------ 背包解析
@@ -428,6 +488,14 @@ public class GodBackpackMenu extends AbstractContainerMenu
         {
             return backpackContainer.getMaxStackSize();
         }
+
+        /** 可见格子沿用底层容器的放置校验（**不许把神之背包放进神之背包**） */
+        @Override
+        public boolean canPlaceItem(int visibleSlot, ItemStack stack)
+        {
+            int storage = visibleSlotToStorageIndex(visibleSlot);
+            return storage >= 0 && backpackContainer.canPlaceItem(storage, stack);
+        }
     }
 
     // ------------------------------------------------------------------ 交互
@@ -648,7 +716,9 @@ public class GodBackpackMenu extends AbstractContainerMenu
         for (int slot = 0; slot < inventory.items.size(); slot++)
         {
             ItemStack stack = inventory.items.get(slot);
-            if (stack.isEmpty() || isOpenBackpack(stack) || !matchesSearch(stack))
+            // ① 空的不搬；② 神之背包一律不搬（不许套娃 —— 这条路径走 GodBackpackMemory.insert，
+            //    绕过了 Slot#mayPlace，必须单独拦）；③ 开了搜索时只搬匹配搜索词的
+            if (stack.isEmpty() || stack.getItem() instanceof GodBackpackItem || !matchesSearch(stack))
             {
                 continue;
             }

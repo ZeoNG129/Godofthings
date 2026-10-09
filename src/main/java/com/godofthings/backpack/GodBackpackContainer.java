@@ -118,6 +118,23 @@ public class GodBackpackContainer implements Container
         return current;
     }
 
+    /**
+     * 放置校验：**不允许把神之背包放进神之背包里**。
+     *
+     * <p>原因：①背包内容存在物品组件里，套娃会让 NBT 体积指数增长；②界面里再套一层没有意义
+     * （打开的还是同一个菜单）；③套娃容易在拖拽/快捷移动的边界情况下产生复制漏洞。
+     * 这里返回 false 之后，所有走 {@code Slot#mayPlace} 的路径（手动拖放、Shift 快捷移动、数字键交换）
+     * 都会被拦下。</p>
+     *
+     * <p>注意：只拦「放进去」，**不拦 {@link #setItem}** —— 老存档里可能已经存在套娃的背包，
+     * 必须还能正常读出来、把里面那个取走。</p>
+     */
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack)
+    {
+        return !(stack.getItem() instanceof GodBackpackItem);
+    }
+
     @Override
     public void setItem(int slot, ItemStack stack)
     {

@@ -1312,3 +1312,11 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 测试：在既有 `openKeyWithoutCuriosIsSafe` 里补断言（未装 Curios 时 `ensureBackSlot` 是安全无操作），**测试条数不变（40 条）**。
   - 效果：装 Curios 的整合包里，**每个玩家登录后都会看到「背部」槽**（不需要手动跑指令）；再配合 v5.17.0 的 `curios:back` 标签，背包就能装备进去、按 `B` 打开。
   - 验证：`check-lang.ps1` OK；GameTest 40/40；`gradlew build` 成功并部署。
+- 5.17.1 → **5.17.2（用户「修复」清单四条：背包槽位锁定 / 禁止背包套背包 / 吸收与砍杀范围上限 480 / 砍杀机保护名单）** —— 修复，按规则**末位 +1**。
+  - **① 锁定背包自身所在的槽位**（`GodBackpackMenu`）：玩家物品栏里「正开着的那个背包」那一格新增内部类 `PlayerSlot` 重写 `mayPickup` 返回 false（不能拖走 / 丢弃），并在 `clicked` 里单独拦下 **`ClickType.SWAP`（数字键快捷交换）与 `CLONE`（创造模式中键复制）** —— 这两条路径不经过 `mayPickup`。菜单槽位 id 由 `lockedMenuSlot()` 算出（主物品栏 54..80 / 快捷栏 81..89）。理由：背包内容存在堆叠组件里，界面开着却把背包搬走会让菜单失去数据源。
+  - **② 禁止把神之背包放进神之背包**：`GodBackpackContainer` 新增 `canPlaceItem`（`!(stack.getItem() instanceof GodBackpackItem)`），并在 `GodBackpackMenu.VisibleWindow` 里**委托**到底层容器（可见 54 格原先用的是 `Container` 默认实现，会放行）—— 覆盖手动拖放 / Shift 快捷移动 / 数字键交换；「存入背包」按钮走 `GodBackpackMemory.insert`、绕过 `Slot#mayPlace`，所以单独加了一道同类判断。**只拦「放进去」，不拦 `setItem`**：老存档里已存在的套娃背包仍能读出来、把里面那个取走。
+  - **③ 神之吸收 / 神之砍杀范围上限 1600 → 480**（`MAX_RANGE`；砍杀机的 `MAX_LOOTING = 1600` 是另一个量，不受影响）。**顺手修掉一个漏洞**：两个机器 `readAdditionalSaveData` 原先直接 `this.range = tag.getInt("Range")`、**没有 clamp**，老存档里超过新上限的值会绕过限制 → 改为走 `setRange(...)`。
+  - **④ 神之砍杀新增保护名单**（`isProtected`，硬保护、界面不可关）：**盔甲架 / 村民 / 流浪商人 / 已驯服的宠物（`TamableAnimal#isTame`）/ 起过名字的生物（`hasCustomName`）** 一律不杀；普通动物照杀，刷牛羊猪与刷怪塔不受影响。（用户提到的「GUI 里给『只杀敌对 / 杀全部』选项」本轮未做 —— 硬保护已解决误杀，且不挡正常用途。）
+  - **新增回归测试** `GodSlaughterGameTest.protectsFriendlyMobs`（新测试类，共 **9** 个测试类）：断言盔甲架 / 村民 / 流浪商人受保护、未驯服的狼不受保护、驯服后受保护、普通牛不受保护、起名后受保护。回归测试 40 → **41 条**。
+  - 手册条目同步：吸收机与砍杀机的「范围 0-1600」改为「0-480」；砍杀机补一句保护名单说明。
+  - 验证：`check-lang.ps1` OK；GameTest **41/41**；`gradlew build` 成功并部署。

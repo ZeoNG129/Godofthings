@@ -69,7 +69,8 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
     }
 
     public static final int STORAGE_SLOTS = 27;
-    public static final int MAX_RANGE = 1600;
+    /** 吸收范围上限（方块）。v5.17.2 按用户要求从 1600 降到 480。 */
+    public static final int MAX_RANGE = 480;
     private static final int SCAN_INTERVAL = 10;
 
     private boolean enabled = false;
@@ -346,7 +347,8 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
             owner = tag.getUUID("Owner");
         }
         this.enabled = tag.getBoolean("Enabled");
-        this.range = tag.contains("Range") ? tag.getInt("Range") : 16;
+        // 走 setRange 而不是直接赋值：老存档里可能存着超过上限的值（v5.17.2 上限由 1600 降到 480）
+        setRange(tag.contains("Range") ? tag.getInt("Range") : 16);
         this.experiencePoints = tag.contains("ExperiencePoints") ? tag.getInt("ExperiencePoints") : 0;
         this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
         if (tag.contains("FaceModes"))

@@ -21,7 +21,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -77,8 +81,8 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
 
     /** UI 显示的存储槽位数量（内部为无限存储，前 27 个堆叠映射到槽位）。 */
     public static final int STORAGE_SLOTS = 27;
-    /** 击杀范围上限（方块）。 */
-    public static final int MAX_RANGE = 1600;
+    /** 击杀范围上限（方块）。v5.17.2 按用户要求从 1600 降到 480（注意 {@link #MAX_LOOTING} 是另一个量，不受影响）。 */
+    public static final int MAX_RANGE = 480;
     /** 抢夺强度上限（面板值；经 {@link LootingHelper#lootingLevel} 指数映射到掠夺附魔等级 0-255）。
      *  <p>此前误复用 {@link #MAX_RANGE} 作为 clamp 上限 —— 两个语义不同的量共用一个常量，
      *  改范围上限会连带改抢夺上限，故拆开。</p> */
@@ -542,6 +546,11 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
             {
                 continue;
             }
+            // 保护名单（盔甲架 / 村民 / 流浪商人 / 已驯服宠物 / 起过名字的生物）：一律不杀
+            if (isProtected(mob))
+            {
+                continue;
+            }
             // 球形半径：只杀距离中心 ≤ range 的生物（避免 AABB 对角方向超出半径）
             if (mob.distanceToSqr(cx, cy, cz) > rangeSq)
             {
@@ -549,6 +558,32 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
             }
             killTarget(serverLevel, mob);
         }
+    }
+
+    /**
+     * 保护名单：这些生物**永远不会**被本机击杀（硬保护，界面里不可关闭）。
+     *
+     * <p>理由：砍杀机是「范围内全部秒杀」，范围一开大误伤代价极高 —— 盔甲架是玩家的展示/装备架，
+     * 村民与流浪商人是交易资源，已驯服宠物和起过名字的生物基本都算玩家自己的东西。
+     * 玩家的正常用途（刷牛羊猪、刷怪塔）都不受影响。</p>
+     *
+     * <p>公开是为了让回归测试直接断言（{@code GodSlaughterGameTest}）。</p>
+     */
+    public static boolean isProtected(LivingEntity mob)
+    {
+        if (mob instanceof ArmorStand)
+        {
+            return true;                                   // 盔甲架（含摆在上面的装备）
+        }
+        if (mob instanceof Villager || mob instanceof WanderingTrader)
+        {
+            return true;                                   // 村民 / 流浪商人：交易资源
+        }
+        if (mob instanceof TamableAnimal tameable && tameable.isTame())
+        {
+            return true;                                   // 已驯服的宠物（狼 / 猫 / 鹦鹉 / 马 …）
+        }
+        return mob.hasCustomName();                        // 起过名字的（命名牌 / 铁砧改名）
     }
 
     /** 击杀单个生物：用带抢夺附魔的假玩家剑作攻击者，标记生物供掉落拦截进存储。 */
@@ -748,7 +783,8 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
             owner = tag.getUUID("Owner");
         }
         this.enabled = tag.getBoolean("Enabled");
-        this.range = tag.contains("Range") ? tag.getInt("Range") : 16;
+        // 走 setRange 而不是直接赋值：老存档里可能存着超过上限的值（v5.17.2 上限由 1600 降到 480）
+        setRange(tag.contains("Range") ? tag.getInt("Range") : 16);
         this.lootingEnabled = tag.getBoolean("LootingEnabled");
         this.looting = tag.contains("Looting") ? tag.getInt("Looting") : 100;
         this.instantKill = tag.contains("InstantKill") ? tag.getBoolean("InstantKill") : true;
