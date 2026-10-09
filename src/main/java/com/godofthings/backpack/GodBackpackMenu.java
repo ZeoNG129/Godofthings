@@ -219,6 +219,14 @@ public class GodBackpackMenu extends AbstractContainerMenu
         {
             return;
         }
+        // 数字键交换的另一种走法：背包在快捷栏，用**它自己那一格**的数字键去点别的槽 ——
+        // 这时 slotId 是别的槽、只有 button 等于背包所在槽位，背包照样会被换走
+        // （源槽位一空，菜单就失去了数据源）。用户点名要补这一条。
+        if (clickType == ClickType.SWAP && this.backpackSlot >= 0 && this.backpackSlot <= 8
+                && button == this.backpackSlot)
+        {
+            return;
+        }
         if (slotId >= 0 && slotId < VISIBLE_SLOTS && wouldInsertBackpack(button, clickType, player))
         {
             return;

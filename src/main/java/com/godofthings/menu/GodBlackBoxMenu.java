@@ -48,6 +48,19 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
             return Integer.MAX_VALUE;
         }
 
+        /**
+         * 不许把神之黑盒放进神之黑盒（套娃）。
+         *
+         * <p>槽位是 {@link SlotItemHandler}，它的 {@code mayPlace} 会问到这里，所以这一层能同时挡住
+         * 手动拖放与 Shift 快捷移动。（注意：1.21 原版 {@code Slot#mayPlace} 直接 return true、
+         * 不会去问 {@code Container#canPlaceItem}，所以光在容器/数据层写校验是拦不住的。）</p>
+         */
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack)
+        {
+            return !(stack.getItem() instanceof GodBlackBoxItem);
+        }
+
         @Override
         protected void onContentsChanged(int slot)
         {
@@ -192,21 +205,9 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
                 return s;
             }
         }
-        // 兜底：黑盒被移动到其他槽，遍历找第一个
-        for (ItemStack s : playerInv.items)
-        {
-            if (s.getItem() instanceof GodBlackBoxItem)
-            {
-                return s;
-            }
-        }
-        for (ItemStack s : playerInv.offhand)
-        {
-            if (s.getItem() instanceof GodBlackBoxItem)
-            {
-                return s;
-            }
-        }
+        // 记下的槽位已经不含黑盒了（被搬走 / 被替换）：**绝不去猜「物品栏里第一个黑盒」** ——
+        // 玩家有多个黑盒时会静默读写到另一个黑盒上（背包那边踩过同样的坑，见 AGENTS.md 项目约定）。
+        // 返回空，菜单随即判定失效并关闭。
         return ItemStack.EMPTY;
     }
 
@@ -237,6 +238,14 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
     @Override
     public void clicked(int slotId, int button, ClickType action, Player player)
     {
+        // 数字键交换（SWAP）：过滤槽不许被换入神之黑盒。
+        // 原版的 SWAP **不检查 Slot#mayPlace**，所以 isItemValid 那道拦不住它（背包那边实测过同样的漏洞）
+        if (action == ClickType.SWAP && slotId >= 0 && slotId < BlackBoxData.FILTER_SLOTS
+                && button >= 0 && button < 9
+                && player.getInventory().getItem(button).getItem() instanceof GodBlackBoxItem)
+        {
+            return;
+        }
         if (action == ClickType.THROW && this.getCarried().isEmpty()
                 && slotId >= BlackBoxData.FILTER_SLOTS && slotId < this.slots.size())
         {
@@ -290,7 +299,11 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
     @Override
     public boolean stillValid(Player player)
     {
-        return true; // 便携菜单，无方块
+        // 便携菜单（无方块）：黑盒必须**还在玩家身上**（物品栏 / 副手）。
+        // 扔到地上、放进箱子、被别的物品顶掉之后，界面必须自动关闭，不能留着一个能操作的空壳界面。
+        // getBox() 只按开界面时记下的槽位解析、不做任何「找第一个黑盒」的兜底，
+        // 所以这里返回 false 也就意味着「这个界面已经没有数据源了」。
+        return !getBox().isEmpty();
     }
 
     @Override
@@ -301,6 +314,11 @@ public class GodBlackBoxMenu extends AbstractContainerMenu
         if (slot != null && slot.hasItem())
         {
             ItemStack stack = slot.getItem();
+            // 神之黑盒一律不往过滤槽里搬（不许套娃）。index < FILTER_SLOTS 是「从过滤槽往外拿」，允许。
+            if (index >= BlackBoxData.FILTER_SLOTS && stack.getItem() instanceof GodBlackBoxItem)
+            {
+                return ItemStack.EMPTY;
+            }
             result = stack.copy();
             if (index < BlackBoxData.FILTER_SLOTS)
             {

@@ -1340,3 +1340,24 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     同时把 v5.17.2 里那条断言「兜底应该能找到主物品栏里的背包」改成断言新行为（解析不到就该是空）。
   - 回归测试 41 → **43 条**。
   - 验证：`check-lang.ps1` OK；GameTest **43/43**；`gradlew build` 成功并部署。
+- 5.17.3 → **5.17.4（砍杀机白名单补马/驴 + 背包源槽位数字键 + 神之黑盒 stillValid 与套娃）** —— 修复，按规则**末位 +1**。
+  - **① 神之砍杀白名单漏了马和驴**：`AbstractHorse`（马 / 驴 / 骡 / 羊驼）**继承的是 `Animal` 而不是 `TamableAnimal`**，
+    驯服状态存在它自己的 `isTamed()` 里 —— 上一版只判 `TamableAnimal#isTame()` 所以漏掉了它们（用户实测报过）。
+    现在补 `AbstractHorse#isTamed()`，并再兜一层 `OwnableEntity#getOwnerUUID() != null`（任何「有主人」的生物都算玩家的）。
+  - **② 背包源槽位被数字键换走**（用户点名）：`ClickType.SWAP` 的 `button` 是快捷栏下标，
+    所以「背包在快捷栏 3、用数字键 3 去点别的槽」会把背包从源槽位换走（此时 `slotId` 是别的槽，上一版只查了 `slotId`）。
+    已在 `GodBackpackMenu#clicked` 补上 `clickType == SWAP && button == backpackSlot` 直接 return。
+  - **③ 神之黑盒两个隐患**（用户提供的审计结论）：
+    · `stillValid` 原先恒返回 true → 黑盒扔到地上 / 放进箱子后界面仍然开着且可操作。现在改成**真的检查黑盒还在不在玩家身上**
+      （物品栏 / 副手），解析不到就失效、界面自动关闭。
+    · 过滤存储槽没拦 `GodBlackBoxItem` → 黑盒能被放进自己里面。已在**槽位层**拦截：
+      `filterHandler.isItemValid` 拒绝黑盒（`SlotItemHandler#mayPlace` 会问到这里，实测字节码确认）、
+      `quickMoveStack` 不搬、`clicked` 里拦 `SWAP`（原版 SWAP 不检查 `mayPlace`）。
+    · **顺手删掉 `getBox()` 里「遍历找第一个黑盒」的兜底** —— 与背包同一个坑：多个黑盒时会静默读写到另一个黑盒上。
+    · **刻意没有**在数据层（`BlackBoxData.addToFilterBatch`）过滤黑盒：吸收路径走到那里时物品已被消耗，
+      再过滤就等于凭空销毁一个黑盒（静默吞物品）；套娃的拦截放在玩家真正能操作的槽位层。
+  - **新增回归测试**：`GodBlackBoxGameTest`（2 条，新测试类）—— 黑盒不在身上时 `stillValid` 必须失效、
+    别的槽位冒出黑盒也不许让旧菜单复活；过滤槽放置校验 / 数字键交换 / Shift 快捷移动三条路都拦得住套娃。
+    另在既有两条测试里补断言（驯服的马与驴受保护、背包不被自己的数字键从源槽位换走）。回归测试 43 → **45 条**，测试类 9 → **10 个**。
+  - 手册：砍杀机保护名单补「马 / 驴 / 骡 / 羊驼」。
+  - 验证：`check-lang.ps1` OK；GameTest **45/45**；`gradlew build` 成功并部署。

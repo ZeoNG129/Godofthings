@@ -503,6 +503,12 @@ public class GodBackpackGameTest
 
         // ④ 背包自己那一格是锁住的（背包在快捷栏 0 → 菜单槽位 81）
         helper.assertTrue(!menu.getSlot(81).mayPickup(player), "背包自己那一格不该能被拿走");
+
+        // ⑤ 用背包自己那一格的数字键去点别的槽（button = 0 = 背包所在快捷栏格）：不该把它从源槽位换走
+        player.getInventory().setItem(0, open);
+        menu.clicked(54, 0, ClickType.SWAP, player);
+        helper.assertTrue(player.getInventory().getItem(0) == open,
+                "背包不该被自己的数字键从源槽位换走（换走后菜单就失去了数据源）");
         helper.succeed();
     }
 }

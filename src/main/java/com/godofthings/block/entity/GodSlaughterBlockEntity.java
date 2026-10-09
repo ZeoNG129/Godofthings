@@ -21,7 +21,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.Villager;
@@ -581,7 +583,18 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         }
         if (mob instanceof TamableAnimal tameable && tameable.isTame())
         {
-            return true;                                   // 已驯服的宠物（狼 / 猫 / 鹦鹉 / 马 …）
+            return true;                                   // 已驯服的狼 / 猫 / 鹦鹉 等
+        }
+        // 马 / 驴 / 骡 / 羊驼：**{@code AbstractHorse} 继承的是 {@code Animal} 而不是 {@code TamableAnimal}**，
+        // 驯服状态存在它自己的 {@code isTamed()} 里 —— 只判 TamableAnimal 会漏掉它们（用户实测报过）。
+        if (mob instanceof AbstractHorse horse && horse.isTamed())
+        {
+            return true;
+        }
+        // 再兜一层：任何「有主人」的生物（OwnableEntity）都算玩家的东西
+        if (mob instanceof OwnableEntity ownable && ownable.getOwnerUUID() != null)
+        {
+            return true;
         }
         return mob.hasCustomName();                        // 起过名字的（命名牌 / 铁砧改名）
     }

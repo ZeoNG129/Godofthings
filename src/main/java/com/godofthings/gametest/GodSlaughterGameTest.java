@@ -9,6 +9,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.animal.horse.Donkey;
+import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -51,6 +53,18 @@ public class GodSlaughterGameTest
         helper.assertTrue(!GodSlaughterBlockEntity.isProtected(cow), "普通牛不该受保护（刷牛要正常可用）");
         cow.setCustomName(Component.literal("Bessie"));
         helper.assertTrue(GodSlaughterBlockEntity.isProtected(cow), "起过名字的牛应当受保护");
+
+        // 马 / 驴：AbstractHorse **不继承 TamableAnimal**（继承的是 Animal），驯服状态存在自己的
+        // isTamed() 里 —— 只判 TamableAnimal 会漏掉它们（用户实测报过）
+        Horse horse = (Horse) create(helper, level, EntityType.HORSE, "马");
+        helper.assertTrue(!GodSlaughterBlockEntity.isProtected(horse), "没驯服的马不该受保护");
+        horse.setTamed(true);
+        helper.assertTrue(GodSlaughterBlockEntity.isProtected(horse), "已驯服的马应当受保护");
+
+        Donkey donkey = (Donkey) create(helper, level, EntityType.DONKEY, "驴");
+        helper.assertTrue(!GodSlaughterBlockEntity.isProtected(donkey), "没驯服的驴不该受保护");
+        donkey.setTamed(true);
+        helper.assertTrue(GodSlaughterBlockEntity.isProtected(donkey), "已驯服的驴应当受保护");
 
         helper.succeed();
     }
