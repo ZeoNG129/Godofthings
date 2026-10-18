@@ -10,15 +10,22 @@ import appeng.api.storage.MEStorage;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
+import com.godofthings.godgrid.GodGridHost;
+import com.godofthings.godgrid.GodGridLayout;
+import com.godofthings.godgrid.GodGridSorting;
 import com.godofthings.block.entity.machine.LogStripper;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodPeelerMenu;
+import com.godofthings.menu.GodPeelerConfigMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -38,8 +45,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 神之去皮方块实体（v5.15.3：加入与神之熔炉相同的六面输入/输出配置）。
  *
- * <p>9 个输入槽（0-8）+ 9 个输出槽（9-17，一一对应：输入 i → 输出 {@link #OUTPUT_SLOT_START} + i）+
- * 1 个神之加速槽（提升并行数量与槽位容量）。无需能源。</p>
+ * <p>17 个输入槽（0-16）+ 17 个输出槽（17-33，一一对应：输入 i → 输出 {@link #OUTPUT_SLOT_START} + i）+
+ * 1 个神之加速槽（提升并行数量与槽位容量）。无需能源。槽位布局见 {@link GodGridLayout}。</p>
  *
  * <p>每 {@link MachinesConfig#PEELER_WORK_INTERVAL} tick 处理一轮：<b>每个</b>非空输入槽把最多
  * 「并行倍率」个原木去皮塞进对应输出槽（同物品可叠、容量够才动）。</p>
@@ -52,12 +59,15 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>打掉时物品一并消失，不掉落（同神之资源系列做法）。</p>
  */
-public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, GodGridHost
 {
-    public static final int INPUT_SLOT_COUNT = 9;
-    public static final int OUTPUT_SLOT_COUNT = 9;
+    public static final int INPUT_SLOT_COUNT = GodGridLayout.INPUT_COUNT;
+    public static final int OUTPUT_SLOT_COUNT = GodGridLayout.OUTPUT_COUNT;
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
     public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
+
+    /** 旧布局（v5.15.x）：9 输入 + 9 输出，仅用于读档迁移 */
+    private static final int LEGACY_INPUT_SLOT_COUNT = 9;
 
     /** 神之加速槽：放入神之加速提升并行数量（最多一组 64 个 = 1024 倍） */
     private final ItemStackHandler accelSlot = new ItemStackHandler(1)
@@ -88,6 +98,18 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         public boolean isItemValid(int slot, ItemStack stack)
         {
             return slot < INPUT_SLOT_COUNT && LogStripper.isStrippable(stack);
+        }
+
+        // 槽数固定为 TOTAL_SLOTS：旧存档（9+9 共 18 格）的 Size 若被 deserializeNBT 采纳会缩槽，
+        // 之后按新布局遍历 34 格就越界
+        @Override
+        public void setSize(int size)
+        {
+            if (size != TOTAL_SLOTS)
+            {
+                return;
+            }
+            super.setSize(size);
         }
 
         // 神之加速：输入/输出槽容量随并行倍率提升，但单堆上限 99
@@ -144,6 +166,75 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     public int getParallelMultiplier()
     {
         return GodAcceleratorItem.multiplierFor(accelSlot.getStackInSlot(0).getCount());
+    }
+
+    // ---- GodGridHost：共用网格界面所需的机器侧契约 ----
+
+    /** 输出槽整理模式（0=名称 1=模组 2=数量），随方块实体持久化 */
+    private int sortMode = GodGridSorting.MODE_NAME;
+
+    @Override
+    public IItemHandler gridItems()
+    {
+        return itemHandler;
+    }
+
+    @Override
+    public IItemHandler gridAccel()
+    {
+        return accelSlot;
+    }
+
+    @Override
+    public boolean gridAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    @Override
+    public void gridToggleAe()
+    {
+        toggleAeEnabled();
+    }
+
+    @Override
+    public int gridSortMode()
+    {
+        return sortMode;
+    }
+
+    @Override
+    public int gridSortOutputs()
+    {
+        sortMode = GodGridSorting.nextMode(sortMode);
+        GodGridSorting.sort(itemHandler, OUTPUT_SLOT_START, OUTPUT_SLOT_COUNT, sortMode);
+        setChanged();
+        return sortMode;
+    }
+
+    @Override
+    public void gridOpenFaceConfig(ServerPlayer player)
+    {
+        player.openMenu(new MenuProvider()
+        {
+            @Override
+            public Component getDisplayName()
+            {
+                return Component.translatable("container.godofthings.god_peeler");
+            }
+
+            @Override
+            public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player p)
+            {
+                return new GodPeelerConfigMenu(containerId, inventory, GodPeelerBlockEntity.this);
+            }
+        }, buf -> buf.writeBlockPos(getBlockPos()));
+    }
+
+    @Override
+    public int gridOperationsPerColumn()
+    {
+        return GodGridLayout.operationsPerColumn(accelSlot.getStackInSlot(0).getCount());
     }
 
     // ---- 面模式（与神之熔炉同一套）----
@@ -576,6 +667,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         tag.putIntArray("FaceModes", faceModes);
         tag.putBoolean("AeEnabled", aeEnabled);
         tag.putInt("TickCounter", tickCounter);
+        tag.putInt("SortMode", sortMode);
     }
 
     @Override
@@ -584,7 +676,17 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         super.loadAdditional(tag, provider);
         if (tag.contains("Inventory"))
         {
-            itemHandler.deserializeNBT(provider, tag.getCompound("Inventory"));
+            CompoundTag inv = tag.getCompound("Inventory");
+            int oldSize = inv.contains("Size") ? inv.getInt("Size") : itemHandler.getSlots();
+            // 旧 9+9 布局（Size=18）：把旧输出槽 9-17 整体右移到新输出区，
+            // 否则它们会落在新的输入槽位上（输入槽只收可去皮原木，会卡在那里不动）
+            if (oldSize == LEGACY_INPUT_SLOT_COUNT * 2)
+            {
+                remapLegacyOutputSlots(inv);
+            }
+            // 槽数固定为 TOTAL_SLOTS：旧存档的 Size 不采纳，否则 deserializeNBT 会缩槽越界
+            inv.putInt("Size", TOTAL_SLOTS);
+            itemHandler.deserializeNBT(provider, inv);
         }
         else if (tag.contains("InputSlot") || tag.contains("OutputSlot"))
         {
@@ -614,6 +716,28 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         // AE 接入开关（v5.15.9 加入；旧存档缺键默认开）
         this.aeEnabled = !tag.contains("AeEnabled") || tag.getBoolean("AeEnabled");
         tickCounter = tag.getInt("TickCounter");
+        // 排序模式（旧存档无此键 → 名称排序）
+        int storedSort = tag.contains("SortMode") ? tag.getInt("SortMode") : 0;
+        this.sortMode = Math.floorMod(storedSort, GodGridSorting.MODE_COUNT_TOTAL);
+    }
+
+    /**
+     * 旧 9+9 存档迁移：把 ItemStackHandler NBT 里 Slot 9-17 的条目整体右移到新输出区
+     * （{@link #OUTPUT_SLOT_START} 起），否则旧产物会落进新的输入槽位。
+     */
+    private static void remapLegacyOutputSlots(CompoundTag inv)
+    {
+        int shift = OUTPUT_SLOT_START - LEGACY_INPUT_SLOT_COUNT;
+        ListTag items = inv.getList("Items", Tag.TAG_COMPOUND);
+        for (int i = 0; i < items.size(); i++)
+        {
+            CompoundTag entry = items.getCompound(i);
+            int slot = entry.getInt("Slot");
+            if (slot >= LEGACY_INPUT_SLOT_COUNT && slot < LEGACY_INPUT_SLOT_COUNT * 2)
+            {
+                entry.putInt("Slot", slot + shift);
+            }
+        }
     }
 
     // ---- MenuProvider ----

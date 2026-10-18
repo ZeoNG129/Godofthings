@@ -11,6 +11,9 @@ import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.config.MachinesConfig;
+import com.godofthings.godgrid.GodGridHost;
+import com.godofthings.godgrid.GodGridLayout;
+import com.godofthings.godgrid.GodGridSorting;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodResourceMenu;
 import net.minecraft.core.BlockPos;
@@ -18,6 +21,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -42,11 +46,14 @@ import java.util.List;
  * <p>三台共用本类，仅 {@link GodResourceVariant} 不同（构造时传入）：
  * 各自的输入过滤与产出计算见 {@link GodResourceVariant#accepts} / {@link GodResourceVariant#produce}。</p>
  *
- * <p>其余行为与原神之资源一致：无需能源，9 个输入槽（3×3）并行生产且<b>不消耗模板</b>；
- * 快配方每 tick、慢配方每 20 tick；神之加速并行倍率；向下自动输出；内置无限储存；
- * AE2 并网（产物自动输出进网络）；打掉不掉落。</p>
+ * <p>其余行为与原神之资源一致：无需能源，输入槽（v5.18.0 起 17 格并行生产）且<b>不消耗模板</b>；
+ * 快配方每 tick、慢配方每 20 tick；神之加速并行倍率；产物先进 17 格输出区、满了落进内置无限储存；
+ * 向下自动输出；AE2 并网（产物自动输出进网络）；打掉不掉落。</p>
+ *
+ * <p>v5.18.0：界面/容器迁移到 {@link com.godofthings.godgrid} 共用网格框架
+ * （{@link GodGridLayout}：17 输入 + 17 输出 + 1 加速槽），本类实现 {@link GodGridHost}。</p>
  */
-public class GodResourceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner
+public class GodResourceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner, GodGridHost
 {
     /** 主人（放置者）：神之共鸣判定用（主人在线 + 穿齐全套 + 共鸣开关开才生效）。 */
     @org.jetbrains.annotations.Nullable
@@ -66,8 +73,16 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         return owner;
     }
 
-    /** 可放置输入槽数量（3×3 共 9 个） */
-    public static final int INPUT_SLOTS = 9;
+    /** 输入槽数量（v5.18.0：9 → 17，与共用网格界面一致） */
+    public static final int INPUT_SLOT_COUNT = GodGridLayout.INPUT_COUNT;
+
+    /** 输出槽数量（17 格缓冲，产物先进这里，满了再落进内置无限储存） */
+    public static final int OUTPUT_SLOT_COUNT = GodGridLayout.OUTPUT_COUNT;
+
+    public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
+
+    /** 输出区起点：输入在前、输出在后 */
+    public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
 
     /**
      * 本台机器的变体（矿物 / 作物 / 方块）——决定输入过滤与产出表。
@@ -76,8 +91,11 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
      */
     private GodResourceVariant variant;
 
-    /** 可放置输入槽：3×3 共 9 个（最多同时放置 9 种模板并行生产） */
-    private final ItemStackHandler inputSlot = new ItemStackHandler(INPUT_SLOTS)
+    /**
+     * 网格槽位：前 {@link #INPUT_SLOT_COUNT} 格是生产模板（不消耗），其后
+     * {@link #OUTPUT_SLOT_COUNT} 格是产物输出区（输入 i ↔ 输出 i 配对）。
+     */
+    private final ItemStackHandler gridHandler = new ItemStackHandler(TOTAL_SLOTS)
     {
         @Override
         protected void onContentsChanged(int slot)
@@ -88,20 +106,24 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         @Override
         public boolean isItemValid(int slot, ItemStack stack)
         {
-            return variant.accepts(stack);
+            // 输入格按变体过滤；输出格对机器内部写入放行（玩家放置由 Slot#mayPlace 拦，能力侧只暴露内置储存）
+            return slot >= OUTPUT_SLOT_START || variant.accepts(stack);
         }
 
         @Override
         public void setSize(int size)
         {
-            // 槽数固定为 INPUT_SLOTS：旧存档反序列化会调 setSize 缩槽导致越界崩溃，忽略之
-            if (size != INPUT_SLOTS)
+            // 槽数固定为 TOTAL_SLOTS：旧存档反序列化会按旧的 9 槽调 setSize，
+            // 这里直接忽略（既不缩槽越界，旧 9 槽数据也照常落在前 9 个输入格）
+            if (size != TOTAL_SLOTS)
             {
                 return;
             }
             super.setSize(size);
         }
     };
+
+    /** 内置无限储存：输出区塞不下的产物落这里（老行为，保证大倍率下也不丢产物） */
     private final InfiniteItemHandler itemHandler = new InfiniteItemHandler();
 
     /** 神之加速槽：放入神之加速提升并行数量（最多一组 64 个 = 1024 倍） */
@@ -119,6 +141,9 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
             return stack.getItem() instanceof GodAcceleratorItem;
         }
     };
+
+    /** 输出槽整理模式（0=名称 1=模组 2=数量），随方块实体持久化 */
+    private int sortMode = GodGridSorting.MODE_NAME;
 
     private int tickCounter = 0;
 
@@ -154,9 +179,10 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         return variant;
     }
 
-    public ItemStackHandler getInputSlot()
+    /** 网格槽位处理器（前 17 输入、后 17 输出），界面/容器统一从这里取。 */
+    public ItemStackHandler getGridHandler()
     {
-        return inputSlot;
+        return gridHandler;
     }
 
     public InfiniteItemHandler getItemHandler()
@@ -176,9 +202,68 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         return GodAcceleratorItem.multiplierFor(accelSlot.getStackInSlot(0).getCount());
     }
 
+    /** 内置无限储存里的物品类型数 */
     public int getStorageCount()
     {
         return itemHandler.getStacks().size();
+    }
+    /**
+     * 方块对外（管道 / 漏斗）的物品视图：前 {@link #OUTPUT_SLOT_COUNT} 格是网格输出格，
+     * 其后是内置无限储存 —— 这样产品缓冲进输出格后外部照样抽得到；外部插入照旧只进内置储存。
+     */
+    private final IItemHandler pipeView = new IItemHandler()
+    {
+        @Override
+        public int getSlots()
+        {
+            return OUTPUT_SLOT_COUNT + itemHandler.getSlots();
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot)
+        {
+            return slot < OUTPUT_SLOT_COUNT
+                    ? gridHandler.getStackInSlot(OUTPUT_SLOT_START + slot)
+                    : itemHandler.getStackInSlot(slot - OUTPUT_SLOT_COUNT);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate)
+        {
+            if (slot < OUTPUT_SLOT_COUNT)
+            {
+                return stack; // 输出格只出不进
+            }
+            return itemHandler.insertItem(slot - OUTPUT_SLOT_COUNT, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate)
+        {
+            return slot < OUTPUT_SLOT_COUNT
+                    ? gridHandler.extractItem(OUTPUT_SLOT_START + slot, amount, simulate)
+                    : itemHandler.extractItem(slot - OUTPUT_SLOT_COUNT, amount, simulate);
+        }
+
+        @Override
+        public int getSlotLimit(int slot)
+        {
+            return slot < OUTPUT_SLOT_COUNT
+                    ? gridHandler.getSlotLimit(OUTPUT_SLOT_START + slot)
+                    : itemHandler.getSlotLimit(slot - OUTPUT_SLOT_COUNT);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack)
+        {
+            return slot >= OUTPUT_SLOT_COUNT;
+        }
+    };
+
+    /** 方块对外的物品视图（输出格在前、内置无限储存在后） */
+    public IItemHandler getPipeView()
+    {
+        return pipeView;
     }
 
     public boolean isAeEnabled()
@@ -192,6 +277,63 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         setChanged();
     }
 
+    // ---- GodGridHost：共用网格界面所需的机器侧契约 ----
+
+    @Override
+    public IItemHandler gridItems()
+    {
+        return gridHandler;
+    }
+
+    @Override
+    public IItemHandler gridAccel()
+    {
+        return accelSlot;
+    }
+
+    @Override
+    public boolean gridAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    @Override
+    public void gridToggleAe()
+    {
+        toggleAeEnabled();
+    }
+
+    @Override
+    public int gridSortMode()
+    {
+        return sortMode;
+    }
+
+    @Override
+    public int gridSortOutputs()
+    {
+        sortMode = GodGridSorting.nextMode(sortMode);
+        GodGridSorting.sort(gridHandler, OUTPUT_SLOT_START, OUTPUT_SLOT_COUNT, sortMode);
+        setChanged();
+        return sortMode;
+    }
+
+    /**
+     * 资源三机没有六面 I/O 配置（本类没有面模式字段，产物从任意面都能抽走），
+     * 共用界面的「面配置」页签在这里是空操作 —— 保留实现只为满足接口。
+     */
+    @Override
+    public void gridOpenFaceConfig(ServerPlayer player)
+    {
+        // 无事可做：这三台机器本来就没有面配置界面
+    }
+
+    @Override
+    public int gridOperationsPerColumn()
+    {
+        return GodGridLayout.operationsPerColumn(accelSlot.getStackInSlot(0).getCount());
+    }
+
     // ---- AE 网格节点（线缆直连并网，产物自动输出进 AE） ----
 
     @Override
@@ -200,7 +342,7 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     @Override
     public void saveChanges() { setChanged(); }
 
-    /** 把产物推入 AE 网络（节流由 tick 控制）。 */
+    /** 把产物推入 AE 网络（节流由 tick 控制）：先推网格输出格，再推内置无限储存。 */
     private void pushOutputToAe()
     {
         if (!aeEnabled || !aeNode.isActive())
@@ -214,6 +356,19 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         }
         MEStorage inv = storage.getInventory();
         IActionSource source = aeNode.actionSource();
+        for (int slot = OUTPUT_SLOT_START; slot < TOTAL_SLOTS; slot++)
+        {
+            ItemStack stack = gridHandler.getStackInSlot(slot);
+            if (stack.isEmpty())
+            {
+                continue;
+            }
+            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
+            if (inserted > 0)
+            {
+                gridHandler.extractItem(slot, (int) inserted, false);
+            }
+        }
         for (int slot = 0; slot < getItemHandler().getSlots(); slot++)
         {
             ItemStack stack = getItemHandler().getStackInSlot(slot);
@@ -257,9 +412,9 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     private void tickServer()
     {
         // 快配方：每 tick 处理所有非空输入槽（变体各自的快配方资格见 GodResourceVariant.isFastRecipe）
-        for (int i = 0; i < INPUT_SLOTS; i++)
+        for (int i = 0; i < INPUT_SLOT_COUNT; i++)
         {
-            ItemStack input = inputSlot.getStackInSlot(i);
+            ItemStack input = gridHandler.getStackInSlot(i);
             if (!input.isEmpty() && variant.isFastRecipe(input))
             {
                 process(i); // 复制配方：每 tick 产 64 个
@@ -270,9 +425,9 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         if (tickCounter >= MachinesConfig.RESOURCE_WORK_INTERVAL.get())
         {
             tickCounter = 0;
-            for (int i = 0; i < INPUT_SLOTS; i++)
+            for (int i = 0; i < INPUT_SLOT_COUNT; i++)
             {
-                ItemStack input = inputSlot.getStackInSlot(i);
+                ItemStack input = gridHandler.getStackInSlot(i);
                 if (!input.isEmpty() && !variant.isFastRecipe(input))
                 {
                     process(i);
@@ -291,7 +446,7 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
 
     private void process(int slot)
     {
-        ItemStack input = inputSlot.getStackInSlot(slot);
+        ItemStack input = gridHandler.getStackInSlot(slot);
         if (input.isEmpty())
         {
             return;
@@ -312,7 +467,12 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
             {
                 ItemStack toInsert = out.copyWithCount((int) Math.min(Integer.MAX_VALUE / 2L,
                         Math.round(out.getCount() * mult * bomb)));
-                ItemStack leftover = itemHandler.insertItem(-1, toInsert, false);
+                // 产物先进输出格（输入 i ↔ 输出 i 配对），输出区塞不下再落进内置无限储存
+                ItemStack leftover = insertIntoOutputs(slot, toInsert);
+                if (!leftover.isEmpty())
+                {
+                    leftover = itemHandler.insertItem(-1, leftover, false);
+                }
                 if (!leftover.isEmpty())
                 {
                     InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
@@ -321,7 +481,23 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         }
     }
 
-    /** 向下自动输出到下方容器 */
+    /** 产物入输出格：先试与输入配对的那一格（输入 i ↔ 输出 i），再试其它输出格。返回塞不下的部分。 */
+    private ItemStack insertIntoOutputs(int inputSlot, ItemStack stack)
+    {
+        int paired = OUTPUT_SLOT_START + Math.floorMod(inputSlot, OUTPUT_SLOT_COUNT);
+        ItemStack rest = gridHandler.insertItem(paired, stack, false);
+        for (int j = 0; j < OUTPUT_SLOT_COUNT && !rest.isEmpty(); j++)
+        {
+            int idx = OUTPUT_SLOT_START + j;
+            if (idx != paired)
+            {
+                rest = gridHandler.insertItem(idx, rest, false);
+            }
+        }
+        return rest;
+    }
+
+    /** 向下自动输出到下方容器：先推网格输出格，再推内置无限储存 */
     private void pushDown()
     {
         BlockPos below = worldPosition.below();
@@ -338,6 +514,10 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         if (handler == null)
         {
             return;
+        }
+        for (int j = 0; j < OUTPUT_SLOT_COUNT; j++)
+        {
+            pushSlotTo(handler, OUTPUT_SLOT_START + j);
         }
         while (true)
         {
@@ -370,6 +550,31 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         }
     }
 
+    /** 把网格某一格整堆推进邻居（推不动的留在原格）。 */
+    private void pushSlotTo(IItemHandler handler, int slot)
+    {
+        ItemStack stack = gridHandler.getStackInSlot(slot);
+        if (stack.isEmpty())
+        {
+            return;
+        }
+        ItemStack toPush = stack.copy();
+        for (int s = 0; s < handler.getSlots(); s++)
+        {
+            ItemStack leftover = handler.insertItem(s, toPush, false);
+            int moved = toPush.getCount() - leftover.getCount();
+            if (moved > 0)
+            {
+                gridHandler.extractItem(slot, moved, false);
+            }
+            toPush = leftover;
+            if (toPush.isEmpty())
+            {
+                break;
+            }
+        }
+    }
+
     // ---- capability：任意面都能取走产物 ----
 
     @EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD)
@@ -379,7 +584,7 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         public static void registerCapabilities(RegisterCapabilitiesEvent event)
         {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Godofthings.GOD_RESOURCE_BE.get(),
-                    (be, side) -> be.itemHandler);
+                    (be, side) -> be.pipeView);
             event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST,
                     Godofthings.GOD_RESOURCE_BE.get(),
                     (be, side) -> be);
@@ -396,11 +601,13 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         {
             tag.putUUID("Owner", owner);
         }
-        tag.put("InputSlot", inputSlot.serializeNBT(provider));
+        // v5.18.0 起网格槽（17 输入 + 17 输出）存进新键 GridInventory，旧键 InputSlot 仅作读取兼容
+        tag.put("GridInventory", gridHandler.serializeNBT(provider));
         tag.put("AccelSlot", accelSlot.serializeNBT(provider));
         tag.put("Inventory", itemHandler.serializeNBT(provider));
         tag.putInt("TickCounter", tickCounter);
         tag.putBoolean("AeEnabled", aeEnabled);
+        tag.putInt("SortMode", sortMode);
     }
 
     @Override
@@ -411,9 +618,14 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         {
             owner = tag.getUUID("Owner");
         }
-        if (tag.contains("InputSlot"))
+        if (tag.contains("GridInventory"))
         {
-            inputSlot.deserializeNBT(provider, tag.getCompound("InputSlot"));
+            gridHandler.deserializeNBT(provider, tag.getCompound("GridInventory"));
+        }
+        else if (tag.contains("InputSlot"))
+        {
+            // 旧存档（9 格输入模板）照常读回：Size=9 被 setSize 守卫忽略，物品落在前 9 个输入格
+            gridHandler.deserializeNBT(provider, tag.getCompound("InputSlot"));
         }
         if (tag.contains("AccelSlot"))
         {
@@ -425,6 +637,9 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         }
         tickCounter = tag.getInt("TickCounter");
         this.aeEnabled = tag.contains("AeEnabled") ? tag.getBoolean("AeEnabled") : true;
+        // 排序模式（旧存档无此键 → 名称排序）
+        int storedSort = tag.contains("SortMode") ? tag.getInt("SortMode") : 0;
+        this.sortMode = Math.floorMod(storedSort, GodGridSorting.MODE_COUNT_TOTAL);
     }
 
     // ---- MenuProvider ----
@@ -445,6 +660,6 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player)
     {
-        return new com.godofthings.menu.GodResourceMenu(containerId, inventory, this);
+        return new GodResourceMenu(containerId, inventory, this);
     }
 }

@@ -11,12 +11,17 @@ import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.item.GodAcceleratorItem;
+import com.godofthings.godgrid.GodGridHost;
+import com.godofthings.godgrid.GodGridLayout;
+import com.godofthings.godgrid.GodGridSorting;
+import com.godofthings.menu.GodFurnaceConfigMenu;
 import com.godofthings.menu.GodFurnaceMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -53,11 +58,11 @@ import java.util.Optional;
  * 要先取到目标方块的这个能力，取不到就会直接拒绝，见 {@code AeDeviceLinker}）。
  * 其余 6 台（矿机 / 资源机 / 掉落机 / 砍杀 / 合成台 / 吸收）的 AE 并网不受影响。</p>
  */
-public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, GodGridHost
 {
-    // v5.13.0：输入/输出槽 6 → 9（与界面 3×3 对齐；旧存档迁移逻辑按 oldSize/2 推断旧输出区，自动兼容）
-    public static final int INPUT_SLOT_COUNT = 9;
-    public static final int OUTPUT_SLOT_COUNT = 9;
+    // v5.18.0：统一 17 输入 + 51 输出网格（照 PBG 无限离心机工厂布局，见 GodGridLayout）
+    public static final int INPUT_SLOT_COUNT = GodGridLayout.INPUT_COUNT;
+    public static final int OUTPUT_SLOT_COUNT = GodGridLayout.OUTPUT_COUNT;
     public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
 
@@ -160,6 +165,75 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     public int getParallelMultiplier()
     {
         return GodAcceleratorItem.multiplierFor(accelSlot.getStackInSlot(0).getCount());
+    }
+
+    // ---- GodGridHost：共用网格界面所需的机器侧契约 ----
+
+    /** 输出槽整理模式（0=名称 1=模组 2=数量），随方块实体持久化 */
+    private int sortMode = GodGridSorting.MODE_NAME;
+
+    @Override
+    public IItemHandler gridItems()
+    {
+        return itemHandler;
+    }
+
+    @Override
+    public IItemHandler gridAccel()
+    {
+        return accelSlot;
+    }
+
+    @Override
+    public boolean gridAeEnabled()
+    {
+        return aeEnabled;
+    }
+
+    @Override
+    public void gridToggleAe()
+    {
+        toggleAeEnabled();
+    }
+
+    @Override
+    public int gridSortMode()
+    {
+        return sortMode;
+    }
+
+    @Override
+    public int gridSortOutputs()
+    {
+        sortMode = GodGridSorting.nextMode(sortMode);
+        GodGridSorting.sort(itemHandler, OUTPUT_SLOT_START, OUTPUT_SLOT_COUNT, sortMode);
+        setChanged();
+        return sortMode;
+    }
+
+    @Override
+    public void gridOpenFaceConfig(ServerPlayer player)
+    {
+        player.openMenu(new MenuProvider()
+        {
+            @Override
+            public Component getDisplayName()
+            {
+                return Component.translatable("gui.godofthings.face_config");
+            }
+
+            @Override
+            public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player p)
+            {
+                return new GodFurnaceConfigMenu(containerId, inventory, GodFurnaceBlockEntity.this);
+            }
+        }, buf -> buf.writeBlockPos(getBlockPos()));
+    }
+
+    @Override
+    public int gridOperationsPerColumn()
+    {
+        return GodGridLayout.operationsPerColumn(accelSlot.getStackInSlot(0).getCount());
     }
 
     /** 判断物品是否拥有熔炼配方。不能熔炼的物品不允许进入输入槽。 */
@@ -595,7 +669,9 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
 
         // 配方每次熔炼的产出数量（原版多为 1，模组配方可能 >1，如 1 矿 → 2 锭）
         int perResult = Math.max(1, resultTemplate.getCount());
-        int toSmelt = Math.min(input.getCount(), outputFree / perResult);
+        // 单列每 tick 的并行额度 = 内置 64 × 神之加速倍率（见 GodGridLayout#operationsPerColumn）
+        int columnBudget = gridOperationsPerColumn();
+        int toSmelt = Math.min(Math.min(input.getCount(), outputFree / perResult), columnBudget);
         if (toSmelt <= 0)
         {
             return;
@@ -645,6 +721,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
         tag.put("AccelSlot", accelSlot.serializeNBT(registries));
         tag.putIntArray("FaceModes", faceModes);
         tag.putBoolean("AeEnabled", aeEnabled);
+        tag.putInt("SortMode", sortMode);
     }
 
     // 1.21.1（1.20.5+ 破坏性变更）：load(CompoundTag) → loadAdditional(CompoundTag, HolderLookup.Provider)
@@ -698,6 +775,9 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
         }
         // AE 接入开关（v5.15.5 恢复；旧存档缺键默认开）
         this.aeEnabled = !tag.contains("AeEnabled") || tag.getBoolean("AeEnabled");
+        // 排序模式（旧存档无此键 → 名称排序）
+        int storedSort = tag.contains("SortMode") ? tag.getInt("SortMode") : 0;
+        this.sortMode = Math.floorMod(storedSort, GodGridSorting.MODE_COUNT_TOTAL);
     }
 
     /** 第一个空输出槽；没有则 -1 */

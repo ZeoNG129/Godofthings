@@ -2,22 +2,22 @@ package com.godofthings.menu;
 
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodResourceBlockEntity;
+import com.godofthings.block.entity.GodResourceVariant;
+import com.godofthings.godgrid.AbstractGodGridMenu;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.DataSlot;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.minecraft.world.level.block.Block;
 
-public class GodResourceMenu extends AbstractContainerMenu
+/**
+ * 神之资源三机（矿物 / 作物 / 复制）共用的容器：网格槽位（17 输入 + 17 输出 + 加速槽）、
+ * 玩家物品栏、AE / 排序 / 面配置按钮全部由 {@link AbstractGodGridMenu} 统一提供。
+ *
+ * <p>三台机器共用同一个方块实体与同一个菜单类型，唯一的区别是
+ * {@link GodResourceBlockEntity#getVariant()}（决定 {@link #gridBlock()} 与产出表）；
+ * 界面标题也按变体取自各方块注册名，因此三者仍然可区分。</p>
+ */
+public class GodResourceMenu extends AbstractGodGridMenu
 {
-    private final GodResourceBlockEntity be;
-    private final ContainerLevelAccess access;
-    private int cachedAeEnabled = 1;
-
     public GodResourceMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
         this(containerId, playerInv,
@@ -26,123 +26,19 @@ public class GodResourceMenu extends AbstractContainerMenu
 
     public GodResourceMenu(int containerId, Inventory playerInv, GodResourceBlockEntity be)
     {
-        super(Godofthings.GOD_RESOURCE_MENU.get(), containerId);
-        this.be = be;
-        this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
-
-        // 输入槽 3×3（只接受树苗/作物/矿石块）
-        for (int row = 0; row < 3; row++)
-        {
-            for (int col = 0; col < 3; col++)
-            {
-                this.addSlot(new SlotItemHandler(be.getInputSlot(), row * 3 + col, 61 + col * 18, 17 + row * 18));
-            }
-        }
-        // 神之加速槽（只接受神之加速，最多 64 个），位于输入槽左侧
-        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 43, 35));
-
-        // 玩家物品栏 3x9 + 快捷栏
-        for (int row = 0; row < 3; row++)
-        {
-            for (int col = 0; col < 9; col++)
-            {
-                this.addSlot(new Slot(playerInv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
-            }
-        }
-        for (int col = 0; col < 9; col++)
-        {
-            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 142));
-        }
-
-        // 内置储存堆数（显示用）
-        this.addDataSlot(new DataSlot()
-        {
-            @Override
-            public int get() { return be.getStorageCount(); }
-            @Override
-            public void set(int value) { /* 只读 */ }
-        });
-
-        // AE 接入开关状态（客户端同步）
-        this.addDataSlot(new DataSlot()
-        {
-            @Override
-            public int get() { return be.isAeEnabled() ? 1 : 0; }
-            @Override
-            public void set(int value) { cachedAeEnabled = value; }
-        });
+        super(Godofthings.GOD_RESOURCE_MENU.get(), containerId, playerInv, be);
     }
 
-    public boolean isAeEnabled()
-    {
-        return cachedAeEnabled == 1;
-    }
-
-    public GodResourceBlockEntity getBlockEntity()
-    {
-        return be;
-    }
-
+    /** 按方块实体的变体返回对应方块：矿物 / 作物 / 复制各认自己那一台（stillValid 校验用）。 */
     @Override
-    public boolean clickMenuButton(Player player, int buttonId)
+    protected Block gridBlock()
     {
-        if (buttonId == 10)
+        GodResourceVariant variant = ((GodResourceBlockEntity) blockEntity).getVariant();
+        return switch (variant)
         {
-            be.toggleAeEnabled();
-            this.broadcastChanges();
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean stillValid(Player player)
-    {
-        // 三台机器共用本菜单：任意一台神之资源系列方块都算有效
-        return stillValid(this.access, player, Godofthings.GOD_ORE_MACHINE.get())
-                || stillValid(this.access, player, Godofthings.GOD_CROP_MACHINE.get())
-                || stillValid(this.access, player, Godofthings.GOD_DUPLICATE_MACHINE.get());
-    }
-
-    @Override
-    public ItemStack quickMoveStack(Player player, int index)
-    {
-        ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(index);
-        if (slot != null && slot.hasItem())
-        {
-            ItemStack stack = slot.getItem();
-            itemstack = stack.copy();
-            if (index < 10)
-            {
-                if (!this.moveItemStackTo(stack, 10, this.slots.size(), true))
-                {
-                    return ItemStack.EMPTY;
-                }
-            }
-            else
-            {
-                // 玩家物品栏：先试加速槽（只收神之加速），再试输入槽（只收有效输入）
-                if (!this.moveItemStackTo(stack, 9, 10, false)
-                        && !this.moveItemStackTo(stack, 0, 9, false))
-                {
-                    return ItemStack.EMPTY;
-                }
-            }
-            if (stack.isEmpty())
-            {
-                slot.setByPlayer(ItemStack.EMPTY);
-            }
-            else
-            {
-                slot.setChanged();
-            }
-            if (stack.getCount() == itemstack.getCount())
-            {
-                return ItemStack.EMPTY;
-            }
-            slot.onTake(player, stack);
-        }
-        return itemstack;
+            case ORE -> Godofthings.GOD_ORE_MACHINE.get();
+            case CROP -> Godofthings.GOD_CROP_MACHINE.get();
+            case DUPLICATE -> Godofthings.GOD_DUPLICATE_MACHINE.get();
+        };
     }
 }

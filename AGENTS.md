@@ -17,7 +17,7 @@
   · `GodResourceVariantGameTest`（4 条）：矿物 / 作物 / 复制三机的输入过滤与产出；
   · `GodPeelerGameTest`（7 条）：去皮映射（原版 11 组 / 木头 / 蕈柄）、已去皮拒收、转化槽逻辑、并行倍率与 9 槽独立、FaceMode 往返；
   · `GodResonanceGameTest`（3 条）：神之共鸣判定（离线 / 未记录主人不生效、倍率中性回退、开关存储往返）；
-  · `GodToolBeltGameTest`（1 条）：未装 ToolBelt 时注入为无操作不抛错。
+  · `GodToolBeltGameTest`（1 条）：神之皮带恒为满级（9 格）、神之工具默认可以放进皮带、皮带不许放进自己里面。
   · `GodSlaughterGameTest`（1 条）：砍杀机保护名单（盔甲架 / 村民 / 流浪商人 / 已驯服宠物（含马驴等 AbstractHorse）/ 起过名字的生物不杀，普通动物照杀）。
   · `GodBlackBoxGameTest`（2 条）：黑盒不在身上时菜单必须失效（且别的槽位冒出黑盒不许让旧菜单复活）；黑盒不能放进自己的过滤槽（槽位校验 / 数字键交换 / Shift 快捷移动）。
   · `GodBackpackGameTest`（8 条）：神之背包内容与设置组件的编解码往返、整理时记忆格 / 忽略整理格原地不动、记忆格优先接收同类物品、全选记忆 / 全选忽略的智能切换、未装 Curios 时饰品栏查找安全降级、多个背包各自独立（槽位空了不许退化成第一个背包）、不许背包套背包（数字键交换 / Shift 快捷移动 / 槽位 mayPlace）。

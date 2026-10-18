@@ -44,6 +44,16 @@
 - **署名**：作者 `glodblock` 与 ExtendedAE contributors。
 - **源码许可**：GNU LGPL 3.0 —— 见 `LICENSES/ExtendedAE-LGPL-3.0.txt`
   （上述两个类保持 LGPL-3.0，不得按本模组的 ARR 条款再许可）。
+## 5. ToolBelt —— BSD-3-Clause
+
+- **移植内容**：神之皮带整套（`com.godofthings.belt` 包）—— 皮带物品 / 皮带槽附件 / 皮带界面 /
+  工具轮盘 / 网络包 / 配置，移植自 [ToolBelt](https://github.com/gigaherz/ToolBelt) 2.2.10
+  （上游包名 `dev.gigaherz.toolbelt.*`，BSD-3-Clause）。
+  本地改动：包名与注册名统一改为 `godofthings:god_belt*`、**默认满级（9 格）**、
+  删除皮带包（pouch）与缝纫升级整套、Curios 饰品栏查找器改用物品栏保底、
+  自定义 `ItemDisplayContext` 枚举扩展改用原版展示方式、槽位空图标不再写 `minecraft` 命名空间资源。
+- **署名**：作者 David Quintana（gigaherz@gmail.com）。
+- **源码许可**：BSD 3-Clause —— 见 `LICENSES/ToolBelt-BSD-3-Clause.txt`（版权声明原样保留，未改动）。
 
 ---
 

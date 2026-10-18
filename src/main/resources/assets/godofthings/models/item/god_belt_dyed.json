@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "godofthings:item/god_belt_dyed",
+    "layer1": "godofthings:item/god_belt_buckle"
+  }
+}

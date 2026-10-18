@@ -1371,3 +1371,43 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 校验：`check-lang.ps1` **OK**（586×2 语言键、模型与语言键对应关系完好）；`gradlew build` **成功**并部署。
   - **额外验证打包产物**：`build/libs` 里的 jar 内 **56/56** 张贴图与源码目录**哈希一致、尺寸达标、无缺失** —— 确认 `processResources` 与打包没有编码 / 格式异常。
   - 说明：高清化只提高纹理分辨率，**不改任何 UV 与模型**，因此无需改动模型 JSON；Minecraft 会按纹理实际尺寸缩放显示。
+
+- 5.17.5 → **5.18.0（神之皮带：ToolBelt 整包移植 + 默认满级）** —— 新增小物品，按规则**第二位 +1、末位归零**。
+  - **移植来源**：ToolBelt 2.2.10（上游包名 `dev.gigaherz.toolbelt.*`，BSD-3-Clause，作者 David Quintana / gigaherz）。
+    51 个 Java 文件里 **33 个**进入 `com.godofthings.belt`（`belt` / `client` / `client.radial` / `common` / `network` / `slot` 子包层次保留），包名整体换成 `com.godofthings.belt.*`。
+  - **新增注册**：物品 `godofthings:god_belt`（神之皮带 / God Belt，常量 `Godofthings.GOD_BELT`）+
+    菜单 `godofthings:god_belt`（皮带内容界面）与 `godofthings:god_belt_slot`（皮带槽位界面）+
+    玩家附件 `godofthings:god_belt`；5 个网络包（换物品 / 开槽位界面 / 容器槽同步 / 两个客户端同步）注册进现有 `godofthings` 命名空间（`BeltRegistration#registerPackets`）。
+  - **默认满级**：`ToolBeltItem#getSlotsCount` 恒返回上限 **9 格**（`MAX_SLOTS`），`getComponentItemHandler` 固定 9 格；
+    写等级的 `setSlotsCount` / `makeUpgradedStack` / `forSize` 与 `god_belt_size` 数据组件一并删除 —— 拿到手就是满级，不存在可升级状态。
+  - **删掉的上游内容**：皮带包（pouch 物品 / 配方 / 模型 / 贴图）、缝纫升级整套（`SewingUpgradeRecipe` /
+    `SewingUpgradeRecipeBuilder` / `SewingKitIntegration` / `BeltIngredient` / `Conditions` /
+    `generated_resources` 里 7 个 `belt_upgrade_*_via_sewing` 与 pouch 的配方和成就）、只服务铁砧升级的 `JeiPlugin`、
+    全程注释掉的 `LambDynamicLightsCompat` 与 `ControllableSupport`、各 `package-info`、上游数据生成器（配方改手写 JSON）。
+  - **兼容层改写**：删除 `handler/ToolBeltCompat`（原先把五件神之工具反射注入外部 ToolBelt 配置白名单）及其
+    `ServerStartingEvent` / `PlayerLoggedInEvent` 两个监听；改为皮带自己的**内部白名单**
+    （`ConfigData#isItemStackAllowed` 直接放行请神 / 神之更改 / 神之测量 / 神之黑盒 / 神之绑定），并保证**皮带不许放进自己里面**。
+  - **可选依赖仍然可选**：Curios 不是编译期依赖 —— `BeltFinderCurios` 换成 `BeltFinderInventory`
+    （在玩家物品栏里找皮带，皮带槽优先，靠 `BeltFinder.addFinder` 的逆序规则）；JEI / LambDynamicLights 集成删除。
+    `build.gradle` 的 `dependencies` **没有增加任何依赖**。
+  - **不引入 access transformer**：上游 `accesstransformer.cfg` 的 3 条（`ArmorSlot` / `InventoryMenu.SLOT_IDS` /
+    `InventoryMenu.TEXTURE_EMPTY_SLOTS`）用本地 `BeltArmorSlot` + 原版公开的 `EMPTY_ARMOR_SLOT_*` 常量替代；
+    槽位空图标不再写 `assets/minecraft/atlases/blocks.json`（避免与别的模组同名文件互相覆盖）；
+    腰带物品在玩家身上的展示用原版 `ItemDisplayContext` 代替自定义枚举扩展（不写 `enumextensions.json`）。
+  - **资源**：`assets/godofthings/textures/{entity,gui,item}` 6 张贴图（`god_belt*`，GUI 两张确认 256×256）、
+    `models/item/god_belt.json`（含 `godofthings:has_custom_color` 覆盖）与 `god_belt_dyed.json`、
+    配方 `data/godofthings/recipe/god_belt.json`（3 皮革 + 2 线 + 3 皮革 + 1 铁锭）。
+  - **语言 / 手册 / 文档**：中英各 **+13 个键**（`item` / `manual` / `tooltip` / `container` / `key.godofthings.belt_*` / `text.godofthings.belt.*`），
+    手册补 `manual.godofthings.god_belt`；README「核心特性一览」新增神之皮带一行、注册计数 23 → **24 个物品**；
+    `GodToolBeltGameTest` 改为验证「恒满级 / 内部白名单 / 不许套娃」，回归测试仍为 **45 条 / 10 个测试类**。
+  - **许可**：BSD-3-Clause 版权声明原样保留 —— `LICENSES/ToolBelt-BSD-3-Clause.txt`，
+    并在 `META-INF/THIRD_PARTY_NOTICES.md` 增加第 5 节。
+  - 验证：`gradlew compileJava` / `gradlew build` 成功；`check-lang.ps1` OK；GameTest 45/45。
+- 5.18.0 → **5.18.1（神之腰带 / 共鸣 / 加速掉落修正）** —— 修复与优化，按规则**末位 +1**。
+  - **神之共鸣只对应机器**（v5.18.1）：机器侧只看「神之共鸣」开关，倍率取增幅节点的**等级**，不再要求玩家打开对应「神之增幅」（增幅只作用于玩家自身）；同时**不再要求主人在线、也不再要求穿齐神之套装** —— 新增 `armor/skill/ResonanceLevelStore`（按 UUID 持久化的等级快照，主人在线时刷新、离线读快照），FakePlayer 事件路径也改为只看共鸣开关。
+  - **神之皮带 → 神之腰带**：物品名、手册、槽位界面、按键分类与三个按键名共 4 处中文改名（英文仍 God Belt）。
+  - **腰带槽位 9 → 16**：单排放不下 16 列（底图 176 宽），改 **2 排 × 8 格**；面板高度 133 → 151、玩家背包整体下移 18px；`BeltScreen` 改两段式绘制 + 中间补 `#C6C6C6` 面板底色，避免底图被拉伸采样。
+  - **腰带可放进 Curios 腰带槽**：新增 `data/curios/tags/item/belt.json`；新增 `BeltFinderCurios`（复用 `CuriosCompat` 反射桥，新增通用 `findFirstInCurios`），未装 Curios 时自动退回物品栏查找。
+  - **机器被挖掉时神之加速正常掉落**：新增 `handler/GodMachineDropHandler`，全局 `BlockEvent.BreakEvent` 里把加速槽内容弹出并清除，其余内置物品照旧随方块消失；创造模式与活塞/爆炸破坏不弹。
+  - **六台机器统一网格界面收口**：统一为 17 输入 + 17 输出（输出由 51 砍到 17）+ 1 加速槽，面板 362×188，面配置 / AE / 排序三个页签；掉落机与怪蛋机无面配置页签。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

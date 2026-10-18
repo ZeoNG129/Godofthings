@@ -38,6 +38,14 @@ import com.godofthings.config.MachinesConfig;
 import com.godofthings.energy.CreativeEnergyCubeBlock;
 import com.godofthings.energy.CreativeEnergyCubeEntity;
 import com.godofthings.energy.CreativeEnergyCubeMenu;
+
+import com.godofthings.belt.BeltRegistration;
+import com.godofthings.belt.ConfigData;
+import com.godofthings.belt.belt.ToolBeltItem;
+import com.godofthings.belt.common.BeltContainer;
+import com.godofthings.belt.slot.BeltAttachment;
+import com.godofthings.belt.slot.BeltSlotMenu;
+import net.minecraft.world.flag.FeatureFlags;
 import com.godofthings.handler.AdAstraCompat;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.item.GodArmorItem;
@@ -321,6 +329,20 @@ public class Godofthings
     /** 神之背包：120 格随身仓库（右键打开；内容与设置存在物品数据组件里，见 backpack 包） */
     public static final DeferredItem<GodBackpackItem> GOD_BACKPACK_ITEM =
             ITEMS.registerItem("god_backpack", props -> new GodBackpackItem(props.stacksTo(1)));
+
+    /** 神之皮带：9 格工具腰带（右键打开界面，R 键轮盘切换；移植自 ToolBelt 2.2.10，BSD-3-Clause） */
+    public static final DeferredItem<ToolBeltItem> GOD_BELT =
+            ITEMS.registerItem("god_belt", props -> new ToolBeltItem(props.stacksTo(1)));
+
+    /** 神之皮带内容界面（皮带里的 9 个槽 + 玩家背包） */
+    public static final DeferredHolder<MenuType<?>, MenuType<BeltContainer>> GOD_BELT_MENU =
+            MENUS.register("god_belt", () -> IMenuTypeExtension.create(BeltContainer::new));
+    /** 神之皮带槽位界面（装备皮带 + 2×2 合成 + 背包，V 键打开） */
+    public static final DeferredHolder<MenuType<?>, MenuType<BeltSlotMenu>> GOD_BELT_SLOT_MENU =
+            MENUS.register("god_belt_slot", () -> new MenuType<>(BeltSlotMenu::new, FeatureFlags.DEFAULT_FLAGS));
+    /** 神之皮带槽（玩家附件：存档 / 死亡掉落 / 死亡复制都在 BeltAttachment 的事件里） */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<BeltAttachment>> GOD_BELT_ATTACHMENT =
+            ATTACHMENT_TYPES.register("god_belt", () -> AttachmentType.serializable(BeltAttachment::new).build());
 
     // ---- 神之工具 ----
     // GT 扳手模式子类（通过模式轮盘切换，不直接出现在创造标签）
@@ -615,6 +637,7 @@ public class Godofthings
                         output.accept(GOD_NOTE.get());
                         output.accept(GOD_MANUAL.get());
                         output.accept(GOD_BACKPACK_ITEM.get());
+                        output.accept(GOD_BELT.get());
                         output.accept(GOD_TRANSMITTER_ITEM.get());
                         output.accept(GOD_SLAUGHTER_ITEM.get());
                         output.accept(GOD_ABSORBER_ITEM.get());
@@ -674,6 +697,12 @@ public class Godofthings
                 com.godofthings.beef.core.config.ConfigManager.SERVER_SPEC, "godofthings-beef-server.toml");
 
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
+
+        // 神之皮带（移植自 ToolBelt 2.2.10）：网络包 / 物品能力 / 皮带槽事件 / 配置刷新
+        BeltRegistration.init(modEventBus);
+        // 皮带自己的配置文件（服务器白黑名单 / 客户端轮盘显示选项），与上面两份文件名区分开
+        modContainer.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC, "godofthings-belt-server.toml");
+        modContainer.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC, "godofthings-belt-client.toml");
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)

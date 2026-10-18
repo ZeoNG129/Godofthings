@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SLS",
+    "L L",
+    "LIL"
+  ],
+  "key": {
+    "S": { "item": "minecraft:string" },
+    "L": { "item": "minecraft:leather" },
+    "I": { "item": "minecraft:iron_ingot" }
+  },
+  "result": {
+    "id": "godofthings:god_belt"
+  }
+}

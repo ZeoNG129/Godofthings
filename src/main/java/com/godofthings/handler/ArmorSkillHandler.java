@@ -246,7 +246,8 @@ public class ArmorSkillHandler
      * 效果是否允许对本次触发生效。
      * <ul>
      *   <li><b>真玩家</b>：只要穿齐全套即生效（不看共鸣开关）</li>
-     *   <li><b>假玩家（机器）</b>：主人需在线 + 穿齐全套 + <b>该节点对应的「神之共鸣」开关已打开</b></li>
+     *   <li><b>假玩家（机器）</b>：<b>只看该节点对应的「神之共鸣」开关</b>
+     *       （v5.18.1 起不再要求主人在线、也不再要求穿齐全套，等级读持久化快照）</li>
      * </ul>
      * <p><b>v5.11.0</b>：原「机械共鸣」按用户要求恢复并改名「神之共鸣」—— 7 个开关、<b>默认关</b>，
      * 所以机器默认<b>不</b>继承增幅，要让某台机器吃到某个增幅就在对应节点上把共鸣打开。
@@ -256,23 +257,24 @@ public class ArmorSkillHandler
      */
     public static boolean effectAllowed(ServerPlayer player, String machineSkillId)
     {
-        ServerPlayer owner = ownerOf(player);
-        if (owner == null || !isActive(owner))
-        {
-            return false;
-        }
         if (!(player instanceof net.neoforged.neoforge.common.util.FakePlayer))
         {
-            return true; // 真玩家：穿齐即生效
+            return isActive(player); // 真玩家：穿齐即生效（增幅只对应玩家）
         }
-        return ArmorSkillData.isEnabled(ArmorSkillData.get(owner), machineSkillId);
+        // 机器：只认共鸣开关；主人离线、没穿套装都不影响（等级读持久化快照）
+        return resonanceFor(player.serverLevel(), player.getUUID(), machineSkillId);
     }
 
     /** 取"生效用的等级表"：真玩家 = 自己；机器 = 主人 */
     private static Map<String, Integer> levelsFor(ServerPlayer player)
     {
-        ServerPlayer owner = ownerOf(player);
-        return owner == null ? Map.of() : ArmorSkillData.get(owner);
+        if (player instanceof net.neoforged.neoforge.common.util.FakePlayer)
+        {
+            // 机器：主人离线也能取到（读持久化快照），且不受增幅开关影响
+            Map<String, Integer> machine = machineLevels(player.serverLevel(), player.getUUID());
+            return machine == null ? Map.of() : machine;
+        }
+        return ArmorSkillData.get(player);
     }
 
     // ══════════ 机器共鸣直查（v5.15.4：不经过 FakePlayer 事件的机器用） ══════════
@@ -282,17 +284,52 @@ public class ArmorSkillHandler
     /** 共鸣基础判定：主人在线 + 穿齐全套 + 对应共鸣开关打开；返回主人的等级表，未生效返回 null。 */
     private static Map<String, Integer> resonantLevels(ServerLevel level, UUID owner, String machineSkillId)
     {
-        if (owner == null)
+        Map<String, Integer> raw = rawMachineLevels(level, owner);
+        if (raw == null || !ArmorSkillData.isEnabled(raw, machineSkillId))
+        {
+            return null; // 共鸣开关未打开
+        }
+        return normalize(raw);
+    }
+
+    /**
+     * 主人等级表：在线取实时数据并顺手刷新快照；离线读 {@link com.godofthings.armor.skill.ResonanceLevelStore}。
+     * <p>v5.18.1：不再要求主人在线、也不再要求穿着神之套装 —— 共鸣开关说了算。</p>
+     */
+    private static Map<String, Integer> rawMachineLevels(ServerLevel level, UUID owner)
+    {
+        if (level == null || owner == null || level.getServer() == null)
         {
             return null;
         }
-        ServerPlayer player = level.getServer().getPlayerList().getPlayer(owner);
-        if (player == null || !isActive(player))
+        com.godofthings.armor.skill.ResonanceLevelStore store =
+                com.godofthings.armor.skill.ResonanceLevelStore.get(level.getServer());
+        ServerPlayer online = level.getServer().getPlayerList().getPlayer(owner);
+        if (online != null)
         {
-            return null; // 主人不在线或未穿齐全套
+            Map<String, Integer> live = ArmorSkillData.get(online);
+            if (live != null && !live.isEmpty())
+            {
+                store.remember(owner, live);
+                return live;
+            }
         }
-        Map<String, Integer> levels = ArmorSkillData.get(player);
-        return ArmorSkillData.isEnabled(levels, machineSkillId) ? levels : null;
+        return store.levelsOf(owner);
+    }
+
+    /** 机器侧等级表（已取绝对值）：在线/离线都可用；没有数据返回 null */
+    private static Map<String, Integer> machineLevels(ServerLevel level, UUID owner)
+    {
+        Map<String, Integer> raw = rawMachineLevels(level, owner);
+        return raw == null || raw.isEmpty() ? null : normalize(raw);
+    }
+
+    /** 增幅开关只对玩家生效：机器读到的等级一律取绝对值 */
+    private static Map<String, Integer> normalize(Map<String, Integer> raw)
+    {
+        Map<String, Integer> out = new java.util.HashMap<>(raw.size());
+        raw.forEach((id, value) -> out.put(id, Math.abs(value)));
+        return out;
     }
 
     /** 共鸣直查（机器直连用）：主人在线 + 穿齐全套 + 对应共鸣开关开（不经过 FakePlayer 事件的机器判定入口）。 */
@@ -301,31 +338,38 @@ public class ArmorSkillHandler
         return resonantLevels(level, owner, machineSkillId) != null;
     }
 
-    /** 共鸣·掉落（战利品爆炸）倍率；未生效 = 1。资源三机 / 掉落机 / 怪蛋机 / 矿机用。 */
+    /**
+     * 共鸣·掉落（战利品爆炸）倍率；未生效 = 1。资源三机 / 掉落机 / 怪蛋机 / 矿机用。
+     * <p>v5.18.1：机器侧只看「共鸣开关」，倍率取增幅节点的<b>等级</b>；
+     * 不再要求玩家把对应增幅开关也打开（增幅开关只对玩家自身生效）。</p>
+     */
     public static double lootBombBoost(ServerLevel level, UUID owner)
     {
         Map<String, Integer> levels = resonantLevels(level, owner, ArmorSkills.MACHINE_LOOT_BOMB);
-        return levels == null ? 1.0 : ArmorSkillEngine.lootBombMultiplier(levels);
+        return levels == null ? 1.0 : 1.0 + ArmorSkillData.level(levels, ArmorSkills.LOOT_BOMB);
     }
 
-    /** 共鸣·方块（点石成金）倍率；未生效 = 1。矿机用。 */
+    /** 共鸣·方块（点石成金）倍率；未生效 = 1。矿机用。（v5.18.1：只看共鸣开关，取增幅等级） */
     public static double blockDropBoost(ServerLevel level, UUID owner)
     {
         Map<String, Integer> levels = resonantLevels(level, owner, ArmorSkills.MACHINE_BLOCK_DROP);
-        return levels == null ? 1.0 : ArmorSkillEngine.blockDropMultiplier(levels);
+        return levels == null ? 1.0 : 1.0 + ArmorSkillData.level(levels, ArmorSkills.BLOCK_DROP);
     }
 
-    /** 共鸣·经验（经验飞涨）倍率；未生效 = 1。吸收器用。 */
+    /** 共鸣·经验（经验飞涨）倍率；未生效 = 1。吸收器用。（v5.18.1：只看共鸣开关，取增幅等级） */
     public static double xpBoost(ServerLevel level, UUID owner)
     {
         Map<String, Integer> levels = resonantLevels(level, owner, ArmorSkills.MACHINE_XP_GAIN);
-        return levels == null ? 1.0 : ArmorSkillEngine.xpMultiplier(levels);
+        return levels == null ? 1.0 : 1.0 + ArmorSkillData.level(levels, ArmorSkills.XP_GAIN) * 2.0;
     }
 
-    /** 共鸣·熔炼：机器继承「神之熔炼」（基础增幅与共鸣都开才生效）。矿机用。 */
+    /**
+     * 共鸣·熔炼：机器继承「神之熔炼」。矿机用。
+     * <p>v5.18.1：只看共鸣开关（{@link ArmorSkills#MACHINE_AUTO_SMELT}），
+     * 不再要求玩家自己的「神之熔炼」增幅开关也打开。</p>
+     */
     public static boolean autoSmeltOn(ServerLevel level, UUID owner)
     {
-        Map<String, Integer> levels = resonantLevels(level, owner, ArmorSkills.MACHINE_AUTO_SMELT);
-        return levels != null && ArmorSkillEngine.isOn(levels, ArmorSkills.AUTO_SMELT);
+        return resonantLevels(level, owner, ArmorSkills.MACHINE_AUTO_SMELT) != null;
     }
 }

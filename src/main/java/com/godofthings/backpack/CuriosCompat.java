@@ -129,6 +129,44 @@ public final class CuriosCompat
         }
     }
 
+    /**
+     * 在 Curios 的任意槽位里找第一件满足条件的物品（神之皮带用）。
+     *
+     * <p>与 {@link #findBackpackInBackSlot(Player)} 同一套反射路径，只是谓词由调用方给；
+     * 未装 Curios 或反射失败一律返回 {@link ItemStack#EMPTY}，调用方按"没戴"处理。</p>
+     */
+    public static ItemStack findFirstInCurios(Player player, Predicate<ItemStack> predicate)
+    {
+        if (player == null || predicate == null || !isLoaded())
+        {
+            return ItemStack.EMPTY;
+        }
+        try
+        {
+            if (!resolve())
+            {
+                return ItemStack.EMPTY;
+            }
+            Object inventory = getCuriosInventory.invoke(null, player);
+            if (!(inventory instanceof Optional<?> optional) || optional.isEmpty())
+            {
+                return ItemStack.EMPTY;
+            }
+            Object found = findFirstCurio.invoke(optional.get(), predicate);
+            if (!(found instanceof Optional<?> slotResult) || slotResult.isEmpty())
+            {
+                return ItemStack.EMPTY;
+            }
+            Object stack = slotResultStack.invoke(slotResult.get());
+            return stack instanceof ItemStack itemStack ? itemStack : ItemStack.EMPTY;
+        }
+        catch (Throwable throwable)
+        {
+            LOGGER.debug("[godofthings] 查询 Curios 饰品槽失败，按「没有该物品」处理", throwable);
+            return ItemStack.EMPTY;
+        }
+    }
+
     /** 解析并缓存三个反射方法；失败一次就记住失败，不再重试 */
     private static boolean resolve()
     {

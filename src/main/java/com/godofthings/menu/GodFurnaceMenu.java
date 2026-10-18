@@ -2,177 +2,31 @@ package com.godofthings.menu;
 
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodFurnaceBlockEntity;
+import com.godofthings.godgrid.AbstractGodGridMenu;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.DataSlot;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.minecraft.world.level.block.Block;
 
-public class GodFurnaceMenu extends AbstractContainerMenu
+/**
+ * 神之熔炉的容器：槽位、玩家物品栏、AE/排序/侧面配置三个按钮全部由
+ * {@link AbstractGodGridMenu} 统一提供，这里只声明方块与构造方式。
+ */
+public class GodFurnaceMenu extends AbstractGodGridMenu
 {
-    private final GodFurnaceBlockEntity be;
-    private final ContainerLevelAccess access;
-    private int cachedAeEnabled = 1;
-
-    // 客户端构造：从 extraData 读取 BlockPos，再查客户端 BE 副本
     public GodFurnaceMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
         this(containerId, playerInv,
                 (GodFurnaceBlockEntity) playerInv.player.level().getBlockEntity(extraData.readBlockPos()));
     }
 
-    // 服务端/本地构造
     public GodFurnaceMenu(int containerId, Inventory playerInv, GodFurnaceBlockEntity be)
     {
-        super(Godofthings.GOD_FURNACE_MENU.get(), containerId);
-        this.be = be;
-        this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
-
-        // 9 输入槽（上一行）+ 9 输出槽（下一行）对称布局（v5.13.0：6 → 9）
-        for (int i = 0; i < GodFurnaceBlockEntity.INPUT_SLOT_COUNT; i++)
-        {
-            this.addSlot(new SlotItemHandler(be.getItemHandler(), i, 8 + i * 18, 17));
-        }
-        for (int i = 0; i < GodFurnaceBlockEntity.OUTPUT_SLOT_COUNT; i++)
-        {
-            final int outSlot = GodFurnaceBlockEntity.OUTPUT_SLOT_START + i;
-            this.addSlot(new SlotItemHandler(be.getItemHandler(), outSlot, 8 + i * 18, 53)
-            {
-                // 输出格只能取走，不能手动放入
-                @Override
-                public boolean mayPlace(ItemStack stack)
-                {
-                    return false;
-                }
-            });
-        }
-
-        // 神之加速槽（只接受神之加速，最多 64 个），右侧竖排区（v5.13.0：116,35 → 178,35）
-        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 178, 35));
-
-        // AE 接入开关状态（客户端同步；v5.15.5 恢复并网）
-        this.addDataSlot(new DataSlot()
-        {
-            @Override
-            public int get() { return be.isAeEnabled() ? 1 : 0; }
-
-            @Override
-            public void set(int value) { cachedAeEnabled = value; }
-        });
-
-        // 玩家物品栏 3x9 + 快捷栏 1x9
-        for (int row = 0; row < 3; row++)
-        {
-            for (int col = 0; col < 9; col++)
-            {
-                this.addSlot(new Slot(playerInv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
-            }
-        }
-        for (int col = 0; col < 9; col++)
-        {
-            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 142));
-        }
-        // v5.1.3：AE 接入开关（原 buttonId 7 与其同步 DataSlot）已随 AE 功能一并删除。
-    }
-
-    public GodFurnaceBlockEntity getBlockEntity()
-    {
-        return be;
-    }
-
-    /** AE 接入开关状态（客户端渲染用）。 */
-    public boolean isAeEnabled()
-    {
-        return cachedAeEnabled == 1;
-    }
-
-    // 客户端点击「配置」按钮 → ServerboundContainerButtonClickPacket(containerId, 6)
-    // 服务端在此打开独立的配置界面
-    @Override
-    public boolean clickMenuButton(Player player, int buttonId)
-    {
-        if (buttonId == 10)
-        {
-            // AE 接入开关（界面右上角按钮，与神之资源系列同一按钮位）
-            be.toggleAeEnabled();
-            this.broadcastChanges();
-            return true;
-        }
-        if (buttonId == 6 && player instanceof ServerPlayer serverPlayer)
-        {
-            // 1.21.1：NetworkHooks.openScreen → IPlayerExtension.openMenu(provider, Consumer<RegistryFriendlyByteBuf>)
-            serverPlayer.openMenu(new MenuProvider()
-            {
-                @Override
-                public Component getDisplayName()
-                {
-                    return Component.translatable("gui.godofthings.face_config");
-                }
-
-                @Override
-                public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player p)
-                {
-                    return new GodFurnaceConfigMenu(containerId, inventory, be);
-                }
-            }, buf -> buf.writeBlockPos(be.getBlockPos()));
-            return true;
-        }
-        return false;
+        super(Godofthings.GOD_FURNACE_MENU.get(), containerId, playerInv, be);
     }
 
     @Override
-    public boolean stillValid(Player player)
+    protected Block gridBlock()
     {
-        return stillValid(this.access, player, Godofthings.GOD_FURNACE.get());
-    }
-
-    @Override
-    public ItemStack quickMoveStack(Player player, int index)
-    {
-        ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(index);
-        if (slot != null && slot.hasItem())
-        {
-            ItemStack stack = slot.getItem();
-            itemstack = stack.copy();
-            if (index < GodFurnaceBlockEntity.TOTAL_SLOTS + 1)
-            {
-                // 从方块（6 输入 + 6 输出 + 1 加速槽）移到玩家物品栏
-                if (!this.moveItemStackTo(stack, GodFurnaceBlockEntity.TOTAL_SLOTS + 1, this.slots.size(), true))
-                {
-                    return ItemStack.EMPTY;
-                }
-            }
-            else
-            {
-                // 从玩家物品栏：先试加速槽（只收神之加速），再试输入槽（输出槽 mayPlace=false 自动拒绝）
-                if (!this.moveItemStackTo(stack, GodFurnaceBlockEntity.TOTAL_SLOTS, GodFurnaceBlockEntity.TOTAL_SLOTS + 1, false)
-                        && !this.moveItemStackTo(stack, 0, GodFurnaceBlockEntity.INPUT_SLOT_COUNT, false))
-                {
-                    return ItemStack.EMPTY;
-                }
-            }
-            if (stack.isEmpty())
-            {
-                slot.setByPlayer(ItemStack.EMPTY);
-            }
-            else
-            {
-                slot.setChanged();
-            }
-            if (stack.getCount() == itemstack.getCount())
-            {
-                return ItemStack.EMPTY;
-            }
-            slot.onTake(player, stack);
-        }
-        return itemstack;
+        return Godofthings.GOD_FURNACE.get();
     }
 }
