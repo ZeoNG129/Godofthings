@@ -71,6 +71,7 @@ import com.godofthings.menu.GodCraftMenu;
 import com.godofthings.menu.GodCraftTemplateMenu;
 import com.godofthings.menu.GodDevourerMenu;
 import com.godofthings.menu.GodDropMenu;
+import com.godofthings.menu.GodDropConfigMenu;
 import com.godofthings.menu.GodEnchantMenu;
 import com.godofthings.menu.GodFurnaceConfigMenu;
 import com.godofthings.menu.GodFurnaceMenu;
@@ -79,7 +80,9 @@ import com.godofthings.menu.GodMinerConfigMenu;
 import com.godofthings.menu.GodPeelerConfigMenu;
 import com.godofthings.menu.GodPeelerMenu;
 import com.godofthings.menu.GodResourceMenu;
+import com.godofthings.menu.GodResourceConfigMenu;
 import com.godofthings.menu.GodSpawnEggMenu;
+import com.godofthings.menu.GodSpawnEggConfigMenu;
 import com.godofthings.menu.GodSlaughterConfigMenu;
 import com.godofthings.menu.GodAbsorberConfigMenu;
 import com.godofthings.menu.GodAbsorberMenu;
@@ -576,14 +579,20 @@ public class Godofthings
             MENUS.register("god_miner_config", () -> IMenuTypeExtension.create(GodMinerConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodResourceMenu>> GOD_RESOURCE_MENU =
             MENUS.register("god_resource", () -> IMenuTypeExtension.create(GodResourceMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodResourceConfigMenu>> GOD_RESOURCE_CONFIG_MENU =
+            MENUS.register("god_resource_config", () -> IMenuTypeExtension.create(GodResourceConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodPeelerMenu>> GOD_PEELER_MENU =
             MENUS.register("god_peeler", () -> IMenuTypeExtension.create(GodPeelerMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodPeelerConfigMenu>> GOD_PEELER_CONFIG_MENU =
             MENUS.register("god_peeler_config", () -> IMenuTypeExtension.create(GodPeelerConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodDropMenu>> GOD_DROP_MENU =
             MENUS.register("god_drop", () -> IMenuTypeExtension.create(GodDropMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodDropConfigMenu>> GOD_DROP_CONFIG_MENU =
+            MENUS.register("god_drop_config", () -> IMenuTypeExtension.create(GodDropConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodSpawnEggMenu>> GOD_SPAWN_EGG_MENU =
             MENUS.register("god_spawn_egg", () -> IMenuTypeExtension.create(GodSpawnEggMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<GodSpawnEggConfigMenu>> GOD_SPAWN_EGG_CONFIG_MENU =
+            MENUS.register("god_spawn_egg_config", () -> IMenuTypeExtension.create(GodSpawnEggConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodEnchantMenu>> GOD_ENCHANT_MENU =
             MENUS.register("god_enchant", () -> IMenuTypeExtension.create(GodEnchantMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodChangeMenu>> GOD_CHANGE_MENU =

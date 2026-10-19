@@ -37,6 +37,20 @@ public interface GodGridHost
         return true;
     }
 
+    /**
+     * 某个机器槽的真实存量（自管 long 槽的机器才有意义）。
+     * 返回 -1 表示「不显示」（默认）；界面只对 &gt; 99 的槽在右下角标紧凑数字。
+     */
+    default long gridAmount(int machineSlot)
+    {
+        return -1L;
+    }
+
+    /** 是否有自管 long 槽（true 才会为该机器开启数量同步与界面大数字，其余机器零变化） */
+    default boolean gridHasLongAmounts()
+    {
+        return false;
+    }
     /** 单列每 tick 的并行操作数（内置 64 × 加速倍率），仅用于界面提示 */
     int gridOperationsPerColumn();
 }

@@ -14,6 +14,7 @@ import com.godofthings.config.MachinesConfig;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
 import com.godofthings.godgrid.GodGridSorting;
+import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.menu.GodMinerConfigMenu;
 import com.godofthings.menu.GodMinerMenu;
@@ -22,6 +23,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -96,10 +98,19 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
 
     /**
+     * 每 tick 对外搬运的轮数上限：每轮最多搬 {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限），
+     * 即每格每 tick 最多 3 × 99 = 297（与神之熔炉一致，内部按 long 批量搬）。
+     */
+    private static final int TRANSFER_ROUNDS = 3;
+
+    /**
      * 网格槽位：前 {@link #INPUT_SLOT_COUNT} 格是输入区（矿机无物品输入，全部拒收），
      * 其后 {@link #OUTPUT_SLOT_COUNT} 格是产物输出区 —— 界面、容器、排序共用这一份。
+     *
+     * <p>自管 long 计数（{@link LongSlotHandler}）：单格容量默认 1,000,000，对外视图仍 ≤99，
+     * 不再受 {@code ItemStack} 的 99 堆叠上限约束。</p>
      */
-    private final ItemStackHandler gridHandler = new ItemStackHandler(TOTAL_SLOTS)
+    private final LongSlotHandler gridHandler = new LongSlotHandler(TOTAL_SLOTS)
     {
         @Override
         protected void onContentsChanged(int slot)
@@ -247,9 +258,24 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     public int gridSortOutputs()
     {
         sortMode = GodGridSorting.nextMode(sortMode);
+        // 自管 long 槽专用的整理：按容量拆分合并，不会把超过 99 的存量截断丢量
         GodGridSorting.sort(gridHandler, OUTPUT_SLOT_START, OUTPUT_SLOT_COUNT, sortMode);
         setChanged();
         return sortMode;
+    }
+
+    /** 该机器槽的真实存量（GUI 右下角大数字用；客户端读到的是同步过来的近似值） */
+    @Override
+    public long gridAmount(int machineSlot)
+    {
+        return gridHandler.amount(machineSlot);
+    }
+
+    /** 本机网格槽自管 long 计数：开启数量同步与界面大数字 */
+    @Override
+    public boolean gridHasLongAmounts()
+    {
+        return true;
     }
 
     /** 打开六面 I/O 配置界面（沿用原有的 {@link GodMinerConfigMenu}）。 */
@@ -286,7 +312,11 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     @Override
     public void saveChanges() { setChanged(); }
 
-    /** 把产物推入 AE 网络（节流由 tick 控制）：先推网格输出格，再推内置无限储存。 */
+    /**
+     * 把产物推入 AE 网络（节流由 tick 控制）：先推网格输出格，再推内置无限储存。
+     * <p>网格输出格按 long 搬：每格每 tick 最多 {@link #TRANSFER_ROUNDS} 轮、每轮最多
+     * {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限），避免产物堵在槽里。</p>
+     */
     private void pushOutputToAe()
     {
         if (!aeEnabled || !aeNode.isActive())
@@ -302,15 +332,34 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         IActionSource source = aeNode.actionSource();
         for (int slot = OUTPUT_SLOT_START; slot < TOTAL_SLOTS; slot++)
         {
-            ItemStack stack = gridHandler.getStackInSlot(slot);
-            if (stack.isEmpty())
+            ItemStack key = gridHandler.key(slot);
+            if (key.isEmpty())
             {
                 continue;
             }
-            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
-            if (inserted > 0)
+            AEItemKey aeKey = AEItemKey.of(key);
+            if (aeKey == null)
             {
-                gridHandler.extractItem(slot, (int) inserted, false);
+                continue;
+            }
+            for (int round = 0; round < TRANSFER_ROUNDS; round++)
+            {
+                long available = gridHandler.amount(slot);
+                if (available <= 0L)
+                {
+                    break;
+                }
+                long chunk = Math.min(available, LongSlotHandler.VIEW_CAP);
+                long inserted = inv.insert(aeKey, chunk, Actionable.MODULATE, source);
+                if (inserted <= 0L)
+                {
+                    break;
+                }
+                gridHandler.extractLong(slot, inserted, false);
+                if (inserted < chunk)
+                {
+                    break;
+                }
             }
         }
         for (int slot = 0; slot < getItemHandler().getSlots(); slot++)
@@ -1010,13 +1059,17 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         }
     }
 
-    /** 产物入网格输出格（同物品优先由 insertItem 自己合并，这里按格序找空位）。返回塞不下的部分。 */
+    /** 产物入网格输出格（按 long 累加，同物品自动合并；单格容量见 LongSlotHandler）。返回塞不下的部分。 */
     private ItemStack insertIntoOutputs(ItemStack stack)
     {
         ItemStack rest = stack;
         for (int j = 0; j < OUTPUT_SLOT_COUNT && !rest.isEmpty(); j++)
         {
-            rest = gridHandler.insertItem(OUTPUT_SLOT_START + j, rest, false);
+            long inserted = gridHandler.insertLong(OUTPUT_SLOT_START + j, rest, rest.getCount(), false);
+            if (inserted > 0L)
+            {
+                rest = rest.copyWithCount((int) (rest.getCount() - inserted));
+            }
         }
         return rest;
     }
@@ -1169,25 +1222,35 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         }
     }
 
-    /** 把网格某一格整堆推进邻居（推不动的留在原格）。 */
+    /** 把网格某一格的产物按 long 推进邻居：每 tick 每格最多 TRANSFER_ROUNDS 轮 × 99。 */
     private void pushSlotTo(IItemHandler neighbor, int slot)
     {
-        ItemStack stack = gridHandler.getStackInSlot(slot);
-        if (stack.isEmpty())
+        ItemStack key = gridHandler.key(slot);
+        if (key.isEmpty())
         {
             return;
         }
-        ItemStack toPush = stack.copy();
-        for (int s = 0; s < neighbor.getSlots(); s++)
+        for (int round = 0; round < TRANSFER_ROUNDS; round++)
         {
-            ItemStack leftover = neighbor.insertItem(s, toPush, false);
-            int moved = toPush.getCount() - leftover.getCount();
-            if (moved > 0)
+            long available = gridHandler.amount(slot);
+            if (available <= 0L)
             {
-                gridHandler.extractItem(slot, moved, false);
+                break;
             }
-            toPush = leftover;
-            if (toPush.isEmpty())
+            ItemStack toPush = key.copyWithCount((int) Math.min(available, LongSlotHandler.VIEW_CAP));
+            boolean movedAny = false;
+            for (int s = 0; s < neighbor.getSlots() && !toPush.isEmpty(); s++)
+            {
+                ItemStack leftover = neighbor.insertItem(s, toPush, false);
+                int moved = toPush.getCount() - leftover.getCount();
+                if (moved > 0)
+                {
+                    gridHandler.extractLong(slot, moved, false);
+                    movedAny = true;
+                }
+                toPush = leftover;
+            }
+            if (!movedAny)
             {
                 break;
             }
@@ -1235,7 +1298,8 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         tag.putBoolean("SilkTouch", silkTouch);
         tag.putByteArray("EmptyColumns", emptyColumns.toByteArray());
         tag.putIntArray("FaceModes", faceModes);
-        tag.put("GridInventory", gridHandler.serializeNBT(provider));
+        // v5.18.1：网格库存改成「自管 long」格式（单格可超 99），不再写旧的 ItemStackHandler 格式
+        tag.put("GridInventoryLong", gridHandler.saveList(provider));
         tag.putInt("SortMode", sortMode);
     }
 
@@ -1261,10 +1325,15 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         {
             accelSlot.deserializeNBT(provider, tag.getCompound("AccelSlot"));
         }
-        // 网格槽位（17 输入 + 17 输出）与输出排序模式：v5.18.0 新键，旧存档无则用默认值
-        if (tag.contains("GridInventory"))
+        // 网格槽（v5.18.1 起自管 long）：新键 GridInventoryLong 优先；老存档没有该键 → 读旧的
+        // ItemStackHandler 格式（GridInventory）再灌进新 handler（amount = count），旧存档不丢
+        if (tag.contains("GridInventoryLong", Tag.TAG_LIST))
         {
-            gridHandler.deserializeNBT(provider, tag.getCompound("GridInventory"));
+            gridHandler.loadList(tag.getList("GridInventoryLong", Tag.TAG_COMPOUND), provider);
+        }
+        else if (tag.contains("GridInventory"))
+        {
+            migrateLegacyGrid(tag.getCompound("GridInventory"), provider);
         }
         int storedSort = tag.contains("SortMode") ? tag.getInt("SortMode") : 0;
         this.sortMode = Math.floorMod(storedSort, GodGridSorting.MODE_COUNT_TOTAL);
@@ -1281,6 +1350,25 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
             // 旧存档没有 FaceModes：保留字段默认值（六面全 OUTPUT），行为与旧版一致
             int[] modes = tag.getIntArray("FaceModes");
             System.arraycopy(modes, 0, faceModes, 0, Math.min(6, modes.length));
+        }
+    }
+
+    /**
+     * 老存档迁移：旧格式是 {@code ItemStackHandler} 的 {@code {Size, Items:[{Slot, id, count}]}}，
+     * 逐格灌进新 long handler（amount = count）。槽数按新布局的 34 槽读，越界的旧槽位自然被忽略。
+     */
+    private void migrateLegacyGrid(CompoundTag inv, HolderLookup.Provider provider)
+    {
+        inv.putInt("Size", TOTAL_SLOTS);
+        ItemStackHandler legacy = new ItemStackHandler(TOTAL_SLOTS);
+        legacy.deserializeNBT(provider, inv);
+        for (int i = 0; i < TOTAL_SLOTS; i++)
+        {
+            ItemStack stack = legacy.getStackInSlot(i);
+            if (!stack.isEmpty())
+            {
+                gridHandler.setEntry(i, stack, stack.getCount());
+            }
         }
     }
 

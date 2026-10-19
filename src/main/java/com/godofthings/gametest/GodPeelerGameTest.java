@@ -4,6 +4,7 @@ import com.godofthings.Godofthings;
 import com.godofthings.block.entity.FaceMode;
 import com.godofthings.block.entity.GodPeelerBlockEntity;
 import com.godofthings.block.entity.machine.LogStripper;
+import com.godofthings.godgrid.LongSlotHandler;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.Item;
@@ -11,11 +12,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * 神之去皮（v5.15.0 / v5.15.1 改 9+9 布局）回归测试：原木 → 去皮原木映射与转化纯逻辑
  * （同 {@link GodResourceVariantGameTest} 的做法，静态测 {@link LogStripper} / {@code convertOne}）。
+ *
+ * <p>v5.18.1 起槽位是自管 long 的 {@link LongSlotHandler}（单格容量 1,000,000、对外视图 ≤99），
+ * 所以存量断言改走 {@code amount(slot)}、写槽走 {@code setEntry(...)}。</p>
  */
 @GameTestHolder(Godofthings.MODID)
 @PrefixGameTestTemplate(false)
@@ -67,27 +70,30 @@ public class GodPeelerGameTest
     @GameTest(template = TEMPLATE)
     public static void convertOneMovesInputToOutput(GameTestHelper helper)
     {
-        ItemStackHandler handler = new ItemStackHandler(GodPeelerBlockEntity.TOTAL_SLOTS);
-        handler.setStackInSlot(0, new ItemStack(Items.OAK_LOG, 64));
+        // 自管 long 槽：单格容量 1,000,000，越界的存量用 amount() 读
+        LongSlotHandler handler = new LongSlotHandler(GodPeelerBlockEntity.TOTAL_SLOTS);
+        handler.setEntry(0, new ItemStack(Items.OAK_LOG), 64);
 
         helper.assertTrue(GodPeelerBlockEntity.convertOne(handler, 0, GodPeelerBlockEntity.OUTPUT_SLOT_START, 1) == 1,
                 "倍率 1 应去皮 1 个");
-        helper.assertTrue(handler.getStackInSlot(0).getCount() == 63, "输入应消耗 1 个原木");
-        ItemStack out = handler.getStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START);
-        helper.assertTrue(out.is(Items.STRIPPED_OAK_LOG) && out.getCount() == 1, "对应输出槽应得到 1 个去皮橡木");
+        helper.assertTrue(handler.amount(0) == 63, "输入应消耗 1 个原木");
+        helper.assertTrue(handler.key(GodPeelerBlockEntity.OUTPUT_SLOT_START).is(Items.STRIPPED_OAK_LOG)
+                        && handler.amount(GodPeelerBlockEntity.OUTPUT_SLOT_START) == 1,
+                "对应输出槽应得到 1 个去皮橡木");
 
-        // 输出满：停（原生 ItemStackHandler.getSlotLimit = 99，塞满 99 个才是真满）
-        handler.setStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START, new ItemStack(Items.STRIPPED_OAK_LOG, 99));
+        // 输出满：停（自管 long 槽的上限是 handler 容量，塞满容量才是真满）
+        handler.setEntry(GodPeelerBlockEntity.OUTPUT_SLOT_START,
+                new ItemStack(Items.STRIPPED_OAK_LOG), handler.capacity());
         helper.assertTrue(GodPeelerBlockEntity.convertOne(handler, 0, GodPeelerBlockEntity.OUTPUT_SLOT_START, 1) == 0,
                 "输出满时应停止去皮");
 
         // 输出是别的物品：停
-        handler.setStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START, new ItemStack(Items.BIRCH_LOG, 10));
+        handler.setEntry(GodPeelerBlockEntity.OUTPUT_SLOT_START, new ItemStack(Items.BIRCH_LOG), 10);
         helper.assertTrue(GodPeelerBlockEntity.convertOne(handler, 0, GodPeelerBlockEntity.OUTPUT_SLOT_START, 1) == 0,
                 "输出为其他物品时应停止去皮");
 
         // 非原木：不动
-        handler.setStackInSlot(0, new ItemStack(Items.DIRT));
+        handler.setEntry(0, new ItemStack(Items.DIRT), 1);
         helper.assertTrue(GodPeelerBlockEntity.convertOne(handler, 0, GodPeelerBlockEntity.OUTPUT_SLOT_START, 1) == 0,
                 "泥土不应被去皮");
 
@@ -97,13 +103,13 @@ public class GodPeelerGameTest
     @GameTest(template = TEMPLATE)
     public static void parallelMultiplierConvertsMorePerSlot(GameTestHelper helper)
     {
-        ItemStackHandler handler = new ItemStackHandler(GodPeelerBlockEntity.TOTAL_SLOTS);
+        LongSlotHandler handler = new LongSlotHandler(GodPeelerBlockEntity.TOTAL_SLOTS);
         // 倍率 16：一个槽一次去皮 16 个
-        handler.setStackInSlot(0, new ItemStack(Items.OAK_LOG, 64));
+        handler.setEntry(0, new ItemStack(Items.OAK_LOG), 64);
         helper.assertTrue(GodPeelerBlockEntity.convertOne(handler, 0, GodPeelerBlockEntity.OUTPUT_SLOT_START, 16) == 16,
                 "倍率 16 应一次去皮 16 个");
-        helper.assertTrue(handler.getStackInSlot(0).getCount() == 48, "输入应消耗 16 个原木");
-        helper.assertTrue(handler.getStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START).getCount() == 16,
+        helper.assertTrue(handler.amount(0) == 48, "输入应消耗 16 个原木");
+        helper.assertTrue(handler.amount(GodPeelerBlockEntity.OUTPUT_SLOT_START) == 16,
                 "输出应得到 16 个去皮橡木");
 
         // 输入不足倍率时按剩余量去皮
@@ -113,15 +119,15 @@ public class GodPeelerGameTest
                 "第三轮仍应去皮 16 个");
         helper.assertTrue(GodPeelerBlockEntity.convertOne(handler, 0, GodPeelerBlockEntity.OUTPUT_SLOT_START, 16) == 16,
                 "第四轮仍应去皮 16 个");
-        helper.assertTrue(handler.getStackInSlot(0).isEmpty(), "64 个原木四轮（16×4）后应耗尽");
-        helper.assertTrue(handler.getStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START).getCount() == 64,
+        helper.assertTrue(handler.isEmpty(0), "64 个原木四轮（16×4）后应耗尽");
+        helper.assertTrue(handler.amount(GodPeelerBlockEntity.OUTPUT_SLOT_START) == 64,
                 "输出应累计 64 个去皮橡木");
 
         // 倍率 0 / 负数：不动
-        handler.setStackInSlot(1, new ItemStack(Items.BIRCH_LOG, 8));
+        handler.setEntry(1, new ItemStack(Items.BIRCH_LOG), 8);
         helper.assertTrue(GodPeelerBlockEntity.convertOne(handler, 1, GodPeelerBlockEntity.OUTPUT_SLOT_START + 1, 0) == 0,
                 "倍率 0 不应去皮");
-        helper.assertTrue(handler.getStackInSlot(1).getCount() == 8, "倍率 0 不应消耗输入");
+        helper.assertTrue(handler.amount(1) == 8, "倍率 0 不应消耗输入");
 
         helper.succeed();
     }
@@ -129,11 +135,11 @@ public class GodPeelerGameTest
     @GameTest(template = TEMPLATE)
     public static void nineInputSlotsStripIndependently(GameTestHelper helper)
     {
-        ItemStackHandler handler = new ItemStackHandler(GodPeelerBlockEntity.TOTAL_SLOTS);
+        LongSlotHandler handler = new LongSlotHandler(GodPeelerBlockEntity.TOTAL_SLOTS);
         // 不同输入槽放不同原木，各自转化到一一对应的输出槽（v5.15.1 的 9+9 布局）
-        handler.setStackInSlot(0, new ItemStack(Items.OAK_LOG, 12));
-        handler.setStackInSlot(4, new ItemStack(Items.BIRCH_LOG, 7));
-        handler.setStackInSlot(8, new ItemStack(Items.CRIMSON_STEM, 3));
+        handler.setEntry(0, new ItemStack(Items.OAK_LOG), 12);
+        handler.setEntry(4, new ItemStack(Items.BIRCH_LOG), 7);
+        handler.setEntry(8, new ItemStack(Items.CRIMSON_STEM), 3);
 
         helper.assertTrue(GodPeelerBlockEntity.convertOne(handler, 0, GodPeelerBlockEntity.OUTPUT_SLOT_START, 4) == 4,
                 "槽 0 橡木应去皮 4 个");
@@ -142,13 +148,13 @@ public class GodPeelerGameTest
         helper.assertTrue(GodPeelerBlockEntity.convertOne(handler, 8, GodPeelerBlockEntity.OUTPUT_SLOT_START + 8, 4) == 3,
                 "槽 8 绯红菌柄输入不足按剩余 3 个去皮");
 
-        helper.assertTrue(handler.getStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START).is(Items.STRIPPED_OAK_LOG)
-                && handler.getStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START).getCount() == 4, "槽 9 应是 4 个去皮橡木");
-        helper.assertTrue(handler.getStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START + 4).is(Items.STRIPPED_BIRCH_LOG)
-                && handler.getStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START + 4).getCount() == 4, "槽 13 应是 4 个去皮白桦木");
-        helper.assertTrue(handler.getStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START + 8).is(Items.STRIPPED_CRIMSON_STEM)
-                && handler.getStackInSlot(GodPeelerBlockEntity.OUTPUT_SLOT_START + 8).getCount() == 3, "槽 17 应是 3 个去皮绯红菌柄");
-        helper.assertTrue(handler.getStackInSlot(4).getCount() == 3 && handler.getStackInSlot(0).getCount() == 8,
+        helper.assertTrue(handler.key(GodPeelerBlockEntity.OUTPUT_SLOT_START).is(Items.STRIPPED_OAK_LOG)
+                && handler.amount(GodPeelerBlockEntity.OUTPUT_SLOT_START) == 4, "槽 9 应是 4 个去皮橡木");
+        helper.assertTrue(handler.key(GodPeelerBlockEntity.OUTPUT_SLOT_START + 4).is(Items.STRIPPED_BIRCH_LOG)
+                && handler.amount(GodPeelerBlockEntity.OUTPUT_SLOT_START + 4) == 4, "槽 13 应是 4 个去皮白桦木");
+        helper.assertTrue(handler.key(GodPeelerBlockEntity.OUTPUT_SLOT_START + 8).is(Items.STRIPPED_CRIMSON_STEM)
+                && handler.amount(GodPeelerBlockEntity.OUTPUT_SLOT_START + 8) == 3, "槽 17 应是 3 个去皮绯红菌柄");
+        helper.assertTrue(handler.amount(4) == 3 && handler.amount(0) == 8,
                 "各输入槽消耗互不干扰");
 
         helper.succeed();

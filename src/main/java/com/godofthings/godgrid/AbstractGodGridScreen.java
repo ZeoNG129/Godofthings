@@ -1,12 +1,17 @@
 package com.godofthings.godgrid;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
+
+import java.util.Locale;
 
 /**
  * 六台神之机器共用的网格界面 —— 几何一比一照抄 PBG「无限通用机械离心机工厂」，
@@ -92,6 +97,99 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
         gui.fill(ax, ay + 16, ax + 8, ay + 18, color);
     }
 
+    /**
+     * 自管 long 槽：图标 + 自绘数量数字。
+     *
+     * <p>原版 {@code AbstractContainerScreen#renderSlot} 会因「视图 count &gt; 1」在物品左上角另外画一个
+     * 堆叠数字（视图被钳到 ≤99，例如 4.6M 的槽会画出「64」），与自绘数字重影，所以这里不复用原版。
+     * 数字<b>紧跟</b>在图标之后画 —— 顺序即层次，「物品先、数字后」，数字永远在图标上层，
+     * 不会被图标盖住（v5.17.x 之前数字在 {@code render()} 里另外单独画，顺序上仍会被后画的图标压住）。</p>
+     *
+     * <p>非 long 槽（加速槽 / 玩家物品栏）原样走原版；另外五台没有 long 槽的机器
+     * {@link GodGridHost#gridHasLongAmounts()} 为 false，整个方法等价于原版，观感零变化。</p>
+     *
+     * <p>坐标：{@code AbstractContainerScreen#render} 调用本方法时 pose 已经平移过 {@code leftPos / topPos}，
+     * 所以这里只用槽位本地坐标 {@code slot.x / slot.y}，<b>不能</b>再加 leftPos / topPos。</p>
+     */
+    @Override
+    protected void renderSlot(GuiGraphics gui, Slot slot)
+    {
+        if (this.menu.host.gridHasLongAmounts() && slot instanceof LongSlotHandler.LongSlot longSlot)
+        {
+            // 先图标、后数字：数字压在图标上，不会被物品图标遮挡
+            gui.renderItem(slot.getItem(), slot.x, slot.y);
+            drawLongAmount(gui, longSlot);
+            return;
+        }
+        super.renderSlot(gui, slot);
+    }
+
+    /**
+     * 单个 long 槽的数量数字 —— 白色带阴影（{@code drawString(..., true)}）、<b>没有</b>半透明底衬，
+     * 整段文本完整落在这一个槽的 16×16 内容区内。
+     *
+     * <p>宽度：缩放后可视宽度压到 ≤12px（原版堆叠数字大约就是这个宽度），
+     * {@code scale = min(0.75, 12 / font.width(text))}；因此短文本固定 0.75 倍（高约 6px），
+     * 长文本（99.9M 之类）按 12px 反推缩得更小，保证不越出槽框、不压相邻槽。</p>
+     *
+     * <p>位置：右对齐贴槽内右下角 —— 右边缘 {@code slot.x + 16}、底边 {@code slot.y + 16}，
+     * 即 {@code x = slot.x + 16 - ceil(width * scale)}、{@code y = slot.y + 16 - ceil(8 * scale)}，
+     * 让数字尽量只压图标右下角一小块，而不是横贯整个图标。</p>
+     *
+     * <p>{@link AbstractGodGridMenu#gridAmount(int)} &gt; 99 画紧凑数字（≥1e9 → 1.1B、≥1e6 → 1.1M、
+     * ≥1000 → 1.2K）；1 &lt; 存量 ≤ 99 画普通数字（原版堆叠数字已被
+     * {@link #renderSlot(GuiGraphics, Slot)} 关掉，这里不补就会出现「存量 50 却一个数字都没有」）；
+     * ≤ 1 不画。</p>
+     */
+    private void drawLongAmount(GuiGraphics gui, LongSlotHandler.LongSlot slot)
+    {
+        long amount = this.menu.gridAmount(slot.slotIndex());
+        String text;
+        if (amount > 99L)
+        {
+            text = compactAmount(amount);
+        }
+        else if (amount > 1L)
+        {
+            text = Long.toString(amount);
+        }
+        else
+        {
+            return;
+        }
+        int textWidth = this.font.width(text);
+        if (textWidth <= 0)
+        {
+            return;
+        }
+        // 以槽右下角为锚点整体缩到 0.85：比原版计数再小一档，观感更收敛（用户选定）
+        var pose = gui.pose();
+        pose.pushPose();
+        pose.translate(slot.x + 16, slot.y + 16, 0.0D);
+        pose.scale(0.85F, 0.85F, 1.0F);
+        pose.translate(-(slot.x + 16), -(slot.y + 16), 0.0D);
+        gui.renderItemDecorations(this.font, slot.getItem(), slot.x, slot.y, text);
+        pose.popPose();
+    }
+
+    /** 紧凑数字：≥1e9 用 1.1B，≥1e6 用 1.1M，≥1000 用 1.2K，否则原样 */
+    private static String compactAmount(long amount)
+    {
+        if (amount >= 1_000_000_000L)
+        {
+            return String.format(Locale.ROOT, "%.1fB", amount / 1_000_000_000.0D);
+        }
+        if (amount >= 1_000_000L)
+        {
+            return String.format(Locale.ROOT, "%.1fM", amount / 1_000_000.0D);
+        }
+        if (amount >= 1_000L)
+        {
+            return String.format(Locale.ROOT, "%.1fK", amount / 1_000.0D);
+        }
+        return Long.toString(amount);
+    }
+
     private void drawTab(GuiGraphics gui, int bx, int by, Component label, boolean hovered, int fillColor)
     {
         int size = GodGridLayout.TAB_SIZE;
@@ -109,7 +207,7 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
 
     private boolean isHovered(int mouseX, int mouseY, int bx, int by)
     {
-        // 没有面配置的机器（掉落机 / 怪蛋机）不画左侧页签，命中检测也一律不成立
+        // 没有面配置的机器（资源三机 / 掉落机 / 怪蛋机）不画左侧页签，命中检测也一律不成立
         if (!this.menu.host.gridSupportsFaceConfig()
                 && bx == this.leftPos + GodGridLayout.TAB_LEFT_X
                 && by == this.topPos + GodGridLayout.TAB_FACE_Y)
@@ -171,6 +269,7 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick)
     {
         super.render(gui, mouseX, mouseY, partialTick);
+        // long 槽的数量数字已在 renderSlot 里紧跟图标画完（见 drawLongAmount），这里不再单独画
         this.renderTooltip(gui, mouseX, mouseY);
 
         int x = this.leftPos;

@@ -40,6 +40,12 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
     private int cachedAe;
     private int cachedSortMode;
 
+    /** 自管 long 槽的数量缓存（客户端渲染大数字用；-1 = 不显示） */
+
+    /** 网格槽是否是自管 long 槽（目前只有神之熔炉；true 才会走数量同步与差额结算的点击逻辑） */
+    private final boolean longSlots;
+    private final long[] cachedAmounts = filled(GodGridLayout.MACHINE_SLOTS, -1L);
+
     protected AbstractGodGridMenu(MenuType<?> type, int containerId, Inventory playerInv, BlockEntity be)
     {
         super(type, containerId);
@@ -50,23 +56,52 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         this.cachedSortMode = host.gridSortMode();
 
         IItemHandler items = host.gridItems();
+        // 自管 long 槽（神之熔炉试点）换用专用槽位包装：对外视图 ≤99，点击按「视图差额」结算，不丢量
+        LongSlotHandler longItems = items instanceof LongSlotHandler handler ? handler : null;
+        this.longSlots = longItems != null;
         for (int i = 0; i < GodGridLayout.INPUT_COUNT; i++)
         {
-            addSlot(new SlotItemHandler(items, i, GodGridLayout.inputX(i), GodGridLayout.INPUT_Y));
+            if (longItems != null)
+            {
+                addSlot(new LongSlotHandler.LongSlot(longItems, i,
+                        GodGridLayout.inputX(i), GodGridLayout.INPUT_Y));
+            }
+            else
+            {
+                addSlot(new SlotItemHandler(items, i, GodGridLayout.inputX(i), GodGridLayout.INPUT_Y));
+            }
         }
         for (int j = 0; j < GodGridLayout.OUTPUT_COUNT; j++)
         {
             final int handlerIndex = GodGridLayout.INPUT_COUNT + j;
-            addSlot(new SlotItemHandler(items, handlerIndex,
-                    GodGridLayout.outputX(j), GodGridLayout.outputY(j))
+            final int slotX = GodGridLayout.outputX(j);
+            final int slotY = GodGridLayout.outputY(j);
+            Slot outputSlot;
+            if (longItems != null)
             {
-                // 输出格只能取走：外部 Shift 点击与手动放置都走 mayPlace
-                @Override
-                public boolean mayPlace(ItemStack stack)
+                outputSlot = new LongSlotHandler.LongSlot(longItems, handlerIndex, slotX, slotY)
                 {
-                    return false;
-                }
-            });
+                    // 输出格只能取走：外部 Shift 点击与手动放置都走 mayPlace
+                    @Override
+                    public boolean mayPlace(ItemStack stack)
+                    {
+                        return false;
+                    }
+                };
+            }
+            else
+            {
+                outputSlot = new SlotItemHandler(items, handlerIndex, slotX, slotY)
+                {
+                    // 输出格只能取走：外部 Shift 点击与手动放置都走 mayPlace
+                    @Override
+                    public boolean mayPlace(ItemStack stack)
+                    {
+                        return false;
+                    }
+                };
+            }
+            addSlot(outputSlot);
         }
         addSlot(new SlotItemHandler(host.gridAccel(), 0,
                 GodGridLayout.accelX(), GodGridLayout.ACCEL_Y)
@@ -122,6 +157,31 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
                 cachedSortMode = value;
             }
         });
+
+        // 自管 long 槽的数量同步：只有声明了 gridHasLongAmounts() 的机器（目前仅神之熔炉）才开，
+        // 其它机器零变化。DataSlot 的值在 ClientboundContainerSetDataPacket 里按 short 传输，
+        // 所以 >32000 的数量按 1/2000 缩放（显示精度足够，上限约 153.4 万）。
+        if (host.gridHasLongAmounts())
+        {
+            for (int i = 0; i < GodGridLayout.MACHINE_SLOTS; i++)
+            {
+                final int machineSlot = i;
+                addDataSlot(new DataSlot()
+                {
+                    @Override
+                    public int get()
+                    {
+                        return encodeAmount(host.gridAmount(machineSlot));
+                    }
+
+                    @Override
+                    public void set(int value)
+                    {
+                        cachedAmounts[machineSlot] = decodeAmount(value);
+                    }
+                });
+            }
+        }
     }
 
     public BlockEntity getBlockEntity()
@@ -139,6 +199,45 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
     public int sortMode()
     {
         return cachedSortMode;
+    }
+
+    /** 某个机器槽的真实存量（客户端已同步的近似值；-1 = 不显示） */
+    public long gridAmount(int machineSlot)
+    {
+        return machineSlot >= 0 && machineSlot < cachedAmounts.length ? cachedAmounts[machineSlot] : -1L;
+    }
+
+    private static long[] filled(int size, long value)
+    {
+        long[] array = new long[Math.max(0, size)];
+        java.util.Arrays.fill(array, value);
+        return array;
+    }
+
+    /**
+     * 数量数据的线上编码：{@code ClientboundContainerSetDataPacket} 的值按 short 传输，
+     * 所以 &lt;= 32000 原样发，更大的按 1/2000 缩放（上限约 153.4 万，够 1,000,000 的默认容量）。
+     */
+    private static int encodeAmount(long amount)
+    {
+        if (amount < 0L)
+        {
+            return -1;
+        }
+        if (amount <= 32000L)
+        {
+            return (int) amount;
+        }
+        return 32000 + (int) Math.min(767L, amount / 2000L);
+    }
+
+    private static long decodeAmount(int value)
+    {
+        if (value < 0)
+        {
+            return -1L;
+        }
+        return value <= 32000 ? value : (long) (value - 32000) * 2000L;
     }
 
     /** 本菜单对应的方块（stillValid 校验用） */
@@ -167,6 +266,12 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         }
         if (buttonId == BTN_FACE_CONFIG && player instanceof ServerPlayer serverPlayer)
         {
+            // 只有真的有面配置界面的机器才处理这个 id（六台网格机器现已全部支持；
+            // 以后新增的机器若没实现面配置，返回 false，界面也已隐藏页签，不会留「点了没反应」的死按钮）
+            if (!host.gridSupportsFaceConfig())
+            {
+                return false;
+            }
             host.gridOpenFaceConfig(serverPlayer);
             return true;
         }
@@ -181,6 +286,12 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         {
             return ItemStack.EMPTY;
         }
+        // 自管 long 槽：getItem() 只是「视图」（≤99 的副本），直接交给 moveItemStackTo 会把
+        // 已搬走的那部分复制出来 → 先真正取出再搬运，搬不动的原样塞回槽里
+        if (index < SLOT_PLAYER_START && slot instanceof LongSlotHandler.LongSlot longSlot)
+        {
+            return quickMoveOutOfLongSlot(longSlot);
+        }
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
         if (index < SLOT_PLAYER_START)
@@ -191,7 +302,7 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
             }
         }
         else if (!moveItemStackTo(stack, SLOT_ACCEL, SLOT_ACCEL + 1, false)
-                && !moveItemStackTo(stack, 0, GodGridLayout.INPUT_COUNT, false))
+                && !moveIntoMachineSlots(stack))
         {
             return ItemStack.EMPTY;
         }
@@ -209,5 +320,65 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         }
         slot.onTake(player, stack);
         return original;
+    }
+
+    /**
+     * 玩家物品栏 → 机器输入槽。
+     *
+     * <p>vanilla 的 {@link #moveItemStackTo} 合堆时依赖「{@code Slot#getItem()} 返回活堆」，
+     * 而自管 long 槽返回的是 ≤99 的副本：vanilla 在副本上 grow 后调 {@code setChanged()} 对我们无效，
+     * 结果是「玩家手里的被扣掉、槽里没增加」。所以自管 long 槽一律走 {@code insertItem}（累加语义）。</p>
+     */
+    private boolean moveIntoMachineSlots(ItemStack stack)
+    {
+        if (!this.longSlots)
+        {
+            // 其它五台机器保持原来的整段 moveItemStackTo（合堆优先、再找空槽），行为零变化
+            return moveItemStackTo(stack, 0, GodGridLayout.INPUT_COUNT, false);
+        }
+        boolean moved = false;
+        for (int i = 0; i < GodGridLayout.INPUT_COUNT && !stack.isEmpty(); i++)
+        {
+            Slot slot = this.slots.get(i);
+            if (slot instanceof LongSlotHandler.LongSlot longSlot)
+            {
+                if (!slot.mayPlace(stack))
+                {
+                    continue;
+                }
+                ItemStack leftover = longSlot.longHandler().insertItem(longSlot.slotIndex(), stack, false);
+                int amount = stack.getCount() - leftover.getCount();
+                if (amount > 0)
+                {
+                    stack.shrink(amount);
+                    moved = true;
+                }
+            }
+            else if (moveItemStackTo(stack, i, i + 1, false))
+            {
+                moved = true;
+            }
+        }
+        return moved;
+    }
+
+    /**
+     * 从自管 long 槽 Shift 快捷移动：一次只搬一份「视图」（≤99，等价于原来一次搬一堆），
+     * 先真正取出再搬进玩家物品栏；放不下的部分原样塞回机器槽，绝不复制、不丢失。
+     * 始终返回空，避免存量很大时 {@code doClick} 的 while 循环反复调用造成卡顿。
+     */
+    private ItemStack quickMoveOutOfLongSlot(LongSlotHandler.LongSlot slot)
+    {
+        ItemStack taken = slot.remove(Math.max(1, slot.getItem().getCount()));
+        if (taken.isEmpty())
+        {
+            return ItemStack.EMPTY;
+        }
+        if (!moveItemStackTo(taken, SLOT_PLAYER_START, this.slots.size(), true) || !taken.isEmpty())
+        {
+            // 一件都没搬动 / 只搬走一部分：余量原样塞回机器槽
+            slot.longHandler().insertItem(slot.slotIndex(), taken, false);
+        }
+        return ItemStack.EMPTY;
     }
 }

@@ -1411,3 +1411,12 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **机器被挖掉时神之加速正常掉落**：新增 `handler/GodMachineDropHandler`，全局 `BlockEvent.BreakEvent` 里把加速槽内容弹出并清除，其余内置物品照旧随方块消失；创造模式与活塞/爆炸破坏不弹。
   - **六台机器统一网格界面收口**：统一为 17 输入 + 17 输出（输出由 51 砍到 17）+ 1 加速槽，面板 362×188，面配置 / AE / 排序三个页签；掉落机与怪蛋机无面配置页签。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+- 5.18.1 → **5.18.2（长整型槽位 + 五台面配置 + 存取优化）** —— 修复与优化，按规则**末位 +1**。
+  - **单格容量突破 99（存档格式变更，已带迁移）**：新增 `godgrid/LongSlotHandler`，内部用 `ItemStack` 身份 + `long` 数量，单格默认 **1,000,000**；对外 `IItemHandler` 视图恒 ≤99，保证外部管道 / AE2 不会拿到 `ItemStack.CODEC`（1..99）容纳不了的堆。
+  - **六台机器全部切换**：熔炉（试点）+ 矿机 / 资源三机（矿物·作物·复制）/ 去皮机 / 掉落机 / 怪蛋机 的网格槽统一改用 `LongSlotHandler`；**加速槽与各机原有无限兜底储存不动**。产物写入全部改 `insertLong`、存量读取改 `amount(slot)`，删除 `min(99, 64×倍率)` 的旧槽上限。
+  - **存档迁移**：新键 `GridInventoryLong`（list of `{Slot, Item(count=1), Amount}`）；读档优先读新键，否则把旧 `Inventory` / `GridInventory` / `InputSlot` 灌进新 handler（`amount = count`），老存档物品不丢。
+  - **五台补上面配置**：资源三机 / 掉落机 / 怪蛋机原先没有六面配置（页签是死按钮），本次按熔炉实现补齐 `faceModes` + 按面 `SideHandler` + `FaceModes` NBT/同步 + 三套独立配置菜单与界面（`GodResourceConfigMenu` / `GodDropConfigMenu` / `GodSpawnEggConfigMenu`，复用 `god_furnace_config.png`）。三台的六面**默认 OUTPUT**（保持旧「任意面可被管道取走产物」的行为，熔炉仍默认 NONE）。
+  - **对外搬运提速**：相邻容器与 AE 推送从「每 tick 1 轮 × 99」改为「每 tick 最多 **3 轮 × 99**」；面配置 `INPUT` 面只允许插入、`OUTPUT` 面只允许抽取。
+  - **数量显示**：长槽数字改走原版 `renderItemDecorations` 装饰层（z≈200，高于物品的 150，因此不会被图标压住）并以槽右下角为锚点整体缩放 **0.85**；修复此前「看不见字 / 数字飘走」的问题（根因是深度层与坐标基准，不是字号）。
+  - 连带：`GodPeelerGameTest` 因 `convertOne` 的 long 签名同步更新，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

@@ -6,6 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -102,5 +103,79 @@ public final class GodGridSorting
             ItemStack value = i < merged.size() ? merged.get(i) : ItemStack.EMPTY;
             handler.setStackInSlot(start + i, value);
         }
+    }
+
+    /**
+     * 整理自管 long 槽的区间（神之熔炉「单格容量突破 99」试点）。
+     *
+     * <p>先把同类合并成「一种物品一条」，再按当前排序键重排；回写时每格按 handler 容量拆分，
+     * 空位集中在末尾。全程按 long 计算，不会产生 &gt;99 的对外堆，也不会丢量。</p>
+     */
+    public static void sort(LongSlotHandler handler, int start, int count, int mode)
+    {
+        List<ItemStack> keys = new ArrayList<>();
+        List<Long> totals = new ArrayList<>();
+        for (int i = 0; i < count; i++)
+        {
+            ItemStack key = handler.key(start + i);
+            if (key.isEmpty())
+            {
+                continue;
+            }
+            long amount = handler.amount(start + i);
+            int found = -1;
+            for (int k = 0; k < keys.size(); k++)
+            {
+                if (ItemStack.isSameItemSameComponents(keys.get(k), key))
+                {
+                    found = k;
+                    break;
+                }
+            }
+            if (found >= 0)
+            {
+                totals.set(found, totals.get(found) + amount);
+            }
+            else
+            {
+                keys.add(key);
+                totals.add(amount);
+            }
+        }
+
+        // 比较器复用背包那一套：「按数量」时用真实存量（钳到视图上限）参与比较
+        Comparator<ItemStack> comparator = GodBackpackSorting.comparator(sortBy(mode));
+        List<Integer> order = new ArrayList<>();
+        for (int i = 0; i < keys.size(); i++)
+        {
+            order.add(i);
+        }
+        order.sort((a, b) -> comparator.compare(viewStack(keys.get(a), totals.get(a)),
+                viewStack(keys.get(b), totals.get(b))));
+
+        long capacity = Math.max(1L, handler.capacity());
+        int slot = 0;
+        for (int idx : order)
+        {
+            long remaining = totals.get(idx);
+            while (remaining > 0 && slot < count)
+            {
+                long take = Math.min(capacity, remaining);
+                handler.setEntry(start + slot, keys.get(idx), take);
+                remaining -= take;
+                slot++;
+            }
+        }
+        while (slot < count)
+        {
+            handler.setEntry(start + slot, ItemStack.EMPTY, 0L);
+            slot++;
+        }
+    }
+
+    /** 比较器用的代表堆：数量钳在视图上限以内 */
+    private static ItemStack viewStack(ItemStack key, long amount)
+    {
+        return key.copyWithCount((int) Math.max(1L, Math.min(amount, LongSlotHandler.VIEW_CAP)));
     }
 }

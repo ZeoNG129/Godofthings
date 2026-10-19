@@ -13,6 +13,7 @@ import com.godofthings.ae2.AeGridNode;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
 import com.godofthings.godgrid.GodGridSorting;
+import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.block.entity.machine.LogStripper;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.item.GodAcceleratorItem;
@@ -66,6 +67,12 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
     public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
 
+    /**
+     * 每 tick 对外搬运的轮数上限：每轮最多搬 {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限），
+     * 即每格每 tick 最多 3 × 99 = 297（与神之熔炉一致，内部按 long 批量搬）。
+     */
+    private static final int TRANSFER_ROUNDS = 3;
+
     /** 旧布局（v5.15.x）：9 输入 + 9 输出，仅用于读档迁移 */
     private static final int LEGACY_INPUT_SLOT_COUNT = 9;
 
@@ -85,7 +92,11 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         }
     };
 
-    private final ItemStackHandler itemHandler = new ItemStackHandler(TOTAL_SLOTS)
+    /**
+     * 网格槽位（17 输入 + 17 输出），自管 long 计数（{@link LongSlotHandler}）：
+     * 单格容量默认 1,000,000，对外视图仍 ≤99，不再受 {@code ItemStack} 的 99 堆叠上限约束。
+     */
+    private final LongSlotHandler itemHandler = new LongSlotHandler(TOTAL_SLOTS)
     {
         @Override
         protected void onContentsChanged(int slot)
@@ -93,37 +104,15 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
             setChanged();
         }
 
-        // 规则：输入槽只收可去皮原木；输出槽对外部插入恒拒绝（内部转化走 setStackInSlot 直写）
+        // 规则：输入槽只收可去皮原木；输出槽对机器内部写入放行（对外插入由 SideHandler / Slot#mayPlace 拦）
         @Override
         public boolean isItemValid(int slot, ItemStack stack)
         {
-            return slot < INPUT_SLOT_COUNT && LogStripper.isStrippable(stack);
-        }
-
-        // 槽数固定为 TOTAL_SLOTS：旧存档（9+9 共 18 格）的 Size 若被 deserializeNBT 采纳会缩槽，
-        // 之后按新布局遍历 34 格就越界
-        @Override
-        public void setSize(int size)
-        {
-            if (size != TOTAL_SLOTS)
+            if (slot < INPUT_SLOT_COUNT)
             {
-                return;
+                return LogStripper.isStrippable(stack);
             }
-            super.setSize(size);
-        }
-
-        // 神之加速：输入/输出槽容量随并行倍率提升，但单堆上限 99
-        // （ItemStack 的 count 序列化硬上限是 99，ExtraCodecs.intRange(1,99)，超 99 存档/掉落时崩溃）
-        @Override
-        public int getSlotLimit(int slot)
-        {
-            return Math.min(99, 64 * getParallelMultiplier());
-        }
-
-        @Override
-        protected int getStackLimit(int slot, ItemStack stack)
-        {
-            return getSlotLimit(slot);
+            return true;
         }
     };
 
@@ -151,7 +140,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         }
     }
 
-    public ItemStackHandler getItemHandler()
+    public LongSlotHandler getItemHandler()
     {
         return itemHandler;
     }
@@ -207,9 +196,24 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     public int gridSortOutputs()
     {
         sortMode = GodGridSorting.nextMode(sortMode);
+        // 自管 long 槽专用的整理：按容量拆分合并，不会把超过 99 的存量截断丢量
         GodGridSorting.sort(itemHandler, OUTPUT_SLOT_START, OUTPUT_SLOT_COUNT, sortMode);
         setChanged();
         return sortMode;
+    }
+
+    /** 该机器槽的真实存量（GUI 右下角大数字用；客户端读到的是同步过来的近似值） */
+    @Override
+    public long gridAmount(int machineSlot)
+    {
+        return itemHandler.amount(machineSlot);
+    }
+
+    /** 本机网格槽自管 long 计数：开启数量同步与界面大数字 */
+    @Override
+    public boolean gridHasLongAmounts()
+    {
+        return true;
     }
 
     @Override
@@ -319,13 +323,19 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate)
         {
-            if (slot < 0 || slot >= INPUT_SLOT_COUNT)
+            if (slot < 0 || slot >= INPUT_SLOT_COUNT
+                    || (mode() != FaceMode.INPUT && mode() != FaceMode.BOTH))
             {
-                return stack; // 只能插入输入槽
+                return stack; // 只能插入输入槽，且必须是 INPUT / BOTH 面
             }
-            return (mode() == FaceMode.INPUT || mode() == FaceMode.BOTH)
-                    ? itemHandler.insertItem(slot, stack, simulate)
-                    : stack;
+            // 按 long 累加（内部容量 1,000,000），对外返回值仍是 ≤99 的余量
+            long inserted = itemHandler.insertLong(slot, stack, stack.getCount(), simulate);
+            if (inserted <= 0L)
+            {
+                return stack;
+            }
+            return inserted >= stack.getCount() ? ItemStack.EMPTY
+                    : stack.copyWithCount((int) (stack.getCount() - inserted));
         }
 
         @Override
@@ -397,7 +407,11 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         setChanged();
     }
 
-    /** 把输出槽产物推入 AE 网络（只推输出槽 9-17；输入槽是待去皮队列不推）。 */
+    /**
+     * 把输出槽产物推入 AE 网络（只推输出槽 17-33；输入槽是待去皮队列不推）。
+     * <p>按 long 搬：每格每 tick 最多 {@link #TRANSFER_ROUNDS} 轮、每轮最多
+     * {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限）。</p>
+     */
     private void pushOutputToAe()
     {
         if (!aeEnabled || !aeNode.isActive())
@@ -413,15 +427,34 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         IActionSource source = aeNode.actionSource();
         for (int slot = OUTPUT_SLOT_START; slot < TOTAL_SLOTS; slot++)
         {
-            ItemStack stack = itemHandler.getStackInSlot(slot);
-            if (stack.isEmpty())
+            ItemStack key = itemHandler.key(slot);
+            if (key.isEmpty())
             {
                 continue;
             }
-            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
-            if (inserted > 0)
+            AEItemKey aeKey = AEItemKey.of(key);
+            if (aeKey == null)
             {
-                itemHandler.extractItem(slot, (int) inserted, false);
+                continue;
+            }
+            for (int round = 0; round < TRANSFER_ROUNDS; round++)
+            {
+                long available = itemHandler.amount(slot);
+                if (available <= 0L)
+                {
+                    break;
+                }
+                long chunk = Math.min(available, LongSlotHandler.VIEW_CAP);
+                long inserted = inv.insert(aeKey, chunk, Actionable.MODULATE, source);
+                if (inserted <= 0L)
+                {
+                    break;
+                }
+                itemHandler.extractLong(slot, inserted, false);
+                if (inserted < chunk)
+                {
+                    break;
+                }
             }
         }
     }
@@ -453,7 +486,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         boolean hasWork = false;
         for (int i = 0; i < INPUT_SLOT_COUNT; i++)
         {
-            if (!itemHandler.getStackInSlot(i).isEmpty())
+            if (!itemHandler.isEmpty(i))
             {
                 hasWork = true;
                 break;
@@ -518,67 +551,83 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         }
     }
 
-    /** 从邻居抽取可去皮原木到任意有空位的输入槽（同物品优先，否则找空槽；照抄神之熔炉 pullFrom）。 */
+    /**
+     * 从邻居抽取可去皮原木到任意有空位的输入槽（同物品优先，否则找空槽；照抄神之熔炉 pullFrom）。
+     * <p>按 long 搬：每 tick 每个源槽最多 {@link #TRANSFER_ROUNDS} 轮，每轮最多 99（对外单堆上限），
+     * 输入槽容量 1,000,000 时能快速把原木囤起来。</p>
+     */
     private void pullFrom(IItemHandler neighbor)
     {
         for (int s = 0; s < neighbor.getSlots(); s++)
         {
-            ItemStack src = neighbor.getStackInSlot(s);
-            if (src.isEmpty() || !LogStripper.isStrippable(src))
+            boolean moved = false;
+            for (int round = 0; round < TRANSFER_ROUNDS; round++)
             {
-                continue;
-            }
+                ItemStack src = neighbor.getStackInSlot(s);
+                if (src.isEmpty() || !LogStripper.isStrippable(src))
+                {
+                    break;
+                }
 
-            int targetSlot = findInputSlotFor(src);
-            if (targetSlot < 0)
-            {
-                continue;
-            }
+                int targetSlot = findInputSlotFor(src);
+                if (targetSlot < 0)
+                {
+                    break;
+                }
+                long room = itemHandler.room(targetSlot);
+                int chunk = (int) Math.min(Math.min(room, LongSlotHandler.VIEW_CAP), src.getCount());
+                if (chunk <= 0)
+                {
+                    break;
+                }
 
-            ItemStack leftoverSim = itemHandler.insertItem(targetSlot, src, true);
-            int canMove = src.getCount() - leftoverSim.getCount();
-            if (canMove <= 0)
-            {
-                continue;
-            }
+                // 先模拟能插多少，再真正抽取：中途被拒也不会让物品凭空消失
+                long canMove = itemHandler.insertLong(targetSlot, src, chunk, true);
+                if (canMove <= 0L)
+                {
+                    break;
+                }
+                ItemStack extracted = neighbor.extractItem(s, (int) canMove, false);
+                if (extracted.isEmpty())
+                {
+                    break;
+                }
 
-            ItemStack extracted = neighbor.extractItem(s, canMove, true);
-            if (extracted.isEmpty())
-            {
-                continue;
+                long inserted = itemHandler.insertLong(targetSlot, extracted, extracted.getCount(), false);
+                if (inserted < extracted.getCount())
+                {
+                    // 兜底：放不下的余量退回邻居，绝不丢
+                    neighbor.insertItem(s,
+                            extracted.copyWithCount((int) (extracted.getCount() - inserted)), false);
+                }
+                if (inserted <= 0L)
+                {
+                    break;
+                }
+                moved = true;
             }
-            int toMove = Math.min(extracted.getCount(), canMove);
-            if (toMove <= 0)
+            if (moved)
             {
-                continue;
-            }
-
-            ItemStack remaining = itemHandler.insertItem(targetSlot, extracted, false);
-            int placed = toMove - remaining.getCount();
-            if (placed > 0)
-            {
-                neighbor.extractItem(s, placed, false);
                 setChanged();
             }
         }
     }
 
-    /** 找到可接受该原木的输入槽（同物品优先，否则找空槽）；没有则 -1（照抄神之熔炉）。 */
+    /** 找到可接受该原木的输入槽（同物品且还有空位优先，否则找空槽）；没有则 -1（照抄神之熔炉）。 */
     private int findInputSlotFor(ItemStack stack)
     {
         int emptySlot = -1;
         for (int i = 0; i < INPUT_SLOT_COUNT; i++)
         {
-            ItemStack cur = itemHandler.getStackInSlot(i);
-            if (cur.isEmpty())
+            if (itemHandler.isEmpty(i))
             {
                 if (emptySlot < 0)
                 {
                     emptySlot = i;
                 }
             }
-            // 1.21.1：isSameItemSameTags → isSameItemSameComponents
-            else if (ItemStack.isSameItemSameComponents(cur, stack))
+            else if (itemHandler.room(i) > 0L
+                    && ItemStack.isSameItemSameComponents(itemHandler.key(i), stack))
             {
                 return i;
             }
@@ -586,27 +635,40 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         return emptySlot;
     }
 
-    /** 把输出槽的去皮原木推送给邻居，直到清空或插不下（照抄神之熔炉 pushTo）。 */
+    /**
+     * 把输出槽的去皮原木按 long 推给邻居：每 tick 每格最多 {@link #TRANSFER_ROUNDS} 轮 × 99
+     * （与神之熔炉一致），推不动即停。
+     */
     private void pushTo(IItemHandler neighbor)
     {
         for (int out = OUTPUT_SLOT_START; out < TOTAL_SLOTS; out++)
         {
-            ItemStack output = itemHandler.getStackInSlot(out);
-            if (output.isEmpty())
+            ItemStack key = itemHandler.key(out);
+            if (key.isEmpty())
             {
                 continue;
             }
-            ItemStack toPush = output.copy();
-            for (int s = 0; s < neighbor.getSlots(); s++)
+            for (int round = 0; round < TRANSFER_ROUNDS; round++)
             {
-                ItemStack leftover = neighbor.insertItem(s, toPush, false);
-                int moved = toPush.getCount() - leftover.getCount();
-                if (moved > 0)
+                long available = itemHandler.amount(out);
+                if (available <= 0L)
                 {
-                    itemHandler.extractItem(out, moved, false);
+                    break;
                 }
-                toPush = leftover;
-                if (toPush.isEmpty())
+                ItemStack toPush = key.copyWithCount((int) Math.min(available, LongSlotHandler.VIEW_CAP));
+                boolean movedAny = false;
+                for (int s = 0; s < neighbor.getSlots() && !toPush.isEmpty(); s++)
+                {
+                    ItemStack leftover = neighbor.insertItem(s, toPush, false);
+                    int moved = toPush.getCount() - leftover.getCount();
+                    if (moved > 0)
+                    {
+                        itemHandler.extractLong(out, moved, false);
+                        movedAny = true;
+                    }
+                    toPush = leftover;
+                }
+                if (!movedAny)
                 {
                     break;
                 }
@@ -618,42 +680,46 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     /**
      * 纯逻辑：把输入槽最多 mult 个原木去皮放进对应输出槽（输出为空或同物品且未满才动；供 GameTest 直接调用）。
      *
+     * <p>按 long 结算：输入存量读 {@link LongSlotHandler#amount(int)}、输出空位用
+     * {@link LongSlotHandler#room(int)}，单格容量 1,000,000，不会再被 99 截断。</p>
+     *
      * @return 实际去皮的数量（0 = 没动）
      */
-    public static int convertOne(ItemStackHandler handler, int inputSlot, int outputSlot, int mult)
+    public static long convertOne(LongSlotHandler handler, int inputSlot, int outputSlot, int mult)
     {
-        if (mult <= 0)
+        if (handler == null || mult <= 0)
         {
-            return 0;
+            return 0L;
         }
-        ItemStack in = handler.getStackInSlot(inputSlot);
+        ItemStack in = handler.key(inputSlot);
+        long inAmount = handler.amount(inputSlot);
+        if (in.isEmpty() || inAmount <= 0L)
+        {
+            return 0L;
+        }
         ItemStack result = LogStripper.strip(in);
         if (result.isEmpty())
         {
-            return 0;
+            return 0L;
         }
-        ItemStack out = handler.getStackInSlot(outputSlot);
+        ItemStack out = handler.key(outputSlot);
         if (!out.isEmpty() && !ItemStack.isSameItem(out, result))
         {
-            return 0;
+            return 0L;
         }
-        int space = out.isEmpty() ? handler.getSlotLimit(outputSlot) : handler.getSlotLimit(outputSlot) - out.getCount();
-        int n = Math.min(Math.min(mult, in.getCount()), space);
-        if (n <= 0)
+        long n = Math.min(Math.min(mult, inAmount), handler.room(outputSlot));
+        if (n <= 0L)
         {
-            return 0;
+            return 0L;
         }
-        handler.extractItem(inputSlot, n, false);
-        if (out.isEmpty())
+        // 先按 long 写产物，再按实际写进去的数量扣输入（不经过 ItemStack.getCount() 的 99 上限）
+        long inserted = handler.insertLong(outputSlot, result, n, false);
+        if (inserted <= 0L)
         {
-            handler.setStackInSlot(outputSlot, result.copyWithCount(n));
+            return 0L;
         }
-        else
-        {
-            out.grow(n);
-            handler.setStackInSlot(outputSlot, out);
-        }
-        return n;
+        handler.extractLong(inputSlot, inserted, false);
+        return inserted;
     }
 
     // ---- NBT ----
@@ -662,7 +728,8 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.saveAdditional(tag, provider);
-        tag.put("Inventory", itemHandler.serializeNBT(provider));
+        // v5.18.1：网格库存改成「自管 long」格式（单格可超 99），不再写旧的 ItemStackHandler 格式
+        tag.put("GridInventoryLong", itemHandler.saveList(provider));
         tag.put("AccelSlot", accelSlot.serializeNBT(provider));
         tag.putIntArray("FaceModes", faceModes);
         tag.putBoolean("AeEnabled", aeEnabled);
@@ -674,23 +741,19 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.loadAdditional(tag, provider);
-        if (tag.contains("Inventory"))
+        // 自管 long 网格库存：新键 GridInventoryLong 优先；老存档读旧格式再灌进来（amount = count），
+        // 旧存档不丢。旧 9+9 布局（Size=18）的输出槽 9-17 会在迁移时整体右移到新输出区。
+        if (tag.contains("GridInventoryLong", Tag.TAG_LIST))
         {
-            CompoundTag inv = tag.getCompound("Inventory");
-            int oldSize = inv.contains("Size") ? inv.getInt("Size") : itemHandler.getSlots();
-            // 旧 9+9 布局（Size=18）：把旧输出槽 9-17 整体右移到新输出区，
-            // 否则它们会落在新的输入槽位上（输入槽只收可去皮原木，会卡在那里不动）
-            if (oldSize == LEGACY_INPUT_SLOT_COUNT * 2)
-            {
-                remapLegacyOutputSlots(inv);
-            }
-            // 槽数固定为 TOTAL_SLOTS：旧存档的 Size 不采纳，否则 deserializeNBT 会缩槽越界
-            inv.putInt("Size", TOTAL_SLOTS);
-            itemHandler.deserializeNBT(provider, inv);
+            itemHandler.loadList(tag.getList("GridInventoryLong", Tag.TAG_COMPOUND), provider);
+        }
+        else if (tag.contains("Inventory"))
+        {
+            migrateLegacyInventory(tag.getCompound("Inventory"), provider);
         }
         else if (tag.contains("InputSlot") || tag.contains("OutputSlot"))
         {
-            // v5.15.0（1 输入 + 1 输出）旧存档迁移：单槽内容搬进新布局的槽 0 / 槽 9
+            // v5.15.0（1 输入 + 1 输出）旧存档迁移：单槽内容搬进新布局的槽 0 / 槽 17
             ItemStackHandler legacyIn = new ItemStackHandler(1);
             ItemStackHandler legacyOut = new ItemStackHandler(1);
             if (tag.contains("InputSlot"))
@@ -701,8 +764,8 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
             {
                 legacyOut.deserializeNBT(provider, tag.getCompound("OutputSlot"));
             }
-            itemHandler.setStackInSlot(0, legacyIn.getStackInSlot(0));
-            itemHandler.setStackInSlot(OUTPUT_SLOT_START, legacyOut.getStackInSlot(0));
+            setLegacyEntry(0, legacyIn.getStackInSlot(0));
+            setLegacyEntry(OUTPUT_SLOT_START, legacyOut.getStackInSlot(0));
         }
         if (tag.contains("AccelSlot"))
         {
@@ -719,6 +782,38 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         // 排序模式（旧存档无此键 → 名称排序）
         int storedSort = tag.contains("SortMode") ? tag.getInt("SortMode") : 0;
         this.sortMode = Math.floorMod(storedSort, GodGridSorting.MODE_COUNT_TOTAL);
+    }
+
+    /**
+     * 老存档迁移：旧格式是 {@code ItemStackHandler} 的 {@code {Size, Items:[{Slot, id, count}]}}，
+     * 读完逐格灌进新 long handler（amount = count）。旧 9+9 布局（Size=18）的输出槽 9-17
+     * 先整体右移到新输出区，否则它们会落在新的输入槽位上（输入槽只收可去皮原木，会卡在那里不动）。
+     */
+    private void migrateLegacyInventory(CompoundTag inv, HolderLookup.Provider provider)
+    {
+        int oldSize = inv.contains("Size") ? inv.getInt("Size") : TOTAL_SLOTS;
+        if (oldSize == LEGACY_INPUT_SLOT_COUNT * 2)
+        {
+            remapLegacyOutputSlots(inv);
+        }
+        // 槽数固定为 TOTAL_SLOTS：旧存档的 Size 不采纳，越界的旧槽位自然被忽略
+        inv.putInt("Size", TOTAL_SLOTS);
+        ItemStackHandler legacy = new ItemStackHandler(TOTAL_SLOTS);
+        legacy.deserializeNBT(provider, inv);
+        for (int i = 0; i < TOTAL_SLOTS; i++)
+        {
+            setLegacyEntry(i, legacy.getStackInSlot(i));
+        }
+    }
+
+    /** 把旧 ItemStackHandler 读出的单格内容灌进新 long handler（amount = count） */
+    private void setLegacyEntry(int slot, ItemStack stack)
+    {
+        if (stack.isEmpty())
+        {
+            return;
+        }
+        itemHandler.setEntry(slot, stack, stack.getCount());
     }
 
     /**
