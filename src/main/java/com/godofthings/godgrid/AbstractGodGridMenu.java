@@ -40,11 +40,13 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
     private int cachedAe;
     private int cachedSortMode;
 
-    /** 自管 long 槽的数量缓存（客户端渲染大数字用；-1 = 不显示） */
-
-    /** 网格槽是否是自管 long 槽（目前只有神之熔炉；true 才会走数量同步与差额结算的点击逻辑） */
+    /** 网格槽是否是自管 long 槽（六台神之机器均为 true；true 才会走数量同步与差额结算的点击逻辑） */
     private final boolean longSlots;
+    /** 自管 long 槽的数量缓存（客户端渲染大数字用；-1 = 不显示），由低 16 / 高 15 两个 DataSlot 重组 */
     private final long[] cachedAmounts = filled(GodGridLayout.MACHINE_SLOTS, -1L);
+    /** 双通道数量同步的两半（低 16 位 / 高 15 位），每次 set 后重组进 cachedAmounts */
+    private final int[] cachedAmountLows = new int[GodGridLayout.MACHINE_SLOTS];
+    private final int[] cachedAmountHighs = new int[GodGridLayout.MACHINE_SLOTS];
 
     protected AbstractGodGridMenu(MenuType<?> type, int containerId, Inventory playerInv, BlockEntity be)
     {
@@ -56,7 +58,7 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         this.cachedSortMode = host.gridSortMode();
 
         IItemHandler items = host.gridItems();
-        // 自管 long 槽（神之熔炉试点）换用专用槽位包装：对外视图 ≤99，点击按「视图差额」结算，不丢量
+        // 自管 long 槽换用专用槽位包装：对外视图 ≤99，点击按「视图差额」结算，不丢量
         LongSlotHandler longItems = items instanceof LongSlotHandler handler ? handler : null;
         this.longSlots = longItems != null;
         for (int i = 0; i < GodGridLayout.INPUT_COUNT; i++)
@@ -158,26 +160,49 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
             }
         });
 
-        // 自管 long 槽的数量同步：只有声明了 gridHasLongAmounts() 的机器（目前仅神之熔炉）才开，
-        // 其它机器零变化。DataSlot 的值在 ClientboundContainerSetDataPacket 里按 short 传输，
-        // 所以 >32000 的数量按 1/2000 缩放（显示精度足够，上限约 153.4 万）。
+        // 自管 long 槽的数量同步：每个机器槽两个 DataSlot（低 16 位 / 高 15 位），客户端按
+        // (high << 16) | low 重组为 long，int 上限 2,147,483,647（31 位）正好无损覆盖。
+        // 只有声明了 gridHasLongAmounts() 的机器才开（六台神之机器均为 true），其它机器零变化。
+        // DataSlot 的值在 ClientboundContainerSetDataPacket 里按 signed short 传输：低 16 位在
+        // 客户端可能读成负数，重组时用 & 0xFFFF 还原；高 15 位恒 ≤ 0x7FFF 不受影响。
+        // 下发时机：原版 ServerPlayer 每 tick 调 broadcastChanges()，轮询每个 DataSlot.get() 与上次
+        // 值比较，变了才发包 —— 方块实体改数量（onContentsChanged → setChanged）后下一 tick 自动同步。
         if (host.gridHasLongAmounts())
         {
             for (int i = 0; i < GodGridLayout.MACHINE_SLOTS; i++)
             {
                 final int machineSlot = i;
+                // 先 low 后 high：两半都到齐后重组值即为服务端真实数量
                 addDataSlot(new DataSlot()
                 {
                     @Override
                     public int get()
                     {
-                        return encodeAmount(host.gridAmount(machineSlot));
+                        return (int) (host.gridAmount(machineSlot) & 0xFFFFL);
                     }
 
                     @Override
                     public void set(int value)
                     {
-                        cachedAmounts[machineSlot] = decodeAmount(value);
+                        cachedAmountLows[machineSlot] = value & 0xFFFF;
+                        cachedAmounts[machineSlot] =
+                                combineAmount(cachedAmountLows[machineSlot], cachedAmountHighs[machineSlot]);
+                    }
+                });
+                addDataSlot(new DataSlot()
+                {
+                    @Override
+                    public int get()
+                    {
+                        return (int) ((host.gridAmount(machineSlot) >>> 16) & 0x7FFFL);
+                    }
+
+                    @Override
+                    public void set(int value)
+                    {
+                        cachedAmountHighs[machineSlot] = value & 0x7FFF;
+                        cachedAmounts[machineSlot] =
+                                combineAmount(cachedAmountLows[machineSlot], cachedAmountHighs[machineSlot]);
                     }
                 });
             }
@@ -201,7 +226,7 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         return cachedSortMode;
     }
 
-    /** 某个机器槽的真实存量（客户端已同步的近似值；-1 = 不显示） */
+    /** 某个机器槽的真实存量（客户端已同步的精确值；-1 = 不显示） */
     public long gridAmount(int machineSlot)
     {
         return machineSlot >= 0 && machineSlot < cachedAmounts.length ? cachedAmounts[machineSlot] : -1L;
@@ -215,29 +240,12 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
     }
 
     /**
-     * 数量数据的线上编码：{@code ClientboundContainerSetDataPacket} 的值按 short 传输，
-     * 所以 &lt;= 32000 原样发，更大的按 1/2000 缩放（上限约 153.4 万，够 1,000,000 的默认容量）。
+     * 低 16 位 + 高 15 位重组为 long。注册顺序先 low 后 high，两半都到齐后即为服务端真实数量；
+     * 变化跨两半时中间态最多显示一 tick（下一半到达即修正）。
      */
-    private static int encodeAmount(long amount)
+    private static long combineAmount(int low, int high)
     {
-        if (amount < 0L)
-        {
-            return -1;
-        }
-        if (amount <= 32000L)
-        {
-            return (int) amount;
-        }
-        return 32000 + (int) Math.min(767L, amount / 2000L);
-    }
-
-    private static long decodeAmount(int value)
-    {
-        if (value < 0)
-        {
-            return -1L;
-        }
-        return value <= 32000 ? value : (long) (value - 32000) * 2000L;
+        return ((long) high << 16) | (low & 0xFFFFL);
     }
 
     /** 本菜单对应的方块（stillValid 校验用） */

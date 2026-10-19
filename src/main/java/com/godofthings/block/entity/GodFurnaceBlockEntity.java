@@ -69,8 +69,9 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
 
     /**
-     * 每 tick 对外搬运的轮数上限：每轮最多搬 {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限），
-     * 即每格每 tick 最多 3 × 99 = 297（原来「每 tick 推一次整堆」的行为保留，只是内部按 long 批量搬）。
+     * 每 tick 输入抽取（pullFrom）的轮数上限：每轮最多搬 {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限），
+     * 即每个源槽每 tick 最多 3 × 99 = 297。输出侧（pushTo / pushOutputToAe）不再设轮数上限：
+     * 每 tick 把输出槽整个 amount 一次搬完（见 {@link #pushLongSlotTo}）。
      */
     private static final int TRANSFER_ROUNDS = 3;
 
@@ -91,9 +92,10 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     };
 
     /**
-     * 神之熔炉是「单格容量突破 99」的试点：网格 34 格改用自管 long 计数的 {@link LongSlotHandler}
+     * 神之熔炉网格 34 格是「单格容量突破 99」的试点（v5.18.2 起六台网格机器统一）：
+     * 改用自管 long 计数的 {@link LongSlotHandler}
      * （原版 {@code ItemStackHandler} 受 {@code ItemStack.CODEC} 的 {@code intRange(1,99)} 限制，
-     * 单格最多 99，超了存档 / 掉落 / 发包都会崩）。单格容量默认 1,000,000，对外视图仍是 ≤99 的堆。
+     * 单格最多 99，超了存档 / 掉落 / 发包都会崩）。单格容量默认 int 上限 2,147,483,647，对外视图仍是 ≤99 的堆。
      */
     private final LongSlotHandler itemHandler = new LongSlotHandler(TOTAL_SLOTS)
     {
@@ -125,7 +127,6 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
 
     /** AE 网格节点（线缆直连并网，照抄资源三机）。 */
     private final AeGridNode aeNode = new AeGridNode(this);
-    private int aeTick = 0;
 
     public GodFurnaceBlockEntity(BlockPos pos, BlockState state)
     {
@@ -138,7 +139,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     }
 
     /**
-     * 网格槽处理器：自管 long 计数，单格容量默认 1,000,000（{@link LongSlotHandler#DEFAULT_CAPACITY}），
+     * 网格槽处理器：自管 long 计数，单格容量默认 int 上限 2,147,483,647（{@link LongSlotHandler#DEFAULT_CAPACITY}），
      * 对外视图仍是 ≤99 的 ItemStack（保证别的模组管道 / AE / 容器同步拿不到非法堆）。
      */
     public LongSlotHandler getItemHandler()
@@ -209,7 +210,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
         return itemHandler.amount(machineSlot);
     }
 
-    /** 本机是「单格容量突破 99」的试点：开启数量同步与界面大数字 */
+    /** 开启数量同步与界面大数字（六台网格机器均为 true） */
     @Override
     public boolean gridHasLongAmounts()
     {
@@ -384,8 +385,8 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
         }
         be.autoTransfer();
         be.smelt();
-        // AE 产物输出节流：每 20 tick（1 秒）推一次（v5.15.5 恢复并网）
-        be.pushOutputToAeThrottled();
+        // AE 产物输出：每 tick 全量搬运（不再每 20 tick 节流，v5.18.3）
+        be.pushOutputToAe();
     }
 
     private void autoTransfer()
@@ -431,7 +432,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     /**
      * 从邻居抽取可熔炼物品到任意有空位的输入槽。
      * 每 tick 每面、每个源槽最多 {@link #TRANSFER_ROUNDS} 轮 × 99（对外单堆上限），
-     * 输入槽容量 1,000,000 时能快速把原料囤起来。
+     * 输入槽容量 int 上限时能快速把原料囤起来。
      */
     private void pullFrom(IItemHandler neighbor)
     {
@@ -514,45 +515,101 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     }
 
     /**
-     * 把输出格的产物推给邻居：每格每 tick 最多 {@link #TRANSFER_ROUNDS} 轮 × 99，
-     * 直到清空或插不下（对应原来「每 tick 推一次整堆」的行为，只是内部按 long 批量搬）。
+     * 把输出格的产物推给邻居：每 tick 每个输出槽把整个 amount 一次搬完（v5.18.3 全量搬运）——
+     * 整格取出后一次性尝试插入邻居，搬不走的余量立刻写回原格，绝不丢物、绝不复制。
      */
     private void pushTo(IItemHandler neighbor)
     {
         for (int out = OUTPUT_SLOT_START; out < TOTAL_SLOTS; out++)
         {
-            ItemStack key = itemHandler.key(out);
-            if (key.isEmpty())
+            pushLongSlotTo(neighbor, out);
+        }
+    }
+
+    /**
+     * 把输出格某一格的全部数量推进相邻容器（每 tick 全量搬运，v5.18.3）：
+     * <ul>
+     *   <li>整格取出（{@link LongSlotHandler#extractLong}）；</li>
+     *   <li>目标若是 {@link LongSlotHandler}（或单格上限 &gt; 99 的大容量容器）：直接全量插；</li>
+     *   <li>普通容器：按 ≤99 分片循环插入，直到搬完或该轮零进展（防死循环，上限 = 剩余 amount）；</li>
+     *   <li>搬不走的余量立刻 {@link LongSlotHandler#insertLong} 写回原格。</li>
+     * </ul>
+     * @return 是否搬动了任何物品
+     */
+    private boolean pushLongSlotTo(IItemHandler target, int slot)
+    {
+        ItemStack key = itemHandler.key(slot);
+        long available = itemHandler.amount(slot);
+        if (key.isEmpty() || available <= 0L)
+        {
+            return false;
+        }
+        // 整格取出：搬不走的余量最后写回，绝不丢物、绝不复制
+        itemHandler.extractLong(slot, available, false);
+        long remaining = available;
+        boolean movedAny = false;
+
+        if (target instanceof LongSlotHandler ls)
+        {
+            // 本模组大容量槽：逐格全量 insertLong（对方按容量/同类合并截断）
+            for (int s = 0; s < ls.getSlots() && remaining > 0L; s++)
             {
-                continue;
-            }
-            for (int round = 0; round < TRANSFER_ROUNDS; round++)
-            {
-                long available = itemHandler.amount(out);
-                if (available <= 0L)
+                long inserted = ls.insertLong(s, key, remaining, false);
+                if (inserted > 0L)
                 {
-                    break;
-                }
-                ItemStack toPush = key.copyWithCount((int) Math.min(available, LongSlotHandler.VIEW_CAP));
-                boolean movedAny = false;
-                for (int s = 0; s < neighbor.getSlots() && !toPush.isEmpty(); s++)
-                {
-                    ItemStack leftover = neighbor.insertItem(s, toPush, false);
-                    int moved = toPush.getCount() - leftover.getCount();
-                    if (moved > 0)
-                    {
-                        itemHandler.extractLong(out, moved, false);
-                        movedAny = true;
-                    }
-                    toPush = leftover;
-                }
-                if (!movedAny)
-                {
-                    break;
+                    remaining -= inserted;
+                    movedAny = true;
                 }
             }
         }
-        setChanged();
+        else if (target.getSlots() > 0 && target.getSlotLimit(0) > LongSlotHandler.VIEW_CAP)
+        {
+            // 其它大容量容器（单格上限 > 99）：整堆一次性插入
+            ItemStack toPush = key.copyWithCount((int) remaining);
+            for (int s = 0; s < target.getSlots() && !toPush.isEmpty(); s++)
+            {
+                ItemStack leftover = target.insertItem(s, toPush, false);
+                int moved = toPush.getCount() - leftover.getCount();
+                if (moved > 0)
+                {
+                    remaining -= moved;
+                    movedAny = true;
+                }
+                toPush = leftover;
+            }
+        }
+        else
+        {
+            // 普通容器：≤99 分片循环，直到搬完或该轮零进展（性能护栏，防无限热循环）
+            while (remaining > 0L)
+            {
+                ItemStack toPush = key.copyWithCount((int) Math.min(remaining, LongSlotHandler.VIEW_CAP));
+                boolean roundMoved = false;
+                for (int s = 0; s < target.getSlots() && !toPush.isEmpty(); s++)
+                {
+                    ItemStack leftover = target.insertItem(s, toPush, false);
+                    int moved = toPush.getCount() - leftover.getCount();
+                    if (moved > 0)
+                    {
+                        remaining -= moved;
+                        movedAny = true;
+                        roundMoved = true;
+                    }
+                    toPush = leftover;
+                }
+                if (!roundMoved)
+                {
+                    break; // 这一轮零进展：目标已满，停
+                }
+            }
+        }
+
+        // 搬不走的余量立刻写回原格（insertLong 加回去）
+        if (remaining > 0L)
+        {
+            itemHandler.insertLong(slot, key, remaining, false);
+        }
+        return movedAny;
     }
 
     // ---- AE 网格节点（v5.15.5 恢复：线缆直连并网，产物自动输出进 AE，占一个频道） ----
@@ -597,8 +654,8 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
 
     /**
      * 把输出槽产物推入 AE 网络（只推输出槽 17-33；输入槽是熔炼队列不推）。
-     * 保持「每 tick 一次」的整体行为，但内部按 long 搬：每格每 tick 最多
-     * {@link #TRANSFER_ROUNDS} 轮、每轮最多 99（对外单堆上限），避免产物堵在槽里。
+     * 每 tick 全量搬运（v5.18.3）：每个输出槽把整个 amount 一次性 insert 进 ME 网络
+     * （AE 的 storage.insert 接受大数量），网络按实际收下量结算，下 tick 再试余量。
      */
     private void pushOutputToAe()
     {
@@ -615,6 +672,11 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
         IActionSource source = aeNode.actionSource();
         for (int slot = OUTPUT_SLOT_START; slot < TOTAL_SLOTS; slot++)
         {
+            long available = itemHandler.amount(slot);
+            if (available <= 0L)
+            {
+                continue;
+            }
             ItemStack key = itemHandler.key(slot);
             if (key.isEmpty())
             {
@@ -625,38 +687,15 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
             {
                 continue;
             }
-            for (int round = 0; round < TRANSFER_ROUNDS; round++)
+            long inserted = inv.insert(aeKey, available, Actionable.MODULATE, source);
+            if (inserted > 0L)
             {
-                long available = itemHandler.amount(slot);
-                if (available <= 0L)
-                {
-                    break;
-                }
-                long chunk = Math.min(available, LongSlotHandler.VIEW_CAP);
-                long inserted = inv.insert(aeKey, chunk, Actionable.MODULATE, source);
-                if (inserted <= 0L)
-                {
-                    break;
-                }
                 itemHandler.extractLong(slot, inserted, false);
-                if (inserted < chunk)
-                {
-                    break;
-                }
             }
         }
     }
 
-    /** AE 产物输出节流：每 20 tick（1 秒）推一次。 */
-    private void pushOutputToAeThrottled()
-    {
-        aeTick++;
-        if (aeTick >= 20)
-        {
-            aeTick = 0;
-            pushOutputToAe();
-        }
-    }
+
 
     // ---- 熔炼：无燃料，每个输入槽每 tick 最多熔掉一列并行额度（按 long 计算） ----
 
@@ -720,7 +759,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
 
         // 配方每次熔炼的产出数量（原版多为 1，模组配方可能 >1，如 1 矿 → 2 锭）
         long perResult = Math.max(1, resultTemplate.getCount());
-        // 输出槽剩余容量按 long 算：单格容量 1,000,000，不再受 ItemStack 的 99 上限约束
+        // 输出槽剩余容量按 long 算：单格容量 int 上限，不再受 ItemStack 的 99 上限约束
         long outputFree = itemHandler.room(outputSlot);
         if (outputFree < perResult)
         {

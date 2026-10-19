@@ -17,7 +17,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  * 神之去皮（v5.15.0 / v5.15.1 改 9+9 布局）回归测试：原木 → 去皮原木映射与转化纯逻辑
  * （同 {@link GodResourceVariantGameTest} 的做法，静态测 {@link LogStripper} / {@code convertOne}）。
  *
- * <p>v5.18.1 起槽位是自管 long 的 {@link LongSlotHandler}（单格容量 1,000,000、对外视图 ≤99），
+ * <p>v5.18.1 起槽位是自管 long 的 {@link LongSlotHandler}（单格容量 int 上限、对外视图 ≤99），
  * 所以存量断言改走 {@code amount(slot)}、写槽走 {@code setEntry(...)}。</p>
  */
 @GameTestHolder(Godofthings.MODID)
@@ -70,7 +70,7 @@ public class GodPeelerGameTest
     @GameTest(template = TEMPLATE)
     public static void convertOneMovesInputToOutput(GameTestHelper helper)
     {
-        // 自管 long 槽：单格容量 1,000,000，越界的存量用 amount() 读
+        // 自管 long 槽：单格容量 int 上限，越界的存量用 amount() 读
         LongSlotHandler handler = new LongSlotHandler(GodPeelerBlockEntity.TOTAL_SLOTS);
         handler.setEntry(0, new ItemStack(Items.OAK_LOG), 64);
 

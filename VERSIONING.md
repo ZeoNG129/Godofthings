@@ -1420,3 +1420,16 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **数量显示**：长槽数字改走原版 `renderItemDecorations` 装饰层（z≈200，高于物品的 150，因此不会被图标压住）并以槽右下角为锚点整体缩放 **0.85**；修复此前「看不见字 / 数字飘走」的问题（根因是深度层与坐标基准，不是字号）。
   - 连带：`GodPeelerGameTest` 因 `convertOne` 的 long 签名同步更新，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.18.2 → **5.18.3（输出搬运节流全部撤掉）** —— 修复与优化，按规则**末位 +1**。
+  - **主动输出改为每 tick 全量搬运**：六台机器（熔炉 / 矿机 / 资源三机 / 去皮机 / 掉落机 / 怪蛋机）的 OUTPUT / BOTH 面与向下输出不再有「3 轮 × 99」上限——每个输出槽把整个 `amount` 一次性取出（`extractLong`），目标若是本模组 `LongSlotHandler`（或单格上限 > 99 的容器）直接全量插入（`insertLong` / 整堆 `insertItem`），普通容器按 ≤99 分片循环直到搬完或该轮零进展（防死循环，上限 = 剩余 amount）；搬不走的余量立刻 `insertLong` 写回原格，绝不丢物、绝不复制。
+  - **AE 输出同样每 tick 全量**：删掉 `aeTick >= 20` 节流，改为每 tick 把每个输出槽整个 `amount` 一次性 `MEStorage.insert` 进网络（AE 接受大数量），按实际收下量抽取，下 tick 再试余量。
+  - 性能护栏保留：输出槽为空直接跳过；目标装满时该轮零进展即停；输入侧 `pullFrom`（熔炉 / 去皮机）与其它机器（砍杀 / 合成台 / 吸收 / 魔咒台等）不动。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.18.3 → **5.18.4（六台机器单格容量提到 int 上限 + GUI 数量 32 位同步）** —— 修复与优化，按规则**末位 +1**。
+  - **单格容量 1,000,000 → int 上限 2,147,483,647**：`LongSlotHandler.DEFAULT_CAPACITY` 改为 `Integer.MAX_VALUE`（六台机器网格槽都用默认构造，全部生效）；`room()` / `insertLong` / `extractLong` / `addAmount` / 排序回写全程 long 计算，容量变更后无溢出、无截断；`getSlotLimit()` 仍返回 int 上限本身（原样）。生产路径的 `toSmelt * perResult`、排序的跨槽合计等中间量都在 long 范围内。
+  - **GUI 数量同步换成 32 位双通道**：删掉「>32000 按 1/2000 缩放（显示上限约 153.4 万）」的单 DataSlot 编码；每个机器槽改注册**两个 DataSlot** —— `low = amount & 0xFFFF`（低 16 位）、`high = (amount >>> 16) & 0x7FFF`（高 15 位），注册顺序先 low 后 high，客户端每次 `set` 按 `(high << 16) | low` 重组为 long（低 16 位在线上按 signed short 传输，客户端用 `& 0xFFFF` 还原）。int 上限共 31 位，两半无损覆盖，显示精确到个位；`compactAmount` 已有 B 档，int 上限显示为 `2.1B`。
+  - **下发机制沿用原版**：`ServerPlayer` 每 tick 调 `broadcastChanges()` 轮询每个 `DataSlot.get()`（直接读 `host.gridAmount()`），与上次值不同才发包 —— 方块实体改数量（`onContentsChanged → setChanged`）后下一 tick 自动同步，无需新增触发。
+  - 连带：代码里「1,000,000 / 试点 / 仅神之熔炉」等过期注释同步改为 int 上限 / 六台机器统一；不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

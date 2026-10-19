@@ -68,8 +68,9 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
 
     /**
-     * 每 tick 对外搬运的轮数上限：每轮最多搬 {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限），
-     * 即每格每 tick 最多 3 × 99 = 297（与神之熔炉一致，内部按 long 批量搬）。
+     * 每 tick 输入抽取（pullFrom）的轮数上限：每轮最多搬 {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限），
+     * 即每个源槽每 tick 最多 3 × 99 = 297。输出侧（pushTo / pushOutputToAe）不再设轮数上限：
+     * 每 tick 把输出槽整个 amount 一次搬完（见 {@link #pushLongSlotTo}）。
      */
     private static final int TRANSFER_ROUNDS = 3;
 
@@ -94,7 +95,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
 
     /**
      * 网格槽位（17 输入 + 17 输出），自管 long 计数（{@link LongSlotHandler}）：
-     * 单格容量默认 1,000,000，对外视图仍 ≤99，不再受 {@code ItemStack} 的 99 堆叠上限约束。
+     * 单格容量默认 int 上限 2,147,483,647，对外视图仍 ≤99，不再受 {@code ItemStack} 的 99 堆叠上限约束。
      */
     private final LongSlotHandler itemHandler = new LongSlotHandler(TOTAL_SLOTS)
     {
@@ -126,7 +127,6 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
 
     /** AE 网格节点（线缆直连并网，照抄神之熔炉）。 */
     private final AeGridNode aeNode = new AeGridNode(this);
-    private int aeTick = 0;
 
     private int tickCounter = 0;
 
@@ -328,7 +328,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
             {
                 return stack; // 只能插入输入槽，且必须是 INPUT / BOTH 面
             }
-            // 按 long 累加（内部容量 1,000,000），对外返回值仍是 ≤99 的余量
+            // 按 long 累加（内部容量 int 上限），对外返回值仍是 ≤99 的余量
             long inserted = itemHandler.insertLong(slot, stack, stack.getCount(), simulate);
             if (inserted <= 0L)
             {
@@ -406,11 +406,10 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         this.aeEnabled = !this.aeEnabled;
         setChanged();
     }
-
     /**
      * 把输出槽产物推入 AE 网络（只推输出槽 17-33；输入槽是待去皮队列不推）。
-     * <p>按 long 搬：每格每 tick 最多 {@link #TRANSFER_ROUNDS} 轮、每轮最多
-     * {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限）。</p>
+     * 每 tick 全量搬运（v5.18.3）：每个输出槽把整个 amount 一次性 insert 进 ME 网络
+     * （AE 的 storage.insert 接受大数量），网络按实际收下量结算，下 tick 再试余量。
      */
     private void pushOutputToAe()
     {
@@ -427,6 +426,11 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         IActionSource source = aeNode.actionSource();
         for (int slot = OUTPUT_SLOT_START; slot < TOTAL_SLOTS; slot++)
         {
+            long available = itemHandler.amount(slot);
+            if (available <= 0L)
+            {
+                continue;
+            }
             ItemStack key = itemHandler.key(slot);
             if (key.isEmpty())
             {
@@ -437,47 +441,21 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
             {
                 continue;
             }
-            for (int round = 0; round < TRANSFER_ROUNDS; round++)
+            long inserted = inv.insert(aeKey, available, Actionable.MODULATE, source);
+            if (inserted > 0L)
             {
-                long available = itemHandler.amount(slot);
-                if (available <= 0L)
-                {
-                    break;
-                }
-                long chunk = Math.min(available, LongSlotHandler.VIEW_CAP);
-                long inserted = inv.insert(aeKey, chunk, Actionable.MODULATE, source);
-                if (inserted <= 0L)
-                {
-                    break;
-                }
                 itemHandler.extractLong(slot, inserted, false);
-                if (inserted < chunk)
-                {
-                    break;
-                }
             }
         }
     }
-
-    /** AE 产物输出节流：每 20 tick（1 秒）推一次。 */
-    private void pushOutputToAeThrottled()
-    {
-        aeTick++;
-        if (aeTick >= 20)
-        {
-            aeTick = 0;
-            pushOutputToAe();
-        }
-    }
-
     public static void tick(Level level, BlockPos pos, BlockState state, GodPeelerBlockEntity be)
     {
         if (!level.isClientSide)
         {
             be.autoTransfer();
             be.tickServer();
-            // AE 产物输出节流：每 20 tick（1 秒）推一次（v5.15.9 加入并网）
-            be.pushOutputToAeThrottled();
+            // AE 产物输出：每 tick 全量搬运（不再每 20 tick 节流，v5.18.3）
+            be.pushOutputToAe();
         }
     }
 
@@ -554,7 +532,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     /**
      * 从邻居抽取可去皮原木到任意有空位的输入槽（同物品优先，否则找空槽；照抄神之熔炉 pullFrom）。
      * <p>按 long 搬：每 tick 每个源槽最多 {@link #TRANSFER_ROUNDS} 轮，每轮最多 99（对外单堆上限），
-     * 输入槽容量 1,000,000 时能快速把原木囤起来。</p>
+     * 输入槽容量 int 上限时能快速把原木囤起来。</p>
      */
     private void pullFrom(IItemHandler neighbor)
     {
@@ -636,52 +614,108 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     }
 
     /**
-     * 把输出槽的去皮原木按 long 推给邻居：每 tick 每格最多 {@link #TRANSFER_ROUNDS} 轮 × 99
-     * （与神之熔炉一致），推不动即停。
+     * 把输出槽的去皮原木推给邻居：每 tick 每个输出槽把整个 amount 一次搬完（v5.18.3 全量搬运）——
+     * 整格取出后一次性尝试插入邻居，搬不走的余量立刻写回原格，绝不丢物、绝不复制。
      */
     private void pushTo(IItemHandler neighbor)
     {
         for (int out = OUTPUT_SLOT_START; out < TOTAL_SLOTS; out++)
         {
-            ItemStack key = itemHandler.key(out);
-            if (key.isEmpty())
+            pushLongSlotTo(neighbor, out);
+        }
+    }
+
+    /**
+     * 把输出格某一格的全部数量推进相邻容器（每 tick 全量搬运，v5.18.3）：
+     * <ul>
+     *   <li>整格取出（{@link LongSlotHandler#extractLong}）；</li>
+     *   <li>目标若是 {@link LongSlotHandler}（或单格上限 &gt; 99 的大容量容器）：直接全量插；</li>
+     *   <li>普通容器：按 ≤99 分片循环插入，直到搬完或该轮零进展（防死循环，上限 = 剩余 amount）；</li>
+     *   <li>搬不走的余量立刻 {@link LongSlotHandler#insertLong} 写回原格。</li>
+     * </ul>
+     * @return 是否搬动了任何物品
+     */
+    private boolean pushLongSlotTo(IItemHandler target, int slot)
+    {
+        ItemStack key = itemHandler.key(slot);
+        long available = itemHandler.amount(slot);
+        if (key.isEmpty() || available <= 0L)
+        {
+            return false;
+        }
+        // 整格取出：搬不走的余量最后写回，绝不丢物、绝不复制
+        itemHandler.extractLong(slot, available, false);
+        long remaining = available;
+        boolean movedAny = false;
+
+        if (target instanceof LongSlotHandler ls)
+        {
+            // 本模组大容量槽：逐格全量 insertLong（对方按容量/同类合并截断）
+            for (int s = 0; s < ls.getSlots() && remaining > 0L; s++)
             {
-                continue;
-            }
-            for (int round = 0; round < TRANSFER_ROUNDS; round++)
-            {
-                long available = itemHandler.amount(out);
-                if (available <= 0L)
+                long inserted = ls.insertLong(s, key, remaining, false);
+                if (inserted > 0L)
                 {
-                    break;
-                }
-                ItemStack toPush = key.copyWithCount((int) Math.min(available, LongSlotHandler.VIEW_CAP));
-                boolean movedAny = false;
-                for (int s = 0; s < neighbor.getSlots() && !toPush.isEmpty(); s++)
-                {
-                    ItemStack leftover = neighbor.insertItem(s, toPush, false);
-                    int moved = toPush.getCount() - leftover.getCount();
-                    if (moved > 0)
-                    {
-                        itemHandler.extractLong(out, moved, false);
-                        movedAny = true;
-                    }
-                    toPush = leftover;
-                }
-                if (!movedAny)
-                {
-                    break;
+                    remaining -= inserted;
+                    movedAny = true;
                 }
             }
         }
-        setChanged();
+        else if (target.getSlots() > 0 && target.getSlotLimit(0) > LongSlotHandler.VIEW_CAP)
+        {
+            // 其它大容量容器（单格上限 > 99）：整堆一次性插入
+            ItemStack toPush = key.copyWithCount((int) remaining);
+            for (int s = 0; s < target.getSlots() && !toPush.isEmpty(); s++)
+            {
+                ItemStack leftover = target.insertItem(s, toPush, false);
+                int moved = toPush.getCount() - leftover.getCount();
+                if (moved > 0)
+                {
+                    remaining -= moved;
+                    movedAny = true;
+                }
+                toPush = leftover;
+            }
+        }
+        else
+        {
+            // 普通容器：≤99 分片循环，直到搬完或该轮零进展（性能护栏，防无限热循环）
+            while (remaining > 0L)
+            {
+                ItemStack toPush = key.copyWithCount((int) Math.min(remaining, LongSlotHandler.VIEW_CAP));
+                boolean roundMoved = false;
+                for (int s = 0; s < target.getSlots() && !toPush.isEmpty(); s++)
+                {
+                    ItemStack leftover = target.insertItem(s, toPush, false);
+                    int moved = toPush.getCount() - leftover.getCount();
+                    if (moved > 0)
+                    {
+                        remaining -= moved;
+                        movedAny = true;
+                        roundMoved = true;
+                    }
+                    toPush = leftover;
+                }
+                if (!roundMoved)
+                {
+                    break; // 这一轮零进展：目标已满，停
+                }
+            }
+        }
+
+        // 搬不走的余量立刻写回原格（insertLong 加回去）
+        if (remaining > 0L)
+        {
+            itemHandler.insertLong(slot, key, remaining, false);
+        }
+        return movedAny;
     }
 
     /**
      * 纯逻辑：把输入槽最多 mult 个原木去皮放进对应输出槽（输出为空或同物品且未满才动；供 GameTest 直接调用）。
      *
      * <p>按 long 结算：输入存量读 {@link LongSlotHandler#amount(int)}、输出空位用
-     * {@link LongSlotHandler#room(int)}，单格容量 1,000,000，不会再被 99 截断。</p>
+     * {@link LongSlotHandler#room(int)}，单格容量 int 上限，不会再被 99 截断。</p>
      *
      * @return 实际去皮的数量（0 = 没动）
      */

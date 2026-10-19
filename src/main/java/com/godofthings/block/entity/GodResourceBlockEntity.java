@@ -88,12 +88,6 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
 
     /**
-     * 每 tick 对外搬运的轮数上限：每轮最多搬 {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限），
-     * 即每格每 tick 最多 3 × 99 = 297（与神之熔炉一致，内部按 long 批量搬）。
-     */
-    private static final int TRANSFER_ROUNDS = 3;
-
-    /**
      * 本台机器的变体（矿物 / 作物 / 方块）——决定输入过滤与产出表。
      * <p><b>非 final</b>：新放置时由 {@code newBlockEntity} 按方块实例传入；
      * 旧存档读回时 BlockEntityType 工厂只能给 (pos, state)，故在工厂里按 state 判定（见 Godofthings 注册处）。</p>
@@ -155,7 +149,6 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
 
     /** AE 网格节点（线缆直连并网）。 */
     private final AeGridNode aeNode = new AeGridNode(this);
-    private int aeTick = 0;
 
     public GodResourceBlockEntity(GodResourceVariant variant, BlockPos pos, BlockState state)
     {
@@ -413,9 +406,9 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     public void saveChanges() { setChanged(); }
 
     /**
-     * 把产物推入 AE 网络（节流由 tick 控制）：先推网格输出格，再推内置无限储存。
-     * <p>网格输出格按 long 搬：每格每 tick 最多 {@link #TRANSFER_ROUNDS} 轮、每轮最多
-     * {@link LongSlotHandler#VIEW_CAP}（99，对外单堆上限）。</p>
+     * 把产物推入 AE 网络：先推网格输出格，再推内置无限储存。
+     * 每 tick 全量搬运（v5.18.3）：每个输出槽把整个 amount 一次性 insert 进 ME 网络
+     * （AE 的 storage.insert 接受大数量），网络按实际收下量结算，下 tick 再试余量。
      */
     private void pushOutputToAe()
     {
@@ -432,6 +425,11 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         IActionSource source = aeNode.actionSource();
         for (int slot = OUTPUT_SLOT_START; slot < TOTAL_SLOTS; slot++)
         {
+            long available = gridHandler.amount(slot);
+            if (available <= 0L)
+            {
+                continue;
+            }
             ItemStack key = gridHandler.key(slot);
             if (key.isEmpty())
             {
@@ -442,24 +440,10 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
             {
                 continue;
             }
-            for (int round = 0; round < TRANSFER_ROUNDS; round++)
+            long inserted = inv.insert(aeKey, available, Actionable.MODULATE, source);
+            if (inserted > 0L)
             {
-                long available = gridHandler.amount(slot);
-                if (available <= 0L)
-                {
-                    break;
-                }
-                long chunk = Math.min(available, LongSlotHandler.VIEW_CAP);
-                long inserted = inv.insert(aeKey, chunk, Actionable.MODULATE, source);
-                if (inserted <= 0L)
-                {
-                    break;
-                }
                 gridHandler.extractLong(slot, inserted, false);
-                if (inserted < chunk)
-                {
-                    break;
-                }
             }
         }
         for (int slot = 0; slot < getItemHandler().getSlots(); slot++)
@@ -528,13 +512,9 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
             }
         }
         pushDown();
-        // AE 产物输出节流：每 20 tick（1 秒）推一次
-        aeTick++;
-        if (aeTick >= 20)
-        {
-            aeTick = 0;
-            pushOutputToAe();
-        }
+        pushDown();
+        // AE 产物输出：每 tick 全量搬运（不再每 20 tick 节流，v5.18.3）
+        pushOutputToAe();
     }
 
     private void process(int slot)
@@ -576,7 +556,7 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
 
     /**
      * 产物入输出格：先试与输入配对的那一格（输入 i ↔ 输出 i），再试其它输出格。
-     * <p>按 long 累加（{@link LongSlotHandler#insertLong}），单格容量 1,000,000，不会再被 99 截断。</p>
+     * <p>按 long 累加（{@link LongSlotHandler#insertLong}），单格容量 int 上限，不会再被 99 截断。</p>
      * 返回塞不下的部分。
      */
     private ItemStack insertIntoOutputs(int inputSlot, ItemStack stack)
@@ -662,38 +642,70 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         }
     }
 
-    /** 把网格某一格的产物按 long 推进邻居：每 tick 每格最多 TRANSFER_ROUNDS 轮 × 99。 */
-    private void pushSlotTo(IItemHandler handler, int slot)
+    /**
+     * 把网格某一格的产物推进下方容器：每 tick 把该格整个 amount 一次搬完（v5.18.3 全量搬运）——
+     * 整格取出后一次性尝试插入，搬不走的余量立刻写回原格，绝不丢物、绝不复制。
+     */
+    private void pushSlotTo(IItemHandler target, int slot)
     {
         ItemStack key = gridHandler.key(slot);
-        if (key.isEmpty())
+        long available = gridHandler.amount(slot);
+        if (key.isEmpty() || available <= 0L)
         {
             return;
         }
-        for (int round = 0; round < TRANSFER_ROUNDS; round++)
+        // 整格取出：搬不走的余量最后写回，绝不丢物、绝不复制
+        gridHandler.extractLong(slot, available, false);
+        long remaining = available;
+
+        if (target instanceof LongSlotHandler ls)
         {
-            long available = gridHandler.amount(slot);
-            if (available <= 0L)
+            // 本模组大容量槽：逐格全量 insertLong（对方按容量/同类合并截断）
+            for (int s = 0; s < ls.getSlots() && remaining > 0L; s++)
             {
-                break;
+                remaining -= ls.insertLong(s, key, remaining, false);
             }
-            ItemStack toPush = key.copyWithCount((int) Math.min(available, LongSlotHandler.VIEW_CAP));
-            boolean movedAny = false;
-            for (int s = 0; s < handler.getSlots() && !toPush.isEmpty(); s++)
+        }
+        else if (target.getSlots() > 0 && target.getSlotLimit(0) > LongSlotHandler.VIEW_CAP)
+        {
+            // 其它大容量容器（单格上限 > 99）：整堆一次性插入
+            ItemStack toPush = key.copyWithCount((int) remaining);
+            for (int s = 0; s < target.getSlots() && !toPush.isEmpty(); s++)
             {
-                ItemStack leftover = handler.insertItem(s, toPush, false);
-                int moved = toPush.getCount() - leftover.getCount();
-                if (moved > 0)
-                {
-                    gridHandler.extractLong(slot, moved, false);
-                    movedAny = true;
-                }
+                ItemStack leftover = target.insertItem(s, toPush, false);
+                remaining -= toPush.getCount() - leftover.getCount();
                 toPush = leftover;
             }
-            if (!movedAny)
+        }
+        else
+        {
+            // 普通容器：≤99 分片循环，直到搬完或该轮零进展（性能护栏，防无限热循环）
+            while (remaining > 0L)
             {
-                break;
+                ItemStack toPush = key.copyWithCount((int) Math.min(remaining, LongSlotHandler.VIEW_CAP));
+                boolean roundMoved = false;
+                for (int s = 0; s < target.getSlots() && !toPush.isEmpty(); s++)
+                {
+                    ItemStack leftover = target.insertItem(s, toPush, false);
+                    int moved = toPush.getCount() - leftover.getCount();
+                    if (moved > 0)
+                    {
+                        remaining -= moved;
+                        roundMoved = true;
+                    }
+                    toPush = leftover;
+                }
+                if (!roundMoved)
+                {
+                    break; // 这一轮零进展：目标已满，停
+                }
             }
+        }
+
+        // 搬不走的余量立刻写回原格（insertLong 加回去）
+        if (remaining > 0L)
+        {
+            gridHandler.insertLong(slot, key, remaining, false);
         }
     }
 

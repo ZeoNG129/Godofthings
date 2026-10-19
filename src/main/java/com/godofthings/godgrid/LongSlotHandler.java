@@ -19,7 +19,7 @@ import java.util.Arrays;
  * 所以这里把「物品身份」与「数量」拆开存：</p>
  * <ul>
  *   <li>{@link #keys}：每格的物品身份，{@code count} 恒为 1（保存时也只写 count=1）；</li>
- *   <li>{@link #amounts}：每格的真实数量，{@code long}，上限 {@link #capacity()}（默认 1,000,000）。</li>
+ *   <li>{@link #amounts}：每格的真实数量，{@code long}，上限 {@link #capacity()}（默认 int 上限 2,147,483,647）。</li>
  * </ul>
  *
  * <p><b>对外视图永远 ≤99</b>：{@link #getStackInSlot} 返回
@@ -37,8 +37,8 @@ public class LongSlotHandler implements IItemHandlerModifiable
     /** 对外视图的单格上限（= ItemStack 的 count 序列化硬上限） */
     public static final int VIEW_CAP = 99;
 
-    /** 默认单格容量 */
-    public static final long DEFAULT_CAPACITY = 1_000_000L;
+    /** 默认单格容量 = int 上限 2_147_483_647（GUI 数量同步用 31 位双通道编码，正好无损覆盖） */
+    public static final long DEFAULT_CAPACITY = Integer.MAX_VALUE;
 
     private final ItemStack[] keys;
     private final long[] amounts;

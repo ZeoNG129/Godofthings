@@ -105,7 +105,7 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
      * 数字<b>紧跟</b>在图标之后画 —— 顺序即层次，「物品先、数字后」，数字永远在图标上层，
      * 不会被图标盖住（v5.17.x 之前数字在 {@code render()} 里另外单独画，顺序上仍会被后画的图标压住）。</p>
      *
-     * <p>非 long 槽（加速槽 / 玩家物品栏）原样走原版；另外五台没有 long 槽的机器
+     * <p>非 long 槽（加速槽 / 玩家物品栏）原样走原版；没有 long 槽的机器
      * {@link GodGridHost#gridHasLongAmounts()} 为 false，整个方法等价于原版，观感零变化。</p>
      *
      * <p>坐标：{@code AbstractContainerScreen#render} 调用本方法时 pose 已经平移过 {@code leftPos / topPos}，
