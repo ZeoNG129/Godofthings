@@ -49,12 +49,6 @@ public class InfinityCellItem extends AEBaseItem
         return Component.translatable("item.godofthings.infinity_cell_name", this.getRecord().getDisplayName());
     }
 
-    @Override
-    public void appendHoverText(@NotNull ItemStack is, Item.@NotNull TooltipContext ctx, @NotNull List<Component> lines, @NotNull TooltipFlag adv)
-    {
-        lines.add(Component.translatable("infinity.godofthings.tooltip").withStyle(ChatFormatting.GREEN));
-    }
-
     @NotNull
     @Override
     public Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack)

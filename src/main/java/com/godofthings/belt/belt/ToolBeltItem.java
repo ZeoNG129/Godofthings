@@ -124,12 +124,6 @@ public class ToolBeltItem extends Item implements IBeltSlotItem
         return new InteractionResultHolder<>(result, stack);
     }
 
-    @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flagIn)
-    {
-        // [本地改动] 上游是「升级进度 %s/%s」，满级后直接报槽位数
-        tooltip.add(Component.translatable("tooltip.godofthings.god_belt", getSlotsCount(stack)));
-    }
 
     @Override
     public void onWornTick(ItemStack itemstack, BeltAttachment slot)

@@ -75,14 +75,6 @@ public class GodBackpackItem extends Item
                 buf -> buf.writeVarInt(slot));
     }
 
-    @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag)
-    {
-        // 一句提示：按 B 打开 + 能放进饰品栏背部槽（装了 Curios 才用得上，没装也无害）
-        tooltip.add(Component.translatable("tooltip.godofthings.god_backpack.open").withStyle(ChatFormatting.GRAY));
-        super.appendHoverText(stack, context, tooltip, flag);
-    }
-
     /** 背包内容（没有组件时 = 全空） */
     public static GodBackpackContents contents(ItemStack stack)
     {

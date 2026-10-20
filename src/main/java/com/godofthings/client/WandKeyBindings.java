@@ -5,7 +5,7 @@ import net.minecraft.client.KeyMapping;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.common.util.Lazy;
-import org.lwjgl.glfw.GLFW;
+
 
 /**
  * 神之系列的按键绑定（客户端）。
@@ -18,66 +18,66 @@ public class WandKeyBindings
 {
     private static final String CATEGORY = "key.category.godofthings.wand";
 
-    /** 打开传送点界面（U） */
+    /** 打开传送点界面（默认不绑定，到「按键控制」里自己设） */
     public static final Lazy<KeyMapping> OPEN_WAYPOINT_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.open_waypoint",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_U,
+            InputConstants.UNKNOWN.getValue(),
             CATEGORY
     ));
 
-    /** 神之套装功能开关界面（O） */
+    /** 神之套装功能开关界面（默认不绑定） */
     public static final Lazy<KeyMapping> OPEN_ARMOR_CONFIG_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.open_armor_config",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_O,
+            InputConstants.UNKNOWN.getValue(),
             CATEGORY
     ));
 
-    /** 神之套装技能树界面（K） */
+    /** 神之套装技能树界面（默认不绑定） */
     public static final Lazy<KeyMapping> OPEN_ARMOR_SKILL_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.open_armor_skill",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_K,
+            InputConstants.UNKNOWN.getValue(),
             CATEGORY
     ));
 
-    /** 神之便签记事本界面（N） */
+    /** 神之便签记事本界面（默认不绑定） */
     public static final Lazy<KeyMapping> OPEN_NOTE_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.open_note",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_N,
+            InputConstants.UNKNOWN.getValue(),
             CATEGORY
     ));
 
-    /** 直接进「摆放悬浮窗」编辑模式（M）：不用先开记事本 */
+    /** 直接进「摆放悬浮窗」编辑模式（默认不绑定）：不用先开记事本 */
     public static final Lazy<KeyMapping> EDIT_NOTE_HUD_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.edit_note_hud",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_M,
+            InputConstants.UNKNOWN.getValue(),
             CATEGORY
     ));
 
-    /** 打开神之手册（P） */
+    /** 打开神之手册（默认不绑定） */
     public static final Lazy<KeyMapping> OPEN_MANUAL_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.open_manual",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_P,
+            InputConstants.UNKNOWN.getValue(),
             CATEGORY
     ));
 
-    /** 打开神之背包（B）：背包在身上任何地方（饰品栏背部槽 / 主物品栏 / 副手）都能开 */
+    /** 打开神之背包（默认不绑定）：背包在身上任何地方（饰品栏背部槽 / 主物品栏 / 副手）都能开 */
     public static final Lazy<KeyMapping> OPEN_BACKPACK_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.open_backpack",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_B,
+            InputConstants.UNKNOWN.getValue(),
             CATEGORY
     ));
 

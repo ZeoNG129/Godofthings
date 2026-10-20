@@ -39,14 +39,4 @@ public class GodNoteItem extends Item
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
-
-    @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context,
-                                List<Component> tooltipComponents, TooltipFlag tooltipFlag)
-    {
-        tooltipComponents.add(Component.translatable("tooltip.godofthings.god_note.1")
-                .withStyle(ChatFormatting.GRAY));
-        tooltipComponents.add(Component.translatable("tooltip.godofthings.god_note.2")
-                .withStyle(ChatFormatting.DARK_GRAY));
-    }
 }

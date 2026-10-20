@@ -3,12 +3,12 @@
   "category": "misc",
   "pattern": [
     "XXX",
-    "XNX",
+    "XDX",
     "XXX"
   ],
   "key": {
     "X": { "item": "godofthings:god_recipe" },
-    "N": { "item": "minecraft:nether_star" }
+    "D": { "item": "minecraft:daylight_detector" }
   },
   "result": {
     "id": "godofthings:space_time_eternity",

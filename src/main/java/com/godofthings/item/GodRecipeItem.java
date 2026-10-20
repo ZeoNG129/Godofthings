@@ -24,13 +24,4 @@ public class GodRecipeItem extends Item
     {
         super(properties);
     }
-
-    @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull Item.TooltipContext context,
-                                @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag tooltipFlag)
-    {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
-        tooltipComponents.add(Component.translatable("tooltip.godofthings.god_recipe")
-                .withStyle(ChatFormatting.GRAY));
-    }
 }

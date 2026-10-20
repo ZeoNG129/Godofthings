@@ -1,12 +1,6 @@
 package com.godofthings.item;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * 神之加速：放入神之系列机器（神之资源 / 神之掉落 / 神之怪蛋 / 神之熔炉）的加速槽，
@@ -34,15 +28,5 @@ public class GodAcceleratorItem extends Item
     public GodAcceleratorItem(Properties properties)
     {
         super(properties);
-    }
-
-    @Override
-    public void appendHoverText(@NotNull ItemStack stack,
-                                @NotNull Item.TooltipContext context,
-                                @NotNull List<Component> tooltipComponents,
-                                @NotNull TooltipFlag tooltipFlag)
-    {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
-        tooltipComponents.add(Component.translatable("tooltip.godofthings.god_accelerator"));
     }
 }

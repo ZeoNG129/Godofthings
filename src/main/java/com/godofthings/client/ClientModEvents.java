@@ -57,7 +57,6 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.function.Function;
 
@@ -110,15 +109,15 @@ public class ClientModEvents
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event)
     {
         WandKeyBindings.register(event);
-        // 神之皮带按键：R 打开工具轮盘 / V 打开皮带槽位界面 / 左右循环切换（未绑定时用方向键选中）
+        // 神之皮带按键：默认全部不绑定（到「按键控制」里自己设）；未绑定时用方向键选中
         event.register(ClientEvents.OPEN_TOOL_MENU_KEYBIND =
-                new KeyMapping("key.godofthings.belt_open", GLFW.GLFW_KEY_R, "key.godofthings.belt_category"));
+                new KeyMapping("key.godofthings.belt_open", InputConstants.UNKNOWN.getValue(), "key.godofthings.belt_category"));
         event.register(ClientEvents.CYCLE_TOOL_MENU_LEFT_KEYBIND =
                 new KeyMapping("key.godofthings.belt_cycle_left", InputConstants.UNKNOWN.getValue(), "key.godofthings.belt_category"));
         event.register(ClientEvents.CYCLE_TOOL_MENU_RIGHT_KEYBIND =
                 new KeyMapping("key.godofthings.belt_cycle_right", InputConstants.UNKNOWN.getValue(), "key.godofthings.belt_category"));
         event.register(ClientEvents.OPEN_BELT_SLOT_KEYBIND =
-                new KeyMapping("key.godofthings.belt_slot", GLFW.GLFW_KEY_V, "key.godofthings.belt_category"));
+                new KeyMapping("key.godofthings.belt_slot", InputConstants.UNKNOWN.getValue(), "key.godofthings.belt_category"));
     }
 
     /** 神之皮带：染色皮带用带谓词的模型覆盖（与 models/item/god_belt.json 里的 has_custom_color 对应）。 */

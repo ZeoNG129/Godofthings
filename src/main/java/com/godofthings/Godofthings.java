@@ -632,6 +632,7 @@ public class Godofthings
                     .title(Component.translatable("itemGroup.godofthings.god_of_things_tab"))
                     .displayItems((parameters, output) ->
                     {
+                        // ---- 方块：机器 ----
                         output.accept(GOD_FURNACE_ITEM.get());
                         output.accept(GOD_MINER_ITEM.get());
                         output.accept(GOD_ORE_MACHINE_ITEM.get());
@@ -641,42 +642,50 @@ public class Godofthings
                         output.accept(GOD_DROP_ITEM.get());
                         output.accept(GOD_SPAWN_EGG_ITEM.get());
                         output.accept(GOD_ENCHANT_ITEM.get());
-                        output.accept(GOD_HELMET.get());
-                        output.accept(GOD_CHESTPLATE.get());
-                        output.accept(GOD_LEGGINGS.get());
-                        output.accept(GOD_BOOTS.get());
-                        output.accept(GOD_UNBREAKABLE.get());
-                        output.accept(GOD_ACCELERATOR.get());
-                        output.accept(GOD_INVITE.get());
-                        output.accept(GOD_CHANGE.get());
-                        output.accept(GOD_MEASURE.get());
-                        output.accept(INFINITY_WATER_CELL.get());
-                        output.accept(INFINITY_LAVA_CELL.get());
-                        output.accept(INFINITY_COBBLESTONE_CELL.get());
-                        output.accept(INFINITY_BLANK_PATTERN_CELL.get());
                         output.accept(GOD_CRAFT_ITEM.get());
+                        output.accept(GOD_TRANSMITTER_ITEM.get());
+                        output.accept(GOD_SLAUGHTER_ITEM.get());
+                        output.accept(GOD_ABSORBER_ITEM.get());
+                        output.accept(GOD_DEVOURER_ITEM.get());
+                        // ---- 方块：创造 / 特殊方块 ----
                         output.accept(VOID_TELEPORTER_ITEM.get());
                         output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
                         output.accept(SPACE_TIME_ETERNITY_ITEM.get());
                         output.accept(CREATURE_ANNIHILATION_ITEM.get());
-                        output.accept(GOD_DEVOURER_ITEM.get());
-                        output.accept(GOD_BLACK_BOX.get());
-                        output.accept(GOD_BINDER.get());
-                        output.accept(GOD_CONFIG.get());
-                        output.accept(GOD_RECIPE.get());
-                        output.accept(GOD_NOTE.get());
-                        output.accept(GOD_MANUAL.get());
-                        output.accept(GOD_BACKPACK_ITEM.get());
-                        output.accept(GOD_BELT.get());
-                        output.accept(GOD_TRANSMITTER_ITEM.get());
-                        output.accept(GOD_SLAUGHTER_ITEM.get());
-                        output.accept(GOD_ABSORBER_ITEM.get());
                         // 无用维度传送方块（奇数 / 偶数 / 三维度）
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
                         // 皮肤玩偶「HoYooG Fumo」
                         output.accept(com.godofthings.fumo.registry.ModFumos.HOYOOG_FUMO_ITEM.get());
+                        // ---- 物品：神之套装（四件套放一起）----
+                        output.accept(GOD_HELMET.get());
+                        output.accept(GOD_CHESTPLATE.get());
+                        output.accept(GOD_LEGGINGS.get());
+                        output.accept(GOD_BOOTS.get());
+                        // ---- 物品：手持神之工具（外形相近，按用途排）----
+                        output.accept(GOD_INVITE.get());
+                        output.accept(GOD_CHANGE.get());
+                        output.accept(GOD_MEASURE.get());
+                        output.accept(GOD_BLACK_BOX.get());
+                        output.accept(GOD_BINDER.get());
+                        // ---- 物品：卡片 / 石板类 ----
+                        output.accept(GOD_RECIPE.get());
+                        output.accept(GOD_CONFIG.get());
+                        // ---- 物品：书页类 ----
+                        output.accept(GOD_MANUAL.get());
+                        output.accept(GOD_NOTE.get());
+                        // ---- 物品：随身容器 ----
+                        output.accept(GOD_BACKPACK_ITEM.get());
+                        output.accept(GOD_BELT.get());
+                        // ---- 物品：升级件 ----
+                        output.accept(GOD_ACCELERATOR.get());
+                        output.accept(GOD_UNBREAKABLE.get());
+                        // ---- 物品：ME 无限元件 ----
+                        output.accept(INFINITY_WATER_CELL.get());
+                        output.accept(INFINITY_LAVA_CELL.get());
+                        output.accept(INFINITY_COBBLESTONE_CELL.get());
+                        output.accept(INFINITY_BLANK_PATTERN_CELL.get());
                     })
                     .build());
 

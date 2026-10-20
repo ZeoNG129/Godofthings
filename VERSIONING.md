@@ -1558,3 +1558,12 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **不动的东西**：全部物品逻辑 / 数据 / 属性 / 界面没改，只动 `data/godofthings/recipe/*.json` 11 个文件 + 语言文案。
   - 键集不变（仍 622）；不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45；日志配方总数 1825（11 个 shaped → shapeless，条数不变）、无解析错误。
+
+- 5.20.3 → **5.20.4（时空永恒换核心 + 去掉 8 类物品的介绍文字 + 快捷键默认全不绑定 + 神之配置重绘贴图 + 创造栏重排）** —— 杂项调整，按规则**末位 +1**。
+  - **时空永恒**：中心由下界之星改为**阳光探测器**（`XXX / XDX / XXX`，D = `minecraft:daylight_detector`，8 个神之配方不变）。
+  - **删掉物品介绍（tooltip）**：神之加速 / ME 无限元件 ×4 / 神之配置 / 神之配方 / 神之便签 / 神之手册 / 神之背包 / 神之腰带 —— 直接删掉各自 `appendHoverText` 的实现（不是改成空串）：`GodAcceleratorItem` / `GodRecipeItem` / `GodConfigItem` / `GodManualItem` / `GodNoteItem` / `GodBackpackItem` / `ToolBeltItem` / `InfinityCellItem`。对应语言键暂时保留（不再被引用），避免和 zh/en 键集校验打架。
+  - **快捷键默认全部不绑定**：`WandKeyBindings` 的 7 个键（传送点 / 套装开关 / 技能树 / 便签 / 便签悬浮窗 / 手册 / 背包）与 `ClientModEvents` 注册的神之腰带 4 个键，默认值一律改成 `InputConstants.UNKNOWN.getValue()`；原先写死的 `GLFW_KEY_U/O/K/N/M/P/B/R/V` 全部去掉，两个文件里随之无用的 `GLFW` import 一并删除。玩家到「选项 → 按键控制 → 神之」里自己绑。
+  - **神之配置贴图**：原来是复制 `god_binder.png` 的占位图，现在重绘为 128×128 的「设置卡」——金框深色卡片 + 三条滑块（金色旋钮 + 青色已填充轨道），视觉上和神之配方的「九宫格石板」明显区分。
+  - **创造物品栏重排**：方块在前（机器 14 台 → 创造 / 特殊方块 4 个 → 无用维度传送方块 ×3 → 皮肤玩偶），物品在后并按外观分组成段（神之套装 4 件 → 手持工具 5 件 → 卡片 / 石板 2 件 → 书页 2 件 → 随身容器 2 件 → 升级件 2 件 → ME 无限元件 4 个），每段带 `// ---- xxx ----` 注释便于以后维护。
+  - **文档**：README 的「快捷键」表把键位列改成「未绑定」并补一句说明；键集不变（仍 622）；不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
