@@ -17,6 +17,7 @@ import com.godofthings.godgrid.GodGridLayout;
 import com.godofthings.godgrid.GodGridSorting;
 import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.item.GodAcceleratorItem;
+import com.godofthings.item.ConfigurableMachine;
 import com.godofthings.menu.GodMinerConfigMenu;
 import com.godofthings.menu.GodMinerMenu;
 import net.minecraft.core.BlockPos;
@@ -67,7 +68,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  * - v5.18.0：界面/容器迁到共用网格框架（17 输入占位 + 17 输出缓冲 + 1 加速槽）
  * - v5.18.10：产物最后的兜底从「掉到世界上」改为内存待处理队列 + 装不下就暂停挖掘（详见 pendingOutputs 注释）
  */
-public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner, GodGridHost
+public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner, GodGridHost, ConfigurableMachine
 {
     /** 主人（放置者）：神之共鸣判定用（主人在线 + 穿齐全套 + 共鸣开关开才生效）。 */
     @org.jetbrains.annotations.Nullable
@@ -225,6 +226,66 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     {
         this.aeEnabled = !this.aeEnabled;
         setChanged();
+    }
+
+    // ---- ConfigurableMachine：给「神之配置」物品读写（六面模式 / AE 开关 / 加速数量）----
+
+    @Override
+    public int[] getFaceModesSnapshot()
+    {
+        return faceModes.clone();
+    }
+
+    @Override
+    public void applyFaceModes(int[] modes)
+    {
+        if (modes == null)
+        {
+            return;
+        }
+        for (int i = 0; i < faceModes.length && i < modes.length; i++)
+        {
+            faceModes[i] = ((modes[i] % 4) + 4) % 4;
+        }
+        setChanged();
+    }
+
+    @Override
+    public void setAeEnabled(boolean enabled)
+    {
+        if (this.aeEnabled != enabled)
+        {
+            this.aeEnabled = enabled;
+            setChanged();
+        }
+    }
+
+    @Override
+    public int acceleratorCount()
+    {
+        return accelSlot.getStackInSlot(0).getCount();
+    }
+
+    @Override
+    public int addAccelerators(int want)
+    {
+        if (want <= 0)
+        {
+            return 0;
+        }
+        ItemStack current = accelSlot.getStackInSlot(0);
+        int room = accelSlot.getSlotLimit(0) - (current.isEmpty() ? 0 : current.getCount());
+        int add = Math.min(want, room);
+        if (add <= 0)
+        {
+            return 0;
+        }
+        ItemStack merged = current.isEmpty()
+                ? new ItemStack(Godofthings.GOD_ACCELERATOR.get(), add)
+                : current.copyWithCount(current.getCount() + add);
+        accelSlot.setStackInSlot(0, merged);
+        setChanged();
+        return add;
     }
 
     // ---- GodGridHost：共用网格界面所需的机器侧契约 ----

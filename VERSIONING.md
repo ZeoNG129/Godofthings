@@ -1495,3 +1495,15 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **不动的东西**：容量（`LongSlotHandler` 单格仍是 int 上限 / `InfiniteItemHandler.MAX_STACKS` 仍是 4096 种）、存档格式（`StorageLong` / `Storage` / `GridInventoryLong` / `AccelSlot` 等键与格式全部不变）、界面 / 贴图 / 面配置 / AE 并网、5.18.9 已完成的五台产出机、`GodMachineDropHandler`（挖机器掉神之加速，属于要求保留的功能）。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.18.10 → **5.19.0（新增「神之配置」物品：机器配置一键复制粘贴）** —— 新增小物品，按规则**第二位 +1、末位归零**。
+  - **新物品** `godofthings:god_config`（`item/GodConfigItem`，创造标签页「众神之物」里也有）：一台机器的「配置模板」。
+    · **潜行 + 右键机器** = 保存：读六面 I/O 模式（`faceModes[6]`，0 无 / 1 输入 / 2 输出 / 3 输入和输出）、AE 并网开关（`aeEnabled`）、加速槽里的**神之加速数量**（0..64，只记数量不记物品），写进物品数据组件并 actionbar 提示「已保存：<方块名>」。
+    · **普通右键同类机器** = 粘贴：六面模式与 AE 开关直接写回；神之加速按存下的数量从**玩家物品栏扣**着补进机器（创造模式不扣）。加速不够时其余照贴并提示「加速不足（需要 N，实际 M）」；目标方块类型与保存时不符提示「与保存的机器类型不符」；卡里没数据提示「没有保存任何配置」。
+  - **数据组件**：`godofthings:god_config`（`item/GodConfigData`，record + `Codec` / `StreamCodec`），字段 `blockId`(String) / `faceModes`(int[6]) / `aeEnabled`(boolean) / `accelCount`(int)，注册在 `Godofthings.DATA_COMPONENTS`；`equals` / `hashCode` 按数组内容比，避免组件同步白推包。
+  - **机器侧接口** `item/ConfigurableMachine`（`getFaceModesSnapshot` / `applyFaceModes` / `isAeEnabled` / `setAeEnabled` / `acceleratorCount` / `addAccelerators`）：六台已实现 `faceModes` 的方块实体 `implements` 并直接委托原有字段与方法 —— 神之熔炉 / 神之矿机 / 神之矿物 / 神之作物 / 神之复制 / 神之去皮 / 神之掉落 / 神之怪蛋。砍杀 / 吸收 / 合成台本次**未支持**（接口留好了扩展位，加一行 `implements` 即可）。
+  - **交互细节**：保存走 `Item#useOn`（潜行时原版本来就跳过方块交互）；粘贴必须在 `Item#onItemUseFirst` 拦截 —— 机器方块的右键是 `useWithoutItem`（打开界面）且 `consumesAction`，不拦的话 `useOn` 永远不会被调用。只做服务端逻辑，客户端只负责「是机器就别弹界面」，返回 `SUCCESS`。
+  - **资源 / 文档**：`assets/godofthings/models/item/god_config.json` + `textures/item/god_config.png`（占位贴图沿用神之绑定的图，改名复制）；zh/en 各补 `item.` / `tooltip.` / `manual.` / 5 条 `message.godofthings.god_config.*`；README「核心特性一览」加一行神之配置，并把「注册的 22 个方块 / **25 个物品** / 0 个实体」的物品数从 24 改到 25。
+  - **不动的东西**：已有机器逻辑、存档格式（数据全在物品组件里，机器的 NBT 键一个没改）、`belt` 包、其它模组的物品。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

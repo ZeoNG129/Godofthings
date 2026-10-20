@@ -52,6 +52,8 @@ import com.godofthings.item.GodArmorItem;
 import com.godofthings.item.GodBinderItem;
 import com.godofthings.item.GodBlackBoxItem;
 import com.godofthings.item.GodChangeItem;
+import com.godofthings.item.GodConfigData;
+import com.godofthings.item.GodConfigItem;
 import com.godofthings.item.GodInviteItem;
 import com.godofthings.item.GodMinerItem;
 import com.godofthings.item.GodNoteItem;
@@ -198,6 +200,15 @@ public class Godofthings
                     .networkSynchronized(GodBackpackSettings.STREAM_CODEC)
                     .build());
 
+    // ---- 神之配置的数据组件 ----
+    // 一台机器的配置模板：方块注册名 + 六面 I/O 模式 + AE 并网开关 + 加速槽里的神之加速数量
+    // （只记数量不记物品，粘贴时从玩家物品栏里扣真正的神之加速，见 GodConfigItem）。
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GodConfigData>> GOD_CONFIG_DATA =
+            DATA_COMPONENTS.register("god_config", () -> DataComponentType.<GodConfigData>builder()
+                    .persistent(GodConfigData.CODEC)
+                    .networkSynchronized(GodConfigData.STREAM_CODEC)
+                    .build());
+
     // ---- 方块 ----
     // 注意：不能用 BlockBehaviour.Properties.copy(Blocks.FURNACE) —— 会连带原版熔炉的
     // `lit` 状态属性，而本方块未定义该属性，注册时直接崩溃。因此手动构造属性。
@@ -321,6 +332,10 @@ public class Godofthings
             ITEMS.registerItem("god_black_box", GodBlackBoxItem::new);
     public static final DeferredItem<GodBinderItem> GOD_BINDER =
             ITEMS.registerItem("god_binder", GodBinderItem::new);
+
+    /** 神之配置：潜行右键机器保存六面 I/O / AE 开关 / 加速数量，普通右键同类机器一键粘贴（见 GodConfigItem） */
+    public static final DeferredItem<GodConfigItem> GOD_CONFIG =
+            ITEMS.registerItem("god_config", props -> new GodConfigItem(props.stacksTo(1)));
     /** 神之便签：记事本物品（内容按玩家存在存档里，见 GodNoteData） */
     public static final DeferredItem<GodNoteItem> GOD_NOTE =
             ITEMS.registerItem("god_note", props -> new GodNoteItem(props.stacksTo(1)));
@@ -643,6 +658,7 @@ public class Godofthings
                         output.accept(GOD_DEVOURER_ITEM.get());
                         output.accept(GOD_BLACK_BOX.get());
                         output.accept(GOD_BINDER.get());
+                        output.accept(GOD_CONFIG.get());
                         output.accept(GOD_NOTE.get());
                         output.accept(GOD_MANUAL.get());
                         output.accept(GOD_BACKPACK_ITEM.get());

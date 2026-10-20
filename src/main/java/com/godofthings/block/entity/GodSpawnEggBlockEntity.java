@@ -17,6 +17,7 @@ import com.godofthings.godgrid.GodGridLayout;
 import com.godofthings.godgrid.GodGridSorting;
 import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.item.GodAcceleratorItem;
+import com.godofthings.item.ConfigurableMachine;
 import com.godofthings.menu.GodSpawnEggMenu;
 import com.godofthings.menu.GodSpawnEggConfigMenu;
 import net.minecraft.core.BlockPos;
@@ -59,7 +60,7 @@ import java.util.List;
  * {@link #OUTPUT_SLOT_COUNT} 格。原本的「内部无限储存」保留为输出槽装不下时的兜底缓冲
  * （NBT 键 {@code Inventory} 与格式都不变），所以产物照旧永不外吐。</p>
  */
-public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner, GodGridHost
+public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner, GodGridHost, ConfigurableMachine
 {
     /** 主人（放置者）：神之共鸣判定用（主人在线 + 穿齐全套 + 共鸣开关开才生效）。 */
     @org.jetbrains.annotations.Nullable
@@ -236,6 +237,66 @@ public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider,
     {
         this.aeEnabled = !this.aeEnabled;
         setChanged();
+    }
+
+    // ---- ConfigurableMachine：给「神之配置」物品读写（六面模式 / AE 开关 / 加速数量）----
+
+    @Override
+    public int[] getFaceModesSnapshot()
+    {
+        return faceModes.clone();
+    }
+
+    @Override
+    public void applyFaceModes(int[] modes)
+    {
+        if (modes == null)
+        {
+            return;
+        }
+        for (int i = 0; i < faceModes.length && i < modes.length; i++)
+        {
+            faceModes[i] = ((modes[i] % 4) + 4) % 4;
+        }
+        setChanged();
+    }
+
+    @Override
+    public void setAeEnabled(boolean enabled)
+    {
+        if (this.aeEnabled != enabled)
+        {
+            this.aeEnabled = enabled;
+            setChanged();
+        }
+    }
+
+    @Override
+    public int acceleratorCount()
+    {
+        return accelSlot.getStackInSlot(0).getCount();
+    }
+
+    @Override
+    public int addAccelerators(int want)
+    {
+        if (want <= 0)
+        {
+            return 0;
+        }
+        ItemStack current = accelSlot.getStackInSlot(0);
+        int room = accelSlot.getSlotLimit(0) - (current.isEmpty() ? 0 : current.getCount());
+        int add = Math.min(want, room);
+        if (add <= 0)
+        {
+            return 0;
+        }
+        ItemStack merged = current.isEmpty()
+                ? new ItemStack(Godofthings.GOD_ACCELERATOR.get(), add)
+                : current.copyWithCount(current.getCount() + add);
+        accelSlot.setStackInSlot(0, merged);
+        setChanged();
+        return add;
     }
 
     // ---- AE 网格节点（线缆直连并网，产物自动输出进 AE） ----

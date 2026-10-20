@@ -11,6 +11,7 @@ import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.item.GodAcceleratorItem;
+import com.godofthings.item.ConfigurableMachine;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
 import com.godofthings.godgrid.GodGridSorting;
@@ -60,7 +61,7 @@ import java.util.Optional;
  * 要先取到目标方块的这个能力，取不到就会直接拒绝，见 {@code AeDeviceLinker}）。
  * 其余 6 台（矿机 / 资源机 / 掉落机 / 砍杀 / 合成台 / 吸收）的 AE 并网不受影响。</p>
  */
-public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, GodGridHost
+public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, GodGridHost, ConfigurableMachine
 {
     // v5.18.0：统一 17 输入 + 51 输出网格（照 PBG 无限离心机工厂布局，见 GodGridLayout）
     public static final int INPUT_SLOT_COUNT = GodGridLayout.INPUT_COUNT;
@@ -655,6 +656,66 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     {
         this.aeEnabled = !this.aeEnabled;
         setChanged();
+    }
+
+    // ---- ConfigurableMachine：给「神之配置」物品读写（六面模式 / AE 开关 / 加速数量）----
+
+    @Override
+    public int[] getFaceModesSnapshot()
+    {
+        return faceModes.clone();
+    }
+
+    @Override
+    public void applyFaceModes(int[] modes)
+    {
+        if (modes == null)
+        {
+            return;
+        }
+        for (int i = 0; i < faceModes.length && i < modes.length; i++)
+        {
+            faceModes[i] = ((modes[i] % 4) + 4) % 4;
+        }
+        setChanged();
+    }
+
+    @Override
+    public void setAeEnabled(boolean enabled)
+    {
+        if (this.aeEnabled != enabled)
+        {
+            this.aeEnabled = enabled;
+            setChanged();
+        }
+    }
+
+    @Override
+    public int acceleratorCount()
+    {
+        return accelSlot.getStackInSlot(0).getCount();
+    }
+
+    @Override
+    public int addAccelerators(int want)
+    {
+        if (want <= 0)
+        {
+            return 0;
+        }
+        ItemStack current = accelSlot.getStackInSlot(0);
+        int room = accelSlot.getSlotLimit(0) - (current.isEmpty() ? 0 : current.getCount());
+        int add = Math.min(want, room);
+        if (add <= 0)
+        {
+            return 0;
+        }
+        ItemStack merged = current.isEmpty()
+                ? new ItemStack(Godofthings.GOD_ACCELERATOR.get(), add)
+                : current.copyWithCount(current.getCount() + add);
+        accelSlot.setStackInSlot(0, merged);
+        setChanged();
+        return add;
     }
 
     /**
