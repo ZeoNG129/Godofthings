@@ -2,6 +2,7 @@ package com.godofthings.menu;
 
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodCraftBlockEntity;
+import com.godofthings.godgrid.LongSlotHandler;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -14,7 +15,6 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
 
 /**
  * 神之合成菜单（完全照原版工作台布局）：
@@ -49,11 +49,11 @@ public class GodCraftMenu extends AbstractContainerMenu
         {
             for (int col = 0; col < 3; col++)
             {
-                this.addSlot(new SlotItemHandler(be.getInputSlots(), row * 3 + col, 30 + SHIFT + col * 18, 17 + row * 18));
+                this.addSlot(new LongSlotHandler.LongSlot(be.getInputSlots(), row * 3 + col, 30 + SHIFT + col * 18, 17 + row * 18));
             }
         }
         // 输出槽（124,35，同原版结果槽位置；右移 SHIFT）
-        this.addSlot(new SlotItemHandler(be.getOutputSlot(), 0, 124 + SHIFT, 35)
+        this.addSlot(new LongSlotHandler.LongSlot(be.getOutputSlot(), 0, 124 + SHIFT, 35)
         {
             // 输出槽只能取走
             @Override

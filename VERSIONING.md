@@ -1433,3 +1433,30 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **下发机制沿用原版**：`ServerPlayer` 每 tick 调 `broadcastChanges()` 轮询每个 `DataSlot.get()`（直接读 `host.gridAmount()`），与上次值不同才发包 —— 方块实体改数量（`onContentsChanged → setChanged`）后下一 tick 自动同步，无需新增触发。
   - 连带：代码里「1,000,000 / 试点 / 仅神之熔炉」等过期注释同步改为 int 上限 / 六台机器统一；不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.18.4 → **5.18.5（神之矿机界面回退旧版：取消网格输入/输出槽）** —— 回退 / 调整，按规则**末位 +1**。
+  - **菜单与界面整体回退到 v5.17.5 旧版**（`git show 783b3c1` 取回）：`GodMinerMenu` 不再继承 `AbstractGodGridMenu`，改回直接继承 `AbstractContainerMenu`，只注册神之加速槽（右上角 148,30）+ 玩家物品栏，不注册任何网格槽位（17 输入 / 17 输出都不显示）；`GodMinerScreen` 不再继承 `AbstractGodGridScreen`，改回直接继承 `AbstractContainerScreen`（贴图 `textures/gui/god_miner.png`，176×234），恢复旧版控件布局：开始/停止、时运 3 / 精准采集、六档半径（-100/-10/-1/+1/+10/+100）、半径与深度读数、AE 接入开关、面配置按钮；按钮 id 恢复旧版编号（0=开始停止、1-6=半径、7=时运、8=精准、9=AE、10=面配置）。
+  - **适配当前 BE**：旧版菜单/界面引用的 BE 方法（`getAccelSlot` / `isRunning` / `setRunning` / `getRadius` / `setRadius` / `getCurrentY` / `setCurrentY` / `getEfficiencyLevel` / `getFluidAmount` / `getStorageCount` / `isAeEnabled` / `toggleAeEnabled` / `toggleFortune` / `toggleSilkTouch` / `getFortuneLevel` / `isSilkTouch`）在当前 `GodMinerBlockEntity` 上全部同名可用，无需新增 getter、不改 BE、不动存档；DataSlot 沿用旧版七组（运行/半径/深度/效率/液体/储存计数/AE 开关）。
+  - **面配置入口保留**：旧版「面配置」按钮（服务端 `clickMenuButton(10)` → `openConfig`）照旧版方式直接打开 `GodMinerConfigMenu`（其当前构造器签名未变，仍含返回矿机主界面的按钮 6）。
+  - **BE 不动**：`LongSlotHandler gridHandler`（产物先落网格格再落内置无限储存）、AE 推送、面配置、`GodGridHost` 实现全部保留，只是界面不再显示这些槽位；其余五台机器不受影响。
+  - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.18.5 → **5.18.6（神之吞噬改成放入即销毁）** —— 修复 / 优化，按规则**末位 +1**。
+  - **即时销毁**：`DevourerItemHandler` 改成黑洞物品栏 —— `insertItem` 恒返回 `EMPTY`（整堆收下并清零）、`setStackInSlot` 直接丢弃、`getStackInSlot` / `extractItem` 恒返回 `EMPTY`，`isEmpty()` 恒 true；`getSlots()` 仍是 54（界面照旧画出 9×6 的空格子）。物品进入吞噬槽的同一 tick 内就没了，槽里永远显示空，不再依赖「退出界面」才销毁。
+  - **三条路径全覆盖**：`GodDevourerMenu` 的吞噬槽换成内部类 `DevourerSlot extends SlotItemHandler`，把 `set` / `setByPlayer`（1 参 + 2 参）/ `safeInsert`（1 参 + 2 参）全部覆盖成销毁，`getItem` / `hasItem` 恒空、`remove` 恒空、`mayPickup` 恒 false —— 手动点击放入、Shift 快捷移动（`quickMoveStack` → `moveItemStackTo`）、拖拽、数字键交换都走这些入口；漏斗 / 管道 / 其它模组走能力 `insertItem`，两条线都是「收下即清零」，不弹回玩家、不掉地、不复制。
+  - **退出界面不再参与销毁**：删掉 `GodDevourerBlockEntity` 的 `viewers` 计数与 `onMenuOpened` / `onMenuClosed`（`tick()` 里的物品清空降级为纯兜底），`GodDevourerMenu.removed(Player)` 保留一句 `itemHandler.clear()` 作兜底；便携版（`portable_devourer`，背包「吞」按钮）与方块版共用同一个黑洞物品栏和同一份 `removed`，点进去即销毁，行为一致。
+  - 手册文案同步（zh / en）：`manual.godofthings.god_devourer` 从「退出界面时销毁」改成「放进去立刻消失」。
+  - 不新增 GameTest，**测试总数仍 45 条不变**；其余机器、配方、成就未动。
+  - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.18.6 → **5.18.7（砍杀机 / 吸收机 / 合成台的存储槽一并换成 int 上限容量）** —— 修复 / 优化，按规则**末位 +1**。
+  - **三台机器全部改用 `LongSlotHandler`**（与已完成的六台一致：`ItemStack` 只存身份、真实数量走 `long`，单格容量默认 `Integer.MAX_VALUE` = 2,147,483,647，对外视图恒 ≤99）：
+    · **神之合成台**（`GodCraftBlockEntity`）：3×3 合成格 9 槽 + 产物槽 1 槽，原来是 `ItemStackHandler`（单格最多 64）；面包装 handler 的 `getSlotLimit()` 不再返回 64，改成 int 上限。
+    · **神之砍杀机**（`GodSlaughterBlockEntity`）：27 格战利品缓存（界面 27 格）原来是 `InfiniteItemHandler`（真实数量塞在 `ItemStack.count` 里，是内存态的 >99 非法堆）；改用 long 存储后内部类型上限沿用旧 `InfiniteItemHandler#MAX_STACKS`（4096），新增 `compact()` 每 tick 把非空槽位前移，界面 27 格恒显示前 27 种、可视区腾空后隐藏区的物品自动补回来。
+    · **神之吸收机**（`GodAbsorberBlockEntity`）：同上（它原来 `getSlotLimit()` 返回 `Integer.MAX_VALUE` 只是内存态假上限，底层数量仍在 `ItemStack.count` 里）。
+  - **存档键与迁移（旧存档不丢东西）**：砍杀机 / 吸收机新键 `StorageLong`（`LongSlotHandler#saveList`，每条 `{Slot:int, Item:count=1, Amount:long}`），读档优先读新键、否则读旧 `Storage`（旧 `InfiniteItemHandler` 格式）再整堆灌进 long 存储（`amount = count`）；合成台新键 `InputsLong` / `OutputLong`（旧 `Inputs` / `Output` 走 `ItemStackHandler` 兼容读，同样 `amount = count`），`getUpdateTag` / `handleUpdateTag` 一并改成新键。
+  - **既有交互全部保留**：面配置 INPUT / OUTPUT / BOTH、AE 并网输出、界面取出/放入都照旧；主动输出改成「整格全量搬运」——新增公共搬运类 `godgrid/LongSlotTransfer#pushSlot`（整格 `extractLong` → 目标是 `LongSlotHandler` 就 `insertLong`、单格上限 > 99 的容器整堆插、普通容器按 ≤99 分片循环、搬不走的余量 `insertLong` 写回原格，不丢不复制），砍杀机 / 吸收机 / 合成台共用；输入侧 `pullFrom` 也改成整堆搬运（砍杀机原来每 tick 只抽 1 个）。合成台 `loadTemplateFromInventory` 把合成格退回背包的路径改成按 ≤99 分片（原来只退「视图那一份」，数量 >99 时剩下的会丢）。
+  - **界面槽位换成 `LongSlotHandler.LongSlot`**（砍杀机 / 吸收机 27 格、合成台 9+1 格）：只换槽位包装类，布局与贴图未动 —— 对外视图被钳到 99 后，vanilla 的「整格替换」点击逻辑会把超出视图的存量抹掉，`LongSlot` 按视图差额结算，避免「取一格清空整格」。
+  - **本次确认无需改**：**神之黑盒**（`BlackBoxData` 的数量本来就是独立 `Count` 字段、物品本体 count 恒 1，中间量用 long 再钳到 int 上限，已是「int 上限容量」）；**神之背包**（是物品不是机器，120 格继续 64/99）；魔咒台的单物品槽、创造能量方块的充电槽不是大宗物品存储，也不动。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

@@ -1,146 +1,209 @@
 package com.godofthings.client.screen;
 
+import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodMinerBlockEntity;
-import com.godofthings.godgrid.AbstractGodGridScreen;
-import com.godofthings.godgrid.GodGridLayout;
 import com.godofthings.menu.GodMinerMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 /**
- * 神之矿机界面：网格面板（17 输入占位 + 17 输出 + 加速槽、进度箭头、三个页签）由
- * {@link AbstractGodGridScreen} 统一绘制，本类只在面板下方补矿机自己的控件：
- * 开始/停止、半径调整（-100/-10/-1/+1/+10/+100）、时运 3 / 精准采集切换、半径与深度读数。
- *
- * <p>AE 开关与面配置已并入基类右上/左侧页签（不再单独画按钮）。</p>
+ * 神之矿机界面：全部中文。
+ * - 开始/停止按钮
+ * - 半径调整按钮（-100/-10/-1/+1/+10/+100，范围 1-1600）
+ * - 无储存槽：产物直接进内置无限储存
+ * - 面配置按钮：六面各自可设 无/输入（抽入神之加速）/输出（推出产物与液体）/输入和输出
+ * - 状态显示（当前深度、挖掘速度、储液、内置储存）
  */
-public class GodMinerScreen extends AbstractGodGridScreen<GodMinerMenu>
+public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
 {
-    /** 矿机控件区：紧贴共用面板（{@link GodGridLayout#IMAGE_W}×{@link GodGridLayout#IMAGE_H}）下方 */
-    private static final int EXTRA_Y = GodGridLayout.IMAGE_H + 2;
-    private static final int EXTRA_H = 46;
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/god_miner.png");
 
-    private static final int RUN_X = 8;
-    private static final int RUN_W = 68;
-    private static final int RUN_H = 18;
-
-    private static final int FORTUNE_X = 80;
-    private static final int SILK_X = 108;
-    private static final int ENCHANT_W = 24;
-    private static final int ENCHANT_H = 18;
-
-    private static final int RADIUS_TEXT_X = 140;
-    private static final int DEPTH_TEXT_X = 250;
+    private static final ResourceLocation SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot");
 
     private static final String[] RADIUS_LABELS = { "-100", "-10", "-1", "+1", "+10", "+100" };
     private static final int[] RADIUS_DELTAS = { -100, -10, -1, 1, 10, 100 };
-    private static final int[] RADIUS_BTN_X = { 8, 36, 64, 92, 120, 148 };
-    private static final int RADIUS_BTN_Y = EXTRA_Y + 22;
-    private static final int RADIUS_BTN_W = 26;
-    private static final int RADIUS_BTN_H = 18;
 
-    private static final int COLOR_BTN_BORDER = 0xFF16181D;
-    private static final int COLOR_BTN_IDLE = 0xFF4A4A4A;
+    private static final int START_X = 52;
+    private static final int START_Y = 48;
+    private static final int START_W = 72;
+    private static final int START_H = 20;
+
+    private static final int[] RADIUS_BTN_X = { 8, 36, 64, 92, 120, 148 };
+    private static final int RADIUS_BTN_Y = 74;
+    private static final int RADIUS_BTN_W = 26;
+    private static final int RADIUS_BTN_H = 16;
+
+    // 时运3 / 精准采集切换按钮（位于标题下方空白）
+    private static final int FORTUNE_X = 8;
+    private static final int SILK_X = 36;
+    private static final int ENCHANT_BTN_Y = 20;
+    private static final int ENCHANT_BTN_W = 24;
+    private static final int ENCHANT_BTN_H = 16;
+
+    // AE 接入开关按钮（时运/精准右侧，绿色=开/灰=关）
+    private static final int AE_X = 64;
+    private static final int AE_Y = 20;
+    private static final int AE_SIZE = 20;
+
+    // 面配置按钮（AE 开关右侧）：打开六面输入/输出配置界面
+    private static final int FACES_X = 88;
+    private static final int FACES_Y = 20;
+    private static final int FACES_W = 52;
+    private static final int FACES_H = 20;
 
     public GodMinerScreen(GodMinerMenu menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
-        // 共用面板下多留一条控件区
-        this.imageHeight = GodGridLayout.IMAGE_H + EXTRA_H;
+        this.imageWidth = 176;
+        this.imageHeight = 234;
     }
 
     @Override
     protected void renderBg(GuiGraphics gui, float partialTick, int mouseX, int mouseY)
     {
-        // 面板 / 槽框 / 箭头 / 三个页签由基类画
-        super.renderBg(gui, partialTick, mouseX, mouseY);
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
 
-        GodMinerBlockEntity be = this.menu.getMiner();
-        int x = this.leftPos;
-        int y = this.topPos;
+        gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
-        // 开始 / 停止
+        // 神之加速槽框（标准物品槽背景）+ 标签
+        gui.blitSprite(SLOT_SPRITE, x + 148, y + 30, 18, 18);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.accelerator"), x + 140, y + 18, 0xFFFFFF);
+
+        GodMinerBlockEntity be = this.menu.getBlockEntity();
+
+        // 时运3 / 精准采集切换按钮（标题下方，写「运」「精」）
+        boolean fortune = be.getFortuneLevel() == 3;
+        boolean silk = be.isSilkTouch();
+        int fx = x + FORTUNE_X;
+        int fy = y + ENCHANT_BTN_Y;
+        gui.fill(fx, fy, fx + ENCHANT_BTN_W, fy + ENCHANT_BTN_H, 0xFF16181D);
+        gui.fill(fx + 1, fy + 1, fx + ENCHANT_BTN_W - 1, fy + ENCHANT_BTN_H - 1, fortune ? 0xFF2E7D32 : 0xFF4A4A4A);
+        Component fortuneLabel = Component.translatable("gui.godofthings.miner.fortune");
+        gui.drawString(this.font, fortuneLabel, fx + (ENCHANT_BTN_W - this.font.width(fortuneLabel)) / 2, fy + 4, 0xFFFFFF);
+
+        int sx = x + SILK_X;
+        int sy = y + ENCHANT_BTN_Y;
+        gui.fill(sx, sy, sx + ENCHANT_BTN_W, sy + ENCHANT_BTN_H, 0xFF16181D);
+        gui.fill(sx + 1, sy + 1, sx + ENCHANT_BTN_W - 1, sy + ENCHANT_BTN_H - 1, silk ? 0xFF2E7D32 : 0xFF4A4A4A);
+        Component silkLabel = Component.translatable("gui.godofthings.miner.silk_touch");
+        gui.drawString(this.font, silkLabel, sx + (ENCHANT_BTN_W - this.font.width(silkLabel)) / 2, sy + 4, 0xFFFFFF);
+
+        // AE 接入开关按钮（绿色=开/灰=关）
+        int ax = x + AE_X;
+        int ay = y + AE_Y;
+        boolean aeOn = this.menu.isAeEnabled();
+        gui.fill(ax, ay, ax + AE_SIZE, ay + AE_SIZE, 0xFF16181D);
+        gui.fill(ax + 1, ay + 1, ax + AE_SIZE - 1, ay + AE_SIZE - 1, aeOn ? 0xFF57B757 : 0xFF3A4048);
+        Component aeLabel = Component.literal("AE");
+        gui.drawString(this.font, aeLabel, ax + (AE_SIZE - this.font.width(aeLabel)) / 2, ay + 6, 0xFFFFFF);
+
+        // 面配置按钮（服务端在 clickMenuButton(10) 中打开面配置界面）
+        int cfx = x + FACES_X;
+        int cfy = y + FACES_Y;
+        gui.fill(cfx, cfy, cfx + FACES_W, cfy + FACES_H, 0xFF16181D);
+        gui.fill(cfx + 1, cfy + 1, cfx + FACES_W - 1, cfy + FACES_H - 1, 0xFF3A4048);
+        Component facesLabel = Component.translatable("gui.godofthings.miner.face_config");
+        gui.drawString(this.font, facesLabel, cfx + (FACES_W - this.font.width(facesLabel)) / 2, cfy + 6, 0xFFFFFF);
+
+        // 开始/停止按钮
+        int bx = x + START_X;
+        int by = y + START_Y;
         boolean running = be.isRunning();
-        drawButton(gui, x + RUN_X, y + EXTRA_Y, RUN_W, RUN_H,
-                running ? 0xFF8A3A2A : 0xFF2E5D3A, // 运行中=红棕，停止=绿
-                running ? Component.translatable("gui.godofthings.miner.stop")
-                        : Component.translatable("gui.godofthings.miner.start"));
-
-        // 时运 3 / 精准采集（互斥，绿色=开）
-        drawButton(gui, x + FORTUNE_X, y + EXTRA_Y, ENCHANT_W, ENCHANT_H,
-                be.getFortuneLevel() == 3 ? 0xFF2E7D32 : COLOR_BTN_IDLE,
-                Component.translatable("gui.godofthings.miner.fortune"));
-        drawButton(gui, x + SILK_X, y + EXTRA_Y, ENCHANT_W, ENCHANT_H,
-                be.isSilkTouch() ? 0xFF2E7D32 : COLOR_BTN_IDLE,
-                Component.translatable("gui.godofthings.miner.silk_touch"));
+        int startColor = running ? 0xFF8A3A2A : 0xFF2E5D3A; // 运行中=红棕，停止=绿
+        gui.fill(bx, by, bx + START_W, by + START_H, 0xFF16181D);
+        gui.fill(bx + 1, by + 1, bx + START_W - 1, by + START_H - 1, startColor);
+        Component startLabel = running
+                ? Component.translatable("gui.godofthings.miner.stop")
+                : Component.translatable("gui.godofthings.miner.start");
+        gui.drawString(this.font, startLabel, bx + (START_W - this.font.width(startLabel)) / 2, by + 6, 0xFFFFFF);
 
         // 半径按钮
         for (int i = 0; i < 6; i++)
         {
-            drawButton(gui, x + RADIUS_BTN_X[i], y + RADIUS_BTN_Y, RADIUS_BTN_W, RADIUS_BTN_H,
-                    COLOR_BTN_IDLE, Component.literal(RADIUS_LABELS[i]));
+            int rx = x + RADIUS_BTN_X[i];
+            int ry = y + RADIUS_BTN_Y;
+            gui.fill(rx, ry, rx + RADIUS_BTN_W, ry + RADIUS_BTN_H, 0xFF16181D);
+            gui.fill(rx + 1, ry + 1, rx + RADIUS_BTN_W - 1, ry + RADIUS_BTN_H - 1, 0xFF4A4A4A);
+            Component label = Component.literal(RADIUS_LABELS[i]);
+            gui.drawString(this.font, label, rx + (RADIUS_BTN_W - this.font.width(label)) / 2, ry + 4, 0xFFFFFF);
         }
 
-        // 读数（半径 / 当前深度）
-        gui.drawString(this.font, Component.translatable("gui.godofthings.miner.radius", be.getRadius()),
-                x + RADIUS_TEXT_X, y + EXTRA_Y + 5, GodGridLayout.COLOR_TEXT, false);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.miner.depth", be.getCurrentY()),
-                x + DEPTH_TEXT_X, y + EXTRA_Y + 5, GodGridLayout.COLOR_TEXT, false);
+        // 半径数值
+        gui.drawString(this.font, Component.translatable("gui.godofthings.miner.radius", be.getRadius()), x + 8, y + 96, 0xFFFFFF);
+
+        // 深度
+        gui.drawString(this.font, Component.translatable("gui.godofthings.miner.depth", be.getCurrentY()), x + 8, y + 108, 0xFFFFFF);
     }
 
-    private void drawButton(GuiGraphics gui, int bx, int by, int w, int h, int fill, Component label)
+    @Override
+    protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
-        gui.fill(bx, by, bx + w, by + h, COLOR_BTN_BORDER);
-        gui.fill(bx + 1, by + 1, bx + w - 1, by + h - 1, fill);
-        gui.drawString(this.font, label, bx + (w - this.font.width(label)) / 2, by + (h - 8) / 2,
-                0xFFFFFF, false);
+        // 高对比度文字
+        gui.drawString(this.font, this.title, 8, 6, 0x404040, false);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8, 144, 0x404040, false); // 物品格子顶行 156 - 12（原版标准）
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button)
     {
-        GodMinerBlockEntity be = this.menu.getMiner();
         int relX = (int) mouseX - this.leftPos;
         int relY = (int) mouseY - this.topPos;
+        GodMinerBlockEntity be = this.menu.getBlockEntity();
 
-        if (hit(relX, relY, RUN_X, EXTRA_Y, RUN_W, RUN_H))
+        if (relX >= START_X && relX < START_X + START_W && relY >= START_Y && relY < START_Y + START_H)
         {
             be.setRunning(!be.isRunning()); // 乐观更新，按钮立即反馈
-            sendButton(GodMinerMenu.BTN_RUN);
+            sendButton(0);
             return true;
         }
-        if (hit(relX, relY, FORTUNE_X, EXTRA_Y, ENCHANT_W, ENCHANT_H))
+
+        if (relX >= FORTUNE_X && relX < FORTUNE_X + ENCHANT_BTN_W && relY >= ENCHANT_BTN_Y && relY < ENCHANT_BTN_Y + ENCHANT_BTN_H)
         {
             be.toggleFortune(); // 乐观更新
-            sendButton(GodMinerMenu.BTN_FORTUNE);
+            sendButton(7);
             return true;
         }
-        if (hit(relX, relY, SILK_X, EXTRA_Y, ENCHANT_W, ENCHANT_H))
+        if (relX >= SILK_X && relX < SILK_X + ENCHANT_BTN_W && relY >= ENCHANT_BTN_Y && relY < ENCHANT_BTN_Y + ENCHANT_BTN_H)
         {
             be.toggleSilkTouch(); // 乐观更新
-            sendButton(GodMinerMenu.BTN_SILK_TOUCH);
+            sendButton(8);
             return true;
         }
+
+        if (relX >= AE_X && relX < AE_X + AE_SIZE && relY >= AE_Y && relY < AE_Y + AE_SIZE)
+        {
+            // AE 接入开关（服务端在 clickMenuButton(9) 中切换，经 DataSlot 同步回显）
+            sendButton(9);
+            return true;
+        }
+
+        if (relX >= FACES_X && relX < FACES_X + FACES_W && relY >= FACES_Y && relY < FACES_Y + FACES_H)
+        {
+            // 面配置界面由服务端打开（clickMenuButton(10) → openConfig）
+            sendButton(10);
+            return true;
+        }
+
         for (int i = 0; i < 6; i++)
         {
-            if (hit(relX, relY, RADIUS_BTN_X[i], RADIUS_BTN_Y, RADIUS_BTN_W, RADIUS_BTN_H))
+            if (relX >= RADIUS_BTN_X[i] && relX < RADIUS_BTN_X[i] + RADIUS_BTN_W
+                    && relY >= RADIUS_BTN_Y && relY < RADIUS_BTN_Y + RADIUS_BTN_H)
             {
                 be.setRadius(be.getRadius() + RADIUS_DELTAS[i]); // 乐观更新
-                sendButton(GodMinerMenu.BTN_RADIUS_BASE + i);
+                sendButton(i + 1);
                 return true;
             }
         }
-        // 其余交给基类（面配置 / AE / 排序三个页签与槽位点击）
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
 
-    private boolean hit(int relX, int relY, int bx, int by, int w, int h)
-    {
-        return relX >= bx && relX < bx + w && relY >= by && relY < by + h;
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     private void sendButton(int buttonId)
@@ -150,5 +213,25 @@ public class GodMinerScreen extends AbstractGodGridScreen<GodMinerMenu>
         {
             conn.send(new ServerboundContainerButtonClickPacket(this.menu.containerId, buttonId));
         }
+    }
+
+    @Override
+    public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick)
+    {
+        // 1.21.1：AbstractContainerScreen.render 内部已调用 renderBackground(gui, mouseX, mouseY, partialTick)（含 renderBg），
+        // 子类不再手动调 renderBackground。
+        super.render(gui, mouseX, mouseY, partialTick);
+        this.renderTooltip(gui, mouseX, mouseY);
+        // 神之加速槽 hover：显示挖列加速说明（槽内有物品时让位给物品 tooltip，避免覆盖）
+        if (isHovering(148, 30, 18, 18, mouseX, mouseY) && (this.hoveredSlot == null || !this.hoveredSlot.hasItem()))
+        {
+            gui.renderTooltip(this.font, Component.translatable("tooltip.godofthings.miner_accelerator"), mouseX, mouseY);
+        }
+    }
+
+    @Override
+    public boolean isPauseScreen()
+    {
+        return false;
     }
 }

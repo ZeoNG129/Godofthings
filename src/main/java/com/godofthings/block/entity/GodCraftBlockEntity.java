@@ -10,12 +10,15 @@ import appeng.api.storage.MEStorage;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
+import com.godofthings.godgrid.LongSlotHandler;
+import com.godofthings.godgrid.LongSlotTransfer;
 import com.godofthings.menu.GodCraftMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -65,7 +68,12 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
      */
     public static final int MAX_CRAFTS_PER_TICK = 8;
 
-    private final ItemStackHandler inputSlots = new ItemStackHandler(INPUT_SLOTS)
+    /**
+     * 合成格 9 槽（v5.18.7）：改用自管 long 计数的 {@link LongSlotHandler}，单格容量 = int 上限。
+     * 原来是 {@code ItemStackHandler}（单格最多 64 —— 那是 ItemStack 堆叠的假上限）。
+     * 对外视图仍 ≤99，配方匹配与界面槽位看到的都是正常堆。
+     */
+    private final LongSlotHandler inputSlots = new LongSlotHandler(INPUT_SLOTS)
     {
         @Override
         protected void onContentsChanged(int slot)
@@ -89,7 +97,8 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
             return true;
         }
     };
-    private final ItemStackHandler outputSlot = new ItemStackHandler(1)
+    /** 产物槽 1 格（v5.18.7）：同样改成 long 计数，容量 int 上限 */
+    private final LongSlotHandler outputSlot = new LongSlotHandler(1)
     {
         @Override
         protected void onContentsChanged(int slot)
@@ -138,8 +147,8 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
         }
     }
 
-    public ItemStackHandler getInputSlots() { return inputSlots; }
-    public ItemStackHandler getOutputSlot() { return outputSlot; }
+    public LongSlotHandler getInputSlots() { return inputSlots; }
+    public LongSlotHandler getOutputSlot() { return outputSlot; }
 
     // ---- AE 接入（网格节点：线缆直连并网，产物主动输出进 AE） ----
 
@@ -160,7 +169,7 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
     @Override
     public void saveChanges() { setChanged(); }
 
-    /** 把输出槽产物推入 AE 网络（节流由 tick 控制）。 */
+    /** 把输出槽产物推入 AE 网络（节流由 tick 控制；按 long 全量推，网络收下多少扣多少）。 */
     private void pushOutputToAe()
     {
         if (!aeEnabled || !aeNode.isActive())
@@ -174,15 +183,21 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
         }
         MEStorage inv = storage.getInventory();
         IActionSource source = aeNode.actionSource();
-        ItemStack stack = outputSlot.getStackInSlot(0);
-        if (stack.isEmpty())
+        long available = outputSlot.amount(0);
+        ItemStack key = outputSlot.key(0);
+        if (available <= 0L || key.isEmpty())
         {
             return;
         }
-        long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
-        if (inserted > 0)
+        AEItemKey aeKey = AEItemKey.of(key);
+        if (aeKey == null)
         {
-            outputSlot.extractItem(0, (int) inserted, false);
+            return;
+        }
+        long inserted = inv.insert(aeKey, available, Actionable.MODULATE, source);
+        if (inserted > 0L)
+        {
+            outputSlot.extractLong(0, inserted, false);
         }
     }
 
@@ -359,15 +374,26 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
         // 合成格现有物品退回背包（放不下则掉落）
         for (int i = 0; i < INPUT_SLOTS; i++)
         {
-            ItemStack cur = inputSlots.getStackInSlot(i);
-            if (!cur.isEmpty())
+            long have = inputSlots.amount(i);
+            if (have <= 0L)
             {
-                inputSlots.setStackInSlot(i, ItemStack.EMPTY);
-                if (!inv.add(cur) && level != null && !level.isClientSide)
+                continue;
+            }
+            // 整格取出（可能远超 99）：按 ≤99 分片塞回背包，塞不下的分片掉落在机器上方
+            ItemStack key = inputSlots.key(i);
+            inputSlots.clear(i);
+            long rest = have;
+            while (rest > 0L)
+            {
+                int chunk = (int) Math.min(rest, Math.min(LongSlotHandler.VIEW_CAP, key.getMaxStackSize()));
+                ItemStack part = key.copyWithCount(chunk);
+                inv.add(part);
+                if (!part.isEmpty() && level != null && !level.isClientSide)
                 {
                     Containers.dropItemStack(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5,
-                            getBlockPos().getZ() + 0.5, cur);
+                            getBlockPos().getZ() + 0.5, part);
                 }
+                rest -= chunk;
             }
         }
         // 从背包扣除材料并填充合成格
@@ -638,16 +664,10 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
         }
     }
 
+    /** 把产物槽整格推给邻居（全量搬运，搬不走的余量写回原格，不丢不复制）。 */
     private void pushOutput(IItemHandler neighbor)
     {
-        ItemStack out = outputSlot.getStackInSlot(0);
-        if (out.isEmpty()) return;
-        ItemStack leftover = neighbor.insertItem(0, out.copy(), false);
-        int moved = out.getCount() - leftover.getCount();
-        if (moved > 0)
-        {
-            outputSlot.extractItem(0, moved, false);
-        }
+        LongSlotTransfer.pushSlot(outputSlot, 0, neighbor);
     }
 
     /** 尝试合成：先确认输出能放下，能放才消耗原料（输出满了自动停） */
@@ -858,7 +878,8 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
             return ItemStack.EMPTY;
         }
 
-        @Override public int getSlotLimit(int slot) { return 64; }
+        /** 单格容量 = int 上限（不再有 64 / 99 的假上限） */
+        @Override public int getSlotLimit(int slot) { return (int) Math.min(Integer.MAX_VALUE, inputSlots.capacity()); }
         @Override public boolean isItemValid(int slot, ItemStack stack)
         {
             return slot >= 0 && slot < INPUT_SLOTS;
@@ -871,8 +892,9 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.saveAdditional(tag, provider);
-        tag.put("Inputs", inputSlots.serializeNBT(provider));
-        tag.put("Output", outputSlot.serializeNBT(provider));
+        // v5.18.7：合成格 / 产物槽改成「自管 long」格式（单格可超 99），每条 {Slot:int, Item:count=1, Amount:long}
+        tag.put("InputsLong", inputSlots.saveList(provider));
+        tag.put("OutputLong", outputSlot.saveList(provider));
         tag.putIntArray("FaceModes", faceModes);
         tag.putBoolean("Locked", locked);
         tag.putBoolean("Enabled", enabled);
@@ -910,8 +932,11 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.loadAdditional(tag, provider);
-        if (tag.contains("Inputs")) inputSlots.deserializeNBT(provider, tag.getCompound("Inputs"));
-        if (tag.contains("Output")) outputSlot.deserializeNBT(provider, tag.getCompound("Output"));
+        // 新格式优先；老存档没有这些键 → 读旧的 ItemStackHandler 格式，再把数量灌进 long 存储（amount = count）
+        if (tag.contains("InputsLong", Tag.TAG_LIST)) inputSlots.loadList(tag.getList("InputsLong", Tag.TAG_COMPOUND), provider);
+        else if (tag.contains("Inputs")) migrateLegacySlots(tag.getCompound("Inputs"), inputSlots, provider);
+        if (tag.contains("OutputLong", Tag.TAG_LIST)) outputSlot.loadList(tag.getList("OutputLong", Tag.TAG_COMPOUND), provider);
+        else if (tag.contains("Output")) migrateLegacySlots(tag.getCompound("Output"), outputSlot, provider);
         if (tag.contains("FaceModes"))
         {
             int[] modes = tag.getIntArray("FaceModes");
@@ -950,6 +975,20 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
         }
     }
 
+    /**
+     * 老存档迁移：旧格式是 {@code ItemStackHandler} 的 {@code {Size, Items:[{Slot, id, count≤99}]}}，
+     * 逐格读出来后按 {@code amount = count} 灌进 long 槽位（槽位越界的老条目按 ItemStackHandler 的语义丢弃）。
+     */
+    private static void migrateLegacySlots(CompoundTag legacyTag, LongSlotHandler target, HolderLookup.Provider provider)
+    {
+        ItemStackHandler legacy = new ItemStackHandler(target.getSlots());
+        legacy.deserializeNBT(provider, legacyTag);
+        for (int i = 0; i < target.getSlots(); i++)
+        {
+            target.setStackInSlot(i, legacy.getStackInSlot(i));
+        }
+    }
+
     /** 推送方块实体数据到客户端，让模板面板/面模式即时刷新（无需区块重载） */
     private void syncToClient()
     {
@@ -973,8 +1012,8 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
     public CompoundTag getUpdateTag(HolderLookup.Provider provider)
     {
         CompoundTag tag = super.getUpdateTag(provider);
-        tag.put("Inputs", inputSlots.serializeNBT(provider));
-        tag.put("Output", outputSlot.serializeNBT(provider));
+        tag.put("InputsLong", inputSlots.saveList(provider));
+        tag.put("OutputLong", outputSlot.saveList(provider));
         tag.putBoolean("Locked", locked);
         tag.putBoolean("Enabled", enabled);
         CompoundTag li = new CompoundTag();
@@ -1008,8 +1047,11 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider)
     {
         super.handleUpdateTag(tag, provider);
-        if (tag.contains("Inputs")) inputSlots.deserializeNBT(provider, tag.getCompound("Inputs"));
-        if (tag.contains("Output")) outputSlot.deserializeNBT(provider, tag.getCompound("Output"));
+        // 新格式优先；老存档 / 老客户端标签没有这些键 → 读旧的 ItemStackHandler 格式
+        if (tag.contains("InputsLong", Tag.TAG_LIST)) inputSlots.loadList(tag.getList("InputsLong", Tag.TAG_COMPOUND), provider);
+        else if (tag.contains("Inputs")) migrateLegacySlots(tag.getCompound("Inputs"), inputSlots, provider);
+        if (tag.contains("OutputLong", Tag.TAG_LIST)) outputSlot.loadList(tag.getList("OutputLong", Tag.TAG_COMPOUND), provider);
+        else if (tag.contains("Output")) migrateLegacySlots(tag.getCompound("Output"), outputSlot, provider);
         locked = tag.getBoolean("Locked");
         enabled = tag.getBoolean("Enabled");
         if (tag.contains("LockedItems"))

@@ -2,6 +2,7 @@ package com.godofthings.menu;
 
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodAbsorberBlockEntity;
+import com.godofthings.godgrid.LongSlotHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,10 +14,9 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
 
 /**
- * 神之吸收菜单：功能 / 存储 / 经验三个板块（顶部按钮切换），27 格存储槽，面配置由按钮打开独立界面。
+ * 神之吸收菜单：功能 / 存储 / 经验三个板块（顶部按钮切换），27 格存储槽（映射 long 大容量存储，单格可超 99），面配置由按钮打开独立界面。
  */
 public class GodAbsorberMenu extends AbstractContainerMenu
 {
@@ -54,7 +54,7 @@ public class GodAbsorberMenu extends AbstractContainerMenu
         {
             for (int col = 0; col < 9; col++)
             {
-                this.addSlot(new SlotItemHandler(be.getStorageView(), row * 9 + col, 8 + col * 18, 17 + row * 18)
+                this.addSlot(new LongSlotHandler.LongSlot(be.getStorageView(), row * 9 + col, 8 + col * 18, 17 + row * 18)
                 {
                     @Override
                     public boolean isActive() { return currentTab == TAB_STORAGE; }

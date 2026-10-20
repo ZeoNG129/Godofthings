@@ -10,11 +10,14 @@ import appeng.api.storage.MEStorage;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
+import com.godofthings.godgrid.LongSlotHandler;
+import com.godofthings.godgrid.LongSlotTransfer;
 import com.godofthings.menu.GodAbsorberMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
@@ -33,17 +36,15 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 
 /**
  * 神之吸收方块实体：大范围吸收掉落物与经验。
  * <ul>
  *   <li>功能：开关、范围（0-1600）。</li>
- *   <li>存储：掉落物进 {@link InfiniteItemHandler}（无堆叠上限，UI 27 格）。</li>
+ *   <li>存储：掉落物进 {@link LongSlotHandler}（自管 long 计数，单格容量 int 上限，UI 显示前 27 格）。</li>
  *   <li>经验：经验球进经验点存储（经验面板可取出）。</li>
  *   <li>面配置（六面输入输出）+ AE 并网（产物自动输出进 AE）。</li>
  * </ul>
@@ -68,7 +69,14 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
         return owner;
     }
 
+    /** UI 显示的存储槽位数量（内部存储更大，界面上只暴露前 27 格）。 */
     public static final int STORAGE_SLOTS = 27;
+    /**
+     * 内部存储槽位数（= 旧 {@link InfiniteItemHandler#MAX_STACKS}，即「不同物品类型数」上限）。
+     * 界面只显示前 {@link #STORAGE_SLOTS} 格，被挤出可视区的物品由 {@link #compact()} 压回可视区，
+     * 并照常由面输出 / AE 推出去。
+     */
+    public static final int MAX_STORAGE_TYPES = InfiniteItemHandler.MAX_STACKS;
     /** 吸收范围上限（方块）。v5.17.2 按用户要求从 1600 降到 480。 */
     public static final int MAX_RANGE = 480;
     private static final int SCAN_INTERVAL = 10;
@@ -77,8 +85,23 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
     private int range = 16;
     private int experiencePoints = 0;
 
-    private final InfiniteItemHandler storage = new InfiniteItemHandler();
-    private final StorageView storageView = new StorageView();
+    /** 存储内容是否变过（变了才需要压紧，避免空机器每 tick 空扫全表） */
+    private boolean storageDirty = false;
+    /**
+     * v5.18.7：改用自管 long 计数的 {@link LongSlotHandler}（单格容量 = int 上限 2,147,483,647）。
+     *
+     * <p>原先的 {@link InfiniteItemHandler} 单格上限是「内存态」的：真实数量塞在 {@code ItemStack}
+     * count 里（&gt;99 的非法堆），一旦经界面同步 / 别的模组读取就可能崩。现在对外视图恒 ≤99，真实数量走 long。</p>
+     */
+    private final LongSlotHandler storage = new LongSlotHandler(MAX_STORAGE_TYPES)
+    {
+        @Override
+        protected void onContentsChanged(int slot)
+        {
+            storageDirty = true;
+            setChanged();
+        }
+    };
 
     private final int[] faceModes = new int[6];
     private final SideHandler[] sideHandlers = new SideHandler[6];
@@ -91,7 +114,6 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
     public GodAbsorberBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.GOD_ABSORBER_BE.get(), pos, state);
-        this.storage.setOnChange(this::setChanged);
         for (int i = 0; i < 6; i++)
         {
             this.sideHandlers[i] = new SideHandler(i);
@@ -140,30 +162,114 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
         @Override public ItemStack getStackInSlot(int slot) { return storage.getStackInSlot(slot); }
         @Override public ItemStack insertItem(int slot, ItemStack stack, boolean simulate)
         {
-            return (mode() == FaceMode.INPUT || mode() == FaceMode.BOTH) ? storage.insertItem(slot, stack, simulate) : stack;
+            // 插入不看槽位索引：同类叠到已有槽，否则占第一个空槽（与旧 InfiniteItemHandler 一致）
+            return (mode() == FaceMode.INPUT || mode() == FaceMode.BOTH) ? insertAny(stack, simulate) : stack;
         }
         @Override public ItemStack extractItem(int slot, int amount, boolean simulate)
         {
             return (mode() == FaceMode.OUTPUT || mode() == FaceMode.BOTH) ? storage.extractItem(slot, amount, simulate) : ItemStack.EMPTY;
         }
-        @Override public int getSlotLimit(int slot) { return Integer.MAX_VALUE; }
+        /** 单格容量 = int 上限（不再有 64 / 99 的假上限） */
+        @Override public int getSlotLimit(int slot) { return (int) Math.min(Integer.MAX_VALUE, storage.capacity()); }
         @Override public boolean isItemValid(int slot, ItemStack stack) { return true; }
     }
 
-    public class StorageView implements IItemHandlerModifiable
+    /** 存储视图（菜单槽位用）：直接暴露 long 存储本身，界面只注册前 {@link #STORAGE_SLOTS} 格。 */
+    public LongSlotHandler getStorageView() { return storage; }
+
+    /** 存储里有几种物品（旧 getStorageCount 的语义）。 */
+    public int getStorageCount()
     {
-        @Override public int getSlots() { return STORAGE_SLOTS; }
-        @Override public ItemStack getStackInSlot(int slot) { return storage.getStackInSlot(slot); }
-        @Override public void setStackInSlot(int slot, ItemStack stack) { storage.setStackInSlot(slot, stack); }
-        @Override public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) { return storage.insertItem(slot, stack, simulate); }
-        @Override public ItemStack extractItem(int slot, int amount, boolean simulate) { return storage.extractItem(slot, amount, simulate); }
-        @Override public int getSlotLimit(int slot) { return Integer.MAX_VALUE; }
-        @Override public boolean isItemValid(int slot, ItemStack stack) { return true; }
+        int count = 0;
+        for (int i = 0; i < MAX_STORAGE_TYPES; i++)
+        {
+            if (!storage.isEmpty(i))
+            {
+                count++;
+            }
+        }
+        return count;
     }
 
-    public IItemHandler getStorageView() { return storageView; }
-    public int getStorageCount() { return storage.getStacks().size(); }
-    public InfiniteItemHandler getItemHandler() { return storage; }
+    public LongSlotHandler getItemHandler() { return storage; }
+
+    // ---- long 存储辅助 ----
+
+    /** 压紧后的「已用槽数」：存储恒定前紧后空，第一个空槽就是下一个可用位。 */
+    private int usedSlots()
+    {
+        int used = 0;
+        while (used < MAX_STORAGE_TYPES && !storage.isEmpty(used))
+        {
+            used++;
+        }
+        return used;
+    }
+
+    /**
+     * 把整堆物品塞进存储：先叠到同类槽，再占第一个空槽。
+     * 返回塞不下的余量（数量可能 &gt;99，调用方按需 {@link InfiniteItemHandler#dropRemainder} 拆堆）。
+     */
+    private ItemStack insertAny(ItemStack stack, boolean simulate)
+    {
+        if (stack.isEmpty())
+        {
+            return ItemStack.EMPTY;
+        }
+        ItemStack rest = stack.copy();
+        int used = usedSlots();
+        for (int i = 0; i < used && !rest.isEmpty(); i++)
+        {
+            if (!ItemStack.isSameItemSameComponents(storage.key(i), rest))
+            {
+                continue;
+            }
+            long inserted = storage.insertLong(i, rest, rest.getCount(), simulate);
+            if (inserted > 0L)
+            {
+                rest.shrink((int) inserted);
+            }
+        }
+        if (!rest.isEmpty() && used < MAX_STORAGE_TYPES)
+        {
+            long inserted = storage.insertLong(used, rest, rest.getCount(), simulate);
+            if (inserted > 0L)
+            {
+                rest.shrink((int) inserted);
+            }
+        }
+        return rest;
+    }
+
+    /**
+     * 存储压紧：把非空槽位整体前移。界面只显示前 {@link #STORAGE_SLOTS} 格，
+     * 被挤出可视区的物品会在可视区腾空后自动补回来（旧 {@code InfiniteItemHandler} 动态列表的语义）。
+     * 已经前紧后空时是 O(已用类型数) 的空转，无写入。
+     */
+    private void compact()
+    {
+        int write = 0;
+        while (write < MAX_STORAGE_TYPES && !storage.isEmpty(write))
+        {
+            write++;
+        }
+        if (write >= MAX_STORAGE_TYPES)
+        {
+            return; // 已压紧
+        }
+        for (int read = write + 1; read < MAX_STORAGE_TYPES; read++)
+        {
+            if (storage.isEmpty(read))
+            {
+                continue;
+            }
+            ItemStack key = storage.key(read);
+            long amount = storage.amount(read);
+            storage.clear(read);
+            storage.setEntry(write, key, amount);
+            write++;
+        }
+    }
 
     // ---- 经验 ----
 
@@ -201,16 +307,20 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
     private void pushOutputToAe()
     {
         if (!aeEnabled || !aeNode.isActive()) return;
-        IStorageService storage = aeNode.getStorage();
-        if (storage == null) return;
-        MEStorage inv = storage.getInventory();
+        IStorageService storageService = aeNode.getStorage();
+        if (storageService == null) return;
+        MEStorage inv = storageService.getInventory();
         IActionSource source = aeNode.actionSource();
-        for (int slot = 0; slot < this.storage.getSlots(); slot++)
+        int used = usedSlots();
+        for (int slot = 0; slot < used; slot++)
         {
-            ItemStack stack = this.storage.getStackInSlot(slot);
-            if (stack.isEmpty()) continue;
-            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
-            if (inserted > 0) this.storage.extractItem(slot, (int) inserted, false);
+            long available = storage.amount(slot);
+            ItemStack key = storage.key(slot);
+            if (available <= 0L || key.isEmpty()) continue;
+            AEItemKey aeKey = AEItemKey.of(key);
+            if (aeKey == null) continue;
+            long inserted = inv.insert(aeKey, available, Actionable.MODULATE, source);
+            if (inserted > 0L) storage.extractLong(slot, inserted, false);
         }
     }
 
@@ -239,6 +349,12 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
         if (be.enabled) be.scanAndAbsorb(level);
         be.aeTick++;
         if (be.aeTick >= 20) { be.aeTick = 0; be.pushOutputToAe(); }
+        // 存储压紧：界面只显示前 27 格，压紧后隐藏区的物品自动补进可视区（内容变过才扫）
+        if (be.storageDirty)
+        {
+            be.compact();
+            be.storageDirty = false;
+        }
     }
 
     /** 扫描范围内掉落物与经验，吸收进内部存储（每 SCAN_INTERVAL tick 扫一次，一次吸全部）。 */
@@ -261,7 +377,7 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
             if (item.distanceToSqr(cx, cy, cz) > rangeSq) continue;
             ItemStack stack = item.getItem();
             if (stack.isEmpty()) { item.discard(); continue; }
-            ItemStack leftover = storage.insertItem(-1, stack, false);
+            ItemStack leftover = insertAny(stack, false);
             if (!leftover.isEmpty()) InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
             item.discard();
         }
@@ -295,9 +411,8 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
     }
 
     /**
-     * 从相邻容器抽入物品。v5.12.1 修复吞吐 bug：原先每个面每 tick 只抽 1 个就 break
-     * （extractItem(s, 1) 后立即中断），大箱子补货时吸收速度被锁死在 1 个/tick/面；
-     * 现改为整个槽位表扫完、按堆叠抽取（与 {@link #pushTo} 的全量语义对称）。
+     * 从相邻容器抽入物品，按堆搬运（整堆一次搬完，塞不下才把余量退回源槽）。
+     * v5.12.1 修复吞吐 bug：原先每个面每 tick 只抽 1 个就 break。
      */
     private void pullFrom(IItemHandler neighbor)
     {
@@ -307,7 +422,7 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
             if (src.isEmpty()) continue;
             ItemStack pulled = neighbor.extractItem(s, src.getCount(), false);
             if (pulled.isEmpty()) continue;
-            ItemStack leftover = storage.insertItem(-1, pulled, false);
+            ItemStack leftover = insertAny(pulled, false);
             if (!leftover.isEmpty())
             {
                 // 容器塞不下：余量塞回原槽（抽多了才回退，而不是抽 1 个试错）
@@ -319,20 +434,21 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
         }
     }
 
+    /** 把存储物品整格推给邻居（全量搬运，搬不走的余量写回原格，不丢不复制）。 */
     private void pushTo(IItemHandler neighbor)
     {
-        List<ItemStack> stacks = storage.getStacks();
-        for (int s = 0; s < stacks.size() && s < STORAGE_SLOTS; s++)
+        boolean moved = false;
+        int used = usedSlots();
+        for (int s = 0; s < used; s++)
         {
-            ItemStack stack = stacks.get(s);
-            if (stack.isEmpty()) continue;
-            ItemStack toPush = stack.copy();
-            for (int ns = 0; ns < neighbor.getSlots() && !toPush.isEmpty(); ns++)
+            if (LongSlotTransfer.pushSlot(storage, s, neighbor))
             {
-                ItemStack leftover = neighbor.insertItem(ns, toPush, false);
-                int inserted = toPush.getCount() - leftover.getCount();
-                if (inserted > 0) { storage.extractItem(s, inserted, false); toPush = leftover; }
+                moved = true;
             }
+        }
+        if (moved)
+        {
+            compact();
         }
     }
 
@@ -356,7 +472,33 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
             int[] modes = tag.getIntArray("FaceModes");
             System.arraycopy(modes, 0, faceModes, 0, Math.min(6, modes.length));
         }
-        if (tag.contains("Storage")) storage.deserializeNBT(registries, tag.getCompound("Storage"));
+        // 新格式优先；老存档没有该键 → 读旧的 InfiniteItemHandler 格式，再把数量灌进 long 存储（amount = count）
+        if (tag.contains("StorageLong", Tag.TAG_LIST))
+        {
+            storage.loadList(tag.getList("StorageLong", Tag.TAG_COMPOUND), registries);
+        }
+        else if (tag.contains("Storage"))
+        {
+            migrateLegacyStorage(tag.getCompound("Storage"), registries);
+        }
+    }
+
+    /**
+     * 老存档迁移：旧格式是 {@link InfiniteItemHandler} 的 {@code {Items:[{Item,Count}]}}
+     * （更旧的存档是直接物品标签），整堆读出来后按「同类叠堆 + 占空槽」灌进 long 存储（amount = count）。
+     */
+    private void migrateLegacyStorage(CompoundTag legacyTag, HolderLookup.Provider registries)
+    {
+        InfiniteItemHandler legacy = new InfiniteItemHandler();
+        legacy.deserializeNBT(registries, legacyTag);
+        for (ItemStack stack : legacy.getStacks())
+        {
+            ItemStack leftover = insertAny(stack, false);
+            if (!leftover.isEmpty())
+            {
+                InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
+            }
+        }
     }
 
     @Override
@@ -372,7 +514,8 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
         tag.putInt("ExperiencePoints", this.experiencePoints);
         tag.putBoolean("AeEnabled", this.aeEnabled);
         tag.putIntArray("FaceModes", faceModes);
-        tag.put("Storage", storage.serializeNBT(registries));
+        // v5.18.7：存储改成「自管 long」格式（单格可超 99），每条 {Slot:int, Item:count=1, Amount:long}
+        tag.put("StorageLong", storage.saveList(registries));
     }
 
     // ---- 菜单 ----

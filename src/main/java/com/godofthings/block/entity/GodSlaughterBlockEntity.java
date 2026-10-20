@@ -11,11 +11,14 @@ import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.item.LootingHelper;
+import com.godofthings.godgrid.LongSlotHandler;
+import com.godofthings.godgrid.LongSlotTransfer;
 import com.godofthings.menu.GodSlaughterMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -46,7 +49,6 @@ import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,8 +58,8 @@ import java.util.List;
  * 神之砍杀方块实体：
  * <ul>
  *   <li>功能：开关、范围（0-{@link #MAX_RANGE}）、抢夺开关与强度（0-{@link #MAX_LOOTING}）、秒杀开关。击杀范围内生物，
- *       掉落物直接进内部存储（无堆叠上限，同类恒单堆），不在世界生成。</li>
- *   <li>存储：{@link InfiniteItemHandler}（无堆叠上限），UI 显示 27 格。</li>
+ *       掉落物直接进内部存储（单格容量 int 上限，同类恒单堆），不在世界生成。</li>
+ *   <li>存储：{@link LongSlotHandler}（自管 long 计数，单格容量 int 上限），UI 显示前 27 格。</li>
  *   <li>输入输出：六面 FaceMode 配置（NONE/INPUT/OUTPUT/BOTH），自动抽入/推出。</li>
  * </ul>
  */
@@ -81,8 +83,14 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         return owner;
     }
 
-    /** UI 显示的存储槽位数量（内部为无限存储，前 27 个堆叠映射到槽位）。 */
+    /** UI 显示的存储槽位数量（内部存储更大，界面上只暴露前 27 格）。 */
     public static final int STORAGE_SLOTS = 27;
+    /**
+     * 内部存储槽位数（= 旧 {@link InfiniteItemHandler#MAX_STACKS}，即「不同物品类型数」上限）。
+     * 界面只显示前 {@link #STORAGE_SLOTS} 格，被挤出可视区的物品由 {@link #compact()} 压回可视区，
+     * 并照常由面输出 / AE 推出去。
+     */
+    public static final int MAX_STORAGE_TYPES = InfiniteItemHandler.MAX_STACKS;
     /** 击杀范围上限（方块）。v5.17.2 按用户要求从 1600 降到 480（注意 {@link #MAX_LOOTING} 是另一个量，不受影响）。 */
     public static final int MAX_RANGE = 480;
     /** 抢夺强度上限（面板值；经 {@link LootingHelper#lootingLevel} 指数映射到掠夺附魔等级 0-255）。
@@ -103,8 +111,24 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     private int experiencePoints = 0;
 
     // ---- 存储 ----
-    private final InfiniteItemHandler storage = new InfiniteItemHandler();
-    private final StorageView storageView = new StorageView();
+    /**
+     * v5.18.7：改用自管 long 计数的 {@link LongSlotHandler}（单格容量 = int 上限 2,147,483,647）。
+     *
+     * <p>原先的 {@link InfiniteItemHandler} 虽然存档把数量单独存，但内存里的 {@code ItemStack}
+     * count 会是 &gt;99 的非法堆，一旦经界面同步 / 别的模组读取就可能崩，也没有「对外视图 ≤99」的概念。
+     * 现在对外视图恒 ≤99，真实数量走 long。</p>
+     */
+    /** 存储内容是否变过（变了才需要压紧，避免空机器每 tick 空扫全表） */
+    private boolean storageDirty = false;
+    private final LongSlotHandler storage = new LongSlotHandler(MAX_STORAGE_TYPES)
+    {
+        @Override
+        protected void onContentsChanged(int slot)
+        {
+            storageDirty = true;
+            setChanged();
+        }
+    };
 
     // ---- 面模式（输入输出配置） ----
     private final int[] faceModes = new int[6];
@@ -126,7 +150,6 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     public GodSlaughterBlockEntity(BlockPos pos, BlockState state)
     {
         super(Godofthings.GOD_SLAUGHTER_BE.get(), pos, state);
-        this.storage.setOnChange(this::setChanged);
         for (int i = 0; i < 6; i++)
         {
             this.sideHandlers[i] = new SideHandler(i);
@@ -264,8 +287,10 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate)
         {
+            // 插入不看槽位索引：同类叠到已有槽，否则占第一个空槽（与旧 InfiniteItemHandler 一致），
+            // 所以界面 27 格之外的隐藏槽也能经管道补料
             return (mode() == FaceMode.INPUT || mode() == FaceMode.BOTH)
-                    ? storage.insertItem(slot, stack, simulate)
+                    ? insertAny(stack, simulate)
                     : stack;
         }
 
@@ -280,7 +305,8 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         @Override
         public int getSlotLimit(int slot)
         {
-            return Integer.MAX_VALUE;
+            // 单格容量 = int 上限（不再有 64 / 99 的假上限）
+            return (int) Math.min(Integer.MAX_VALUE, storage.capacity());
         }
 
         @Override
@@ -290,60 +316,102 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    /** 27 格固定视图（菜单槽位用），映射无限存储前 27 个堆叠。 */
-    public class StorageView implements IItemHandlerModifiable
+    /** 存储视图（菜单槽位用）：直接暴露 long 存储本身，界面只注册前 {@link #STORAGE_SLOTS} 格。 */
+    public LongSlotHandler getStorageView()
     {
-        @Override
-        public int getSlots()
-        {
-            return STORAGE_SLOTS;
-        }
-
-        @Override
-        public ItemStack getStackInSlot(int slot)
-        {
-            return storage.getStackInSlot(slot);
-        }
-
-        @Override
-        public void setStackInSlot(int slot, ItemStack stack)
-        {
-            storage.setStackInSlot(slot, stack);
-        }
-
-        @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate)
-        {
-            return storage.insertItem(slot, stack, simulate);
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate)
-        {
-            return storage.extractItem(slot, amount, simulate);
-        }
-
-        @Override
-        public int getSlotLimit(int slot)
-        {
-            return Integer.MAX_VALUE;
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack)
-        {
-            return true;
-        }
+        return storage;
     }
 
-    public IItemHandlerModifiable getStorageView()
-    {
-        return storageView;
-    }
-
+    /** 存储里有几种物品（旧 getStorageCount 的语义）。 */
     public int getStorageCount()
     {
-        return storage.getStacks().size();
+        int count = 0;
+        for (int i = 0; i < MAX_STORAGE_TYPES; i++)
+        {
+            if (!storage.isEmpty(i))
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    // ---- long 存储辅助 ----
+
+    /** 压紧后的「已用槽数」：存储恒定前紧后空，第一个空槽就是下一个可用位。 */
+    private int usedSlots()
+    {
+        int used = 0;
+        while (used < MAX_STORAGE_TYPES && !storage.isEmpty(used))
+        {
+            used++;
+        }
+        return used;
+    }
+
+    /**
+     * 把整堆物品塞进存储：先叠到同类槽，再占第一个空槽。
+     * 返回塞不下的余量（数量可能 &gt;99，调用方按需 {@link InfiniteItemHandler#dropRemainder} 拆堆）。
+     */
+    private ItemStack insertAny(ItemStack stack, boolean simulate)
+    {
+        if (stack.isEmpty())
+        {
+            return ItemStack.EMPTY;
+        }
+        ItemStack rest = stack.copy();
+        int used = usedSlots();
+        for (int i = 0; i < used && !rest.isEmpty(); i++)
+        {
+            if (!ItemStack.isSameItemSameComponents(storage.key(i), rest))
+            {
+                continue;
+            }
+            long inserted = storage.insertLong(i, rest, rest.getCount(), simulate);
+            if (inserted > 0L)
+            {
+                rest.shrink((int) inserted);
+            }
+        }
+        if (!rest.isEmpty() && used < MAX_STORAGE_TYPES)
+        {
+            long inserted = storage.insertLong(used, rest, rest.getCount(), simulate);
+            if (inserted > 0L)
+            {
+                rest.shrink((int) inserted);
+            }
+        }
+        return rest;
+    }
+
+    /**
+     * 存储压紧：把非空槽位整体前移。界面只显示前 {@link #STORAGE_SLOTS} 格，
+     * 被挤出可视区的物品会在可视区腾空后自动补回来（旧 {@code InfiniteItemHandler} 动态列表的语义）。
+     * 已经前紧后空时是 O(已用类型数) 的空转，无写入。
+     */
+    private void compact()
+    {
+        int write = 0;
+        while (write < MAX_STORAGE_TYPES && !storage.isEmpty(write))
+        {
+            write++;
+        }
+        if (write >= MAX_STORAGE_TYPES)
+        {
+            return; // 已压紧
+        }
+        for (int read = write + 1; read < MAX_STORAGE_TYPES; read++)
+        {
+            if (storage.isEmpty(read))
+            {
+                continue;
+            }
+            ItemStack key = storage.key(read);
+            long amount = storage.amount(read);
+            storage.clear(read);
+            storage.setEntry(write, key, amount);
+            write++;
+        }
     }
 
     // ---- AE 接入 ----
@@ -367,7 +435,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     @Override
     public void saveChanges() { setChanged(); }
 
-    /** 把内部存储物品推入 AE 网络（节流由 tick 控制）。 */
+    /** 把内部存储的物品推入 AE 网络（节流由 tick 控制；按 long 全量推，网络收下多少扣多少）。 */
     private void pushOutputToAe()
     {
         if (!aeEnabled || !aeNode.isActive())
@@ -381,17 +449,24 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         }
         MEStorage inv = storageService.getInventory();
         IActionSource source = aeNode.actionSource();
-        for (int slot = 0; slot < getStorageView().getSlots(); slot++)
+        int used = usedSlots();
+        for (int slot = 0; slot < used; slot++)
         {
-            ItemStack stack = getStorageView().getStackInSlot(slot);
-            if (stack.isEmpty())
+            long available = storage.amount(slot);
+            ItemStack key = storage.key(slot);
+            if (available <= 0L || key.isEmpty())
             {
                 continue;
             }
-            long inserted = inv.insert(AEItemKey.of(stack), stack.getCount(), Actionable.MODULATE, source);
-            if (inserted > 0)
+            AEItemKey aeKey = AEItemKey.of(key);
+            if (aeKey == null)
             {
-                getStorageView().extractItem(slot, (int) inserted, false);
+                continue;
+            }
+            long inserted = inv.insert(aeKey, available, Actionable.MODULATE, source);
+            if (inserted > 0L)
+            {
+                storage.extractLong(slot, inserted, false);
             }
         }
     }
@@ -477,10 +552,10 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         {
             return;
         }
-        ItemStack leftover = storage.insertItem(-1, stack, false);
+        ItemStack leftover = insertAny(stack, false);
         if (!leftover.isEmpty())
         {
-            // 类型数达上限，剩余掉落到机器上方
+            // 物品类型数达上限（MAX_STORAGE_TYPES），剩余掉落到机器上方
             InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
         }
         setChanged();
@@ -519,6 +594,12 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         {
             be.aeTick = 0;
             be.pushOutputToAe();
+        }
+        // 存储压紧：界面只显示前 27 格，压紧后隐藏区的物品自动补进可视区（内容变过才扫）
+        if (be.storageDirty)
+        {
+            be.compact();
+            be.storageDirty = false;
         }
     }
 
@@ -682,7 +763,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    /** 从邻居抽入物品到存储。 */
+    /** 从邻居抽整堆进存储（v5.18.7：按堆搬运，整堆一次搬完，塞不下才把余量退回源槽）。 */
     private void pullFrom(IItemHandler neighbor)
     {
         for (int s = 0; s < neighbor.getSlots(); s++)
@@ -692,39 +773,38 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
             {
                 continue;
             }
-            ItemStack toInsert = src.copyWithCount(1);
-            ItemStack leftover = storage.insertItem(-1, toInsert, true);
-            if (leftover.isEmpty())
-            {
-                storage.insertItem(-1, neighbor.extractItem(s, 1, false), false);
-                setChanged();
-                break;
-            }
-        }
-    }
-
-    /** 把存储物品推出给邻居。 */
-    private void pushTo(IItemHandler neighbor)
-    {
-        List<ItemStack> stacks = storage.getStacks();
-        for (int s = 0; s < stacks.size() && s < STORAGE_SLOTS; s++)
-        {
-            ItemStack stack = stacks.get(s);
-            if (stack.isEmpty())
+            ItemStack pulled = neighbor.extractItem(s, src.getCount(), false);
+            if (pulled.isEmpty())
             {
                 continue;
             }
-            ItemStack toPush = stack.copy();
-            for (int ns = 0; ns < neighbor.getSlots() && !toPush.isEmpty(); ns++)
+            ItemStack leftover = insertAny(pulled, false);
+            if (!leftover.isEmpty())
             {
-                ItemStack leftover = neighbor.insertItem(ns, toPush, false);
-                int inserted = toPush.getCount() - leftover.getCount();
-                if (inserted > 0)
-                {
-                    storage.extractItem(s, inserted, false);
-                    toPush = leftover;
-                }
+                // 存储塞不下：余量退回源槽（抽多了才回退，而不是抽 1 个试错）
+                neighbor.insertItem(s, leftover, false);
+                setChanged();
+                break;
             }
+            setChanged();
+        }
+    }
+
+    /** 把存储物品整格推给邻居（全量搬运，搬不走的余量写回原格，不丢不复制）。 */
+    private void pushTo(IItemHandler neighbor)
+    {
+        boolean moved = false;
+        int used = usedSlots();
+        for (int s = 0; s < used; s++)
+        {
+            if (LongSlotTransfer.pushSlot(storage, s, neighbor))
+            {
+                moved = true;
+            }
+        }
+        if (moved)
+        {
+            compact();
         }
     }
 
@@ -808,9 +888,32 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
             int[] modes = tag.getIntArray("FaceModes");
             System.arraycopy(modes, 0, faceModes, 0, Math.min(6, modes.length));
         }
-        if (tag.contains("Storage"))
+        // 新格式优先；老存档没有该键 → 读旧的 InfiniteItemHandler 格式，再把数量灌进 long 存储（amount = count）
+        if (tag.contains("StorageLong", Tag.TAG_LIST))
         {
-            storage.deserializeNBT(registries, tag.getCompound("Storage"));
+            storage.loadList(tag.getList("StorageLong", Tag.TAG_COMPOUND), registries);
+        }
+        else if (tag.contains("Storage"))
+        {
+            migrateLegacyStorage(tag.getCompound("Storage"), registries);
+        }
+    }
+
+    /**
+     * 老存档迁移：旧格式是 {@link InfiniteItemHandler} 的 {@code {Items:[{Item,Count}]}}
+     * （更旧的存档是直接物品标签），整堆读出来后按「同类叠堆 + 占空槽」灌进 long 存储（amount = count）。
+     */
+    private void migrateLegacyStorage(CompoundTag legacyTag, HolderLookup.Provider registries)
+    {
+        InfiniteItemHandler legacy = new InfiniteItemHandler();
+        legacy.deserializeNBT(registries, legacyTag);
+        for (ItemStack stack : legacy.getStacks())
+        {
+            ItemStack leftover = insertAny(stack, false);
+            if (!leftover.isEmpty())
+            {
+                InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
+            }
         }
     }
 
@@ -830,7 +933,8 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
         tag.putInt("ExperiencePoints", this.experiencePoints);
         tag.putIntArray("FaceModes", faceModes);
         tag.putBoolean("AeEnabled", aeEnabled);
-        tag.put("Storage", storage.serializeNBT(registries));
+        // v5.18.7：存储改成「自管 long」格式（单格可超 99），每条 {Slot:int, Item:count=1, Amount:long}
+        tag.put("StorageLong", storage.saveList(registries));
     }
 
     // ------------------------------------------------------------------ 菜单

@@ -2,28 +2,24 @@ package com.godofthings.menu;
 
 import com.godofthings.Godofthings;
 import com.godofthings.block.entity.GodMinerBlockEntity;
-import com.godofthings.godgrid.AbstractGodGridMenu;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.SlotItemHandler;
 
-/**
- * 神之矿机的容器：网格槽位（17 输入占位 + 17 输出 + 加速槽）、玩家物品栏、以及
- * 「面配置 / AE / 排序」三个按钮全部由 {@link AbstractGodGridMenu} 统一提供，
- * 本类只保留矿机特有的按钮（开始-停止 / 半径调整 / 时运 3 / 精准采集）。
- */
-public class GodMinerMenu extends AbstractGodGridMenu
+public class GodMinerMenu extends AbstractContainerMenu
 {
-    /** 本机特有按钮 id：6 / 10 / 12 已被基类占用（面配置 / AE 开关 / 排序） */
-    public static final int BTN_RUN = 0;
-    public static final int BTN_FORTUNE = 7;
-    public static final int BTN_SILK_TOUCH = 8;
-    /** 半径调整六档（-100 / -10 / -1 / +1 / +10 / +100）占 BTN_RADIUS_BASE .. BTN_RADIUS_BASE+5 */
-    public static final int BTN_RADIUS_BASE = 20;
-
-    private final GodMinerBlockEntity miner;
+    private final GodMinerBlockEntity be;
+    private final ContainerLevelAccess access;
+    private int cachedAeEnabled = 1;
 
     public GodMinerMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData)
     {
@@ -33,10 +29,27 @@ public class GodMinerMenu extends AbstractGodGridMenu
 
     public GodMinerMenu(int containerId, Inventory playerInv, GodMinerBlockEntity be)
     {
-        super(Godofthings.GOD_MINER_MENU.get(), containerId, playerInv, be);
-        this.miner = be;
+        super(Godofthings.GOD_MINER_MENU.get(), containerId);
+        this.be = be;
+        this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
 
-        // 运行 / 半径 / 当前深度：仅界面显示用（AE 开关与排序模式由基类同步）
+        // 神之加速槽（只接受神之加速，最多 64 个），位于界面右上角
+        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 148, 30));
+
+        // 无储存槽：挖掘产物直接进入内置无限储存，仅显示玩家物品栏
+        for (int row = 0; row < 3; row++)
+        {
+            for (int col = 0; col < 9; col++)
+            {
+                this.addSlot(new Slot(playerInv, col + row * 9 + 9, 8 + col * 18, 156 + row * 18));
+            }
+        }
+        for (int col = 0; col < 9; col++)
+        {
+            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 214));
+        }
+
+        // 运行 / 半径 / 当前深度 / 效率 / 液体量 / 内置储存堆数
         this.addDataSlot(new DataSlot()
         {
             @Override
@@ -58,71 +71,174 @@ public class GodMinerMenu extends AbstractGodGridMenu
             @Override
             public void set(int value) { be.setCurrentY(value); }
         });
+        this.addDataSlot(new DataSlot()
+        {
+            @Override
+            public int get() { return be.getEfficiencyLevel(); }
+            @Override
+            public void set(int value) { /* 只读 */ }
+        });
+        this.addDataSlot(new DataSlot()
+        {
+            @Override
+            public int get() { return be.getFluidAmount(); }
+            @Override
+            public void set(int value) { /* 只读 */ }
+        });
+        this.addDataSlot(new DataSlot()
+        {
+            @Override
+            public int get() { return be.getStorageCount(); }
+            @Override
+            public void set(int value) { /* 只读 */ }
+        });
+        this.addDataSlot(new DataSlot()
+        {
+            @Override public int get() { return be.isAeEnabled() ? 1 : 0; }
+            @Override public void set(int value) { cachedAeEnabled = value; }
+        });
     }
 
-    /** 界面取矿机状态用（基类只暴露 BlockEntity） */
-    public GodMinerBlockEntity getMiner()
+    public boolean isAeEnabled()
     {
-        return miner;
+        return cachedAeEnabled == 1;
     }
 
-    @Override
-    protected Block gridBlock()
+    public GodMinerBlockEntity getBlockEntity()
     {
-        return Godofthings.GOD_MINER.get();
+        return be;
     }
 
+    // 按钮：0=开始/停止；1-6=半径调整（-100/-10/-1/+1/+10/+100）
     @Override
     public boolean clickMenuButton(Player player, int buttonId)
     {
-        // 先交给基类：6=面配置 / 10=AE 开关 / 12=排序
-        if (super.clickMenuButton(player, buttonId))
-        {
-            return true;
-        }
         // 服务端守卫：玩家必须在方块 8 格内且同维度，防止异常客户端/跨维度操控
-        if (miner.getLevel() == null || miner.getLevel().dimension() != player.level().dimension()
-                || player.distanceToSqr(miner.getBlockPos().getX() + 0.5,
-                miner.getBlockPos().getY() + 0.5, miner.getBlockPos().getZ() + 0.5) > 8.0 * 8.0)
+        if (be.getLevel() == null || be.getLevel().dimension() != player.level().dimension()
+                || player.distanceToSqr(be.getBlockPos().getX() + 0.5,
+                be.getBlockPos().getY() + 0.5, be.getBlockPos().getZ() + 0.5) > 8.0 * 8.0)
         {
             return false;
         }
-        if (buttonId == BTN_RUN)
+        if (buttonId == 0)
         {
-            // 服务端权威翻转运行状态；客户端的乐观更新会由 broadcastChanges 的 DataSlot 收敛
-            miner.setRunning(!miner.isRunning());
+            // 服务端权威翻转运行状态；客户端乐观更新会由 broadcastChanges 的 DataSlot 同步收敛
+            be.setRunning(!be.isRunning());
             this.broadcastChanges();
             return true;
         }
-        if (buttonId >= BTN_RADIUS_BASE && buttonId < BTN_RADIUS_BASE + 6)
+        if (buttonId >= 1 && buttonId <= 6)
         {
-            int delta = switch (buttonId - BTN_RADIUS_BASE)
+            int delta = switch (buttonId)
             {
-                case 0 -> -100;
-                case 1 -> -10;
-                case 2 -> -1;
-                case 3 -> 1;
-                case 4 -> 10;
+                case 1 -> -100;
+                case 2 -> -10;
+                case 3 -> -1;
+                case 4 -> 1;
+                case 5 -> 10;
                 default -> 100;
             };
-            miner.setRadius(miner.getRadius() + delta); // setRadius 内部已 clamp 到 1..maxRadius
+            be.setRadius(be.getRadius() + delta); // setRadius 内部已 clamp 到 1..1600
             this.broadcastChanges();
             return true;
         }
-        if (buttonId == BTN_FORTUNE)
+        // 7=切换时运3；8=切换精准采集（两者互斥）
+        if (buttonId == 7)
         {
-            // 时运 3（与精准采集互斥）
-            miner.toggleFortune();
+            be.toggleFortune();
             this.broadcastChanges();
             return true;
         }
-        if (buttonId == BTN_SILK_TOUCH)
+        if (buttonId == 8)
         {
-            // 精准采集（与时运互斥）
-            miner.toggleSilkTouch();
+            be.toggleSilkTouch();
             this.broadcastChanges();
+            return true;
+        }
+        // 9=切换 AE 接入（ME 存储总线占一个频道；开关关闭断开）
+        if (buttonId == 9)
+        {
+            be.toggleAeEnabled();
+            this.broadcastChanges();
+            return true;
+        }
+        // 10=打开面配置界面（六面输入/输出配置）
+        if (buttonId == 10)
+        {
+            openConfig(player);
             return true;
         }
         return false;
+    }
+
+    /** 打开面配置界面（六路模式 DataSlot + 返回），与神之熔炉 / 神之吸收同构。 */
+    private void openConfig(Player player)
+    {
+        if (player instanceof ServerPlayer serverPlayer)
+        {
+            serverPlayer.openMenu(new MenuProvider()
+            {
+                @Override
+                public Component getDisplayName()
+                {
+                    return Component.translatable("gui.godofthings.face_config");
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player p)
+                {
+                    return new GodMinerConfigMenu(containerId, inventory, be);
+                }
+            }, buf -> buf.writeBlockPos(be.getBlockPos()));
+        }
+    }
+
+    @Override
+    public boolean stillValid(Player player)
+    {
+        return stillValid(this.access, player, Godofthings.GOD_MINER.get());
+    }
+
+    // 只有神之加速槽 + 玩家物品栏，快速移动只处理加速槽
+    @Override
+    public ItemStack quickMoveStack(Player player, int index)
+    {
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem())
+        {
+            ItemStack stack = slot.getItem();
+            itemstack = stack.copy();
+            if (index == 0)
+            {
+                // 加速槽 → 玩家物品栏（槽 1..36）
+                if (!this.moveItemStackTo(stack, 1, this.slots.size(), true))
+                {
+                    return ItemStack.EMPTY;
+                }
+            }
+            else
+            {
+                // 玩家物品栏 → 加速槽（只收神之加速，isItemValid 会拒绝其他物品）
+                if (!this.moveItemStackTo(stack, 0, 1, false))
+                {
+                    return ItemStack.EMPTY;
+                }
+            }
+            if (stack.isEmpty())
+            {
+                slot.setByPlayer(ItemStack.EMPTY);
+            }
+            else
+            {
+                slot.setChanged();
+            }
+            if (stack.getCount() == itemstack.getCount())
+            {
+                return ItemStack.EMPTY;
+            }
+            slot.onTake(player, stack);
+        }
+        return itemstack;
     }
 }
