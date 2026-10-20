@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:god_recipe" },
+    { "item": "minecraft:paper" },
+    { "item": "minecraft:paper" },
+    { "item": "minecraft:redstone" }
+  ],
+  "result": {
+    "id": "godofthings:god_config",
+    "count": 1
+  }
+}

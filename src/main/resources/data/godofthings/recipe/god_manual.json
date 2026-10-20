@@ -1,15 +1,16 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " G ",
-    "GBG",
-    " G "
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:god_recipe" },
+    { "item": "minecraft:book" },
+    { "item": "minecraft:gold_ingot" },
+    { "item": "minecraft:gold_ingot" },
+    { "item": "minecraft:gold_ingot" },
+    { "item": "minecraft:gold_ingot" }
   ],
-  "key": {
-    "G": { "item": "minecraft:gold_ingot" },
-    "B": { "item": "minecraft:book" }
-  },
   "result": {
-    "id": "godofthings:god_manual"
+    "id": "godofthings:god_manual",
+    "count": 1
   }
 }

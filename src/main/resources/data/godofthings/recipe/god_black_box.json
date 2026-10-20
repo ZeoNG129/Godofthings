@@ -1,15 +1,19 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "OOO",
-    "OSO",
-    "OOO"
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:god_recipe" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" }
   ],
-  "key": {
-    "O": { "item": "minecraft:obsidian" },
-    "S": { "item": "minecraft:nether_star" }
-  },
   "result": {
-    "id": "godofthings:god_black_box"
+    "id": "godofthings:god_black_box",
+    "count": 1
   }
 }

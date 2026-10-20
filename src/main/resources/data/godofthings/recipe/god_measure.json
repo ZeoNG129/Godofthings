@@ -1,17 +1,16 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "equipment",
-  "pattern": [
-    " G ",
-    "GIY",
-    " GY"
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:god_recipe" },
+    { "item": "minecraft:gray_wool" },
+    { "item": "minecraft:gray_wool" },
+    { "item": "minecraft:yellow_wool" },
+    { "item": "minecraft:yellow_wool" },
+    { "item": "minecraft:iron_ingot" }
   ],
-  "key": {
-    "G": { "item": "minecraft:gray_wool" },
-    "I": { "tag": "c:ingots/iron" },
-    "Y": { "item": "minecraft:yellow_wool" }
-  },
   "result": {
-    "id": "godofthings:god_measure"
+    "id": "godofthings:god_measure",
+    "count": 1
   }
 }

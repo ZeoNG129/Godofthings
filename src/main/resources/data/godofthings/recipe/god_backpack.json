@@ -1,22 +1,18 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "NLN",
-    "LSL",
-    "NLN"
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:god_recipe" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:netherite_ingot" },
+    { "item": "minecraft:netherite_ingot" },
+    { "item": "minecraft:shulker_box" }
   ],
-  "key": {
-    "N": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "L": {
-      "item": "minecraft:leather"
-    },
-    "S": {
-      "item": "minecraft:shulker_box"
-    }
-  },
   "result": {
-    "id": "godofthings:god_backpack"
+    "id": "godofthings:god_backpack",
+    "count": 1
   }
 }

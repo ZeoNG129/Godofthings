@@ -1,15 +1,16 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " O ",
-    "OSO",
-    " O "
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:god_recipe" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:obsidian" },
+    { "item": "minecraft:nether_star" }
   ],
-  "key": {
-    "O": { "item": "minecraft:obsidian" },
-    "S": { "item": "minecraft:nether_star" }
-  },
   "result": {
-    "id": "godofthings:god_unbreakable"
+    "id": "godofthings:god_unbreakable",
+    "count": 1
   }
 }

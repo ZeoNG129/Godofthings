@@ -1,18 +1,19 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "RBR",
-    "ECE",
-    "RLR"
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:god_recipe" },
+    { "item": "minecraft:redstone_block" },
+    { "item": "minecraft:redstone_block" },
+    { "item": "minecraft:redstone_block" },
+    { "item": "minecraft:daylight_detector" },
+    { "item": "minecraft:clock" },
+    { "item": "minecraft:ender_pearl" },
+    { "item": "minecraft:ender_pearl" },
+    { "item": "minecraft:lightning_rod" }
   ],
-  "key": {
-    "R": { "item": "minecraft:redstone_block" },
-    "B": { "item": "minecraft:daylight_detector" },
-    "E": { "item": "minecraft:ender_pearl" },
-    "C": { "item": "minecraft:clock" },
-    "L": { "item": "minecraft:lightning_rod" }
-  },
   "result": {
-    "id": "godofthings:god_change"
+    "id": "godofthings:god_change",
+    "count": 1
   }
 }

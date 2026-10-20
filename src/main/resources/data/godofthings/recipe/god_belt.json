@@ -1,17 +1,19 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "equipment",
-  "pattern": [
-    "SLS",
-    "L L",
-    "LIL"
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:god_recipe" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:string" },
+    { "item": "minecraft:string" },
+    { "item": "minecraft:string" },
+    { "item": "minecraft:iron_ingot" }
   ],
-  "key": {
-    "S": { "item": "minecraft:string" },
-    "L": { "item": "minecraft:leather" },
-    "I": { "item": "minecraft:iron_ingot" }
-  },
   "result": {
-    "id": "godofthings:god_belt"
+    "id": "godofthings:god_belt",
+    "count": 1
   }
 }

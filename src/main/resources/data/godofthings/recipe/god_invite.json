@@ -1,15 +1,19 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "GGG",
-    "GNG",
-    "GGG"
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:god_recipe" },
+    { "item": "godofthings:god_recipe" },
+    { "item": "minecraft:gold_ingot" },
+    { "item": "minecraft:gold_ingot" },
+    { "item": "minecraft:gold_ingot" },
+    { "item": "minecraft:gold_ingot" },
+    { "item": "minecraft:gold_ingot" },
+    { "item": "minecraft:gold_ingot" },
+    { "item": "minecraft:nether_star" }
   ],
-  "key": {
-    "G": { "item": "minecraft:gold_ingot" },
-    "N": { "item": "minecraft:nether_star" }
-  },
   "result": {
-    "id": "godofthings:god_invite"
+    "id": "godofthings:god_invite",
+    "count": 1
   }
 }
