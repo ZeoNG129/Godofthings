@@ -1507,3 +1507,13 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **不动的东西**：已有机器逻辑、存档格式（数据全在物品组件里，机器的 NBT 键一个没改）、`belt` 包、其它模组的物品。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.19.0 → **5.20.0（新增「神之配方」物品 + 砍杀 / 吸收 / 合成台接入神之配置）** —— 新增小物品，按规则**第二位 +1、末位归零**。
+  - **新物品** `godofthings:god_recipe`（`item/GodRecipeItem`，创造标签页「众神之物」里也有）：一切神之造物的**合成底料**。本身没有交互，纯材料 —— 这样以后把各个神之物品的配方改成「神之配方 + 若干材料」时只动 recipe json，不用改代码。
+  - **合成**（`data/godofthings/recipe/god_recipe.json`，`crafting_shaped`，3×3 摆满、材料各一个）：上排 铁锭 / 铜锭 / 金锭，中排 钻石 / 下界合金锭 / 绿宝石，下排 红石 / 青金石 / 煤炭。产物 1 个。
+  - **贴图**：`textures/item/god_recipe.png`（128×128，程序化绘制：金框石板 + 3×3 符文格 + 中心宝石 + 顶部宝珠），**不再是复制别的物品的占位图**。
+  - **神之配置扩展支持**：神之砍杀 / 神之吸收 / 神之合成三台方块实体 `implements ConfigurableMachine` —— 这三台**没有加速槽**，`acceleratorCount()` 恒为 0、`addAccelerators()` 恒为 0（粘贴时不会从玩家物品栏扣加速），只同步六面 I/O 模式与 AE 并网开关。至此 11 台机器全部支持配置复制粘贴：熔炉 / 矿机 / 矿物 / 作物 / 复制 / 去皮 / 掉落 / 怪蛋 / 砍杀 / 吸收 / 合成台。
+  - **不动的**：机器逻辑、存档格式（`FaceModes` / `AeEnabled` 等键一个没改）、神之配置的数据组件格式、belt 包。
+  - 语言：zh/en 各 +3 键（`item.` / `tooltip.` / `manual.godofthings.god_recipe`），619 → 622，双向一致。README「核心特性一览」加一行神之配方，物品数 25 → **26**。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

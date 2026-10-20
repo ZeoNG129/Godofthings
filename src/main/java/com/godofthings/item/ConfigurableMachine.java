@@ -9,8 +9,9 @@ package com.godofthings.item;
  * 所以存档格式与机器逻辑都不受影响。</p>
  *
  * <p>目前已实现：神之熔炉 / 神之矿机 / 神之矿物 / 神之作物 / 神之复制 / 神之去皮 /
- * 神之掉落 / 神之怪蛋。神之砍杀 / 神之吸收 / 神之合成暂不支持 —— 以后要给它们加，
- * 只需让对应的方块实体 {@code implements ConfigurableMachine} 即可，物品侧不用改。</p>
+ * 神之掉落 / 神之怪蛋 / 神之砍杀 / 神之吸收 / 神之合成（最后三台没有加速槽，
+ * 加速数量恒为 0，只同步六面模式与 AE 开关；以后要再加新机器，让它的方块实体
+ * {@code implements ConfigurableMachine} 即可，物品侧不用改）。</p>
  */
 public interface ConfigurableMachine
 {

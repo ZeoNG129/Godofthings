@@ -618,5 +618,8 @@
   "text.godofthings.belt.insert": "INSERT",
   "text.godofthings.belt.swap": "SWAP",
   "text.godofthings.belt.extract": "EXTRACT",
-  "text.godofthings.belt.empty": "EMPTY"
+  "text.godofthings.belt.empty": "EMPTY",
+  "item.godofthings.god_recipe": "God Recipe",
+  "tooltip.godofthings.god_recipe": "The base catalyst for every divine creation (older recipes are being migrated onto it)",
+  "manual.godofthings.god_recipe": "What: God Recipe -- the base catalyst for every divine creation. Every god item (helmet / chestplate / leggings / boots, God Binder, all machines, ...) will gradually be recrafted as \"God Recipe + a few materials\"; that migration only touches recipe json, never the items themselves.\nObtain: shaped crafting -- one iron ingot / copper ingot / gold ingot / diamond / netherite ingot / emerald / redstone / lapis lazuli / coal filling a 3x3 (top row iron, copper, gold; middle diamond, netherite, emerald; bottom redstone, lapis, coal).\nUse: no interaction, just a crafting material."
 }

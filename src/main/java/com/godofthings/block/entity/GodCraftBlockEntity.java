@@ -12,6 +12,7 @@ import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.godgrid.LongSlotTransfer;
+import com.godofthings.item.ConfigurableMachine;
 import com.godofthings.menu.GodCraftMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -57,7 +58,7 @@ import java.util.List;
  * - 锁定配方：锁定后只合成锁定配方，合成格只接受锁定模板物品
  * - 六个面可配置输入/输出
  */
-public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity
+public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, ConfigurableMachine
 {
     public static final int INPUT_SLOTS = 9;
     public static final int TOTAL_SLOTS = 10; // 0-8 合成格, 9 输出
@@ -161,6 +162,52 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
     {
         this.aeEnabled = !this.aeEnabled;
         setChanged();
+    }
+
+    // ---- ConfigurableMachine：给「神之配置」物品读写（六面模式 / AE 开关；本机没有加速槽）----
+
+    @Override
+    public int[] getFaceModesSnapshot()
+    {
+        return faceModes.clone();
+    }
+
+    @Override
+    public void applyFaceModes(int[] modes)
+    {
+        if (modes == null)
+        {
+            return;
+        }
+        for (int i = 0; i < faceModes.length && i < modes.length; i++)
+        {
+            faceModes[i] = ((modes[i] % 4) + 4) % 4;
+        }
+        setChanged();
+    }
+
+    @Override
+    public void setAeEnabled(boolean enabled)
+    {
+        if (this.aeEnabled != enabled)
+        {
+            this.aeEnabled = enabled;
+            setChanged();
+        }
+    }
+
+    @Override
+    public int acceleratorCount()
+    {
+        // 合成台没有加速槽
+        return 0;
+    }
+
+    @Override
+    public int addAccelerators(int want)
+    {
+        // 合成台没有加速槽
+        return 0;
     }
 
     @Override

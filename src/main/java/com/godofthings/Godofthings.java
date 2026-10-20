@@ -57,6 +57,7 @@ import com.godofthings.item.GodConfigItem;
 import com.godofthings.item.GodInviteItem;
 import com.godofthings.item.GodMinerItem;
 import com.godofthings.item.GodNoteItem;
+import com.godofthings.item.GodRecipeItem;
 import com.godofthings.item.GodUnbreakableItem;
 import com.godofthings.infinitecell.InfinityCellInventory;
 import com.godofthings.infinitecell.InfinityCellItem;
@@ -339,6 +340,9 @@ public class Godofthings
     /** 神之便签：记事本物品（内容按玩家存在存档里，见 GodNoteData） */
     public static final DeferredItem<GodNoteItem> GOD_NOTE =
             ITEMS.registerItem("god_note", props -> new GodNoteItem(props.stacksTo(1)));
+    /** 神之配方：一切神之造物的合成底料（铁 / 铜 / 金 / 钻石 / 下界合金 / 绿宝石 / 红石 / 青金石 / 煤炭 各一，有序合成） */
+    public static final DeferredItem<GodRecipeItem> GOD_RECIPE =
+            ITEMS.registerItem("god_recipe", props -> new GodRecipeItem(props));
 
     /** 神之手册：游戏内查「这东西是干嘛的」（条目从注册表生成，见 manual 包） */
     public static final DeferredItem<com.godofthings.item.GodManualItem> GOD_MANUAL =
@@ -659,6 +663,7 @@ public class Godofthings
                         output.accept(GOD_BLACK_BOX.get());
                         output.accept(GOD_BINDER.get());
                         output.accept(GOD_CONFIG.get());
+                        output.accept(GOD_RECIPE.get());
                         output.accept(GOD_NOTE.get());
                         output.accept(GOD_MANUAL.get());
                         output.accept(GOD_BACKPACK_ITEM.get());

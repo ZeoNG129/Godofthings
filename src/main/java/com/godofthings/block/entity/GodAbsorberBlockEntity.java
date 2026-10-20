@@ -13,6 +13,7 @@ import com.godofthings.ae2.AeGridNode;
 import com.godofthings.block.entity.machine.PendingOutputQueue;
 import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.godgrid.LongSlotTransfer;
+import com.godofthings.item.ConfigurableMachine;
 import com.godofthings.menu.GodAbsorberMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -51,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  * <p>v5.18.10：产物装不下内部存储时进内存待处理队列并暂停吸收，不再掉到世界里（见 {@code pendingOutputs} 注释）。
  */
-public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner
+public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner, ConfigurableMachine
 {
     /** 主人（放置者）：神之共鸣判定用（主人在线 + 穿齐全套 + 共鸣开关开才生效）。 */
     @org.jetbrains.annotations.Nullable
@@ -331,6 +332,34 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
 
     public boolean isAeEnabled() { return aeEnabled; }
     public void toggleAeEnabled() { this.aeEnabled = !this.aeEnabled; setChanged(); }
+
+    // ---- ConfigurableMachine：给「神之配置」物品读写（六面模式 / AE 开关；本机没有加速槽）----
+
+    @Override
+    public int[] getFaceModesSnapshot() { return faceModes.clone(); }
+
+    @Override
+    public void applyFaceModes(int[] modes)
+    {
+        if (modes == null) return;
+        for (int i = 0; i < faceModes.length && i < modes.length; i++)
+        {
+            faceModes[i] = ((modes[i] % 4) + 4) % 4;
+        }
+        setChanged();
+    }
+
+    @Override
+    public void setAeEnabled(boolean enabled)
+    {
+        if (this.aeEnabled != enabled) { this.aeEnabled = enabled; setChanged(); }
+    }
+
+    @Override
+    public int acceleratorCount() { return 0; }
+
+    @Override
+    public int addAccelerators(int want) { return 0; }
 
     @Override public IManagedGridNode getMainNode() { return aeNode.getMainNode(); }
 

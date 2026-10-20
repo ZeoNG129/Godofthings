@@ -30,7 +30,7 @@ import java.util.List;
  * </ul>
  *
  * <p>能被读写的机器由 {@link ConfigurableMachine} 约定（熔炉 / 矿机 / 矿物 / 作物 /
- * 复制 / 去皮 / 掉落 / 怪蛋）。</p>
+ * 复制 / 去皮 / 掉落 / 怪蛋 / 砍杀 / 吸收 / 合成台；后三台没有加速槽）。</p>
  */
 public class GodConfigItem extends Item
 {
