@@ -236,10 +236,15 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
         }, buf -> buf.writeBlockPos(getBlockPos()));
     }
 
+    /**
+     * 单轮处理量（GUI 加速槽提示与 smeltSlot 共用同一口径）：加速槽满 64 个神之加速 → int 上限
+     * 2,147,483,647，否则 = 内置 64 × 并行倍率。见 {@link GodGridLayout#roundBatch}。
+     */
     @Override
     public int gridOperationsPerColumn()
     {
-        return GodGridLayout.operationsPerColumn(accelSlot.getStackInSlot(0).getCount());
+        return (int) GodGridLayout.roundBatch(
+                accelSlot.getStackInSlot(0).getCount(), GodGridLayout.BUILTIN_PARALLEL, getParallelMultiplier());
     }
 
     /** 判断物品是否拥有熔炼配方。不能熔炼的物品不允许进入输入槽。 */
@@ -761,12 +766,16 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
         long perResult = Math.max(1, resultTemplate.getCount());
         // 输出槽剩余容量按 long 算：单格容量 int 上限，不再受 ItemStack 的 99 上限约束
         long outputFree = itemHandler.room(outputSlot);
+        // v5.18.9 容量预判：输出格剩余容量连一份产物都放不下 → 本轮直接跳过
+        //（不消耗原料、不产出、也绝不把产物掉到世界里——熔炉没有内置储存，17 个输出槽就是唯一去处）
         if (outputFree < perResult)
         {
             return;
         }
-        // 单列每 tick 的并行额度 = 内置 64 × 神之加速倍率（见 GodGridLayout#operationsPerColumn）
-        long columnBudget = Math.max(1, gridOperationsPerColumn());
+        // 单列每 tick 的并行额度（long）：加速槽满 64 个神之加速 → int 上限 2,147,483,647，
+        // 否则 = 内置 64 × 神之加速倍率（见 GodGridLayout#roundBatch）
+        long columnBudget = GodGridLayout.roundBatch(
+                accelSlot.getStackInSlot(0).getCount(), GodGridLayout.BUILTIN_PARALLEL, getParallelMultiplier());
         long toSmelt = Math.min(Math.min(inputAmount, outputFree / perResult), columnBudget);
         if (toSmelt <= 0L)
         {

@@ -10,6 +10,7 @@ import appeng.api.storage.MEStorage;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
+import com.godofthings.block.entity.machine.PendingOutputQueue;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
@@ -64,6 +65,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  * - 挖完后可再次点击开始：自动从顶部重新挖（支持改半径后重新工作）
  * - 内置无限大小物品储存，六面默认全部自动输出
  * - v5.18.0：界面/容器迁到共用网格框架（17 输入占位 + 17 输出缓冲 + 1 加速槽）
+ * - v5.18.10：产物最后的兜底从「掉到世界上」改为内存待处理队列 + 装不下就暂停挖掘（详见 pendingOutputs 注释）
  */
 public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner, GodGridHost
 {
@@ -139,6 +141,16 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
 
     private final InfiniteItemHandler itemHandler = new InfiniteItemHandler();
     private final FluidTank tank = new FluidTank(Integer.MAX_VALUE);
+
+    /**
+     * 产物溢出的内存待处理队列（v5.18.10）：产物写不进「输出槽 → 内置储存」时暂存于此，
+     * 下一 tick 重试写入；<b>队列非空期间暂停挖掘</b>，队列清空后自动恢复。
+     *
+     * <p>取舍：队列是纯内存态、<b>不进存档</b> —— 拆机器 / 掉电 / 区块卸载时队列里的余量会消失；
+     * 另一条路只有「掉到世界里」，按要求宁可丢这一点余量也不把产物撒进世界。
+     * 实际上只有内置储存的「不同物品类型数」（{@link InfiniteItemHandler#MAX_STACKS}）被塞满时才会用到它。</p>
+     */
+    private final PendingOutputQueue pendingOutputs = new PendingOutputQueue();
 
     /** 每个面一个模式，索引 = Direction.get3DDataValue()，取值见 FaceMode.getId()。
      *  默认全 OUTPUT：保持「六面默认全部自动输出」的旧行为，旧存档未存 FaceModes 时也走这里。 */
@@ -732,7 +744,10 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
 
     private void tickServer()
     {
-        if (running)
+        flushPendingOutputs();
+        // 待处理队列没写空 = 上一轮产物塞不下：暂停挖掘（autoTransfer / AE 仍照常跑，抽走内置储存腾出空间后自动恢复）
+        boolean blocked = !pendingOutputs.isEmpty();
+        if (running && !blocked)
         {
             if (currentY == Integer.MIN_VALUE || columnIndex == Integer.MIN_VALUE)
             {
@@ -906,7 +921,8 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     {
         int y = currentY;
         int mined = 0;
-        while (y >= level.getMinBuildHeight() && mined < maxBlocksPerTick())
+        // 待处理队列还有空位才继续挖：队列满就停在当前列（currentY 已记录列内进度），保持暂停，绝不掉地
+        while (y >= level.getMinBuildHeight() && mined < maxBlocksPerTick() && pendingOutputs.hasRoom())
         {
             mineBlock(columnBlockPos().atY(y));
             y--;
@@ -1025,7 +1041,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         return drops;
     }
 
-    /** 存入输出格 → 内置无限储存 → 实在塞不下才掉落到矿机旁（同类恒单堆、数量无上限，不吞物品） */
+    /** 存入输出格 → 内置无限储存 → 仍然塞不下的余量进内存待处理队列（绝不掉到世界里） */
     private void insertDrop(ItemStack stack)
     {
         ItemStack leftover = insertIntoOutputs(stack);
@@ -1035,7 +1051,32 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         }
         if (!leftover.isEmpty())
         {
-            InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
+            // v5.18.10：绝不掉地 —— 余量进内存待处理队列，下一 tick 重试写入；队列非空期间暂停挖掘
+            pendingOutputs.offer(leftover);
+        }
+    }
+
+    /** 把待处理队列里的产物重试写回「输出槽 → 内置储存」；写空后挖掘自动恢复。 */
+    private void flushPendingOutputs()
+    {
+        int guard = pendingOutputs.size() + 1; // 防死循环：队列里每条最多试一轮
+        while (!pendingOutputs.isEmpty() && guard-- > 0)
+        {
+            ItemStack head = pendingOutputs.poll();
+            ItemStack leftover = insertIntoOutputs(head);
+            if (!leftover.isEmpty())
+            {
+                leftover = itemHandler.insertItem(-1, leftover, false);
+            }
+            if (leftover.getCount() >= head.getCount())
+            {
+                pendingOutputs.offer(leftover); // 一点都写不进：放回队列，保持暂停
+                return;
+            }
+            if (!leftover.isEmpty())
+            {
+                pendingOutputs.offer(leftover); // 部分写入：余量放回队尾，接着试下一条
+            }
         }
     }
 
@@ -1099,7 +1140,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
             {
                 continue;
             }
-            // 先真放入加速槽，再按实际收下的数量从邻居取走；邻居拿不出那么多就把多收的还回去（兜底掉落，绝不凭空增殖）
+            // 先真放入加速槽，再按实际收下的数量从邻居取走；邻居拿不出那么多就把多收的还回去（退不回去的进待处理队列，绝不凭空增殖）
             ItemStack leftover = accelSlot.insertItem(0, src.copy(), false);
             int moved = src.getCount() - leftover.getCount();
             if (moved <= 0)
@@ -1115,7 +1156,8 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
                     ItemStack stillLeft = handler.insertItem(s, giveBack, false);
                     if (!stillLeft.isEmpty())
                     {
-                        InfiniteItemHandler.dropRemainder(level, worldPosition, stillLeft);
+                        // v5.18.10：绝不掉地 —— 退不回去的加速余量进内存待处理队列，由 flushPendingOutputs 写进内置储存再推出去
+                        pendingOutputs.offer(stillLeft);
                     }
                 }
             }

@@ -49,8 +49,9 @@ import org.jetbrains.annotations.Nullable;
  * <p>17 个输入槽（0-16）+ 17 个输出槽（17-33，一一对应：输入 i → 输出 {@link #OUTPUT_SLOT_START} + i）+
  * 1 个神之加速槽（提升并行数量与槽位容量）。无需能源。槽位布局见 {@link GodGridLayout}。</p>
  *
- * <p>每 {@link MachinesConfig#PEELER_WORK_INTERVAL} tick 处理一轮：<b>每个</b>非空输入槽把最多
- * 「并行倍率」个原木去皮塞进对应输出槽（同物品可叠、容量够才动）。</p>
+ * <p>每 {@link MachinesConfig#PEELER_WORK_INTERVAL} tick 处理一轮：<b>每个</b>非空输入槽把一批原木去皮塞进对应输出槽
+ * （同物品可叠、容量够才动）。批次数 = 内置 64 × 并行倍率；<b>加速槽放满 64 个神之加速时该批次数为 int 上限
+ * 2,147,483,647</b>（实际处理量受输入存量约束），见 {@link GodGridLayout#roundBatch}。</p>
  *
  * <p><b>面配置（与神之熔炉同一套）</b>：六个面各自可配置
  * {@link FaceMode#NONE}（不启用）/ {@link FaceMode#INPUT}（自动从相邻容器抽入原木）/
@@ -235,10 +236,15 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         }, buf -> buf.writeBlockPos(getBlockPos()));
     }
 
+    /**
+     * 单轮处理量（GUI 加速槽提示与去皮批次共用同一口径）：加速槽满 64 个神之加速 → int 上限
+     * 2,147,483,647，否则 = 内置 64 × 并行倍率。见 {@link GodGridLayout#roundBatch}。
+     */
     @Override
     public int gridOperationsPerColumn()
     {
-        return GodGridLayout.operationsPerColumn(accelSlot.getStackInSlot(0).getCount());
+        return (int) GodGridLayout.roundBatch(
+                accelSlot.getStackInSlot(0).getCount(), GodGridLayout.BUILTIN_PARALLEL, getParallelMultiplier());
     }
 
     // ---- 面模式（与神之熔炉同一套）----
@@ -480,10 +486,12 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         if (tickCounter >= MachinesConfig.PEELER_WORK_INTERVAL.get())
         {
             tickCounter = 0;
-            int mult = getParallelMultiplier();
+            // 本批数量（long）：加速槽满 64 个神之加速 → int 上限 2,147,483,647，否则 = 内置 64 × 并行倍率
+            long batch = GodGridLayout.roundBatch(
+                    accelSlot.getStackInSlot(0).getCount(), GodGridLayout.BUILTIN_PARALLEL, getParallelMultiplier());
             for (int i = 0; i < INPUT_SLOT_COUNT; i++)
             {
-                convertOne(itemHandler, i, OUTPUT_SLOT_START + i, mult);
+                convertOne(itemHandler, i, OUTPUT_SLOT_START + i, batch);
             }
         }
     }
@@ -712,16 +720,20 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     }
 
     /**
-     * 纯逻辑：把输入槽最多 mult 个原木去皮放进对应输出槽（输出为空或同物品且未满才动；供 GameTest 直接调用）。
+     * 纯逻辑：把输入槽最多 {@code batch} 个原木去皮放进对应输出槽
+     * （输出为空或同物品且未满才动；供 GameTest 直接调用）。
      *
      * <p>按 long 结算：输入存量读 {@link LongSlotHandler#amount(int)}、输出空位用
      * {@link LongSlotHandler#room(int)}，单格容量 int 上限，不会再被 99 截断。</p>
      *
+     * <p>v5.18.8 起 {@code batch} 是「本批处理量」（不再叫 mult）：加速槽满 64 个神之加速时
+     * 由 {@link GodGridLayout#roundBatch} 给出 int 上限 2,147,483,647，实际处理量仍受输入存量约束。</p>
+     *
      * @return 实际去皮的数量（0 = 没动）
      */
-    public static long convertOne(LongSlotHandler handler, int inputSlot, int outputSlot, int mult)
+    public static long convertOne(LongSlotHandler handler, int inputSlot, int outputSlot, long batch)
     {
-        if (handler == null || mult <= 0)
+        if (handler == null || batch <= 0L)
         {
             return 0L;
         }
@@ -741,7 +753,10 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
         {
             return 0L;
         }
-        long n = Math.min(Math.min(mult, inAmount), handler.room(outputSlot));
+        // 本批数量受输入存量与输出空位约束（全程 long，满 64 个加速时 batch = int 上限也不会溢出）
+        // v5.18.9 确认：本机没有掉落兜底——输出槽放不下的部分既不产出也不掉到世界里，
+        // 本轮 n = 0 直接跳过，输出槽腾出空位后下一轮再处理。
+        long n = Math.min(Math.min(batch, inAmount), handler.room(outputSlot));
         if (n <= 0L)
         {
             return 0L;

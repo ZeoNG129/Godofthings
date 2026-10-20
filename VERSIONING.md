@@ -1460,3 +1460,38 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **本次确认无需改**：**神之黑盒**（`BlackBoxData` 的数量本来就是独立 `Count` 字段、物品本体 count 恒 1，中间量用 long 再钳到 int 上限，已是「int 上限容量」）；**神之背包**（是物品不是机器，120 格继续 64/99）；魔咒台的单物品槽、创造能量方块的充电槽不是大宗物品存储，也不动。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.18.7 → **5.18.8（五台产出机器的单轮处理量：加速槽放满 64 个神之加速 = int 上限 2,147,483,647）** —— 优化，按规则**末位 +1**。
+  - **统一口径**：新增 `godgrid/GodGridLayout#roundBatch(int accelCount, int builtinBase, long multiplier)` —— 加速槽 `accelCount >= 64`（常量 `ACCEL_FULL_STACK`）时直接返回 `Integer.MAX_VALUE`（2,147,483,647），不满 64 时返回 `(long) builtinBase * multiplier`（各机器原公式，乘算全程 long）。
+  - **神之熔炉**（`GodFurnaceBlockEntity#smeltSlot`）：每输入槽每 tick 的 `columnBudget` 改用 `roundBatch(accelCount, BUILTIN_PARALLEL, getParallelMultiplier())`，`toSmelt = min(输入存量, 输出余量 / 每份产出, columnBudget)` 全程 long，`produced = toSmelt × perResult` 不会溢出（`perResult > 1` 时按 `outputFree / perResult` 先限住）。
+  - **神之去皮机**（`GodPeelerBlockEntity#convertOne`）：参数 `int mult` 改成 `long batch`（「本批数量」），`tickServer` 每轮传 `roundBatch(accelCount, BUILTIN_PARALLEL, getParallelMultiplier())` —— 满 64 个加速时每输入槽每轮最多去皮 2,147,483,647 个（实际受输入存量与输出空位约束）。
+  - **神之矿物 / 作物 / 复制（资源三机）与神之怪蛋**：产物数量 `out.copyWithCount(...)` 先算 `long base = roundBatch(accelCount, out.getCount(), mult)`（满 64 → int 上限），再乘共鸣掉落倍率（`ArmorSkillHandler#lootBombBoost`）取整，最后 `Math.min(Integer.MAX_VALUE, ...)` 钳到 int —— 删掉了旧的 `Math.min(Integer.MAX_VALUE / 2L, ...)` 钳制与 `out.getCount() * mult` 的 int 乘法（后者在数量大时会溢出）。快配方（复制 / 天陨石每 tick 那条路径）走同一个 `process`，一并生效。
+  - **神之掉落机**（`GodDropBlockEntity#process`）：每种战利品产出同样走 `roundBatch(accelCount, out.getCount(), mult)` 再钳到 int 上限（原来 `out.getCount() * mult` 是 int 乘法，可能溢出为负）。
+  - **写入路径不变**：产物仍先 `LongSlotHandler#insertLong`（单格容量 int 上限）进 17 个输出槽，塞不下的余量落内置无限储存、再余量才 `InfiniteItemHandler#dropRemainder` —— 不丢物、不复制。
+  - **界面提示同步**：五台机器的 `gridOperationsPerColumn()` 改走同一个 `roundBatch`（界面上「加速槽：当前每列每 tick 并行 N 次」在满 64 个加速时显示 2,147,483,647，不再显示 64512）；界面布局 / 贴图 / 存档格式未动。**神之矿机本次不涉及**（`GodGridLayout#operationsPerColumn` 与矿机全部保持原样），砍杀 / 吸收 / 合成台、其它配置未动。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.18.8 → **5.18.9（五台产出机器：产物装不下就跳过本轮，绝不掉到地上）** —— 修复，按规则**末位 +1**。
+  - **起因**：5.18.8 把满 64 个神之加速时的单轮处理量提到 `Integer.MAX_VALUE`（`GodGridLayout#roundBatch`），单轮产物可能远超输出槽余量；旧兜底在「输出槽 + 内置无限储存」都塞不下时走 `InfiniteItemHandler#dropRemainder`（在机器上方生成 ItemEntity，按 ≤99 拆堆），满档下一轮就能生成上千万个掉落物，直接把服卡死。
+  - **删掉「掉到世界里」的产物兜底**（本次涉及的 5 台机器里 `dropRemainder` / `Block.popResource` / `new ItemEntity` 全清）：
+    · **神之资源三机**（`GodResourceBlockEntity#process`）：删掉 `InfiniteItemHandler.dropRemainder` 兜底，产物顺序仍是「输出槽 → 内置无限储存」。
+    · **神之怪蛋机**（`GodSpawnEggBlockEntity#insertToOutputs`）、**神之掉落机**（`GodDropBlockEntity#insertToOutputs`）：同上，删掉最后那步 `dropRemainder`。
+    · **神之熔炉**（`GodFurnaceBlockEntity#smeltSlot`）、**神之去皮机**（`GodPeelerBlockEntity#convertOne`）：本来就只按输出槽余量结算（`toSmelt` / `n` 先被 `room()` 限住，只按真正写进去的数量扣原料），全程没有任何掉落路径，本次仅补注释把这条不变量写明。
+  - **新增容量预判**：`block/entity/machine/OutputCapacity#fits(handler, start, count, products, inner)` —— 生产前先用「输出槽快照 + 内置储存类型数」模拟分配这一轮全部产物（同类格累加 → 空槽按单格容量 → 兜底储存），**能全放下才生产**；放不下就**整轮跳过**：不消耗原料、不产生任何物品、下一 tick / 下一轮再试，绝不「部分产出 + 丢掉其余」。
+  - **兜底储存也有上限**：`InfiniteItemHandler` 不是真的无限（`MAX_STACKS = 4096` 种不同物品），新增 `InfiniteItemHandler#canAcceptAll(List<ItemStack>)` 按「已有同类可无限累加、新类型占一个名额」的口径判定；类型表用满时资源三机 / 怪蛋机 / 掉落机同样跳过本轮，不退化为掉落。
+  - **不动的东西**：容量（`LongSlotHandler` 单格仍是 int 上限）、存档格式（`GridInventoryLong` / `Inventory` / `AccelSlot` 等键与格式全部不变）、界面 / 贴图 / 面配置 / AE 并网、矿机与砍杀 / 吸收 / 合成台 / 吞噬（它们仍保留自己的 `dropRemainder` 兜底，未在本次范围内）。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.18.9 → **5.18.10（矿机 / 砍杀机 / 吸收机：产物也不再掉到世界，装不下就暂停生产）** —— 修复，按规则**末位 +1**。
+  - **目标**：5.18.9 只清掉了五台产出机（熔炉 / 资源三机 / 怪蛋机 / 掉落机 / 去皮机）的掉落兜底，矿机 / 砍杀机 / 吸收机还留着 `InfiniteItemHandler#dropRemainder`。本次把这三台的 6 个调用点全部删掉，**全仓库不再有任何「产物弹成掉落物」的路径**。
+  - **新增内存待处理队列**：`block/entity/machine/PendingOutputQueue`（`MAX_ENTRIES = 64`，同类物品在队列内合并为一条，所以 64 是「不同物品类型数」上限）。产物写不进「输出槽 → 内置储存」时入队，下一 tick 重试写入；**队列非空期间暂停生产**，队列清空后自动恢复；队列也满（理论上不会）时**保持暂停，绝不退化成掉落**。
+  - **`InfiniteItemHandler#dropRemainder` 已删除**（`grep` 确认全仓库零调用点，只剩 VERSIONING 的历史叙述文字）：类注释写明「禁止再引入任何掉落物兜底」；一并去掉随之无用的 `BlockPos` / `ItemEntity` / `Level` import。
+  - **神之矿机**（`GodMinerBlockEntity`）：删掉两处调用 —— `insertDrop`（挖掘掉落：输出槽 → 内置无限储存之后的最后一步）与 `pullAccelerator`（多抽的神之加速退不回去的那一步；现在入队列，由 flush 写进内置储存再经输出面推出去）。新增 `flushPendingOutputs()`（tick 开头重试「输出槽 → 内置储存」）；`tickServer()` 在队列非空时不再挖掘（`autoTransfer` / AE 推送照常跑，抽走内置储存腾出空间后自动恢复）；`digColumn()` 增加 `pendingOutputs.hasRoom()` 条件，队列满就停在当前列（`currentY` 已记录列内进度）。
+  - **神之砍杀机**（`GodSlaughterBlockEntity`）：删掉 `insertIntoStorage`（掉落拦截入口）与 `migrateLegacyStorage`（老存档迁移）两处调用，余量改为入队；新增 `flushPendingStorage()`，`serverTick` 在队列非空时跳过 `scanAndKill`（面输出 / AE 推送照常跑）。
+  - **神之吸收机**（`GodAbsorberBlockEntity`）：同样两处（`scanAndAbsorb` 吸收、`migrateLegacyStorage` 迁移）改入队 + `flushPendingStorage()`；`serverTick` 在队列非空时跳过 `scanAndAbsorb`。吸收时若连队列都收不下，**这次不吸、掉落物留在世界里等下一轮**（宁可少吸也不吞物）。
+  - **取舍：待处理队列不进存档** —— 拆机器 / 掉电 / 区块卸载时队列里的余量会消失（三台机器的类注释都写明了）。实际上只有内置储存的「不同物品类型数」（4096 种）被塞满时才会用到队列，正常游戏碰不到。
+  - **不动的东西**：容量（`LongSlotHandler` 单格仍是 int 上限 / `InfiniteItemHandler.MAX_STACKS` 仍是 4096 种）、存档格式（`StorageLong` / `Storage` / `GridInventoryLong` / `AccelSlot` 等键与格式全部不变）、界面 / 贴图 / 面配置 / AE 并网、5.18.9 已完成的五台产出机、`GodMachineDropHandler`（挖机器掉神之加速，属于要求保留的功能）。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew compileJava` / `gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

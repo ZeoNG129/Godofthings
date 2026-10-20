@@ -10,6 +10,7 @@ import appeng.api.storage.MEStorage;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
+import com.godofthings.block.entity.machine.OutputCapacity;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
@@ -386,23 +387,48 @@ public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider,
             return;
         }
         int mult = getParallelMultiplier();
+        int accelCount = accelSlot.getStackInSlot(0).getCount();
         // 神之共鸣·掉落（v5.15.4）：战利品爆炸倍率（主人在线 + 穿齐全套 + 共鸣开关开）
         double bomb = level instanceof net.minecraft.server.level.ServerLevel serverLevel
                 ? com.godofthings.handler.ArmorSkillHandler.lootBombBoost(serverLevel, owner) : 1.0;
         // 不消耗刷怪蛋：生产模板，按时间持续产出（神之加速提升并行数量）
+        // v5.18.9：先把本轮全部产物算齐，再做容量预判（17 个输出槽 + 内置无限储存）——
+        // 放不下就整轮跳过，既不产出也不掉落，下一轮再试。
+        List<ItemStack> products = new java.util.ArrayList<>(outputs.size());
         for (ItemStack out : outputs)
         {
-            if (!out.isEmpty())
+            if (out.isEmpty())
             {
-                insertToOutputs(out.copyWithCount((int) Math.min(Integer.MAX_VALUE / 2L,
-                        Math.round(out.getCount() * mult * bomb))));
+                continue;
             }
+            // 单轮产量：加速槽满 64 个神之加速 → int 上限 2,147,483,647（不再受 64 × 1024 限制），
+            // 否则 = 单份数量 × 并行倍率（现有公式）。全程 long 计算，最后才钳到 int 上限喂给 ItemStack
+            long base = GodGridLayout.roundBatch(accelCount, out.getCount(), mult);
+            int count = (int) Math.min(Integer.MAX_VALUE, Math.max(1L, Math.round(base * bomb)));
+            products.add(out.copyWithCount(count));
+        }
+        if (products.isEmpty())
+        {
+            return;
+        }
+        if (!OutputCapacity.fits(itemHandler, OUTPUT_SLOT_START, OUTPUT_SLOT_COUNT, products, innerStore))
+        {
+            return; // 容量不足：本轮跳过（不产出任何物品、不掉到世界里），下轮再试
+        }
+        for (ItemStack product : products)
+        {
+            insertToOutputs(product);
         }
     }
 
     /**
-     * 产物先按 long 累加进 17 个输出槽（同物品自动叠），装不下再落进内部无限储存，
-     * 最后才掉在机器上方（后两步沿用旧版「永不丢产物」的兜底）。
+     * 产物先按 long 累加进 17 个输出槽（同物品自动叠），装不下再落进内部无限储存。
+     *
+     * <p><b>v5.18.9：不再掉落。</b>旧版最后一步是 {@code InfiniteItemHandler.dropRemainder}
+     * （在机器上方生成 ItemEntity），满 64 个神之加速时一轮产物可达 int 上限，
+     * 兜底一次就是上千万个掉落物、直接把服卡死。现在容量由
+     * {@link OutputCapacity#fits} 在 {@link #process} 里事前预判，放不下就整轮跳过；
+     * 万一仍有剩余（极端并发下预判与实际不一致），也直接放弃这一份写入，绝不生成掉落物。</p>
      */
     private void insertToOutputs(ItemStack stack)
     {
@@ -413,11 +439,7 @@ public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider,
         }
         if (!leftover.isEmpty())
         {
-            leftover = innerStore.insertItem(-1, leftover, false);
-        }
-        if (!leftover.isEmpty())
-        {
-            InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
+            innerStore.insertItem(-1, leftover, false);
         }
     }
 
@@ -799,10 +821,15 @@ public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider,
         }
     }
 
+    /**
+     * 单轮处理量（GUI 加速槽提示与 process 共用同一口径）：加速槽满 64 个神之加速 → int 上限
+     * 2,147,483,647，否则 = 内置 64 × 并行倍率。见 {@link GodGridLayout#roundBatch}。
+     */
     @Override
     public int gridOperationsPerColumn()
     {
-        return GodGridLayout.operationsPerColumn(accelSlot.getStackInSlot(0).getCount());
+        return (int) GodGridLayout.roundBatch(
+                accelSlot.getStackInSlot(0).getCount(), GodGridLayout.BUILTIN_PARALLEL, getParallelMultiplier());
     }
 
     // ---- NBT（1.20.5+：save/load 需 HolderLookup.Provider） ----

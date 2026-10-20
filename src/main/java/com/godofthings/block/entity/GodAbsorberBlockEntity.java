@@ -10,6 +10,7 @@ import appeng.api.storage.MEStorage;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
+import com.godofthings.block.entity.machine.PendingOutputQueue;
 import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.godgrid.LongSlotTransfer;
 import com.godofthings.menu.GodAbsorberMenu;
@@ -48,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li>经验：经验球进经验点存储（经验面板可取出）。</li>
  *   <li>面配置（六面输入输出）+ AE 并网（产物自动输出进 AE）。</li>
  * </ul>
+ * <p>v5.18.10：产物装不下内部存储时进内存待处理队列并暂停吸收，不再掉到世界里（见 {@code pendingOutputs} 注释）。
  */
 public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, MachineOwner
 {
@@ -102,6 +104,16 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
             setChanged();
         }
     };
+
+    /**
+     * 产物溢出的内存待处理队列（v5.18.10）：产物装不进内部存储时暂存于此，下一 tick 重试写入；
+     * <b>队列非空期间暂停吸收</b>，队列清空后自动恢复。
+     *
+     * <p>取舍：队列是纯内存态、<b>不进存档</b> —— 拆机器 / 掉电 / 区块卸载时队列里的余量会消失；
+     * 另一条路只有「掉到世界里」，按要求宁可丢这一点余量也不把产物撒进世界。
+     * 实际上只有内部存储的「不同类型数」（{@link #MAX_STORAGE_TYPES}）被塞满时才会用到它。</p>
+     */
+    private final PendingOutputQueue pendingOutputs = new PendingOutputQueue();
 
     private final int[] faceModes = new int[6];
     private final SideHandler[] sideHandlers = new SideHandler[6];
@@ -208,7 +220,7 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
 
     /**
      * 把整堆物品塞进存储：先叠到同类槽，再占第一个空槽。
-     * 返回塞不下的余量（数量可能 &gt;99，调用方按需 {@link InfiniteItemHandler#dropRemainder} 拆堆）。
+     * 返回塞不下的余量（数量可能 &gt;99）；调用方必须交给 {@code PendingOutputQueue} 待处理队列，禁止掉到世界。
      */
     private ItemStack insertAny(ItemStack stack, boolean simulate)
     {
@@ -239,6 +251,26 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
             }
         }
         return rest;
+    }
+
+    /** 把待处理队列里的产物重试写进内部存储；写空后吸收自动恢复。 */
+    private void flushPendingStorage()
+    {
+        int guard = pendingOutputs.size() + 1; // 防死循环：队列里每条最多试一轮
+        while (!pendingOutputs.isEmpty() && guard-- > 0)
+        {
+            ItemStack head = pendingOutputs.poll();
+            ItemStack leftover = insertAny(head, false);
+            if (leftover.getCount() >= head.getCount())
+            {
+                pendingOutputs.offer(leftover); // 一点都写不进：放回队列，保持暂停
+                return;
+            }
+            if (!leftover.isEmpty())
+            {
+                pendingOutputs.offer(leftover); // 部分写入：余量放回队尾，接着试下一条
+            }
+        }
     }
 
     /**
@@ -346,7 +378,9 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
     {
         if (level.isClientSide) return;
         be.autoTransfer(level);
-        if (be.enabled) be.scanAndAbsorb(level);
+        be.flushPendingStorage();
+        // 待处理队列没写空 = 产物塞不下：暂停吸收（autoTransfer / AE 仍照常跑，抽走存储腾出空间后自动恢复）
+        if (be.enabled && be.pendingOutputs.isEmpty()) be.scanAndAbsorb(level);
         be.aeTick++;
         if (be.aeTick >= 20) { be.aeTick = 0; be.pushOutputToAe(); }
         // 存储压紧：界面只显示前 27 格，压紧后隐藏区的物品自动补进可视区（内容变过才扫）
@@ -378,7 +412,11 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
             ItemStack stack = item.getItem();
             if (stack.isEmpty()) { item.discard(); continue; }
             ItemStack leftover = insertAny(stack, false);
-            if (!leftover.isEmpty()) InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
+            if (!leftover.isEmpty() && !pendingOutputs.offer(leftover))
+            {
+                // v5.18.10：连内存待处理队列都满了（理论上不会）——这次不吸，留在世界里等下一轮，绝不掉地也不吞物
+                continue;
+            }
             item.discard();
         }
 
@@ -496,7 +534,8 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
             ItemStack leftover = insertAny(stack, false);
             if (!leftover.isEmpty())
             {
-                InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
+                // v5.18.10：老存档迁移也绝不掉地 —— 余量进内存待处理队列，下一 tick 重试写进 long 存储
+                pendingOutputs.offer(leftover);
             }
         }
     }

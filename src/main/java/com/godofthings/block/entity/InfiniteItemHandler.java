@@ -1,13 +1,10 @@
 package com.godofthings.block.entity;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
 import java.util.ArrayList;
@@ -18,7 +15,7 @@ import java.util.List;
  * <p>
  * 2026-09 修复：旧版为规避 count&gt;99 序列化崩溃把每堆限制在 99，
  * 导致同类物品堆数随总量无界增长（每 99 个一堆），达到 {@link #MAX_STACKS}
- * 堆数上限后剩余物被 {@link #dropRemainder} 掉落到机器上方——
+ * 堆数上限后剩余物被掉落到机器上方——
  * 即「内部存储到一定数量后在机器上方生成掉落物」的根因。
  * 现改为「每个物品类型恒一个堆叠、count 无上限」：
  * 序列化用自定义格式（物品本体按 count=1 保存，真实数量单独存 int），
@@ -28,6 +25,14 @@ import java.util.List;
  * 注意：{@link #getStackInSlot} / {@link #extractItem} 返回的堆叠 count
  * 可能 &gt;99，只允许在本 handler 内流转或经邻居 insertItem 按容量截断；
  * 禁止直接 ItemStack.save 或生成 ItemEntity（须先拆成 ≤99 的堆）。
+ * <p>
+ * <b>v5.18.9</b>：五台产出机（熔炉 / 资源三机 / 怪蛋机 / 掉落机 / 去皮机）不再把余量掉到世界里 ——
+ * 它们先用 {@link #canAcceptAll} 做容量预判，放不下就整轮跳过。
+ * <p>
+ * <b>v5.18.10</b>：矿机 / 砍杀机 / 吸收机同样不再掉地 —— 塞不下的余量进各自的内存待处理队列
+ * （{@code com.godofthings.block.entity.machine.PendingOutputQueue}），队列非空期间暂停生产。
+ * 旧的 {@code dropRemainder}（在机器上方生成 ItemEntity、按 ≤99 拆堆）<b>已随本次改动删除，
+ * 全仓库零调用点</b>：产物溢出只允许「装不下就停 / 转内置储存」，<b>禁止再引入任何掉落物兜底</b>。
  * <p>
  * 1.21.1 移植说明：物品 NBT 序列化需要 HolderLookup.Provider
  * （ItemStack.save(provider) / ItemStack.parseOptional(provider, tag)）。
@@ -40,28 +45,6 @@ public class InfiniteItemHandler implements IItemHandlerModifiable
     private final List<ItemStack> stacks = new ArrayList<>();
     private Runnable onChange = () -> {};
 
-    /** 储存类型数达上限时把剩余物掉落到方块位置附近，避免物品凭空消失。
-     *  单个 ItemEntity 的 ItemStack count 序列化硬上限是 99，大数量自动拆堆。 */
-    public static void dropRemainder(Level level, BlockPos pos, ItemStack stack)
-    {
-        if (level == null || level.isClientSide || stack.isEmpty())
-        {
-            return;
-        }
-        // 大数量拆成 ≤99 的堆逐个生成，防止超限 count 在存档时抛异常崩溃
-        ItemStack rest = stack.copy();
-        while (!rest.isEmpty())
-        {
-            int chunk = Math.min(rest.getCount(), 99);
-            ItemEntity entity = new ItemEntity(level,
-                    pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5,
-                    rest.copyWithCount(chunk));
-            entity.setDeltaMovement(0, 0.1, 0);
-            level.addFreshEntity(entity);
-            rest.shrink(chunk);
-        }
-    }
-
     public void setOnChange(Runnable onChange)
     {
         this.onChange = onChange;
@@ -70,6 +53,64 @@ public class InfiniteItemHandler implements IItemHandlerModifiable
     public List<ItemStack> getStacks()
     {
         return stacks;
+    }
+
+    /**
+     * 容量预判（v5.18.9）：这批产物是否都能存进本 handler —— 只看「不同物品类型数」上限
+     * （{@link #MAX_STACKS}），不写入任何东西。
+     *
+     * <p>判定口径与 {@link #insertItem} 一致：已有同类物品的可以继续无限累加（恒可接受），
+     * 新物品类型每个占一条堆叠记录，类型数用满后再有新品种就算「放不下」。</p>
+     */
+    public boolean canAcceptAll(List<ItemStack> incoming)
+    {
+        if (incoming == null || incoming.isEmpty())
+        {
+            return true;
+        }
+        // 常见情况：类型数远没到上限，直接放行，免去逐条比对
+        if (stacks.size() + incoming.size() <= MAX_STACKS)
+        {
+            return true;
+        }
+        int extraTypes = 0;
+        List<ItemStack> newTypes = new ArrayList<>(incoming.size());
+        for (ItemStack stack : incoming)
+        {
+            if (stack.isEmpty() || hasType(stack) || containsSameType(newTypes, stack))
+            {
+                continue;
+            }
+            newTypes.add(stack.copyWithCount(1));
+            extraTypes++;
+        }
+        return stacks.size() + extraTypes <= MAX_STACKS;
+    }
+
+    /** 是否已有同类物品（同类可无限累加，不占新的类型名额） */
+    private boolean hasType(ItemStack stack)
+    {
+        for (ItemStack existing : stacks)
+        {
+            if (ItemStack.isSameItemSameComponents(existing, stack))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** 本次预判里已经算过的「新类型」 */
+    private static boolean containsSameType(List<ItemStack> list, ItemStack stack)
+    {
+        for (ItemStack existing : list)
+        {
+            if (ItemStack.isSameItemSameComponents(existing, stack))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

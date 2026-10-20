@@ -10,6 +10,7 @@ import appeng.api.storage.MEStorage;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
+import com.godofthings.block.entity.machine.OutputCapacity;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
@@ -391,10 +392,15 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     }
 
 
+    /**
+     * 单轮处理量（GUI 加速槽提示与 process 共用同一口径）：加速槽满 64 个神之加速 → int 上限
+     * 2,147,483,647，否则 = 内置 64 × 并行倍率。见 {@link GodGridLayout#roundBatch}。
+     */
     @Override
     public int gridOperationsPerColumn()
     {
-        return GodGridLayout.operationsPerColumn(accelSlot.getStackInSlot(0).getCount());
+        return (int) GodGridLayout.roundBatch(
+                accelSlot.getStackInSlot(0).getCount(), GodGridLayout.BUILTIN_PARALLEL, getParallelMultiplier());
     }
 
     // ---- AE 网格节点（线缆直连并网，产物自动输出进 AE） ----
@@ -530,26 +536,43 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
             return; // 无效输入
         }
         int mult = getParallelMultiplier();
+        int accelCount = accelSlot.getStackInSlot(0).getCount();
         // 神之共鸣·掉落（v5.15.4）：战利品爆炸倍率（主人在线 + 穿齐全套 + 共鸣开关开）
         double bomb = level instanceof net.minecraft.server.level.ServerLevel serverLevel
                 ? com.godofthings.handler.ArmorSkillHandler.lootBombBoost(serverLevel, owner) : 1.0;
         // 不消耗原材料：输入只是生产模板，按时间持续产出（神之加速提升并行数量）
+        // v5.18.9：先把本轮全部产物算齐，再做容量预判（17 个输出槽 + 内置无限储存）——
+        // 放不下就整轮跳过，既不产出也不掉落，下一轮再试。
+        List<ItemStack> products = new java.util.ArrayList<>(outputs.size());
         for (ItemStack out : outputs)
         {
-            if (!out.isEmpty())
+            if (out.isEmpty())
             {
-                ItemStack toInsert = out.copyWithCount((int) Math.min(Integer.MAX_VALUE / 2L,
-                        Math.round(out.getCount() * mult * bomb)));
-                // 产物先进输出格（输入 i ↔ 输出 i 配对），输出区塞不下再落进内置无限储存
-                ItemStack leftover = insertIntoOutputs(slot, toInsert);
-                if (!leftover.isEmpty())
-                {
-                    leftover = itemHandler.insertItem(-1, leftover, false);
-                }
-                if (!leftover.isEmpty())
-                {
-                    InfiniteItemHandler.dropRemainder(level, worldPosition, leftover);
-                }
+                continue;
+            }
+            // 单轮产量：加速槽满 64 个神之加速 → int 上限 2,147,483,647（不再受 64 × 1024 限制），
+            // 否则 = 单份数量 × 并行倍率（现有公式）。全程 long 计算，最后才钳到 int 上限喂给 ItemStack
+            long base = GodGridLayout.roundBatch(accelCount, out.getCount(), mult);
+            int count = (int) Math.min(Integer.MAX_VALUE, Math.max(1L, Math.round(base * bomb)));
+            products.add(out.copyWithCount(count));
+        }
+        if (products.isEmpty())
+        {
+            return;
+        }
+        // 内置无限储存也受「不同物品类型数」上限约束：连它也满了就跳过本轮，不退化为掉落
+        if (!OutputCapacity.fits(gridHandler, OUTPUT_SLOT_START, OUTPUT_SLOT_COUNT, products, itemHandler))
+        {
+            return; // 容量不足：本轮跳过（不产出任何物品、不掉到世界里），下轮再试
+        }
+        for (ItemStack product : products)
+        {
+            // 产物先进输出格（输入 i ↔ 输出 i 配对），输出区塞不下再落进内置无限储存
+            ItemStack leftover = insertIntoOutputs(slot, product);
+            if (!leftover.isEmpty())
+            {
+                // 内置储存收下（容量已在上面预判过，正常到这里就为空）；绝不落世界
+                itemHandler.insertItem(-1, leftover, false);
             }
         }
     }
@@ -557,7 +580,8 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     /**
      * 产物入输出格：先试与输入配对的那一格（输入 i ↔ 输出 i），再试其它输出格。
      * <p>按 long 累加（{@link LongSlotHandler#insertLong}），单格容量 int 上限，不会再被 99 截断。</p>
-     * 返回塞不下的部分。
+     * 返回塞不下的部分（v5.18.9 起调用方已用 {@link OutputCapacity#fits} 预判过容量：
+     * 放不下就整轮跳过，这里不再有「塞不下就掉到世界里」的兜底）。
      */
     private ItemStack insertIntoOutputs(int inputSlot, ItemStack stack)
     {

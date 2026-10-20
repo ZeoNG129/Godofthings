@@ -93,6 +93,9 @@ public final class GodGridLayout
     /** 内置并行基数：等价 PBG「满级速度 + 6 级 STACK（2^6）」的每列每 tick 操作数 */
     public static final int BUILTIN_PARALLEL = 64;
 
+
+    /** 加速槽满一组（64 个神之加速）的档位：单轮处理量直接拉到 int 上限 */
+    public static final int ACCEL_FULL_STACK = 64;
     private GodGridLayout()
     {
     }
@@ -133,5 +136,31 @@ public final class GodGridLayout
     {
         return (int) Math.min(Integer.MAX_VALUE,
                 (long) BUILTIN_PARALLEL * GodAcceleratorItem.multiplierFor(accelCount));
+    }
+
+    /**
+     * 单轮处理量 —— 五台产出机器（熔炉 / 去皮 / 资源三机 / 怪蛋 / 掉落）的统一口径（v5.18.8）。
+     *
+     * <ul>
+     *   <li>加速槽放满 64 个神之加速（{@link #ACCEL_FULL_STACK}）→ 单轮 = int 上限
+     *       {@link Integer#MAX_VALUE}（2,147,483,647）；</li>
+     *   <li>不满 64 个 → 沿用各机器原有公式 {@code builtinBase × multiplier}。</li>
+     * </ul>
+     *
+     * <p>乘算全程用 long：{@code builtinBase} 最大 int 上限、{@code multiplier} 最大 1008（63 × 16），
+     * 乘积约 2.16e12，远小于 long 上限，不会溢出。</p>
+     *
+     * @param accelCount  加速槽里的神之加速数量
+     * @param builtinBase 内置基数（熔炉 / 去皮 = {@link #BUILTIN_PARALLEL}；资源 / 怪蛋 / 掉落 = 单份产出数量）
+     * @param multiplier  并行倍率（{@link GodAcceleratorItem#multiplierFor(int)}）
+     * @return 单轮最多处理的份数（long）
+     */
+    public static long roundBatch(int accelCount, int builtinBase, long multiplier)
+    {
+        if (accelCount >= ACCEL_FULL_STACK)
+        {
+            return Integer.MAX_VALUE;
+        }
+        return (long) builtinBase * multiplier;
     }
 }
