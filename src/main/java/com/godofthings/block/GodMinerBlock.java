@@ -92,6 +92,7 @@ public class GodMinerBlock extends BaseEntityBlock
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack)
     {
         super.setPlacedBy(level, pos, state, placer, stack);
+        com.godofthings.handler.MachineStateHandler.applyOnPlace(level, pos, stack);
         if (level.getBlockEntity(pos) instanceof GodMinerBlockEntity be)
         {
             // 1.21.1：附魔存于 ENCHANTMENTS 数据组件（键为 Holder<Enchantment>），替换旧 getItemEnchantmentLevel

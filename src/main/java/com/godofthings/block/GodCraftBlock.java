@@ -72,4 +72,14 @@ public class GodCraftBlock extends BaseEntityBlock
     {
         return level.getBlockEntity(pos) instanceof MenuProvider mp ? mp : null;
     }
+
+    @Override
+    public void setPlacedBy(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos,
+                            net.minecraft.world.level.block.state.BlockState state,
+                            @org.jetbrains.annotations.Nullable net.minecraft.world.entity.LivingEntity placer,
+                            net.minecraft.world.item.ItemStack stack)
+    {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        com.godofthings.handler.MachineStateHandler.applyOnPlace(level, pos, stack);
+    }
 }

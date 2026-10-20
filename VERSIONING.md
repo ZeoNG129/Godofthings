@@ -1579,3 +1579,15 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **不动的东西**：原版四种作物的映射与掉落、树苗→原木、海带 / 甘蔗等专属产物、输入过滤（`accepts`）全部未改。
   - 键集不变（仍 622）；不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.20.5 → **5.20.6（机器拆装保存配置与内置加速，对齐 Mekanism）** —— 行为修复，按规则**末位 +1**。
+  - **问题**：挖掉机器后面配置恢复默认、内置的神之加速也没了。
+  - **新行为**：挖掉时把「六面 I/O 模式 + AE 并网开关 + 加速槽里的神之加速数量」写进**掉落的方块物品**（数据组件 `godofthings:machine_state`，复用 `GodConfigData` 的 Codec / StreamCodec）；放下时从物品还原到新的方块实体。**加速跟着机器走**——放回去还在里面，既不丢也不多出来。
+  - **捕获侧**：新 `handler/MachineStateHandler`，监听 NeoForge 的 `BlockDropsEvent`（能同时拿到方块实体和掉落列表）。在掉落列表里找到「方块本体对应的 BlockItem」把组件写上去，一个事件覆盖所有实现 `ConfigurableMachine` 的机器。
+  - **还原侧**：9 个机器方块类在 `setPlacedBy` 里调 `MachineStateHandler.applyOnPlace(...)` —— 熔炉 / 矿机 / 资源三机（`GodResourceBlock` 一个类管三种）/ 去皮 / 掉落 / 怪蛋 / 砍杀 / 吸收 / 合成台。其中熔炉 / 去皮 / 合成台原先没有 `setPlacedBy`，本次新增覆写；矿机因为 `GodMinerItem` 自己放方块并显式调 `setPlacedBy`，同样生效。
+  - **删除**：`handler/GodMachineDropHandler`（原逻辑是「挖机器时把加速单独掉成物品」）。留着会和组件一起造成加速翻倍，所以整条逻辑撤掉。
+  - **实测**（临时 GameTest 探针，跑完即删）：放置 `faces=[1,2,3,0,1,2] ae=false accel=5` → `place{faces=[1, 2, 3, 0, 1, 2] ae=false accel=5}`；再构造 `BlockDropsEvent` 调处理器 → `break{block=godofthings:god_furnace faces=[1, 2, 3, 0, 1, 2] ae=false accel=5}`。两条链路都通。
+  - **边界**：创造模式挖机不掉落（原版语义），所以创造破坏仍会丢配置；爆炸 / 活塞等非玩家破坏按原版掉落表给空配置。手上那台机器的物品被销毁（烧掉 / 合成掉 / 丢进虚空）时加速随之消失——与 Mekanism 一致。
+  - **不动的东西**：机器逻辑、方块实体存档格式、界面、神之配置物品的粘贴语义全部未改。
+  - 键集不变（仍 622）；不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

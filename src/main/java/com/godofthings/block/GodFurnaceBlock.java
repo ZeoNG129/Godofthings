@@ -70,5 +70,14 @@ public class GodFurnaceBlock extends BaseEntityBlock
         return level.getBlockEntity(pos) instanceof MenuProvider mp ? mp : null;
     }
 
-    // 挖掉时内容物一并消失（不掉落），方块本体由战利品表掉落
+    // 挖掉时内置内容物不单独掉出：方块本体由战利品表掉落，六面 / AE / 加速数写进该物品（见 MachineStateHandler）
+    @Override
+    public void setPlacedBy(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos,
+                            net.minecraft.world.level.block.state.BlockState state,
+                            @org.jetbrains.annotations.Nullable net.minecraft.world.entity.LivingEntity placer,
+                            net.minecraft.world.item.ItemStack stack)
+    {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        com.godofthings.handler.MachineStateHandler.applyOnPlace(level, pos, stack);
+    }
 }

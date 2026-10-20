@@ -78,6 +78,7 @@ public class GodAbsorberBlock extends BaseEntityBlock
                                net.minecraft.world.item.ItemStack stack)
     {
         super.setPlacedBy(level, pos, state, placer, stack);
+        com.godofthings.handler.MachineStateHandler.applyOnPlace(level, pos, stack);
         // 神之共鸣（v5.15.4）：记录放置者为主人（共鸣判定：主人在线 + 穿齐全套 + 对应共鸣开关开）
         if (placer instanceof net.minecraft.server.level.ServerPlayer player
                 && level.getBlockEntity(pos) instanceof GodAbsorberBlockEntity be)

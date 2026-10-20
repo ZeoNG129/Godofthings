@@ -210,6 +210,15 @@ public class Godofthings
                     .networkSynchronized(GodConfigData.STREAM_CODEC)
                     .build());
 
+    // ---- 机器的拆装状态（v5.20.6）----
+    // 挖掉机器时把「六面 I/O + AE 开关 + 加速数量」写进掉落的方块物品，放下时还原
+    // （对齐 Mekanism 的拆机手感；加速跟着机器走，不再单独掉成物品，见 MachineStateHandler）。
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GodConfigData>> MACHINE_STATE_DATA =
+            DATA_COMPONENTS.register("machine_state", () -> DataComponentType.<GodConfigData>builder()
+                    .persistent(GodConfigData.CODEC)
+                    .networkSynchronized(GodConfigData.STREAM_CODEC)
+                    .build());
+
     // ---- 方块 ----
     // 注意：不能用 BlockBehaviour.Properties.copy(Blocks.FURNACE) —— 会连带原版熔炉的
     // `lit` 状态属性，而本方块未定义该属性，注册时直接崩溃。因此手动构造属性。
