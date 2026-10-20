@@ -1567,3 +1567,15 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **创造物品栏重排**：方块在前（机器 14 台 → 创造 / 特殊方块 4 个 → 无用维度传送方块 ×3 → 皮肤玩偶），物品在后并按外观分组成段（神之套装 4 件 → 手持工具 5 件 → 卡片 / 石板 2 件 → 书页 2 件 → 随身容器 2 件 → 升级件 2 件 → ME 无限元件 4 个），每段带 `// ---- xxx ----` 注释便于以后维护。
   - **文档**：README 的「快捷键」表把键位列改成「未绑定」并补一句说明；键集不变（仍 622）；不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.20.4 → **5.20.5（神之作物兼容神秘农业等模组作物：种子按「满熟掉落」产出，不再吐种子）** —— 兼容修复，按规则**末位 +1**。
+  - **问题**：自然种子（`mysticalagriculture:nature_seeds`）放进去产出还是自然种子。原因在 `GodResourceVariant.produceCrop`：原版四种作物走 `cropStateFor` 的写死映射，其它一切「看起来像植物」的物品最后落到「复制自己」的兜底。
+  - **通用方案（不加任何模组依赖）**：种子的 `BlockItem.getBlock()` 若 `instanceof CropBlock`（神秘农业的 `MysticalCropBlock` 正是 `extends CropBlock` 并重写了 `getDrops`），就把方块状态里的整数属性（优先 `age`）拉到最大值当作「满熟」，再调原版 `Block.getDrops(...)` 走它自己的掉落逻辑，最后从掉落里挑主产物放大到 64。
+  - **主产物口径**：跳过与输入相同的物品（也就是种子本身），剩下的里取数量最多的那个 ×64。自然种子 → 掉落 `[自然精华 ×1, 自然种子 ×1]` → 主产物 = **自然精华 ×64**。
+  - **为什么不直接用 `CropBlock#getAgeProperty`**：1.21.1 里它和 `getMaxAge()` 都是 `protected`（编译直接报错），改成遍历 `BlockState#getProperties()` 找整数属性并取 `Collections.max(possibleValues)`，对自定义 age 属性的模组作物同样成立。
+  - **容错**：`Block.getDrops` 包了 `try/catch (RuntimeException)` —— 个别模组方块在缺少支撑方块 / 方块实体时抛错，那就当作「无掉落」，退回原有的「复制本身」兜底，不会把整台机器打挂。
+  - **实测**（临时 GameTest 探针 + 把 `MysticalAgriculture-1.21.1-8.0.28.jar` 与前置 `Cucumber-1.21.1-8.0.16.jar` 拷进 `run-gametest/mods`）：`[MA-PROBE] seeded=mysticalagriculture:nature_seeds accepts=true out=[mysticalagriculture:nature_essence x64; ]` —— 探针与那两个 jar 在验证后已删除，测试集仍是 45 条。
+  - **手册同步**：`manual.godofthings.god_crop_machine`（zh/en）补一句「模组作物按满熟掉落计算，神秘农业自然种子产出自然精华」。
+  - **不动的东西**：原版四种作物的映射与掉落、树苗→原木、海带 / 甘蔗等专属产物、输入过滤（`accepts`）全部未改。
+  - 键集不变（仍 622）；不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

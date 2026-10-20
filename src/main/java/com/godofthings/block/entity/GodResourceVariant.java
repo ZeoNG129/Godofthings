@@ -337,6 +337,20 @@ public enum GodResourceVariant
             return multiplyTo64(drops);
         }
 
+        // 模组作物（神秘农业等）：种子是 BlockItem，指向的方块继承原版 CropBlock。
+        // 把 AGE 拉到最大 → 走该方块自己的 getDrops → 挑出主产物 ×64。
+        // 拿不到主产物（只有种子 / 抛错）就继续往下走，最后落到「复制本身」的兜底。
+        if (item instanceof BlockItem moddedSeed
+                && moddedSeed.getBlock() instanceof net.minecraft.world.level.block.CropBlock moddedCrop)
+        {
+            List<net.minecraft.world.item.ItemStack> main =
+                    pickMainCropDrop(matureCropDrops(moddedCrop, level, pos), item);
+            if (main != null)
+            {
+                return main;
+            }
+        }
+
         if (item instanceof BlockItem plantItem && isPlantLike(plantItem.getBlock()))
         {
             // 特定植物的专属产物（海带/甘蔗/仙人掌/浆果/地狱疣/可可等）
@@ -384,6 +398,85 @@ public enum GodResourceVariant
             return List.of();
         }
         return List.of(new net.minecraft.world.item.ItemStack(main.getItem(), 64));
+    }
+
+    /**
+     * 取「满熟」作物方块的掉落（模组作物通用路径）。
+     *
+     * <p>神秘农业（Mystical Agriculture）的 {@code MysticalCropBlock} 继承原版 {@code CropBlock}
+     * 并重写了 {@code getDrops}：AGE 到最大值时它给的就是「精华 ×1 + 同种种子 ×1」。
+     * 所以这里只要把 AGE 拉到 {@code getMaxAge()}，再调原版 {@code Block.getDrops}，
+     * 模组自己写的掉落逻辑照样生效 —— 不需要引用任何模组类。</p>
+     */
+    private static List<net.minecraft.world.item.ItemStack> matureCropDrops(
+            net.minecraft.world.level.block.CropBlock cropBlock,
+            net.minecraft.server.level.ServerLevel level,
+            net.minecraft.core.BlockPos pos)
+    {
+        net.minecraft.world.level.block.state.BlockState mature = cropBlock.defaultBlockState();
+        // 不用 CropBlock#getAgeProperty（1.21.1 里是 protected），改成扫状态属性：
+        // 优先取名叫 age 的整数属性，没有就取第一个整数属性，再拉到它的最大值。
+        net.minecraft.world.level.block.state.properties.IntegerProperty age = null;
+        for (net.minecraft.world.level.block.state.properties.Property<?> property : mature.getProperties())
+        {
+            if (property instanceof net.minecraft.world.level.block.state.properties.IntegerProperty ip
+                    && "age".equals(property.getName()))
+            {
+                age = ip;
+                break;
+            }
+        }
+        if (age == null)
+        {
+            for (net.minecraft.world.level.block.state.properties.Property<?> property : mature.getProperties())
+            {
+                if (property instanceof net.minecraft.world.level.block.state.properties.IntegerProperty ip)
+                {
+                    age = ip;
+                    break;
+                }
+            }
+        }
+        if (age != null && mature.hasProperty(age))
+        {
+            mature = mature.setValue(age, java.util.Collections.max(age.getPossibleValues()));
+        }
+        try
+        {
+            return net.minecraft.world.level.block.Block.getDrops(mature, level, pos, null, null,
+                    net.minecraft.world.item.ItemStack.EMPTY);
+        }
+        catch (RuntimeException e)
+        {
+            // 个别模组方块在没有支撑方块 / 方块实体时会抛错：当作「没有掉落」，
+            // 让上层退回「复制本身」的兜底，而不是把整台机器打挂。
+            return List.of();
+        }
+    }
+
+    /**
+     * 从成熟作物的掉落里挑「主产物」：跳过与输入相同的物品（也就是种子本身），
+     * 在剩下的里面取数量最多的那个，再放大到 64 个。
+     *
+     * <p>例：自然种子 → 掉落 [自然精华 ×1, 自然种子 ×1] → 跳过种子 → 主产物 = 自然精华 → 64 个。</p>
+     */
+    private static List<net.minecraft.world.item.ItemStack> pickMainCropDrop(
+            List<net.minecraft.world.item.ItemStack> drops, Item input)
+    {
+        net.minecraft.world.item.ItemStack best = null;
+        for (net.minecraft.world.item.ItemStack drop : drops)
+        {
+            if (drop.isEmpty() || drop.getItem() == input)
+            {
+                continue;
+            }
+            if (best == null || drop.getCount() > best.getCount())
+            {
+                best = drop;
+            }
+        }
+        return best == null ? null
+                : List.of(new net.minecraft.world.item.ItemStack(best.getItem(), 64));
     }
 
     /** 特定可种植物品的专属产物；返回 null 表示走通用植物逻辑 */

@@ -587,7 +587,7 @@
   "manual.godofthings.god_ore_machine": "God Ore Machine -- accepts ores only: raw ores / ingots / gems and every ore block (including modded ores like GTCEu). Produces ingots / drops per the ore loot table, 64 per cycle.\nCraft: 8 God Recipes + 1 diamond block.\nUsage: put ores in the input slots; God Accelerators add parallelism; can join an AE2 network.",
   "block.godofthings.god_crop_machine": "God Crop Machine",
   "item.godofthings.god_crop_machine": "God Crop Machine",
-  "manual.godofthings.god_crop_machine": "God Crop Machine -- accepts crops and plants only: seeds / crops / saplings / kelp / sugar cane / cactus / berries / nether wart and every modded plant. Produces per vanilla harvest loot or duplicates, 64 per cycle.\nCraft: 8 God Recipes + 1 hay block.\nUsage: put crops or saplings in the input slots; God Accelerators add parallelism; can join an AE2 network.",
+  "manual.godofthings.god_crop_machine": "God Crop Machine -- accepts crops and plants only: seeds / crops / saplings / kelp / sugar cane / cactus / berries / nether wart and every modded plant. Produces per the harvest loot of a fully grown crop, 64 per cycle. **Modded crops use the same rule**: the seed's crop block is set to full maturity and its own drop logic runs, so Mystical Agriculture's nature seeds yield **nature essence** instead of more seeds.\nCraft: 8 God Recipes + 1 hay block.\nUsage: put crops or saplings in the input slots; God Accelerators add parallelism; can join an AE2 network.",
   "block.godofthings.god_duplicate_machine": "God Duplicate",
   "item.godofthings.god_duplicate_machine": "God Duplicate",
   "item.godofthings.infinity_blank_pattern_cell": "ME Infinity Blank Pattern Cell",

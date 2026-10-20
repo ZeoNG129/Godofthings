@@ -587,7 +587,7 @@
   "manual.godofthings.god_ore_machine": "作用：神之矿物 —— 只收矿物：原矿 / 锭 / 宝石与一切矿石块（含格雷科技等模组矿石），产出对应的锭 / 成品或按矿石掉落表复制，每轮 64 个。\n获取：合成（8 个神之配方 + 1 钻石块）。\n用法：把矿物放进输入槽；可用神之加速提升并行；可作为 AE2 网格节点并网。",
   "block.godofthings.god_crop_machine": "神之作物",
   "item.godofthings.god_crop_machine": "神之作物",
-  "manual.godofthings.god_crop_machine": "作用：神之作物 —— 只收作物与植物：种子 / 作物 / 树苗 / 海带 / 甘蔗 / 仙人掌 / 浆果 / 地狱疣及一切模组植物，按原版种植收获概率或复制产出，每轮 64 个。\n获取：合成（8 个神之配方 + 1 干草块）。\n用法：把作物或树苗放进输入槽；可用神之加速提升并行；可作为 AE2 网格节点并网。",
+  "manual.godofthings.god_crop_machine": "作用：神之作物 —— 只收作物与植物：种子 / 作物 / 树苗 / 海带 / 甘蔗 / 仙人掌 / 浆果 / 地狱疣及一切模组植物，按原版种植收获概率产出，每轮 64 个。**模组作物同样按「满熟掉落」计算**：把种子的作物方块拉到满熟再走它自己的掉落表，所以神秘农业（Mystical Agriculture）的自然种子产出的是**自然精华**，不会再吐种子。\n获取：合成（8 个神之配方 + 1 干草块）。\n用法：把作物或树苗放进输入槽；可用神之加速提升并行；可作为 AE2 网格节点并网。",
   "block.godofthings.god_duplicate_machine": "神之复制",
   "item.godofthings.god_duplicate_machine": "神之复制",
   "item.godofthings.infinity_blank_pattern_cell": "ME无限空白样板元件",
