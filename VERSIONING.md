@@ -1517,3 +1517,14 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 语言：zh/en 各 +3 键（`item.` / `tooltip.` / `manual.godofthings.god_recipe`），619 → 622，双向一致。README「核心特性一览」加一行神之配方，物品数 25 → **26**。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.20.0 → **5.20.1（神之套装四件改用「原版护甲形状 + 神之配方」）** —— 配方调整，按规则**末位 +1**。
+  - 四件配方从「无形状（下界合金护甲 + 下界星 + 钻石块）」改成**原版护甲的有序形状**，材料位全部换成 `godofthings:god_recipe`：
+    · 神之头 `god_helmet`：`XXX / X X` —— 5 个神之配方
+    · 神之甲 `god_chestplate`：`X X / XXX / XXX` —— 8 个
+    · 神之腿 `god_leggings`：`XXX / X X / X X` —— 7 个
+    · 神之鞋 `god_boots`：`X X / X X` —— 4 个
+  - 只动 `data/godofthings/recipe/god_{helmet,chestplate,leggings,boots}.json` 四个文件，物品 / 属性 / 套装功能 / 成就一律没改。
+  - 语言：`manual.godofthings.god_recipe`（zh/en）文案同步 —— 说明套装四件已经迁移，并写清各自需要的数量。键集不变（仍 622）。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

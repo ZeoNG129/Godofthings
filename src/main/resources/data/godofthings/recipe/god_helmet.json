@@ -1,11 +1,15 @@
 {
-  "type": "minecraft:crafting_shapeless",
-  "ingredients": [
-    { "item": "minecraft:netherite_helmet" },
-    { "item": "minecraft:nether_star" },
-    { "item": "minecraft:diamond_block" }
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XXX",
+    "X X"
   ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" }
+  },
   "result": {
-    "id": "godofthings:god_helmet"
+    "id": "godofthings:god_helmet",
+    "count": 1
   }
 }
