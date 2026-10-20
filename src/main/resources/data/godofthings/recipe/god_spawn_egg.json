@@ -1,19 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "EEE",
-    "EHE",
-    "EEE"
+    "XXX",
+    "XOX",
+    "XXX"
   ],
   "key": {
-    "E": {
-      "item": "minecraft:emerald"
-    },
-    "H": {
-      "item": "minecraft:egg"
-    }
+    "X": { "item": "godofthings:god_recipe" },
+    "O": { "item": "minecraft:egg" }
   },
   "result": {
-    "id": "godofthings:god_spawn_egg"
+    "id": "godofthings:god_spawn_egg",
+    "count": 1
   }
 }

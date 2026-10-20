@@ -1,16 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "IRI",
-    "RNR",
-    "IRI"
+    "XXX",
+    "XGX",
+    "XXX"
   ],
   "key": {
-    "I": { "item": "minecraft:iron_block" },
-    "R": { "item": "minecraft:redstone_block" },
-    "N": { "item": "minecraft:nether_star" }
+    "X": { "item": "godofthings:god_recipe" },
+    "G": { "item": "minecraft:ender_eye" }
   },
   "result": {
-    "id": "godofthings:god_transmitter"
+    "id": "godofthings:god_transmitter",
+    "count": 1
   }
 }

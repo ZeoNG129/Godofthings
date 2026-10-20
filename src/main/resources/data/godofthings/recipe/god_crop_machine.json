@@ -1,19 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "EEE",
-    "ENE",
-    "EEE"
+    "XXX",
+    "XAX",
+    "XXX"
   ],
   "key": {
-    "E": {
-      "item": "minecraft:hay_block"
-    },
-    "N": {
-      "item": "minecraft:nether_star"
-    }
+    "X": { "item": "godofthings:god_recipe" },
+    "A": { "item": "minecraft:hay_block" }
   },
   "result": {
-    "id": "godofthings:god_crop_machine"
+    "id": "godofthings:god_crop_machine",
+    "count": 1
   }
 }

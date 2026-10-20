@@ -1,19 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "EEE",
-    "ENE",
-    "EEE"
+    "XXX",
+    "XDX",
+    "XXX"
   ],
   "key": {
-    "E": {
-      "item": "minecraft:diamond_block"
-    },
-    "N": {
-      "item": "minecraft:nether_star"
-    }
+    "X": { "item": "godofthings:god_recipe" },
+    "D": { "item": "minecraft:diamond_block" }
   },
   "result": {
-    "id": "godofthings:god_ore_machine"
+    "id": "godofthings:god_ore_machine",
+    "count": 1
   }
 }

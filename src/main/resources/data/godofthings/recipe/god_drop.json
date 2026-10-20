@@ -1,15 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "EEE",
-    "EHE",
-    "EEE"
+    "XXX",
+    "XHX",
+    "XXX"
   ],
   "key": {
-    "E": { "item": "minecraft:emerald" },
+    "X": { "item": "godofthings:god_recipe" },
     "H": { "item": "minecraft:hopper" }
   },
   "result": {
-    "id": "godofthings:god_drop"
+    "id": "godofthings:god_drop",
+    "count": 1
   }
 }

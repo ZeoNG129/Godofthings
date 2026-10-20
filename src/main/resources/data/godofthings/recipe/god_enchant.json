@@ -1,16 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "NDN",
-    "DED",
-    "NDN"
+    "XXX",
+    "XTX",
+    "XXX"
   ],
   "key": {
-    "N": { "item": "minecraft:nether_star" },
-    "D": { "item": "minecraft:diamond_block" },
-    "E": { "item": "minecraft:enchanting_table" }
+    "X": { "item": "godofthings:god_recipe" },
+    "T": { "item": "minecraft:enchanting_table" }
   },
   "result": {
-    "id": "godofthings:god_enchant"
+    "id": "godofthings:god_enchant",
+    "count": 1
   }
 }

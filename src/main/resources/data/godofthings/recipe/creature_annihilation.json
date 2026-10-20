@@ -1,16 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "DSD",
-    "SAS",
-    "DSD"
+    "XXX",
+    "XWX",
+    "XXX"
   ],
   "key": {
-    "D": { "item": "minecraft:netherite_ingot" },
-    "S": { "item": "minecraft:wither_skeleton_skull" },
-    "A": { "item": "minecraft:nether_star" }
+    "X": { "item": "godofthings:god_recipe" },
+    "W": { "item": "minecraft:wither_skeleton_skull" }
   },
   "result": {
-    "id": "godofthings:creature_annihilation"
+    "id": "godofthings:creature_annihilation",
+    "count": 1
   }
 }

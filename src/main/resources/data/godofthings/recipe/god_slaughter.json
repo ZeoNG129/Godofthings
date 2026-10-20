@@ -1,17 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "DSD",
-    "RNR",
-    "DSD"
+    "XXX",
+    "XSX",
+    "XXX"
   ],
   "key": {
-    "D": { "item": "minecraft:diamond_block" },
-    "S": { "item": "minecraft:diamond_sword" },
-    "R": { "item": "minecraft:redstone_block" },
-    "N": { "item": "minecraft:nether_star" }
+    "X": { "item": "godofthings:god_recipe" },
+    "S": { "item": "minecraft:diamond_sword" }
   },
   "result": {
-    "id": "godofthings:god_slaughter"
+    "id": "godofthings:god_slaughter",
+    "count": 1
   }
 }

@@ -1,16 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "GRG",
-    "RSR",
-    "GRG"
+    "XRX",
+    " G "
   ],
   "key": {
-    "G": { "item": "minecraft:gold_ingot" },
+    "X": { "item": "godofthings:god_recipe" },
     "R": { "item": "minecraft:redstone" },
-    "S": { "item": "minecraft:nether_star" }
+    "G": { "item": "minecraft:gold_ingot" }
   },
   "result": {
-    "id": "godofthings:god_accelerator"
+    "id": "godofthings:god_accelerator",
+    "count": 1
   }
 }

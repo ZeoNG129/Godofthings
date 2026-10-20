@@ -1,19 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "LLL",
-    "LNL",
-    "LLL"
+    "XXX",
+    "XAX",
+    "XXX"
   ],
   "key": {
-    "L": {
-      "tag": "minecraft:logs"
-    },
-    "N": {
-      "item": "minecraft:nether_star"
-    }
+    "X": { "item": "godofthings:god_recipe" },
+    "A": { "item": "minecraft:iron_axe" }
   },
   "result": {
-    "id": "godofthings:god_peeler"
+    "id": "godofthings:god_peeler",
+    "count": 1
   }
 }

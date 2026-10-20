@@ -1,15 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    " O ",
-    "OEO",
-    " O "
+    " X ",
+    "XEX",
+    " X "
   ],
   "key": {
-    "O": { "item": "minecraft:obsidian" },
+    "X": { "item": "godofthings:god_recipe" },
     "E": { "item": "minecraft:ender_eye" }
   },
   "result": {
-    "id": "godofthings:void_teleporter"
+    "id": "godofthings:void_teleporter",
+    "count": 1
   }
 }

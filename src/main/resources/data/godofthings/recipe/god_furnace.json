@@ -1,15 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "DDD",
-    "DFD",
-    "DDD"
+    "XXX",
+    "X X",
+    "XXX"
   ],
   "key": {
-    "D": { "item": "minecraft:diamond" },
-    "F": { "item": "minecraft:furnace" }
+    "X": { "item": "godofthings:god_recipe" }
   },
   "result": {
-    "id": "godofthings:god_furnace"
+    "id": "godofthings:god_furnace",
+    "count": 1
   }
 }

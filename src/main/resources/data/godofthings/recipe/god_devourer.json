@@ -1,15 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "OOO",
-    "OLO",
-    "OOO"
+    "XXX",
+    "XLX",
+    "XXX"
   ],
   "key": {
-    "O": { "item": "minecraft:obsidian" },
+    "X": { "item": "godofthings:god_recipe" },
     "L": { "item": "minecraft:lava_bucket" }
   },
   "result": {
-    "id": "godofthings:god_devourer"
+    "id": "godofthings:god_devourer",
+    "count": 1
   }
 }

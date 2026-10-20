@@ -1,15 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "DDD",
-    "DND",
-    "DDD"
+    "XXX",
+    "XPX",
+    "XXX"
   ],
   "key": {
-    "D": { "item": "minecraft:diamond_block" },
-    "N": { "item": "minecraft:nether_star" }
+    "X": { "item": "godofthings:god_recipe" },
+    "P": { "item": "minecraft:diamond_pickaxe" }
   },
   "result": {
-    "id": "godofthings:god_miner"
+    "id": "godofthings:god_miner",
+    "count": 1
   }
 }

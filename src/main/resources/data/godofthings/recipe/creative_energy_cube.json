@@ -1,15 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
-    "RRR",
-    "RNR",
-    "RRR"
+    "XXX",
+    "XNX",
+    "XXX"
   ],
   "key": {
-    "R": { "item": "minecraft:redstone_block" },
+    "X": { "item": "godofthings:god_recipe" },
     "N": { "item": "minecraft:nether_star" }
   },
   "result": {
-    "id": "godofthings:creative_energy_cube"
+    "id": "godofthings:creative_energy_cube",
+    "count": 1
   }
 }
