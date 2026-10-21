@@ -1,9 +1,6 @@
 package com.godofthings.construction.client;
 
-import com.godofthings.Godofthings;
 import net.minecraft.client.gui.screens.Screen;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
  * 神之建筑的客户端侧输入判定：<b>只放客户端类</b>，避免把 {@link Screen} 拖进服务端会加载的
@@ -13,11 +10,12 @@ import net.neoforged.fml.common.EventBusSubscriber;
  * 所以 {@code GodConstructionItem#onItemUseFirst} 的 {@code level.isClientSide} 分支会调这里，
  * 拿到结果后再发 {@code ConstructionForcePayload}。</p>
  *
- * <p>本类用 {@code @EventBusSubscriber(value = Dist.CLIENT)} 标出来：NeoForge 是用 ASM 读注解元数据
- * 来扫订阅者的，专用服务器上不会加载这个类；调用点又被 {@code level.isClientSide} 挡着，
- * 双重保险（与同包的 {@code ConstructionPreviewRenderer} 是同一套做法）。</p>
+ * <p><b>注意：这里绝对不能加 {@code @EventBusSubscriber}。</b>本类没有任何
+ * {@code @SubscribeEvent} 方法，而 NeoForge 在构造阶段扫到这种「标了订阅注解却没有订阅方法」的类会直接
+ * 抛 {@code IllegalArgumentException} 让整个模组加载失败（v5.22.1 在客户端闪过一次，服务端 GameTest
+ * 因为 {@code Dist.CLIENT} 被跳过所以没暴露）。客户端类隔离靠「调用点被 {@code level.isClientSide}
+ * 挡着 + 本类不被任何服务端路径引用」就够了。</p>
  */
-@EventBusSubscriber(modid = Godofthings.MODID, value = Dist.CLIENT)
 public final class ConstructionForceClient
 {
     private ConstructionForceClient()

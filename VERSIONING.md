@@ -1637,3 +1637,14 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **文档**：README 两个建筑条目补「副手方块优先 / Ctrl 强制施工」；`manual.godofthings.{god_construction,heavenly_construction}`（zh/en 各 2 处）同步说明。键集不变（仍 642）。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.22.1 → **5.22.2（修客户端加载期闪退）** —— 崩溃修复，按规则**末位 +1**。
+  - **现象**：进游戏直接闪退，`crash-*` 报 `Mod loading failures have occurred`。
+  - **真因**：`com.godofthings.construction.client.ConstructionForceClient` 被误标了 `@EventBusSubscriber(modid, value = Dist.CLIENT)`，但类里**没有任何 `@SubscribeEvent` 方法** → NeoForge 在**构造 mod 阶段**抛
+    `IllegalArgumentException: class ... has no @SubscribeEvent methods, but register was called anyway`，整个模组加载失败。
+  - **修法**：删掉该注解与随之无用的 import（`Godofthings` / `Dist` / `EventBusSubscriber`），类注释改成「**这里绝对不能加 @EventBusSubscriber**」并写明原因与历史。客户端隔离仍成立：唯一调用点在 `GodConstructionItem#onItemUseFirst` 的 `level.isClientSide` 分支里（已用 grep 确认全库只有这一处引用），服务端不会加载该类。
+  - **为什么上一版没测出来**：`runGameTestServer` 是**专用服务端**，`value = Dist.CLIENT` 的订阅者在服务端被跳过，所以这个加载期崩溃在 GameTest 里完全隐身；本工程也没有配 `runClient` 任务，客户端侧只能静态检查 + 实机。
+  - **全库自查**：新增检查口径 —— 遍历 `src/main/java`，凡含 `@EventBusSubscriber` 却不含 `@SubscribeEvent` 的文件都要处理；本次跑过一遍，仅此一个文件命中，已清空。
+  - **AGENTS.md**：把这条坑写进「项目约定」（含自查命令思路与「本工程没有 runClient」的说明），避免以后重犯。
+  - 键集不变（仍 642）；不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45；静态自查 0 命中。
