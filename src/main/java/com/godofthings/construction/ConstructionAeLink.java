@@ -25,13 +25,13 @@ public final class ConstructionAeLink
     {
     }
 
-    /** 只认本物品；绑定坐标写在 AE2 自己的组件里（自动存盘 + 自动同步） */
+    /** 本族两个物品都认（神之建筑 / 天神建筑）；绑定坐标写在 AE2 自己的组件里（自动存盘 + 自动同步） */
     private static final IGridLinkableHandler HANDLER = new IGridLinkableHandler()
     {
         @Override
         public boolean canLink(ItemStack stack)
         {
-            return stack.is(Godofthings.GOD_CONSTRUCTION.get());
+            return GodConstructionItem.isWand(stack);
         }
 
         @Override
@@ -52,7 +52,9 @@ public final class ConstructionAeLink
     {
         try
         {
+            // 两个都要注册：只挂一个的话另一边右键访问点会没反应
             GridLinkables.register(Godofthings.GOD_CONSTRUCTION.get(), HANDLER);
+            GridLinkables.register(Godofthings.HEAVENLY_CONSTRUCTION.get(), HANDLER);
         }
         catch (Throwable ignored)
         {

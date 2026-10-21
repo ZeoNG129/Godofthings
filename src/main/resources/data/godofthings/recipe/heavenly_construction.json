@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XXX",
+    "XWX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "W": { "item": "godofthings:god_construction" }
+  },
+  "result": {
+    "id": "godofthings:heavenly_construction",
+    "count": 1
+  }
+}

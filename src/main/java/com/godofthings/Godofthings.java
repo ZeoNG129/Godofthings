@@ -35,6 +35,7 @@ import com.godofthings.backpack.GodBackpackItem;
 import com.godofthings.backpack.GodBackpackMenu;
 import com.godofthings.backpack.GodBackpackSettings;
 import com.godofthings.config.MachinesConfig;
+import com.godofthings.construction.ConstructionTier;
 import com.godofthings.construction.GodConstructionItem;
 import com.godofthings.energy.CreativeEnergyCubeBlock;
 import com.godofthings.energy.CreativeEnergyCubeEntity;
@@ -372,9 +373,20 @@ public class Godofthings
      * 神之建筑：建筑棒「下界合金棒」的精简移植（无耐久，永久生效）。
      * 潜行右键方块切模式（建造 / 销毁 / 替换），建造是平面扩展铺同种方块，销毁不掉落，替换用副手方块顶替。
      * 材料先扣背包，不够再去绑定的 AE 网络取（见 construction 包）。
+     * 上限按品阶取值：本物品是 {@link ConstructionTier#GOD}（1024 / 81 / 1024 / 天使 2）。
      */
     public static final DeferredItem<GodConstructionItem> GOD_CONSTRUCTION =
-            ITEMS.registerItem("god_construction", props -> new GodConstructionItem(props.stacksTo(1).fireResistant()));
+            ITEMS.registerItem("god_construction",
+                    props -> new GodConstructionItem(props.stacksTo(1).fireResistant(), ConstructionTier.GOD));
+
+    /**
+     * 天神建筑：神之建筑的同族高阶物品，能力完全一致，只是四个上限全部拉到 {@code Integer.MAX_VALUE}
+     * （{@link ConstructionTier#HEAVENLY}，即实际无限）。同样无耐久、不毁。
+     * 超大操作由跨 tick 作业分摊（见 construction 包的 ConstructionJob），不会卡服务端。
+     */
+    public static final DeferredItem<GodConstructionItem> HEAVENLY_CONSTRUCTION =
+            ITEMS.registerItem("heavenly_construction",
+                    props -> new GodConstructionItem(props.stacksTo(1).fireResistant(), ConstructionTier.HEAVENLY));
 
     /** 神之配置：潜行右键机器保存六面 I/O / AE 开关 / 加速数量，普通右键同类机器一键粘贴（见 GodConfigItem） */
     public static final DeferredItem<GodConfigItem> GOD_CONFIG =
@@ -712,6 +724,7 @@ public class Godofthings
                         output.accept(GOD_BLACK_BOX.get());
                         output.accept(GOD_BINDER.get());
                         output.accept(GOD_CONSTRUCTION.get());
+                        output.accept(HEAVENLY_CONSTRUCTION.get());
                         // ---- 物品：卡片 / 石板类 ----
                         output.accept(GOD_RECIPE.get());
                         output.accept(GOD_CONFIG.get());

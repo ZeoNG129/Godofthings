@@ -1608,3 +1608,18 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **文档**：README 核心特性表新增一行、物品数 26 → **27**；zh/en 各 +7 键（item / manual / 5 条 message），622 → **629** 双向一致。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.21.0 → **5.22.0（新增「天神建筑」：三项上限全开 + 跨 tick 作业引擎）** —— 新增小物品，按规则**第二位 +1、末位归零**。
+  - **新物品** `godofthings:heavenly_construction`（天神建筑，`stacksTo(1)` + `fireResistant`，**无耐久 = 不毁**）。
+  - **数值按品阶取值**：新增 `ConstructionTier` 枚举 —— `GOD(1024, 81, 1024, 2)`（神之建筑，**与原数值逐项一致**，直接引用原常量）与 `HEAVENLY(Integer.MAX_VALUE ×4)`（天神建筑：单次放置数 / 单次破坏数 / 替换数 / **悬空距离** 全为 int 上限）。
+  - **升级与功能全继承**：天使 / 销毁 / 替换 / 不毁 / 预览线框 / 撤销 10 步 / GUI 设置 / 相似方块匹配 / AE 取料 / 单入口 `onItemUseFirst` 两项通用（新增 `GodConstructionItem.isWand(ItemStack)` 统一判断，`ConstructionAeLink` 两个物品都注册进 WAP 链接槽）。
+  - **跨 tick 作业引擎** `ConstructionJob`（本次最大的结构性改动）：原来「一次点击内算完并全部执行」在 int 上限下会把服务端卡死，现在改成 BFS 与执行交错、**每 tick 最多 8192 格**；作业在 `ServerTickEvent.Post` 推进，GOD 品阶（≤1024 格）仍在发起的那一 tick 内跑完，**行为与改动前一致**。
+    · 撤销只在作业 `finish` 时一次性落库（材料用完 / 玩家下线 / 换维度 / 手上没有本族物品 / 同玩家再点一次 → 都会先 `finish`，已完成的部分照常可撤销）。
+    · 材料逐格扣（背包 → AE 网络），扣不到就整轮停，已扣不退；音效跨 tick 也只播一次。
+  - **天使放置安全兜底**：`angelDistance` 为 int 上限时**不能**做 `eye + look * MAX_VALUE`（会溢出），改成沿视线 **0.25 格步进、最多 512 格**找第一个可放位置，并跳过与玩家碰撞箱相交的格子；GOD 品阶（2 格）仍走原来的单点取整，逐格等价。
+  - **实测**（临时探针，跑完即删）：40×40 = 1600 格的石墙前各点一次 —— `[TIER-PROBE] wall=1600 godBuilt=1024 heavenlyBuilt=1600`：神之建筑被 1024 上限截断，天神建筑把整面铺满，证明品阶取值与作业引擎都对。
+  - **测试可测性**：把 `ConstructionJob` / `ConstructionActions` 的玩家参数从 `ServerPlayer` 放宽到 `Player`（服务端判定改用 `level instanceof ServerLevel`），真机行为不变，但作业引擎可以在 GameTest 的假玩家上跑通。
+  - **资源**：`models/item/heavenly_construction.json` + `textures/item/heavenly_construction.png`（128×128：白金杖身 + 亮金环 + 白金方块头 + 星芒光晕）；配方 = **神之建筑 ×1 + 神之配方 ×8** 围一圈。
+  - **文档**：README 核心特性表新增一行、物品数 27 → **28**；zh/en 各 +2 键（item / manual），640 → **642** 双向一致。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

@@ -639,5 +639,7 @@
   "option.godofthings.god_construction.on": "ON",
   "option.godofthings.god_construction.off": "OFF",
   "message.godofthings.god_construction.undone": "Undid %s blocks",
-  "message.godofthings.god_construction.undo_empty": "Nothing to undo"
+  "message.godofthings.god_construction.undo_empty": "Nothing to undo",
+  "item.godofthings.heavenly_construction": "Heavenly Construction",
+  "manual.godofthings.heavenly_construction": "What: Heavenly Construction -- the god-tier version of God Construction. Exactly the same controls (**right-click** runs the current mode, **sneak-right-click** cycles it, **sneak-right-click air** opens the settings screen with the 10-step undo, preview outline and similar-block matching), but all three limits are pushed to the **int maximum**: blocks placed per action, blocks destroyed per action, and the angel (mid-air) placement distance. Durability is unlimited as well (no durability bar).\nObtain: crafting (**1 God Construction + 8 God Recipes** in a ring).\nUse: same as God Construction. Because one action can hit hundreds of thousands of blocks, the server runs it in batches of **8192 blocks per tick** and continues across ticks; walking away / swapping hands / logging out cancels the remainder (what was already done still goes into the undo history). AE extraction works too: link the wand in a Wireless Access Point's link slot."
 }

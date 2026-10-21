@@ -14,9 +14,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.level.BlockEvent;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -26,8 +25,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 神之建筑的四种批量动作（建造 / 天使放置 / 销毁 / 替换），全部照 ConstructionSticks 的
+ * 神之建筑 / 天神建筑的四种批量动作（建造 / 天使放置 / 销毁 / 替换），全部照 ConstructionSticks 的
  * ActionConstruction / ActionAngel / ActionDestruction / ActionReplace 精简而来。
+ *
+ * <p>三种批量动作（建造 / 销毁 / 替换）在这里只做<b>前置校验并登记作业</b>（{@link ConstructionJob}），
+ * 真正的 BFS 与落方块在作业里按 tick 预算推进 —— 天神建筑的格子上限是 {@code Integer.MAX_VALUE}，
+ * 一次点击命中几十万格时不能把服务端卡住一帧。神之建筑（≤ 1024 格）的作业会在同一 tick 内跑完，
+ * 表现与改造前一致。</p>
  *
  * <p>方向约定（最容易写错的地方）：</p>
  * <ul>
@@ -55,6 +59,17 @@ public final class ConstructionActions
                     BlockStateProperties.ROTATION_16
             };
 
+    /** 天使放置沿视线前进的步长（格） */
+    public static final double ANGEL_STEP = 0.25;
+    /**
+     * 天使放置最多沿视线走多少格（<b>安全帽</b>）。
+     *
+     * <p>天神建筑的 {@link ConstructionTier#HEAVENLY#getAngelDistance()} 是 int 上限，
+     * 绝不能写成 {@code eye.add(look.scale(Integer.MAX_VALUE))}（坐标会溢出成 NaN / 无限远）。
+     * 512 格已经远超正常视野能看清的距离，同时保证步进循环最多跑 2048 次。</p>
+     */
+    public static final int ANGEL_STEP_LIMIT = 512;
+
     private ConstructionActions()
     {
     }
@@ -66,13 +81,18 @@ public final class ConstructionActions
     /**
      * 贴着被点面「平面扩展」铺同种方块。
      *
-     * <p>要铺哪些格由 {@link #collectBuild} 纯函数算出来（客户端预览用的是同一个函数，两边结果必须一致），
-     * 这里只负责扣材料 + 真正落方块。</p>
+     * <p>要铺哪些格与 {@link #collectBuild} 是同一套 BFS（客户端预览用的是那个纯函数，两边结果一致），
+     * 这里只负责校验前置条件 + 登记作业 {@link ConstructionJob#startBuild}（扣材料 / 落方块都在作业里）。</p>
      *
      * <p>任何一格不满足条件：这一格不铺，也不再从它往外扩散（照上游写法）。材料扣不到就整轮结束。</p>
      */
     static void build(Player player, ItemStack wand, Level level, BlockPos clickedPos, Direction face)
     {
+        if (!(level instanceof net.minecraft.server.level.ServerLevel))
+        {
+            return; // 改方块只在服务端做
+        }
+
         BlockPos origin = clickedPos.immutable();
         BlockState template = level.getBlockState(origin);
 
@@ -85,38 +105,10 @@ public final class ConstructionActions
             return;
         }
 
-        List<BlockPos> targets = collectBuild(level, player, wand, origin, face);
-        if (targets.isEmpty())
-        {
-            return;
-        }
-
-        Direction backToBlock = face.getOpposite();
-        List<ConstructionUndo.BlockChange> changes = new ArrayList<>();
-        boolean soundPlayed = false;
-        for (BlockPos pos : targets)
-        {
-            // 材料用完就整轮停下（不是跳过这一格，免得铺出参差不齐的一片）
-            if (!GodConstructionItem.takeMaterial(player, wand, wanted))
-            {
-                break;
-            }
-
-            // 记下放置前的状态（空气 / 被替换掉的方块），撤销时原样放回去
-            BlockState oldState = level.getBlockState(pos);
-            // 以被点方块的 state 为模板，复制背面方块的朝向（朝向 / 半砖方向跟着走）
-            BlockState newState = copyRotation(template, level.getBlockState(pos.relative(backToBlock)));
-            level.setBlock(pos, newState, 2);
-            changes.add(new ConstructionUndo.BlockChange(pos, oldState));
-
-            if (!soundPlayed)
-            {
-                GodConstructionItem.playPlaceSound(level, pos);
-                soundPlayed = true;
-            }
-        }
-        // 一次操作压一条撤销记录（一格都没铺到时 push 内部会忽略空列表）
-        ConstructionUndo.push(player, changes);
+        BlockPos start = origin.relative(face).immutable();
+        // 允许当「支撑面」的方块集合只算一次，BFS 里就是 O(1) 的 contains
+        Set<Block> accepted = similarBlocks(wand, template);
+        ConstructionJob.startBuild(player, wand, template, accepted, start, face);
     }
 
     /**
@@ -130,15 +122,19 @@ public final class ConstructionActions
      *   <li>复制朝向属性后 {@code canSurvive} 仍然成立，且没有被保护插件禁止交互。</li>
      * </ol>
      *
-     * <p><b>不落方块、不扣材料</b>，所以客户端可以直接调它来画预览线框。</p>
+     * <p><b>不落方块、不扣材料</b>，所以客户端可以直接调它来画预览线框（预览只取前 {@code max} 个，
+     * 不然天神建筑要画几十万条线）。</p>
+     *
+     * @param max 最多返回多少个坐标（预览传 256；要「全部」就传 {@code Integer.MAX_VALUE}）
      */
-    public static List<BlockPos> collectBuild(Level level, Player player, ItemStack wand, BlockPos clickedPos, Direction face)
+    public static List<BlockPos> collectBuild(Level level, Player player, ItemStack wand, BlockPos clickedPos,
+            Direction face, int max)
     {
         BlockPos origin = clickedPos.immutable();
         BlockState template = level.getBlockState(origin);
 
         // 没有对应物品的方块不可能铺（和 build 的守卫条件保持一致）
-        if (template.isAir() || new ItemStack(template.getBlock().asItem()).isEmpty())
+        if (template.isAir() || new ItemStack(template.getBlock().asItem()).isEmpty() || max <= 0)
         {
             return List.of();
         }
@@ -155,7 +151,7 @@ public final class ConstructionActions
         queue.addLast(start);
         visited.add(start);
 
-        while (!queue.isEmpty() && result.size() < GodConstructionItem.MAX_BUILD_BLOCKS)
+        while (!queue.isEmpty() && result.size() < max)
         {
             BlockPos pos = queue.removeFirst();
 
@@ -234,8 +230,19 @@ public final class ConstructionActions
     // ==================================================================================
 
     /**
-     * 天使放置：用副手的方块物品，在「眼睛沿视线方向前进 {@link GodConstructionItem#ANGEL_DISTANCE} 格」
-     * 取整得到的那一格放 1 个方块（不要求贴着任何东西）。副手不是方块物品就什么也不做。
+     * 天使放置：用副手的方块物品，在<b>眼睛沿视线方向</b>前方放 1 个方块（不要求贴着任何东西）。
+     * 副手不是方块物品就什么也不做。
+     *
+     * <p>两种品阶走两条路（数值见 {@link ConstructionTier}）：</p>
+     * <ul>
+     *   <li><b>神之建筑（{@code angelDistance = 2}）</b>：照旧 —— 眼睛沿视线前进正好 2 格、取整到方块，
+     *       只有这一个候选点，与改造前逐格一致（点不到就什么都不放）。</li>
+     *   <li><b>天神建筑（{@code angelDistance = int 上限}）</b>：<b>绝不能</b>算
+     *       {@code eye + look * Integer.MAX_VALUE}（坐标直接溢出），改成以 {@value #ANGEL_STEP} 格步进
+     *       前进，最多走 {@code min(angelDistance, }{@value #ANGEL_STEP_LIMIT}{@code ) = 512} 格，
+     *       取第一个「可替换 + 可存活 + mayInteract 通过」的位置。与玩家自己身体相交的格子直接跳过，
+     *       免得把方块放进自己脚下。</li>
+     * </ul>
      */
     static void angel(Player player, ItemStack wand, Level level)
     {
@@ -244,19 +251,31 @@ public final class ConstructionActions
             return;
         }
 
-        Vec3 eye = player.getEyePosition();
-        Vec3 target = eye.add(player.getLookAngle().scale(GodConstructionItem.ANGEL_DISTANCE));
-        BlockPos pos = BlockPos.containing(target).immutable(); // 取整（向下取整）到方块坐标
-
         BlockState newState = blockItem.getBlock().defaultBlockState();
-        if (!level.getBlockState(pos).canBeReplaced() || !newState.canSurvive(level, pos))
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getLookAngle();
+        int distance = GodConstructionItem.getTier(wand).getAngelDistance();
+
+        BlockPos pos;
+        if (distance <= ANGEL_STEP_LIMIT)
         {
-            return;
+            // 有限距离（神之建筑）：照旧的单点取整，行为完全不变
+            pos = BlockPos.containing(eye.add(look.scale(distance))).immutable();
+            if (!canAngelPlace(level, player, newState, pos))
+            {
+                return;
+            }
         }
-        if (!level.mayInteract(player, pos))
+        else
         {
-            return;
+            // 无限距离（天神建筑）：0.25 格步进找第一个能放的位置，最多走 512 格
+            pos = findAngelPos(level, player, newState, eye, look, ANGEL_STEP_LIMIT);
+            if (pos == null)
+            {
+                return;
+            }
         }
+
         if (!GodConstructionItem.takeMaterial(player, wand, new ItemStack(blockItem)))
         {
             return;
@@ -266,88 +285,72 @@ public final class ConstructionActions
         GodConstructionItem.playPlaceSound(level, pos);
     }
 
+    /**
+     * 沿视线步进找天使放置点（只给「int 上限」品阶用）。
+     *
+     * @param maxTravel 最多走多少格（调用方已经和 {@link #ANGEL_STEP_LIMIT} 取过 min）
+     * @return 第一个能放的位置；一路走完都没有就返回 null
+     */
+    private static BlockPos findAngelPos(Level level, Player player, BlockState newState, Vec3 eye, Vec3 look,
+            int maxTravel)
+    {
+        // 玩家自己的碰撞箱：整格落在里面的候选一律跳过（不然会把自己埋进方块里）
+        AABB body = player.getBoundingBox();
+
+        // 步进用累计位移而不是乘法，避免浮点累积误差把最后一格漏掉
+        Vec3 step = look.scale(ANGEL_STEP);
+        Vec3 cursor = eye;
+        for (double traveled = ANGEL_STEP; traveled <= maxTravel + 1.0E-6D; traveled += ANGEL_STEP)
+        {
+            cursor = cursor.add(step);
+            BlockPos candidate = BlockPos.containing(cursor);
+            if (body.intersects(new AABB(candidate)))
+            {
+                continue; // 别把方块放进玩家自己身体里
+            }
+            if (canAngelPlace(level, player, newState, candidate))
+            {
+                return candidate.immutable();
+            }
+        }
+        return null;
+    }
+
+    /** 天使放置的单格判定：可替换 + 能存活 + 允许交互 */
+    private static boolean canAngelPlace(Level level, Player player, BlockState newState, BlockPos pos)
+    {
+        return level.getBlockState(pos).canBeReplaced()
+                && newState.canSurvive(level, pos)
+                && level.mayInteract(player, pos);
+    }
+
     // ==================================================================================
     // 销毁模式 · 右键方块
     // ==================================================================================
 
     /**
-     * 拆掉被点方块的连通块（最多 {@link GodConstructionItem#MAX_DESTROY_BLOCKS} 格，<b>不掉落任何物品</b>）。
+     * 拆掉被点方块的连通块（神之建筑最多 {@link GodConstructionItem#MAX_DESTROY_BLOCKS} 格、天神建筑无限，
+     * <b>不掉落任何物品</b>）。
      *
-     * <p>每一格的要求（照 ActionDestruction）：</p>
+     * <p>每一格的要求（照 ActionDestruction，判定在 {@link ConstructionJob#stepDestroy} 里）：</p>
      * <ol>
      *   <li>朝玩家那一侧（{@code pos.relative(face)}）必须是可透过的 —— 原实现的
      *       {@code isBlockPermeable}，即那格是空气或没有碰撞体；所以脸只能贴着自己看得见的方块拆；</li>
      *   <li>方块类型与被点方块相同；</li>
      *   <li>没有方块实体（箱子 / 机器不碰，免得丢内容），且 {@code destroySpeed >= 0}（基岩这类跳过）；</li>
-     *   <li>发 {@link BlockEvent.BreakEvent}，被领地方取消的这一格就不拆。</li>
+     *   <li>发 {@code BlockEvent.BreakEvent}，被领地方取消的这一格就不拆。</li>
      * </ol>
      */
-    static void destroy(Player player, Level level, BlockPos clickedPos, Direction face)
+    static void destroy(Player player, ItemStack wand, Level level, BlockPos clickedPos, Direction face)
     {
+        
         BlockPos origin = clickedPos.immutable();
         BlockState targetState = level.getBlockState(origin);
         if (targetState.isAir())
         {
             return; // 点到空气（理论上不会）就什么也不做
         }
-        Block targetBlock = targetState.getBlock();
-
-        Deque<BlockPos> queue = new ArrayDeque<>();
-        Set<BlockPos> visited = new HashSet<>();
-        queue.addLast(origin);
-        visited.add(origin);
-
-        int removed = 0;
-        List<ConstructionUndo.BlockChange> changes = new ArrayList<>();
-        while (!queue.isEmpty() && removed < GodConstructionItem.MAX_DESTROY_BLOCKS)
-        {
-            BlockPos pos = queue.removeFirst();
-
-            // 1) 面向玩家的那一侧必须能透过（照 StickUtil#isBlockPermeable）
-            if (!isBlockPermeable(level, pos.relative(face)))
-            {
-                continue;
-            }
-
-            // 2) 只拆被点的那种方块
-            BlockState state = level.getBlockState(pos);
-            if (state.getBlock() != targetBlock)
-            {
-                continue;
-            }
-
-            // 3) 带方块实体的、不可破坏的、被保护插件禁止交互的都跳过
-            if (level.getBlockEntity(pos) != null)
-            {
-                continue;
-            }
-            if (state.getDestroySpeed(level, pos) < 0.0F)
-            {
-                continue;
-            }
-            if (!level.mayInteract(player, pos))
-            {
-                continue;
-            }
-
-            // 4) 领地 / 保护插件有最后一次否决权
-            BlockEvent.BreakEvent breakEvent = new BlockEvent.BreakEvent(level, pos, state, player);
-            if (NeoForge.EVENT_BUS.post(breakEvent).isCanceled())
-            {
-                continue;
-            }
-
-            level.removeBlock(pos, false); // 不掉落
-            changes.add(new ConstructionUndo.BlockChange(pos, state));
-            removed++;
-
-            for (Direction direction : Direction.values())
-            {
-                pushCandidate(queue, visited, pos.relative(direction));
-            }
-        }
-        // 一次操作压一条撤销记录（拆到的方块原样记下来，撤销时放回去）
-        ConstructionUndo.push(player, changes);
+        ConstructionJob.startDestroy(player, wand, targetState, origin, face);
     }
 
     // ==================================================================================
@@ -355,7 +358,8 @@ public final class ConstructionActions
     // ==================================================================================
 
     /**
-     * 把被点方块的连通块换成副手拿的方块（最多 {@link GodConstructionItem#MAX_REPLACE_BLOCKS} 格）。
+     * 把被点方块的连通块换成副手拿的方块（神之建筑最多 {@link GodConstructionItem#MAX_REPLACE_BLOCKS} 格、
+     * 天神建筑无限）。
      *
      * <p>照 ActionReplace：副手必须是方块物品（否则提示 {@code need_offhand}）；扩散时跳过空气、
      * 没有碰撞体的方块（草 / 花 / 火把…）和已经是目标方块的格子；新方块 {@code canSurvive} 不通过就跳过这一格。
@@ -364,6 +368,7 @@ public final class ConstructionActions
      */
     static void replace(Player player, ItemStack wand, Level level, BlockPos clickedPos)
     {
+        
         if (!(player.getOffhandItem().getItem() instanceof BlockItem blockItem))
         {
             // 副手不是方块（空手也算）：提示一下，别让玩家以为物品坏了
@@ -373,78 +378,17 @@ public final class ConstructionActions
         }
 
         BlockPos origin = clickedPos.immutable();
-        BlockState newState = blockItem.getBlock().defaultBlockState();
         Block targetBlock = level.getBlockState(origin).getBlock();
-
-        Deque<BlockPos> queue = new ArrayDeque<>();
-        Set<BlockPos> visited = new HashSet<>();
-        queue.addLast(origin);
-        visited.add(origin);
-
-        int replaced = 0;
-        List<ConstructionUndo.BlockChange> changes = new ArrayList<>();
-        while (!queue.isEmpty() && replaced < GodConstructionItem.MAX_REPLACE_BLOCKS)
-        {
-            BlockPos pos = queue.removeFirst();
-            BlockState oldState = level.getBlockState(pos);
-
-            // 跳过空气、没有碰撞体的方块、已经是目标方块的格子（照 ActionReplace）
-            if (oldState.isAir() || !oldState.blocksMotion() || oldState.getBlock() == newState.getBlock())
-            {
-                continue;
-            }
-            // 只换被点的那种方块
-            if (oldState.getBlock() != targetBlock)
-            {
-                continue;
-            }
-            if (!newState.canSurvive(level, pos))
-            {
-                continue;
-            }
-            if (level.getBlockEntity(pos) != null || !level.mayInteract(player, pos))
-            {
-                continue;
-            }
-            // 替换同样会移除旧方块，按保护插件惯例先问一声
-            BlockEvent.BreakEvent breakEvent = new BlockEvent.BreakEvent(level, pos, oldState, player);
-            if (NeoForge.EVENT_BUS.post(breakEvent).isCanceled())
-            {
-                continue;
-            }
-
-            // 材料用完就整轮停下
-            if (!GodConstructionItem.takeMaterial(player, wand, new ItemStack(blockItem)))
-            {
-                break;
-            }
-
-            // 旧方块掉成物品（照 ReplaceSnapshot：只用方块物品，不走战利品表）
-            ItemStack oldItem = new ItemStack(oldState.getBlock().asItem());
-            if (!oldItem.isEmpty())
-            {
-                Block.popResource(level, pos, oldItem);
-            }
-
-            level.setBlock(pos, newState, 2);
-            changes.add(new ConstructionUndo.BlockChange(pos, oldState));
-            replaced++;
-
-            for (Direction direction : Direction.values())
-            {
-                pushCandidate(queue, visited, pos.relative(direction));
-            }
-        }
-        // 一次操作压一条撤销记录（记的是被换掉的那些方块）
-        ConstructionUndo.push(player, changes);
+        ConstructionJob.startReplace(player, wand, targetBlock, blockItem.getBlock().defaultBlockState(),
+                origin, new ItemStack(blockItem));
     }
 
     // ==================================================================================
-    // 工具方法
+    // 工具方法（包内共用：ConstructionJob 也要用）
     // ==================================================================================
 
     /** 列队一个候选格：批量操作里一律存不可变坐标，防止别处复用可变 pos 串格 */
-    private static void pushCandidate(Deque<BlockPos> queue, Set<BlockPos> visited, BlockPos pos)
+    static void pushCandidate(Deque<BlockPos> queue, Set<BlockPos> visited, BlockPos pos)
     {
         BlockPos next = pos.immutable();
         if (visited.add(next))
@@ -457,7 +401,7 @@ public final class ConstructionActions
      * 只在垂直于 {@code face} 的平面内扩散：4 个正交邻居 + 4 个斜角邻居
      * （沿 {@code face} 轴的分量恒为 0，也就是不会往上方 / 下方那两格跑）。
      */
-    private static void expandPlane(Deque<BlockPos> queue, Set<BlockPos> visited, BlockPos pos, Direction face)
+    static void expandPlane(Deque<BlockPos> queue, Set<BlockPos> visited, BlockPos pos, Direction face)
     {
         for (Direction first : Direction.values())
         {
@@ -482,7 +426,7 @@ public final class ConstructionActions
      * 照 StickUtil#isBlockPermeable：该格是空气，或者碰撞体为空 = 视线能穿过去。
      * 用于销毁模式「只能拆自己看得见的那一面」。
      */
-    private static boolean isBlockPermeable(Level level, BlockPos pos)
+    static boolean isBlockPermeable(Level level, BlockPos pos)
     {
         return level.isEmptyBlock(pos) || level.getBlockState(pos).getCollisionShape(level, pos).isEmpty();
     }
@@ -493,7 +437,7 @@ public final class ConstructionActions
      * <p>半砖单独处理：{@code SlabType.DOUBLE} 不复制（否则会刷出双半砖），统一落成下半砖。</p>
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static BlockState copyRotation(BlockState template, BlockState from)
+    static BlockState copyRotation(BlockState template, BlockState from)
     {
         BlockState result = template;
         for (Property property : ROTATION_PROPERTIES)

@@ -21,18 +21,27 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 
 /**
- * 神之建筑：建筑棒模组的「下界合金棒」精简移植（上游 ConstructionSticks，作者 Mrbysco，MIT License；
+ * 神之建筑 / 天神建筑：建筑棒模组的「下界合金棒」精简移植（上游 ConstructionSticks，作者 Mrbysco，MIT License；
  * AE 部分参照 Applied Construction Sticks，作者 benbenlaw）。
+ *
+ * <p>本类服务<b>同族两个物品</b>：神之建筑（{@code godofthings:god_construction}，品阶
+ * {@link ConstructionTier#GOD}）与天神建筑（{@code godofthings:heavenly_construction}，品阶
+ * {@link ConstructionTier#HEAVENLY}）。两者能力完全一样，只有四个上限不同 —— 上限<b>不再是类上的常量</b>，
+ * 而是按物品的品阶（{@link #getTier(ItemStack)}）取值，见 {@link ConstructionTier}。
+ * 「是不是本族物品」一律用 {@link #isWand(ItemStack)} 判断，不要写成
+ * {@code instanceof GodConstructionItem} 或 {@code is(Godofthings.GOD_CONSTRUCTION.get())}
+ * ——那样会把天神建筑漏掉。</p>
  *
  * <p>本物品<b>没有耐久</b>（不毁，永久生效），只靠一个数据组件记模式，三种模式循环：</p>
  * <ul>
  *   <li><b>潜行 + 右键方块</b>：切换模式 0 → 1 → 2 → 0，行动栏提示当前模式。</li>
- *   <li><b>建造（0）</b>：右键方块 = 贴着被点面「平面扩展」铺同种方块（最多
- *       {@value #MAX_BUILD_BLOCKS} 格）；右键空气 = 天使放置（副手的方块，
+ *   <li><b>建造（0）</b>：右键方块 = 贴着被点面「平面扩展」铺同种方块（神之建筑最多
+ *       {@value #MAX_BUILD_BLOCKS} 格，天神建筑无限）；右键空气 = 天使放置（副手的方块，
  *       在眼睛沿视线方向前进 {@value #ANGEL_DISTANCE} 格处放 1 格）。</li>
- *   <li><b>销毁（1）</b>：右键方块 = 拆掉被点方块的连通块（最多 {@value #MAX_DESTROY_BLOCKS} 格，<b>不掉落</b>）。</li>
- *   <li><b>替换（2）</b>：右键方块 = 把被点方块的连通块换成副手拿的方块（最多
- *       {@value #MAX_REPLACE_BLOCKS} 格），旧方块掉成物品。</li>
+ *   <li><b>销毁（1）</b>：右键方块 = 拆掉被点方块的连通块（神之建筑最多 {@value #MAX_DESTROY_BLOCKS} 格，
+ *       天神建筑无限，都<b>不掉落</b>）。</li>
+ *   <li><b>替换（2）</b>：右键方块 = 把被点方块的连通块换成副手拿的方块（神之建筑最多
+ *       {@value #MAX_REPLACE_BLOCKS} 格，天神建筑无限），旧方块掉成物品。</li>
  *   <li><b>潜行 + 右键空气</b>：打开设置界面（模式 / 撤销 / 预览 / 相似方块开关，纯客户端 Screen）。</li>
  * </ul>
  *
@@ -41,7 +50,8 @@ import java.util.List;
  * 创造模式（{@code hasInfiniteMaterials}）不扣材料。</p>
  *
  * <p>右键方块一律走 {@link #onItemUseFirst}（箱子 / 机器这类会开界面的方块也能正常触发建造）；
- * 改方块的动作为了权威性只在服务端执行，客户端只回报成功，顺带阻止方块自己的交互再跑一遍。</p>
+ * 改方块的动作为了权威性只在服务端执行，客户端只回报成功，顺带阻止方块自己的交互再跑一遍。
+ * 批量动作本身是跨 tick 的作业（见 {@link ConstructionJob}），点一下只是「登记一个作业」。</p>
  */
 public class GodConstructionItem extends Item
 {
@@ -54,19 +64,73 @@ public class GodConstructionItem extends Item
     /** 模式总数（切换时 0 → 1 → 2 → 0） */
     public static final int MODE_COUNT = 3;
 
-    /** 建造模式一次最多铺多少格（对齐下界合金棒的 limit） */
+    /**
+     * 神之建筑（{@link ConstructionTier#GOD}）一次最多铺多少格（对齐下界合金棒的 limit）。
+     *
+     * <p>这里留常量只是为了让外部老引用和 javadoc 的 {@code @value} 继续有效，
+     * {@link ConstructionTier#GOD} 直接引用它，所以两边不可能改歪；真正生效的上限一律读
+     * {@link #getTier(ItemStack)}。</p>
+     */
     public static final int MAX_BUILD_BLOCKS = 1024;
-    /** 销毁模式一次最多拆多少格（对齐下界合金棒的 destruction） */
+    /** 神之建筑（{@link ConstructionTier#GOD}）一次最多拆多少格（对齐下界合金棒的 destruction） */
     public static final int MAX_DESTROY_BLOCKS = 81;
-    /** 替换模式一次最多换多少格（对齐下界合金棒的 limit） */
+    /** 神之建筑（{@link ConstructionTier#GOD}）一次最多换多少格（对齐下界合金棒的 limit） */
     public static final int MAX_REPLACE_BLOCKS = 1024;
 
-    /** 天使放置：从眼睛沿视线方向前进几格（取整后放 1 格；上游默认 angel = 16 是「隔着空气补一格」的距离，这里按移植要求固定 2） */
+    /** 神之建筑的天使放置距离：从眼睛沿视线方向前进几格（上游默认 angel = 16 是「隔着空气补一格」的距离，这里按移植要求固定 2） */
     public static final int ANGEL_DISTANCE = 2;
 
-    public GodConstructionItem(Properties properties)
+    /** 本物品的品阶（上限全从这里读；由 {@code Godofthings} 注册时注入） */
+    private final ConstructionTier tier;
+
+    public GodConstructionItem(Properties properties, ConstructionTier tier)
     {
         super(properties);
+        this.tier = tier;
+    }
+
+    /**
+     * 这个物品栈是不是本族物品（神之建筑 / 天神建筑）。
+     *
+     * <p>所有「认不认这把棒子」的判断点都走它：物品类型判断、组件读写、AE 链接、GUI 只认手上物品、
+     * 预览渲染条件、作业取消条件。</p>
+     */
+    public static boolean isWand(ItemStack stack)
+    {
+        return stack != null && !stack.isEmpty() && stack.getItem() instanceof GodConstructionItem;
+    }
+
+    /** 主手优先、其次副手；手上没有本族物品就返回空栈 */
+    public static ItemStack findWand(Player player)
+    {
+        ItemStack main = player.getMainHandItem();
+        if (isWand(main))
+        {
+            return main;
+        }
+        ItemStack off = player.getOffhandItem();
+        return isWand(off) ? off : ItemStack.EMPTY;
+    }
+
+    /**
+     * 物品栈的品阶（上限 / 天使距离都从它取）。
+     *
+     * <p>理论上调用前都已经用 {@link #isWand(ItemStack)} 挡过；万一传进来别的东西，
+     * 退回 {@link ConstructionTier#GOD}（数值最小、最保守）。</p>
+     */
+    public static ConstructionTier getTier(ItemStack stack)
+    {
+        if (stack != null && stack.getItem() instanceof GodConstructionItem wand)
+        {
+            return wand.tier;
+        }
+        return ConstructionTier.GOD;
+    }
+
+    /** 本物品实例的品阶 */
+    public ConstructionTier getTier()
+    {
+        return this.tier;
     }
 
     /** 当前模式；没写过组件就是建造模式 */
@@ -128,7 +192,7 @@ public class GodConstructionItem extends Item
         Direction face = context.getClickedFace();
         switch (getMode(stack))
         {
-            case MODE_DESTROY -> ConstructionActions.destroy(player, level, clickedPos, face);
+            case MODE_DESTROY -> ConstructionActions.destroy(player, stack, level, clickedPos, face);
             case MODE_REPLACE -> ConstructionActions.replace(player, stack, level, clickedPos);
             default -> ConstructionActions.build(player, stack, level, clickedPos, face);
         }

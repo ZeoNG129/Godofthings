@@ -639,5 +639,7 @@
   "option.godofthings.god_construction.on": "开",
   "option.godofthings.god_construction.off": "关",
   "message.godofthings.god_construction.undone": "已撤销 %s 格",
-  "message.godofthings.god_construction.undo_empty": "没有可撤销的操作"
+  "message.godofthings.god_construction.undo_empty": "没有可撤销的操作",
+  "item.godofthings.heavenly_construction": "天神建筑",
+  "manual.godofthings.heavenly_construction": "作用：天神建筑 —— 神之建筑的天神版。与神之建筑完全同一套操作（**右键**按模式批量施工、**潜行右键**切模式、**潜行右键空气**开设置界面：撤销 10 步 / 预览线框 / 相似方块匹配），但把三项上限全部拉到 **int 上限**：单次**放置**方块数、单次**破坏**方块数、**悬空放置距离**；耐久同样**无限**（没有耐久条）。\n获取：合成（**神之建筑 ×1 + 神之配方 ×8** 围一圈）。\n用法：与神之建筑一致；因为一次可能命中几十万格，服务端按**每 tick 8192 格**分批执行，作业会跨 tick 继续，走到别处 / 换手 / 下线会取消剩余部分（已完成的部分照常计入撤销）。AE 取料同样支持：在 AE2 无线接入点链接槽里绑定网络即可。"
 }

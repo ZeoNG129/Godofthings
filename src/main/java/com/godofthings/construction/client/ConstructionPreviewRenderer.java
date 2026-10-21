@@ -28,13 +28,12 @@ import java.util.List;
  * 神之建筑的建造预览线框（纯客户端）。
  *
  * <p>手持本物品、预览开关打开、处于<b>建造模式</b>、准星对着方块时，用
- * {@link ConstructionActions#collectBuild}（和真正建造<b>完全同一个函数</b>）算出将要铺的坐标，
+ * {@link ConstructionActions#collectBuild}（和真正建造<b>完全同一套 BFS</b>）算出将要铺的坐标，
  * 每格画一个白色线框。这样预览与实际结果不会跑偏。</p>
  *
- * <p>位置上限 {@value #MAX_PREVIEW_BOXES} 格：建造模式一次最多 {@value GodConstructionItem#MAX_BUILD_BLOCKS} 格，
- * 全画出来要上万条线，明显掉帧；只画前 {@value #MAX_PREVIEW_BOXES} 格足够提示「要铺多大一片」。</p>
- *
- * <p>销毁 / 替换模式不画（本移植只给建造做预览）。</p>
+ * <p>位置上限 {@value #MAX_PREVIEW_BOXES} 格：全画出来要上万条线，明显掉帧；只画前
+ * {@value #MAX_PREVIEW_BOXES} 格足够提示「要铺多大一片」，所以 BFS 的 {@code max} 也直接传这个数
+ * （天神建筑的上限是 int 上限，不设这个截断会算到天荒地老）。</p>
  */
 @EventBusSubscriber(modid = Godofthings.MODID, value = Dist.CLIENT)
 public final class ConstructionPreviewRenderer
@@ -66,9 +65,9 @@ public final class ConstructionPreviewRenderer
             return;
         }
 
-        // 只在「拿着本物品 + 预览开着 + 建造模式」时画
+        // 只在「主手拿着本族物品（神之建筑 / 天神建筑）+ 预览开着 + 建造模式」时画（判断条件与改造前一致，只是多认天神建筑）
         ItemStack wand = player.getMainHandItem();
-        if (!(wand.getItem() instanceof GodConstructionItem))
+        if (!GodConstructionItem.isWand(wand))
         {
             return;
         }
@@ -86,9 +85,9 @@ public final class ConstructionPreviewRenderer
         BlockHitResult blockHit = (BlockHitResult) hit;
         BlockPos clickedPos = blockHit.getBlockPos().immutable();
 
-        // 与建造完全同一套算法（不落方块、不扣材料）
+        // 与建造完全同一套算法（不落方块、不扣材料），只取前 MAX_PREVIEW_BOXES 个
         List<BlockPos> positions = ConstructionActions.collectBuild(
-                minecraft.level, player, wand, clickedPos, blockHit.getDirection());
+                minecraft.level, player, wand, clickedPos, blockHit.getDirection(), MAX_PREVIEW_BOXES);
         if (positions.isEmpty())
         {
             return;

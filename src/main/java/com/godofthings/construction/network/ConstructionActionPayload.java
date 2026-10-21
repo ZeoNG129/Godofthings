@@ -9,7 +9,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -29,8 +28,8 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
  *   <li>{@link #ACTION_UNDO}：撤回最近一次建造 / 销毁 / 替换（见 {@link ConstructionUndo}）。</li>
  * </ul>
  *
- * <p>服务端只认<b>玩家手上拿着的那把神之建筑</b>（主手优先，其次副手）：界面是自己开的，
- * 但网络数据不可信，不能信客户端报来的槽位号。手上没有这东西就整个丢掉。</p>
+ * <p>服务端只认<b>玩家手上拿着的本族物品</b>（神之建筑 / 天神建筑，主手优先，其次副手）：
+ * 界面是自己开的，但网络数据不可信，不能信客户端报来的槽位号。手上没有这东西就整个丢掉。</p>
  */
 @EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD)
 public record ConstructionActionPayload(int action, int value) implements CustomPacketPayload
@@ -102,7 +101,7 @@ public record ConstructionActionPayload(int action, int value) implements Custom
                 return;
             }
             // 只认手上拿着的（网络数据不可信，不收客户端报的槽位）
-            ItemStack wand = findWand(player);
+            ItemStack wand = GodConstructionItem.findWand(player);
             if (wand.isEmpty())
             {
                 return;
@@ -136,15 +135,4 @@ public record ConstructionActionPayload(int action, int value) implements Custom
                 : Component.translatable("message.godofthings.god_construction.undo_empty"), true);
     }
 
-    /** 主手优先，其次副手；都没有就返回空栈 */
-    private static ItemStack findWand(Player player)
-    {
-        ItemStack main = player.getMainHandItem();
-        if (main.getItem() instanceof GodConstructionItem)
-        {
-            return main;
-        }
-        ItemStack off = player.getOffhandItem();
-        return off.getItem() instanceof GodConstructionItem ? off : ItemStack.EMPTY;
-    }
 }

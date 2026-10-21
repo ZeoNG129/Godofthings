@@ -197,20 +197,14 @@ public class GodConstructionScreen extends Screen
         return label.copy().append(" ").append(state);
     }
 
-    /** 主手优先、其次副手；界面对应的就是手上那一个 */
+    /** 主手优先、其次副手；界面对应的就是手上那一个（神之建筑 / 天神建筑都认） */
     private ItemStack wandStack()
     {
         if (this.minecraft == null || this.minecraft.player == null)
         {
             return ItemStack.EMPTY;
         }
-        ItemStack main = this.minecraft.player.getMainHandItem();
-        if (main.getItem() instanceof GodConstructionItem)
-        {
-            return main;
-        }
-        ItemStack off = this.minecraft.player.getOffhandItem();
-        return off.getItem() instanceof GodConstructionItem ? off : ItemStack.EMPTY;
+        return GodConstructionItem.findWand(this.minecraft.player);
     }
 
     @Override
