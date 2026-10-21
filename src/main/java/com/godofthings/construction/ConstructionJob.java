@@ -366,9 +366,11 @@ public final class ConstructionJob
         {
             return;
         }
-        // 3) 带方块实体的、不可破坏的、被保护插件禁止交互的都跳过
-        if (level.getBlockEntity(pos) != null || state.getDestroySpeed(level, pos) < 0.0F
-                || !level.mayInteract(player, pos))
+        // 3) 不可破坏的（基岩 / 屏障）与被保护插件禁止交互的跳过。
+        //    注意：这里**不再**排除带方块实体的方块（箱子 / 熔炉 / 本模组机器）——
+        //    它们正是「会开界面」的那批方块，v5.22.2 之前整类被跳过，导致销毁模式对它们完全没反应。
+        //    销毁本来就不掉落任何东西，所以直接 removeBlock 把方块实体一起丢掉即可。
+        if (state.getDestroySpeed(level, pos) < 0.0F || !level.mayInteract(player, pos))
         {
             return;
         }

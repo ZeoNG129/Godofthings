@@ -1648,3 +1648,14 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **AGENTS.md**：把这条坑写进「项目约定」（含自查命令思路与「本工程没有 runClient」的说明），避免以后重犯。
   - 键集不变（仍 642）；不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45；静态自查 0 命中。
+
+- 5.22.2 → **5.22.3（销毁模式对「会开界面的方块」无效）** —— 行为修复，按规则**末位 +1**。
+  - **现象**：Ctrl + 右键箱子 / 机器时，建造模式正常，但**销毁模式完全没反应**。
+  - **真因**：`ConstructionJob#stepDestroy` 里有一条照上游搬来的保护判定 `level.getBlockEntity(pos) != null → 跳过`。而「会开界面的方块」——箱子、熔炉、本模组全部机器——**必然带方块实体**，于是整类被这条判定挡住；Ctrl 的包本身没问题（`perform` 确实按 `action` 分派到 `destroy`）。
+  - **修法**：销毁不再排除带方块实体的方块，只保留「不可破坏（`getDestroySpeed < 0`）/ 领地禁止交互 / `BreakEvent` 被取消」三条拦截。销毁本来就不掉落任何东西，`removeBlock(pos,false)` 会连同方块实体一起清掉。
+  - **代价（已写进手册）**：拆箱子 / 机器时**内容物一并销毁**（销毁的语义就是「不掉落」）；要保留内容物请用普通挖掘或神之建筑。
+  - **替换模式未改**：`stepReplace` 仍跳过带方块实体的方块（避免把箱子连内容一起换成石头）。需要的话再开。
+  - **实测**（临时探针，跑完即删）：`[DESTROY-PROBE] chestHasBE=false chestAir=true stoneAir=true` —— 箱子（有方块实体）被拆掉且方块实体一并移除，普通石头回归正常。
+  - **文档**：`manual.godofthings.god_construction`（zh/en）补一句「箱子 / 机器这类带方块实体的方块也能拆，内容物一并销毁」。键集不变（仍 642）。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
