@@ -1,0 +1,41 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "godofthings:item/naturescompass_16"
+    },
+    "overrides": [
+        { "predicate": { "godofthings:angle": 0.000000 }, "model": "godofthings:item/natures_compass" },
+        { "predicate": { "godofthings:angle": 0.015625 }, "model": "godofthings:item/naturescompass_17" },
+        { "predicate": { "godofthings:angle": 0.046875 }, "model": "godofthings:item/naturescompass_18" },
+        { "predicate": { "godofthings:angle": 0.078125 }, "model": "godofthings:item/naturescompass_19" },
+        { "predicate": { "godofthings:angle": 0.109375 }, "model": "godofthings:item/naturescompass_20" },
+        { "predicate": { "godofthings:angle": 0.140625 }, "model": "godofthings:item/naturescompass_21" },
+        { "predicate": { "godofthings:angle": 0.171875 }, "model": "godofthings:item/naturescompass_22" },
+        { "predicate": { "godofthings:angle": 0.203125 }, "model": "godofthings:item/naturescompass_23" },
+        { "predicate": { "godofthings:angle": 0.234375 }, "model": "godofthings:item/naturescompass_24" },
+        { "predicate": { "godofthings:angle": 0.265625 }, "model": "godofthings:item/naturescompass_25" },
+        { "predicate": { "godofthings:angle": 0.296875 }, "model": "godofthings:item/naturescompass_26" },
+        { "predicate": { "godofthings:angle": 0.328125 }, "model": "godofthings:item/naturescompass_27" },
+        { "predicate": { "godofthings:angle": 0.359375 }, "model": "godofthings:item/naturescompass_28" },
+        { "predicate": { "godofthings:angle": 0.390625 }, "model": "godofthings:item/naturescompass_29" },
+        { "predicate": { "godofthings:angle": 0.421875 }, "model": "godofthings:item/naturescompass_30" },
+        { "predicate": { "godofthings:angle": 0.453125 }, "model": "godofthings:item/naturescompass_31" },
+        { "predicate": { "godofthings:angle": 0.484375 }, "model": "godofthings:item/naturescompass_00" },
+        { "predicate": { "godofthings:angle": 0.515625 }, "model": "godofthings:item/naturescompass_01" },
+        { "predicate": { "godofthings:angle": 0.546875 }, "model": "godofthings:item/naturescompass_02" },
+        { "predicate": { "godofthings:angle": 0.578125 }, "model": "godofthings:item/naturescompass_03" },
+        { "predicate": { "godofthings:angle": 0.609375 }, "model": "godofthings:item/naturescompass_04" },
+        { "predicate": { "godofthings:angle": 0.640625 }, "model": "godofthings:item/naturescompass_05" },
+        { "predicate": { "godofthings:angle": 0.671875 }, "model": "godofthings:item/naturescompass_06" },
+        { "predicate": { "godofthings:angle": 0.703125 }, "model": "godofthings:item/naturescompass_07" },
+        { "predicate": { "godofthings:angle": 0.734375 }, "model": "godofthings:item/naturescompass_08" },
+        { "predicate": { "godofthings:angle": 0.765625 }, "model": "godofthings:item/naturescompass_09" },
+        { "predicate": { "godofthings:angle": 0.796875 }, "model": "godofthings:item/naturescompass_10" },
+        { "predicate": { "godofthings:angle": 0.828125 }, "model": "godofthings:item/naturescompass_11" },
+        { "predicate": { "godofthings:angle": 0.859375 }, "model": "godofthings:item/naturescompass_12" },
+        { "predicate": { "godofthings:angle": 0.890625 }, "model": "godofthings:item/naturescompass_13" },
+        { "predicate": { "godofthings:angle": 0.921875 }, "model": "godofthings:item/naturescompass_14" },
+        { "predicate": { "godofthings:angle": 0.953125 }, "model": "godofthings:item/naturescompass_15" },
+        { "predicate": { "godofthings:angle": 0.984375 }, "model": "godofthings:item/natures_compass" }
+    ]
+}

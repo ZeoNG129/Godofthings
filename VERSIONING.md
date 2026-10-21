@@ -1659,3 +1659,25 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **文档**：`manual.godofthings.god_construction`（zh/en）补一句「箱子 / 机器这类带方块实体的方块也能拆，内容物一并销毁」。键集不变（仍 642）。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.22.3 → **5.23.0（新增自然罗盘 / 探险者指南针）** —— 新增两个小物品，按规则**第二位 +1、末位归零**。
+  - **自然罗盘** `godofthings:natures_compass`（整包移植自 [Nature's Compass](https://www.curseforge.com/minecraft/mc-mods/natures-compass)，作者 ChaosTheDude，CC BY-NC-SA 4.0）：
+    - 31 个 Java 类落在新包 `com.godofthings.compass.natures`（`items` / `gui` / `client` / `network` / `config` / `sorting` / `util`），**搜索算法（螺旋采样 + 连通性判定）一行未改**。
+    - 9 个数据组件注册进现有 `Godofthings.DATA_COMPONENTS`：`natures_compass_biome_id` / `_state` / `_found_x` / `_found_z` / `_search_radius` / `_samples` / `_display_coords` / `_prev_pos` / `_damage`；传送权限节点 `godofthings.natures_compass.teleport`。
+    - 网络包 4 条：`godofthings:natures_compass_search` / `_search_for_next` / `_teleport`（playToServer）与 `_sync`（playToClient），与仓库既有 35 个 payload id 无冲突。
+    - 配置：`godofthings-natures-compass.toml`（GENERAL）与 `godofthings-natures-compass-client.toml`（CLIENT），配置项名称 / 注释 / 默认值 / 范围与上游逐条一致。
+    - 资源：主模型 + 31 个 `angle` 变体模型（谓词改 `godofthings:angle`）、32 张贴图二进制原样、`data/godofthings/recipe/natures_compass.json`（`SLS/LCL/SLS`，S=`minecraft:saplings`、L=`minecraft:logs`、C=指南针）+ 修复配方、`data/minecraft/tags/item/compasses.json`。
+  - **探险者指南针** `godofthings:explorers_compass`（整包移植自 [Explorer's Compass](https://github.com/MattCzyr/ExplorersCompass)，CC BY-NC-SA 4.0）：
+    - 34 个 Java 类落在新包 `com.godofthings.compass.explorers`（多一层 `worker`：`SearchWorkerManager` + 随机散布 / 同心环 / 通用三种搜索器），**三种搜索算法一行未改**。
+    - 从 Forge 1.20.1 迁到 NeoForge 1.21.1：`net.minecraftforge.*` → `net.neoforged.*`、`SimpleChannel` → `PayloadRegistrar`、`ForgeConfigSpec` → `ModConfigSpec`、`WorldWorkerManager` 改 `net.neoforged.neoforge.common.WorldWorkerManager`。
+    - **上游的 `accesstransformer.cfg` 不需要了**：它只为 `ChunkGenerator#getPlacementsForStructure` 开可见性，1.21.1 里该方法已随 `RandomState` → `ChunkGeneratorStructureState` 迁移并成为 `public`，本工程继续不设 AT 文件。
+    - **删除 Xaero 自动路径点联动**（`connect/NewWayPoint.java`、`client/HandleNewWay.java`、`network/NewWayPointPacket.java` 三文件 + `StructureSearchWorker` 调用点 + `ConfigHandler.newWayPoint` 配置项 + 包注册行）；全仓库 `grep -i xaero` 为 0。
+    - 网络包 4 条：`godofthings:explorers_compass_search` / `_teleport` / `_clean_found`（playToServer）与 `_sync`（playToClient）。
+    - 配置：`godofthings-explorers-compass.toml` 与 `godofthings-explorers-compass-client.toml`。
+    - 资源：主模型（顺带修掉上游遗留 bug —— 主模型 overrides 里还写着裸 `"angle"`，已统一为 `godofthings:angle`）+ 32 个变体模型 + 32 张贴图、`data/godofthings/recipe/explorers_compass.json`（`WSW/SCS/WSW`，W=蜘蛛网、S=裂纹石砖、C=指南针）、上游 3 个 advancement 合并成 1 个配方解锁进度（**顶层成就数仍 33 不变**）。
+  - **统一的改名口径**：包名 / 物品 id / 资源命名空间 / 模型贴图前缀 / 配置文件名 / 语言键前缀全部改成 `godofthings`；**功能、GUI 外观、贴图、音效、搜索算法原样保留**，显示名仍是「自然罗盘」/「探险者指南针」。
+  - **客户端隔离**：`compass.natures` 与 `compass.explorers` 下只有真的带 `@SubscribeEvent` 的 `NaturesCompassClient` / `ExplorersCompassClient` 加了 `@EventBusSubscriber`，纯静态工具类一律不加（照 AGENTS.md 的硬规则）。
+  - **语言键**：新增 66 条（NC 43 + EC 21 + 2 条手册正文），键集 642 → **708**，zh/en 双向一致、无空值。
+  - **物品数** 28 → **30**，README「内容一览」加两行、`check-lang.ps1` 的文档计数同步。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - **首版踩坑（已修）**：`NaturesCompassData` 一开始把 9 个 `DeferredRegister.register(...)` 写在自己的静态字段里，而该类直到服务端启动期的 `PermissionGatherEvent` 才首次被加载 —— 此时 `RegisterEvent` 早已触发，直接抛 `IllegalStateException: Cannot register new entries to DeferredRegister after RegisterEvent has been fired`，`runGameTestServer` 报 `ExceptionInInitializerError` 崩溃。修法：9 个 `DeferredHolder` 字段搬到 `Godofthings` 自己的静态初始化里，`NaturesCompassData` 只做别名引用。坑已写进 AGENTS.md（含自查命令）。

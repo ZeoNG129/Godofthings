@@ -245,6 +245,67 @@ public class Godofthings
                     .networkSynchronized(ByteBufCodecs.BOOL)
                     .build());
 
+    // ---- 自然罗盘数据组件（v5.23.0）----
+    // 必须写在 Godofthings 自己的静态初始化里：DeferredRegister 一旦被延迟到
+    // PermissionGatherEvent（服务端启动期）才首次加载，register() 会抛
+    // 「Cannot register new entries to DeferredRegister after RegisterEvent has been fired」。
+    // 所以这里只是「存放处」，NaturesCompassData 里用别名指向它们。
+    /** 目标群系的资源位置字符串（如 {@code minecraft:plains}） */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> NATURES_COMPASS_BIOME_ID =
+            DATA_COMPONENTS.register("natures_compass_biome_id", () -> DataComponentType.<String>builder()
+                    .persistent(Codec.STRING)
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8)
+                    .build());
+    /** 状态机（0 空闲 / 1 搜索中 / 2 已找到 / 3 未找到，见 CompassState） */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> NATURES_COMPASS_STATE =
+            DATA_COMPONENTS.register("natures_compass_state", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+    /** 找到的群系的 X 坐标 */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> NATURES_COMPASS_FOUND_X =
+            DATA_COMPONENTS.register("natures_compass_found_x", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+    /** 找到的群系的 Z 坐标 */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> NATURES_COMPASS_FOUND_Z =
+            DATA_COMPONENTS.register("natures_compass_found_z", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+    /** 搜索半径（搜索过程中不断刷新，用于 HUD 显示） */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> NATURES_COMPASS_SEARCH_RADIUS =
+            DATA_COMPONENTS.register("natures_compass_search_radius", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+    /** 已采样次数 */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> NATURES_COMPASS_SAMPLES =
+            DATA_COMPONENTS.register("natures_compass_samples", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+    /** HUD 上是否显示精确坐标与距离（服务端按配置写，客户端只读） */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> NATURES_COMPASS_DISPLAY_COORDS =
+            DATA_COMPONENTS.register("natures_compass_display_coords", () -> DataComponentType.<Boolean>builder()
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(ByteBufCodecs.BOOL)
+                    .build());
+    /** 已经找到过的群系坐标（「搜索下一个」用来跳过已找到的、以及判断是否连通） */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<java.util.List<net.minecraft.core.BlockPos>>> NATURES_COMPASS_PREV_POS =
+            DATA_COMPONENTS.register("natures_compass_prev_pos",
+                    () -> DataComponentType.<java.util.List<net.minecraft.core.BlockPos>>builder()
+                            .persistent(net.minecraft.core.BlockPos.CODEC.listOf().xmap(java.util.ArrayList::new, list -> list))
+                            .networkSynchronized(ByteBufCodecs.collection(java.util.ArrayList::new, net.minecraft.core.BlockPos.STREAM_CODEC))
+                            .build());
+    /** 已用次数（配合配置项 compassDurability 做「用几次就坏，要拿指南针修」） */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> NATURES_COMPASS_DAMAGE =
+            DATA_COMPONENTS.register("natures_compass_damage", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+
     // ---- 方块 ----
     // 注意：不能用 BlockBehaviour.Properties.copy(Blocks.FURNACE) —— 会连带原版熔炉的
     // `lit` 状态属性，而本方块未定义该属性，注册时直接崩溃。因此手动构造属性。
@@ -405,6 +466,25 @@ public class Godofthings
     /** 神之背包：120 格随身仓库（右键打开；内容与设置存在物品数据组件里，见 backpack 包） */
     public static final DeferredItem<GodBackpackItem> GOD_BACKPACK_ITEM =
             ITEMS.registerItem("god_backpack", props -> new GodBackpackItem(props.stacksTo(1)));
+
+    /**
+     * 自然罗盘（移植自 Natures Compass 3.4.0，作者 ChaosTheDude，CC BY-NC-SA 4.0）：
+     * 右键打开群系选择界面，选一个群系就能搜到它的坐标并指路；有权限还能直接传送过去。
+     * 数据组件 / 网络包 / 客户端注册 / 配置见 {@code compass.natures} 包。
+     */
+    public static final DeferredItem<com.godofthings.compass.natures.items.NaturesCompassItem> NATURES_COMPASS =
+            ITEMS.registerItem("natures_compass",
+                    props -> new com.godofthings.compass.natures.items.NaturesCompassItem(props));
+
+    /**
+     * 探险者指南针（移植自 Explorer's Compass 1.20.x，作者 ChaosTheDude，CC BY-NC-SA 4.0）：
+     * 右键打开结构选择界面，选一个结构就能搜到它的坐标并指路；有权限还能直接传送过去。
+     * 网络包 / 客户端注册 / 配置见 {@code compass.explorers} 包。
+     * <p>已按用户要求删掉上游「搜到后自动在小地图模组里建路径点」那段联动。</p>
+     */
+    public static final DeferredItem<com.godofthings.compass.explorers.items.ExplorersCompassItem> EXPLORERS_COMPASS =
+            ITEMS.registerItem("explorers_compass",
+                    com.godofthings.compass.explorers.items.ExplorersCompassItem::new);
 
     /** 神之皮带：9 格工具腰带（右键打开界面，R 键轮盘切换；移植自 ToolBelt 2.2.10，BSD-3-Clause） */
     public static final DeferredItem<ToolBeltItem> GOD_BELT =
@@ -725,6 +805,10 @@ public class Godofthings
                         output.accept(GOD_BINDER.get());
                         output.accept(GOD_CONSTRUCTION.get());
                         output.accept(HEAVENLY_CONSTRUCTION.get());
+                        // 自然罗盘（移植自 Natures Compass，群系搜索 / 指路 / 传送）
+                        output.accept(NATURES_COMPASS.get());
+                        // 探险者指南针（移植自 Explorer's Compass，结构搜索 / 指路 / 传送）
+                        output.accept(EXPLORERS_COMPASS.get());
                         // ---- 物品：卡片 / 石板类 ----
                         output.accept(GOD_RECIPE.get());
                         output.accept(GOD_CONFIG.get());
@@ -763,6 +847,19 @@ public class Godofthings
         modContainer.registerConfig(ModConfig.Type.SERVER, MachinesConfig.SPEC, "godofthings-machines.toml");
         // 客户端配置：记住配置界面上次停留的标签页（见 ClientConfig）
         modContainer.registerConfig(ModConfig.Type.CLIENT, com.godofthings.config.ClientConfig.SPEC, "godofthings-client.toml");
+        // 自然罗盘的配置（移植自 Natures Compass）：搜索参数是服务端权威值，HUD 显示是纯客户端项
+        modContainer.registerConfig(ModConfig.Type.SERVER,
+                com.godofthings.compass.natures.config.ConfigHandler.GENERAL_SPEC, "godofthings-natures-compass.toml");
+        modContainer.registerConfig(ModConfig.Type.CLIENT,
+                com.godofthings.compass.natures.config.ConfigHandler.CLIENT_SPEC,
+                "godofthings-natures-compass-client.toml");
+        // 探险者指南针的配置（移植自 Explorer's Compass）：搜索参数是服务端权威值，HUD 显示是纯客户端项
+        modContainer.registerConfig(ModConfig.Type.SERVER,
+                com.godofthings.compass.explorers.config.ConfigHandler.GENERAL_SPEC,
+                "godofthings-explorers-compass.toml");
+        modContainer.registerConfig(ModConfig.Type.CLIENT,
+                com.godofthings.compass.explorers.config.ConfigHandler.CLIENT_SPEC,
+                "godofthings-explorers-compass-client.toml");
 
         modEventBus.addListener(this::commonSetup);
 
@@ -814,6 +911,12 @@ public class Godofthings
         // 神之建筑：让 AE2 认「这个物品能绑到无线访问点」（绑上后材料可以从 ME 网络里取）
         event.enqueueWork(com.godofthings.construction.ConstructionAeLink::register);
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
+        // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上
+        // 默认解析为 false，也就是「只有 OP / 单人开作弊能传送」）
+        NeoForge.EVENT_BUS.addListener(com.godofthings.compass.natures.NaturesCompassData::registerPermissionNodes);
+        // 探险者指南针：读「结构 → 自定义模型数据」映射表（config/godofthings/config.json，
+        // 不存在就自动生成一份默认的；配置项 customResource 关着时这张表也不会被用到）
+        event.enqueueWork(() -> com.godofthings.compass.explorers.config.BetterUI.loadConfig(MODID));
         LOGGER.info("Godofthings loaded");
     }
 
