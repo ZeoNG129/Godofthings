@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.godofthings.compass.common.PinyinMatch;
 import com.godofthings.compass.explorers.ExplorersCompassData;
 import com.godofthings.compass.explorers.items.ExplorersCompassItem;
 import com.godofthings.compass.explorers.network.CleanFoundPacket;
@@ -160,21 +161,22 @@ public class ExplorersCompassScreen extends Screen
         minecraft.setScreen(null);
     }
 
-    /** 按搜索框内容过滤结构（{@code @xxx} 按来源模组搜，其它按显示名搜） */
+    /** 按搜索框内容过滤结构（{@code @xxx} 按来源模组搜，其它按显示名搜；两者都吃拼音） */
     public void processSearchTerm()
     {
         structureKeysMatchingSearch = new ArrayList<>();
-        String searchTerm = searchTextField.getValue().toLowerCase();
+        // 不预先 toLowerCase：拼音匹配需要原样中文，大小写不敏感由 PinyinMatch 负责
+        String searchTerm = searchTextField.getValue();
         for (ResourceLocation key : allowedStructureKeys)
         {
             if (searchTerm.startsWith("@"))
             {
-                if (StructureDisplay.getPrettyStructureSource(key).toLowerCase().contains(searchTerm.substring(1)))
+                if (PinyinMatch.contains(StructureDisplay.getPrettyStructureSource(key), searchTerm.substring(1)))
                 {
                     structureKeysMatchingSearch.add(key);
                 }
             }
-            else if (StructureDisplay.getPrettyStructureName(key).toLowerCase().contains(searchTerm))
+            else if (PinyinMatch.contains(StructureDisplay.getPrettyStructureName(key), searchTerm))
             {
                 structureKeysMatchingSearch.add(key);
             }

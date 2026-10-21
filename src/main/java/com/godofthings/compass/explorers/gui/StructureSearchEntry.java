@@ -49,8 +49,7 @@ public class StructureSearchEntry extends ObjectSelectionList.Entry<StructureSea
         ResourceLocation groupKey = ExplorersCompassData.structureKeysToTypeKeys.get(structureKey);
         guiGraphics.drawString(mc.font,
                 Component.translatable("godofthings.explorers_compass.group")
-                        .append(Component.literal(": "))
-                        .append(Component.translatable(StructureDisplay.getPrettyStructureName(groupKey))),
+                        .append(Component.literal(": " + StructureDisplay.getPrettyStructureName(groupKey))),
                 left + 1, top + mc.font.lineHeight + 14, 0x808080);
         guiGraphics.drawString(mc.font,
                 Component.translatable("godofthings.explorers_compass.dimension")

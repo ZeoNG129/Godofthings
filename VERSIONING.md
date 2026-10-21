@@ -1681,3 +1681,16 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **物品数** 28 → **30**，README「内容一览」加两行、`check-lang.ps1` 的文档计数同步。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
   - **首版踩坑（已修）**：`NaturesCompassData` 一开始把 9 个 `DeferredRegister.register(...)` 写在自己的静态字段里，而该类直到服务端启动期的 `PermissionGatherEvent` 才首次被加载 —— 此时 `RegisterEvent` 早已触发，直接抛 `IllegalStateException: Cannot register new entries to DeferredRegister after RegisterEvent has been fired`，`runGameTestServer` 报 `ExceptionInInitializerError` 崩溃。修法：9 个 `DeferredHolder` 字段搬到 `Godofthings` 自己的静态初始化里，`NaturesCompassData` 只做别名引用。坑已写进 AGENTS.md（含自查命令）。
+
+- 5.23.0 → **5.23.1（罗盘搜索支持拼音 + 名称汉化）** —— 行为修复与增强，按规则**末位 +1**。
+  - **拼音搜索**：两个罗盘的搜索框原先只做 `显示名.toLowerCase().contains(输入)`，输入 `zs` 找不到「沼泽」。新增 `com.godofthings.compass.common.PinyinMatch`：
+    - **不引入任何依赖**。整合包里的 `[通用拼音搜索] jecharacters` 是靠 coremod 改写字节码实现的，而它的 `targets.json` 按**完整类名 + 方法签名**硬编码改写目标（里面就有上游的 `com.chaosthedude.naturescompass.gui.NaturesCompassScreen:processSearchTerm()V`）——本模组包名改成 `com.godofthings.*` 后一个都对不上，**所以装不装它我们的搜索框都不会自动变拼音**，这就是「怎么都不支持拼音搜索」的真因。
+    - 改走它公开的 `me.towdium.jecharacters.utils.Match#contains(String, CharSequence)`，用**反射**调用：装了拼音搜索就得到真正的全拼 / 首字母 / 声调匹配，没装（或版本不兼容、调用抛异常）就自动降级成普通 `contains`，一次性降级不刷异常日志。反射目标只解析一次并缓存，不进热路径。
+    - 覆盖范围：自然罗盘的**名称 / `$` 标签 / `@` 来源**三路，探险者指南针的**名称 / `@` 来源**两路，全部改走 `PinyinMatch.contains`，并去掉原先的预先 `toLowerCase`（拼音匹配需要原样中文，大小写不敏感由 `PinyinMatch` 负责）。
+  - **名称汉化**：指南针里出现英文名，根因有两条 ——
+    - ①**原版 1.21.1 根本没有 `structure.*` 语言键**（实测官方 `en_us.json` 里 `structure.*` 为 **0 条**，`biome.*` 有 65 条），所以上游对结构名只能回退成「id 去下划线 + 首字母大写」的英文；
+    - ②生物群系的 `biome.*` 键虽然存在，但**原版 jar 只自带 `en_us.json`**，其它语言由 assets index 单独下载，缺中文包时一样回退英文。
+    - 处理：从官方 1.21.1 `zh_cn` 语言包提取 **67 条 `biome.*` 中文名**，另按原版 34 个结构 id 手写 **34 条 `structure.minecraft.*` 中文名**（远古城市 / 堡垒遗迹 / 沙漠神殿 / 试炼密室 / 古迹废墟 …），全部并入本模组语言文件 —— 这样不依赖玩家装没装中文语言包，也不依赖任何汉化 mod。
+    - 顺带修掉上游一处真 bug：`StructureSearchEntry` 的「组」那一行是 `Component.translatable(getPrettyStructureName(groupKey))`，而该方法返回的**已经是翻译后的文本**，再交给 `translatable` 会去查一个不存在的键、永远显示原文；改为 `Component.literal`。
+  - **语言键** 708 → **809**（+67 群系 +34 结构），zh/en 双向一致、无空值；**物品数 / 方块数 / 手册条目 / GameTest 条数全部不变**。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。

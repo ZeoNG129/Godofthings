@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.godofthings.compass.common.PinyinMatch;
 import com.godofthings.compass.natures.NaturesCompassData;
 import com.godofthings.compass.natures.client.BiomeDisplay;
 import com.godofthings.compass.natures.items.NaturesCompassItem;
@@ -199,24 +200,27 @@ public class NaturesCompassScreen extends Screen
     public void processSearchTerm()
     {
         biomesMatchingSearch = new ArrayList<>();
-        String searchTerm = searchTextField.getValue().toLowerCase();
+        // 不再预先 toLowerCase：拼音匹配需要原样的大小写与中文，大小写不敏感由 PinyinMatch 负责
+        String searchTerm = searchTextField.getValue();
         for (Biome biome : allowedBiomes)
         {
             if (searchTerm.startsWith("$"))
             {
-                if (BiomeDisplay.getBiomeTags(level, biome).toLowerCase().contains(searchTerm.substring(1)))
+                // $标签：按类别（森林 / 海洋 …）搜，同样吃拼音
+                if (PinyinMatch.contains(BiomeDisplay.getBiomeTags(level, biome), searchTerm.substring(1)))
                 {
                     biomesMatchingSearch.add(biome);
                 }
             }
             else if (searchTerm.startsWith("@"))
             {
-                if (BiomeDisplay.getBiomeSource(level, biome).toLowerCase().contains(searchTerm.substring(1)))
+                // @模组：按来源模组搜
+                if (PinyinMatch.contains(BiomeDisplay.getBiomeSource(level, biome), searchTerm.substring(1)))
                 {
                     biomesMatchingSearch.add(biome);
                 }
             }
-            else if (BiomeDisplay.getBiomeNameForDisplay(level, biome).toLowerCase().contains(searchTerm))
+            else if (PinyinMatch.contains(BiomeDisplay.getBiomeNameForDisplay(level, biome), searchTerm))
             {
                 biomesMatchingSearch.add(biome);
             }
