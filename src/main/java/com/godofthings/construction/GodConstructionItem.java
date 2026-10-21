@@ -1,7 +1,9 @@
 package com.godofthings.construction;
 
 import com.godofthings.Godofthings;
+import com.godofthings.construction.client.ConstructionForceClient;
 import com.godofthings.construction.client.GodConstructionScreen;
+import com.godofthings.construction.network.ConstructionForcePayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -11,12 +13,15 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
 
@@ -35,22 +40,35 @@ import java.util.List;
  * <p>本物品<b>没有耐久</b>（不毁，永久生效），只靠一个数据组件记模式，三种模式循环：</p>
  * <ul>
  *   <li><b>潜行 + 右键方块</b>：切换模式 0 → 1 → 2 → 0，行动栏提示当前模式。</li>
- *   <li><b>建造（0）</b>：右键方块 = 贴着被点面「平面扩展」铺同种方块（神之建筑最多
- *       {@value #MAX_BUILD_BLOCKS} 格，天神建筑无限）；右键空气 = 天使放置（副手的方块，
+ *   <li><b>建造（0）</b>：右键方块 = 贴着被点面「平面扩展」铺方块（神之建筑最多
+ *       {@value #MAX_BUILD_BLOCKS} 格，天神建筑无限；<b>副手拿着方块物品时铺的是副手那个方块</b>，
+ *       否则铺被点的方块）；右键空气 = 天使放置（副手的方块，
  *       在眼睛沿视线方向前进 {@value #ANGEL_DISTANCE} 格处放 1 格）。</li>
  *   <li><b>销毁（1）</b>：右键方块 = 拆掉被点方块的连通块（神之建筑最多 {@value #MAX_DESTROY_BLOCKS} 格，
  *       天神建筑无限，都<b>不掉落</b>）。</li>
  *   <li><b>替换（2）</b>：右键方块 = 把被点方块的连通块换成副手拿的方块（神之建筑最多
  *       {@value #MAX_REPLACE_BLOCKS} 格，天神建筑无限），旧方块掉成物品。</li>
  *   <li><b>潜行 + 右键空气</b>：打开设置界面（模式 / 撤销 / 预览 / 相似方块开关，纯客户端 Screen）。</li>
+ *   <li><b>Ctrl + 右键方块</b>：在本该打开界面的方块（箱子 / 熔炉 / 本模组机器）上强制施工，见下面那段。</li>
  * </ul>
  *
- * <p>材料（建造 / 替换 / 天使放置）先扣玩家自己的背包（主背包 36 格 + 快捷栏 + 副手），
+ * <p>材料（建造 / 替换 / 天使放置）<b>先扣副手</b>，再扣主背包 36 格 + 快捷栏，
  * 不够再去 AE 网络里抽（见 {@link ConstructionAeSource}，用物品绑定的无线访问点）。
  * 创造模式（{@code hasInfiniteMaterials}）不扣材料。</p>
  *
- * <p>右键方块一律走 {@link #onItemUseFirst}（箱子 / 机器这类会开界面的方块也能正常触发建造）；
- * 改方块的动作为了权威性只在服务端执行，客户端只回报成功，顺带阻止方块自己的交互再跑一遍。
+ * <p>建造时<b>副手拿着方块物品就用副手的方块</b>（照上游 {@code SupplierInventory#getSupply} 的副手优先语义）：
+ * 放下去的是副手那个方块、材料也从副手开始扣；但「背后那一格必须是同种方块」这条判定<b>仍以被点方块为准</b>
+ * —— 被点方块才是要贴着铺的表面。副手不是方块物品时一切照旧，用被点方块当材料与模板。</p>
+ *
+ * <p>右键方块一律走 {@link #onItemUseFirst}（在服务端它早于方块自己的交互跑）。<b>会开界面的方块默认不拦</b>
+ * （箱子 / 熔炉 / 本模组机器，判定见 {@link #opensGui}），右键照常打开界面；想在这类方块上建造 / 销毁 / 替换
+ * 就<b>按住 Ctrl 右键</b> —— 服务端读不到 Ctrl（原版只同步 Shift），所以由客户端判定后先发一条
+ * {@code ConstructionForcePayload}：服务端记一个 {@link ConstructionForce} 的一次性标记并<b>当场发起作业</b>，
+ * 紧随其后的那一发原版右键只把标记消费掉并返回 {@code SUCCESS}，用来挡住界面。
+ * 这个顺序是有保证的：客户端先跑 {@code onItemUseFirst}（强制包在这里发出）、之后才把
+ * {@code ServerboundUseItemOnPacket} 排进发送队列，两包又在服务端主线程按到达顺序处理；
+ * 万一某处插队把界面真打开了，强制包处理时会顺手把那个菜单关掉兜底。
+ * 改方块的动作为了权威性只在服务端执行，客户端只回报成功。
  * 批量动作本身是跨 tick 的作业（见 {@link ConstructionJob}），点一下只是「登记一个作业」。</p>
  */
 public class GodConstructionItem extends Item
@@ -157,10 +175,21 @@ public class GodConstructionItem extends Item
      * <p><b>为什么不用 {@code useOn}：</b>原版只有在方块自己「没吃掉这次右键」时才会调用
      * {@code Item#useOn}，而箱子 / 熔炉 / 本模组机器右键是 {@code useWithoutItem}（打开界面），
      * 一旦 {@code consumesAction} 就轮不到 {@code useOn} 了 —— 对着这些方块根本造不起来。
-     * {@code onItemUseFirst} 在方块交互之前跑，所以能抢先。</p>
+     * {@code onItemUseFirst} 在服务端早于方块自己的交互跑，所以能抢先；客户端里它同样是最先跑的，
+     * 原版那发 {@code ServerboundUseItemOnPacket} 要等它返回之后才进发送队列
+     * （{@code MultiPlayerGameMode#performUseItemOn} → {@code startPrediction}）。</p>
      *
-     * <p>客户端只回报 {@code SUCCESS}（既阻止方块自己开界面，也不跑第二遍逻辑）。
-     * 真正改方块的三个动作只在服务端执行。</p>
+     * <p>会开界面的方块（{@link #opensGui}）默认<b>不拦</b>：返回 {@code PASS}，让原版 / 方块自己
+     * 正常打开界面。按住 Ctrl 才是强制施工，两端分工：</p>
+     * <ul>
+     *   <li><b>客户端</b>：Ctrl + 会开界面的方块 → 发 {@link ConstructionForcePayload}
+     *       （服务端记一次性标记并当场发起作业），本地返回 {@code SUCCESS} 压住方块交互；
+     *       不是 Ctrl → {@code PASS}。</li>
+     *   <li><b>服务端</b>：有未过期的标记 → 消费掉并返回 {@code SUCCESS}（挡住界面，且<b>不重复施工</b>）；
+     *       没有标记 → 会开界面的方块 {@code PASS}，其余照旧施工。</li>
+     * </ul>
+     *
+     * <p>潜行仍然优先：潜行 + 右键方块 = 切模式，这个手势不受 Ctrl / 界面影响。</p>
      */
     @Override
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context)
@@ -172,10 +201,24 @@ public class GodConstructionItem extends Item
             return InteractionResult.PASS;
         }
 
-        // 客户端：拦下方块交互就行，动作等服务器的权威结果
+        // 批量操作里一律用不可变坐标：后面 BFS 会到处 relative，可变 pos 被复用会串格
+        BlockPos clickedPos = context.getClickedPos().immutable();
+        // clickedFace = 玩家点中的那个面（也就是玩家面向的那一面），
+        // 它对建造来说是「上方」，对被点方块来说是「外侧」；
+        // face.getOpposite() 指回方块本体，是每一格的「背面」。
+        Direction face = context.getClickedFace();
+        // 这个方块右键会不会开界面（箱子 / 熔炉 / 本模组机器都走这条）
+        boolean gui = opensGui(level, clickedPos, level.getBlockState(clickedPos));
+
+        // 客户端：只有「会开界面 + 按住 Ctrl + 没潜行」才是强制施工，其余照旧压住方块交互 / 放行界面
         if (level.isClientSide)
         {
-            return InteractionResult.SUCCESS;
+            if (gui && !player.isShiftKeyDown() && ConstructionForceClient.isForceModifierDown())
+            {
+                ConstructionForcePayload.send(clickedPos, face, getMode(stack));
+                return InteractionResult.SUCCESS;
+            }
+            return gui ? InteractionResult.PASS : InteractionResult.SUCCESS;
         }
 
         if (player.isShiftKeyDown())
@@ -184,19 +227,36 @@ public class GodConstructionItem extends Item
             return InteractionResult.SUCCESS;
         }
 
-        // 批量操作里一律用不可变坐标：后面 BFS 会到处 relative，可变 pos 被复用会串格
-        BlockPos clickedPos = context.getClickedPos().immutable();
-        // clickedFace = 玩家点中的那个面（也就是玩家面向的那一面），
-        // 它对建造来说是「上方」，对被点方块来说是「外侧」；
-        // face.getOpposite() 指回方块本体，是每一格的「背面」。
-        Direction face = context.getClickedFace();
-        switch (getMode(stack))
+        // 刚才那一下 Ctrl 点击：作业已经在强制包里发起过了，这一发只用来挡住界面
+        if (ConstructionForce.consume(player))
         {
-            case MODE_DESTROY -> ConstructionActions.destroy(player, stack, level, clickedPos, face);
-            case MODE_REPLACE -> ConstructionActions.replace(player, stack, level, clickedPos);
-            default -> ConstructionActions.build(player, stack, level, clickedPos, face);
+            return InteractionResult.SUCCESS;
         }
+
+        // 会开界面的方块：不拦，让原版 / 方块自己打开界面
+        if (gui)
+        {
+            return InteractionResult.PASS;
+        }
+
+        ConstructionActions.perform(player, stack, level, clickedPos, face, getMode(stack));
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * 这个方块右键会不会打开界面（箱子 / 熔炉 / 本模组所有机器都走这条）。
+     *
+     * <p>判定照原版 {@code ServerPlayerGameMode#useItemOn} 旁观者分支用的那一句
+     * {@code state.getMenuProvider(level, pos) != null}；再加一条：方块是 {@link EntityBlock}、
+     * 且它的方块实体自己就是 {@link MenuProvider}（有些机器只在方块实体上给 MenuProvider）。</p>
+     */
+    private static boolean opensGui(Level level, BlockPos pos, BlockState state)
+    {
+        if (state.getMenuProvider(level, pos) != null)
+        {
+            return true;
+        }
+        return state.getBlock() instanceof EntityBlock && level.getBlockEntity(pos) instanceof MenuProvider;
     }
 
     @Override
@@ -242,7 +302,10 @@ public class GodConstructionItem extends Item
     }
 
     /**
-     * 扣 1 个材料：先扣玩家自己的背包（主背包 36 格 + 快捷栏 + 副手），不够再走 AE 网络。
+     * 扣 1 个材料：<b>先扣副手</b>，再扣主背包 36 格 + 快捷栏，不够再走 AE 网络。
+     *
+     * <p>副手优先是照上游 {@code SupplierInventory#getSupply} 的语义：建造 / 替换 / 天使放置都吃副手那摞方块，
+     * 副手扣完才动背包（副手的方块本来就是「这次要用的材料」，先扣它玩家才看得见消耗）。</p>
      *
      * @return true = 扣到了（或是创造模式）；false = 材料用完了，批量操作应当停下
      */
@@ -258,7 +321,8 @@ public class GodConstructionItem extends Item
         }
 
         Inventory inventory = player.getInventory();
-        if (takeFromStacks(inventory.items, wanted) || takeFromStacks(inventory.offhand, wanted))
+        // 副手优先：副手扣完了再扣主背包，最后才是 AE 网络
+        if (takeFromStacks(inventory.offhand, wanted) || takeFromStacks(inventory.items, wanted))
         {
             return true;
         }

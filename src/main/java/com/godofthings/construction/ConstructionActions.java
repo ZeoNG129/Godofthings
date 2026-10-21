@@ -79,7 +79,13 @@ public final class ConstructionActions
     // ==================================================================================
 
     /**
-     * 贴着被点面「平面扩展」铺同种方块。
+     * 贴着被点面「平面扩展」铺方块。
+     *
+     * <p><b>副手优先</b>（照上游 ConstructionSticks 的 {@code SupplierInventory#getSupply} 语义）：
+     * 副手拿着方块物品时，铺下去的是<b>副手那个方块</b>（模板 = 它的 {@code defaultBlockState()}，
+     * 朝向仍由 {@link #copyRotation} 从「背后那一格」复制），材料也从副手开始扣；
+     * 副手不是方块物品时铺被点方块，行为与改造前完全一致。
+     * 无论哪种情况，「背后那一格必须是同种方块」都<b>以被点方块为准</b> —— 它才是要贴着铺的表面。</p>
      *
      * <p>要铺哪些格与 {@link #collectBuild} 是同一套 BFS（客户端预览用的是那个纯函数，两边结果一致），
      * 这里只负责校验前置条件 + 登记作业 {@link ConstructionJob#startBuild}（扣材料 / 落方块都在作业里）。</p>
@@ -94,21 +100,61 @@ public final class ConstructionActions
         }
 
         BlockPos origin = clickedPos.immutable();
-        BlockState template = level.getBlockState(origin);
-
-        // 没有对应物品的方块（水 / 火 / 农田…）没法扣材料，也没法当成「材料」使用
-        ItemStack wanted = new ItemStack(template.getBlock().asItem());
-        if (template.isAir() || wanted.isEmpty())
+        // 被点方块是「要贴着铺的表面」：没有对应物品的方块（水 / 火 / 农田…）没法当表面用
+        BlockState clickedState = level.getBlockState(origin);
+        if (clickedState.isAir() || new ItemStack(clickedState.getBlock().asItem()).isEmpty())
         {
             player.displayClientMessage(
                     Component.translatable("message.godofthings.god_construction.no_block"), true);
             return;
         }
 
+        // 副手优先：副手拿着方块物品时铺的是副手那个方块（材料也在作业里从副手开始扣）
+        BlockState template = buildTemplate(player, clickedState);
+        // 每格要扣的材料 = 模板方块的物品（副手优先时就是副手那个方块）
+        ItemStack wanted = new ItemStack(template.getBlock().asItem());
         BlockPos start = origin.relative(face).immutable();
         // 允许当「支撑面」的方块集合只算一次，BFS 里就是 O(1) 的 contains
-        Set<Block> accepted = similarBlocks(wand, template);
-        ConstructionJob.startBuild(player, wand, template, accepted, start, face);
+        // 注意：这个集合永远按「被点方块」算，副手方块不参与（它只是材料，不是要铺的表面）
+        Set<Block> accepted = similarBlocks(wand, clickedState);
+        ConstructionJob.startBuild(player, wand, template, accepted, start, face, wanted);
+    }
+
+    /**
+     * 按模式在 {@code clickedPos} / {@code face} 上发起一次批量动作。
+     *
+     * <p>两个入口共用它：{@code GodConstructionItem#onItemUseFirst}（普通右键）与
+     * {@code ConstructionForcePayload#handle}（客户端 Ctrl 强制施工 —— 那一下原版右键只会被标记挡掉，
+     * 真正的施工发生在收到强制包的那一刻）。</p>
+     */
+    public static void perform(Player player, ItemStack wand, Level level, BlockPos clickedPos, Direction face,
+            int mode)
+    {
+        switch (mode)
+        {
+            case GodConstructionItem.MODE_DESTROY -> destroy(player, wand, level, clickedPos, face);
+            case GodConstructionItem.MODE_REPLACE -> replace(player, wand, level, clickedPos);
+            default -> build(player, wand, level, clickedPos, face);
+        }
+    }
+
+    /**
+     * 建造用模板：<b>副手拿着方块物品就用副手的方块</b>，否则用被点方块自己的 state。
+     *
+     * <p>副手模板一律从 {@code defaultBlockState()} 起步，朝向交给 {@link #copyRotation} 从「背后那一格」
+     * 复制 —— 不会把副手物品栈上的组件带进 blockstate。</p>
+     *
+     * <p>{@code clickedState} 只用来在副手不是方块物品时兜底，<b>不</b>参与「背后那一格」的判定
+     * （那条判定在 {@link #similarBlocks}，永远按被点方块算）。{@code player} 允许为 null
+     * （客户端预览那条路上拿不到玩家就直接用被点方块）。</p>
+     */
+    static BlockState buildTemplate(Player player, BlockState clickedState)
+    {
+        if (player != null && player.getOffhandItem().getItem() instanceof BlockItem blockItem)
+        {
+            return blockItem.getBlock().defaultBlockState();
+        }
+        return clickedState;
     }
 
     /**
@@ -131,16 +177,19 @@ public final class ConstructionActions
             Direction face, int max)
     {
         BlockPos origin = clickedPos.immutable();
-        BlockState template = level.getBlockState(origin);
+        BlockState clickedState = level.getBlockState(origin);
 
         // 没有对应物品的方块不可能铺（和 build 的守卫条件保持一致）
-        if (template.isAir() || new ItemStack(template.getBlock().asItem()).isEmpty() || max <= 0)
+        if (clickedState.isAir() || new ItemStack(clickedState.getBlock().asItem()).isEmpty() || max <= 0)
         {
             return List.of();
         }
 
+        // 模板与 build 用同一个规则（副手优先），否则预览画出来的格子会和实际铺的不一致
+        BlockState template = buildTemplate(player, clickedState);
         // 允许当「支撑面」的方块集合只算一次，BFS 里就是 O(1) 的 contains
-        Set<Block> accepted = similarBlocks(wand, template);
+        // （永远按被点方块算：副手方块只是材料，不是要铺的表面）
+        Set<Block> accepted = similarBlocks(wand, clickedState);
         // 候选格的「背面」方向：指回被点击的方块本体
         Direction backToBlock = face.getOpposite();
 

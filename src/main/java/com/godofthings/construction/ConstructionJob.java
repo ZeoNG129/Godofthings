@@ -94,7 +94,7 @@ public final class ConstructionJob
      * 替换：要换成的那个新方块的 state；销毁：被点方块的 state（只为排查方便，不参与判定）。
      */
     private final BlockState template;
-    /** 被点方块的类型：销毁 / 替换只处理它，建造用来挡掉「没有对应物品」的模板 */
+    /** 销毁 / 替换要处理的方块类型（建造不用它：建造靠 {@link #accepted} + {@link #template} 判定） */
     private final Block targetBlock;
     /** 建造：能当「支撑面」的方块集合（相似方块开关已经在这里摊平为 O(1) 查询）；销毁 / 替换为空集 */
     private final Set<Block> accepted;
@@ -104,7 +104,7 @@ public final class ConstructionJob
     private final int limit;
     /** 这次作业已经动过的格子（结束 / 取消时一次性压成一条撤销记录） */
     private final List<ConstructionUndo.BlockChange> changes = new ArrayList<>();
-    /** 每格要扣的材料（建造 = 被点方块的物品，替换 = 副手方块；销毁为空栈） */
+    /** 每格要扣的材料（建造 = 模板方块的物品，副手优先时就是副手那个方块；替换 = 副手方块；销毁为空栈） */
     private final ItemStack wanted;
 
     /** 已成功处理的格子数（到 {@link #limit} 就收工） */
@@ -142,15 +142,17 @@ public final class ConstructionJob
     /**
      * 登记一次建造作业：从 {@code start}（被点面外侧的第一格）起平面扩展。
      *
-     * @param template 被点方块的 state（复制朝向的模板）
-     * @param accepted 能当支撑面的方块集合（见 {@link ConstructionActions#similarBlocks}）
+     * @param template 放下去的模板 state（副手拿着方块物品时是<b>副手方块</b>的 defaultBlockState，
+     *                 见 {@link ConstructionActions#buildTemplate}）
+     * @param accepted 能当支撑面的方块集合（永远按<b>被点方块</b>算，见 {@link ConstructionActions#similarBlocks}）
+     * @param wanted   每格要扣的材料（与 {@code template} 同一个方块物品，扣取顺序见
+     *                 {@link GodConstructionItem#takeMaterial}：副手 → 主背包 → AE）
      */
     static void startBuild(Player player, ItemStack wand, BlockState template, Set<Block> accepted,
-            BlockPos start, Direction face)
+            BlockPos start, Direction face, ItemStack wanted)
     {
         ConstructionJob job = new ConstructionJob(player, Kind.BUILD, start, face,
-                GodConstructionItem.getTier(wand).getMaxBuild(), template, template.getBlock(), accepted,
-                new ItemStack(template.getBlock().asItem()));
+                GodConstructionItem.getTier(wand).getMaxBuild(), template, template.getBlock(), accepted, wanted);
         register(player, job);
     }
 
@@ -192,16 +194,17 @@ public final class ConstructionJob
     // 每 tick 推进
     // ==================================================================================
 
-    /** 对所有在跑的作业推进一格预算；顺手把该取消的作业取消掉 */
+    /** 对所有在跑的作业推进一格预算；顺手把该取消的作业取消掉，并清掉过期的「Ctrl 强制施工」标记 */
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event)
     {
+        MinecraftServer server = event.getServer();
+        // 过期标记跟作业跑不跑没关系，每 tick 都要清（见 ConstructionForce）
+        ConstructionForce.cleanup(server);
         if (SESSIONS.isEmpty())
         {
             return;
         }
-
-        MinecraftServer server = event.getServer();
         // 快照一份：推进 / 取消过程中会往 SESSIONS 里删
         for (ConstructionJob job : List.copyOf(SESSIONS.values()))
         {
@@ -227,7 +230,13 @@ public final class ConstructionJob
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event)
     {
-        if (SESSIONS.isEmpty() || !(event.getEntity() instanceof Player player))
+        if (!(event.getEntity() instanceof Player player))
+        {
+            return;
+        }
+        // 「Ctrl 强制施工」的一次性标记跟着作废（和有没有作业无关）
+        ConstructionForce.forget(player);
+        if (SESSIONS.isEmpty())
         {
             return;
         }

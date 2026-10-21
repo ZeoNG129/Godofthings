@@ -1623,3 +1623,17 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **文档**：README 核心特性表新增一行、物品数 27 → **28**；zh/en 各 +2 键（item / manual），640 → **642** 双向一致。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.22.0 → **5.22.1（建筑棒：副手方块优先 + 会开界面的方块恢复开界面 / Ctrl 强制施工）** —— 行为修复，按规则**末位 +1**。
+  - **副手优先**：副手是方块物品时，**用它当建材和模板**（不再是「被点的那个方块」），材料也**优先从副手扣**，副手空了才扣主背包、最后才走 AE 网络；「背后那一格必须是同种方块」这条**仍以被点方块为准**（它是被铺的表面）。预览（`collectBuild`）与实物共用同一套 `buildTemplate`，不会再出现「预览是石头、铺出来是木板」。副手不是方块物品时行为完全不变。
+  - **GUI 方块恢复原版行为**：新增 `GodConstructionItem.opensGui(level,pos,state)`（`state.getMenuProvider(...) != null`，或方块是 `EntityBlock` 且方块实体是 `MenuProvider`）。命中这类方块时 `onItemUseFirst` 返回 `PASS`，箱子 / 熔炉 / 本模组机器**照常打开界面**。
+  - **Ctrl 强制施工**（跨端链路）：服务端**读不到 Ctrl**（只有 Shift 是同步的），所以由客户端判定 ——
+    · 客户端 `onItemUseFirst` 里 `ConstructionForceClient.isForceModifierDown()`（`Screen.hasControlDown()`，独立 `@EventBusSubscriber(value = Dist.CLIENT)` 类，服务端不加载客户端类）为真且目标是 GUI 方块 → 发 `god_construction_force` 包 `(pos, face, action)` 并返回 `SUCCESS`（本地先压住界面）。
+    · 服务端收到包 → `ConstructionForce.mark(player)` 写 20 tick 的一次性标记 → **当场发起作业**（等于 Ctrl 点击那一刻就施工）。
+    · 紧随其后那一发原版右键在服务端 `onItemUseFirst` 里**消费标记**并返回 `SUCCESS`（这样方块不会开界面），且**不重复施工**。标记过期由 `ServerTickEvent.Post` 清理，玩家下线 `forget`。
+    · 顺序依据（已核对 1.21.1 反编译源码）：`MultiPlayerGameMode#useItemOn` → `startPrediction` 里先 `performUseItemOn`（内含 `onItemUseFirst`）再构造并发送 `ServerboundUseItemOnPacket`，所以自定义包先到；兜底还加了 `if (player.hasContainerOpen()) player.closeContainer()`（顺序正常时永不触发）。
+    · Ctrl 分支额外要求**不潜行**（潜行是切模式手势，避免一次点击两个效果）。
+  - **实测**（临时探针，跑完即删）：5×5 石墙、副手木板 64、背包石头 64 → `[OFFHAND-PROBE] planks=21 stone=0 offhandLeft=43` —— 铺的全是木板、石头一格没动、材料正好从副手扣了 21 个。
+  - **文档**：README 两个建筑条目补「副手方块优先 / Ctrl 强制施工」；`manual.godofthings.{god_construction,heavenly_construction}`（zh/en 各 2 处）同步说明。键集不变（仍 642）。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
