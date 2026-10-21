@@ -2,6 +2,7 @@ package com.godofthings.construction;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -18,8 +19,10 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -63,14 +66,10 @@ public final class ConstructionActions
     /**
      * 贴着被点面「平面扩展」铺同种方块。
      *
-     * <p>每一格必须满足：</p>
-     * <ol>
-     *   <li>它的「背面」（{@code pos.relative(face.getOpposite())}）还是被点的那种方块
-     *       ——也就是只铺在这片已有表面上，不会悬空长出去；</li>
-     *   <li>它自己现在是空气或可替换方块（草 / 雪 / 水之类）；</li>
-     *   <li>复制朝向属性后 {@code canSurvive} 仍然成立，且没有被保护插件禁止交互。</li>
-     * </ol>
-     * <p>任何一条不满足：这一格不铺，也不再从它往外扩散（照上游写法）。材料扣不到就整轮结束。</p>
+     * <p>要铺哪些格由 {@link #collectBuild} 纯函数算出来（客户端预览用的是同一个函数，两边结果必须一致），
+     * 这里只负责扣材料 + 真正落方块。</p>
+     *
+     * <p>任何一格不满足条件：这一格不铺，也不再从它往外扩散（照上游写法）。材料扣不到就整轮结束。</p>
      */
     static void build(Player player, ItemStack wand, Level level, BlockPos clickedPos, Direction face)
     {
@@ -86,24 +85,83 @@ public final class ConstructionActions
             return;
         }
 
+        List<BlockPos> targets = collectBuild(level, player, wand, origin, face);
+        if (targets.isEmpty())
+        {
+            return;
+        }
+
+        Direction backToBlock = face.getOpposite();
+        List<ConstructionUndo.BlockChange> changes = new ArrayList<>();
+        boolean soundPlayed = false;
+        for (BlockPos pos : targets)
+        {
+            // 材料用完就整轮停下（不是跳过这一格，免得铺出参差不齐的一片）
+            if (!GodConstructionItem.takeMaterial(player, wand, wanted))
+            {
+                break;
+            }
+
+            // 记下放置前的状态（空气 / 被替换掉的方块），撤销时原样放回去
+            BlockState oldState = level.getBlockState(pos);
+            // 以被点方块的 state 为模板，复制背面方块的朝向（朝向 / 半砖方向跟着走）
+            BlockState newState = copyRotation(template, level.getBlockState(pos.relative(backToBlock)));
+            level.setBlock(pos, newState, 2);
+            changes.add(new ConstructionUndo.BlockChange(pos, oldState));
+
+            if (!soundPlayed)
+            {
+                GodConstructionItem.playPlaceSound(level, pos);
+                soundPlayed = true;
+            }
+        }
+        // 一次操作压一条撤销记录（一格都没铺到时 push 内部会忽略空列表）
+        ConstructionUndo.push(player, changes);
+    }
+
+    /**
+     * 只算不做的建造：返回这一次右键<b>将要铺下去</b>的坐标（顺序 = BFS 出队顺序）。
+     *
+     * <p>每一格必须满足：</p>
+     * <ol>
+     *   <li>它的「背面」（{@code pos.relative(face.getOpposite())}）还是被点的那种方块
+     *       —— 开了相似方块开关时放宽成「同种或相似」（见 {@link #similarBlocks}）；</li>
+     *   <li>它自己现在是空气或可替换方块（草 / 雪 / 水之类）；</li>
+     *   <li>复制朝向属性后 {@code canSurvive} 仍然成立，且没有被保护插件禁止交互。</li>
+     * </ol>
+     *
+     * <p><b>不落方块、不扣材料</b>，所以客户端可以直接调它来画预览线框。</p>
+     */
+    public static List<BlockPos> collectBuild(Level level, Player player, ItemStack wand, BlockPos clickedPos, Direction face)
+    {
+        BlockPos origin = clickedPos.immutable();
+        BlockState template = level.getBlockState(origin);
+
+        // 没有对应物品的方块不可能铺（和 build 的守卫条件保持一致）
+        if (template.isAir() || new ItemStack(template.getBlock().asItem()).isEmpty())
+        {
+            return List.of();
+        }
+
+        // 允许当「支撑面」的方块集合只算一次，BFS 里就是 O(1) 的 contains
+        Set<Block> accepted = similarBlocks(wand, template);
         // 候选格的「背面」方向：指回被点击的方块本体
         Direction backToBlock = face.getOpposite();
 
+        List<BlockPos> result = new ArrayList<>();
         Deque<BlockPos> queue = new ArrayDeque<>();
         Set<BlockPos> visited = new HashSet<>();
         BlockPos start = origin.relative(face).immutable();
         queue.addLast(start);
         visited.add(start);
 
-        int placed = 0;
-        boolean soundPlayed = false;
-        while (!queue.isEmpty() && placed < GodConstructionItem.MAX_BUILD_BLOCKS)
+        while (!queue.isEmpty() && result.size() < GodConstructionItem.MAX_BUILD_BLOCKS)
         {
             BlockPos pos = queue.removeFirst();
 
-            // 1) 背后那一格必须还是被点的方块：只能贴着已有同种表面铺
+            // 1) 背后那一格必须还是被点的方块（开了相似开关则允许相似方块）
             BlockState behind = level.getBlockState(pos.relative(backToBlock));
-            if (behind.getBlock() != template.getBlock())
+            if (!accepted.contains(behind.getBlock()))
             {
                 continue;
             }
@@ -125,21 +183,50 @@ public final class ConstructionActions
                 continue;
             }
 
-            // 材料用完就整轮停下（不是跳过这一格，免得铺出参差不齐的一片）
-            if (!GodConstructionItem.takeMaterial(player, wand, wanted))
-            {
-                break;
-            }
-
-            level.setBlock(pos, newState, 2);
-            placed++;
-            if (!soundPlayed)
-            {
-                GodConstructionItem.playPlaceSound(level, pos);
-                soundPlayed = true;
-            }
+            result.add(pos);
             expandPlane(queue, visited, pos, face);
         }
+        return result;
+    }
+
+    /**
+     * 建造时「可以当支撑面」的方块集合。
+     *
+     * <p>默认只有被点的那种方块；相似方块开关（数据组件 {@code godofthings:god_construction_similar}）
+     * 打开时，再把<b>被点方块物品所有标签</b>里的方块物品加进来 —— 例如标签 {@code minecraft:planks}
+     * 就把所有木板算成同族。以 {@code mineable} 开头的标签要跳过：那是「用什么工具挖」，
+     * 不是「什么算同族」（吃了它木头会把石头也算成同族）。</p>
+     */
+    static Set<Block> similarBlocks(ItemStack wand, BlockState template)
+    {
+        Set<Block> accepted = new HashSet<>();
+        accepted.add(template.getBlock());
+        if (!GodConstructionItem.isSimilarEnabled(wand))
+        {
+            return accepted;
+        }
+
+        ItemStack sample = new ItemStack(template.getBlock().asItem());
+        if (sample.isEmpty())
+        {
+            return accepted;
+        }
+
+        sample.getTags().forEach(tag ->
+        {
+            if (tag.location().getPath().startsWith("mineable"))
+            {
+                return; // 跳过 mineable* 标签
+            }
+            BuiltInRegistries.ITEM.getTag(tag).ifPresent(holders -> holders.forEach(holder ->
+            {
+                if (holder.value() instanceof BlockItem blockItem)
+                {
+                    accepted.add(blockItem.getBlock());
+                }
+            }));
+        });
+        return accepted;
     }
 
     // ==================================================================================
@@ -211,6 +298,7 @@ public final class ConstructionActions
         visited.add(origin);
 
         int removed = 0;
+        List<ConstructionUndo.BlockChange> changes = new ArrayList<>();
         while (!queue.isEmpty() && removed < GodConstructionItem.MAX_DESTROY_BLOCKS)
         {
             BlockPos pos = queue.removeFirst();
@@ -250,6 +338,7 @@ public final class ConstructionActions
             }
 
             level.removeBlock(pos, false); // 不掉落
+            changes.add(new ConstructionUndo.BlockChange(pos, state));
             removed++;
 
             for (Direction direction : Direction.values())
@@ -257,6 +346,8 @@ public final class ConstructionActions
                 pushCandidate(queue, visited, pos.relative(direction));
             }
         }
+        // 一次操作压一条撤销记录（拆到的方块原样记下来，撤销时放回去）
+        ConstructionUndo.push(player, changes);
     }
 
     // ==================================================================================
@@ -291,6 +382,7 @@ public final class ConstructionActions
         visited.add(origin);
 
         int replaced = 0;
+        List<ConstructionUndo.BlockChange> changes = new ArrayList<>();
         while (!queue.isEmpty() && replaced < GodConstructionItem.MAX_REPLACE_BLOCKS)
         {
             BlockPos pos = queue.removeFirst();
@@ -335,6 +427,7 @@ public final class ConstructionActions
             }
 
             level.setBlock(pos, newState, 2);
+            changes.add(new ConstructionUndo.BlockChange(pos, oldState));
             replaced++;
 
             for (Direction direction : Direction.values())
@@ -342,6 +435,8 @@ public final class ConstructionActions
                 pushCandidate(queue, visited, pos.relative(direction));
             }
         }
+        // 一次操作压一条撤销记录（记的是被换掉的那些方块）
+        ConstructionUndo.push(player, changes);
     }
 
     // ==================================================================================

@@ -1,6 +1,7 @@
 package com.godofthings.construction;
 
 import com.godofthings.Godofthings;
+import com.godofthings.construction.client.GodConstructionScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -32,13 +33,15 @@ import java.util.List;
  *   <li><b>销毁（1）</b>：右键方块 = 拆掉被点方块的连通块（最多 {@value #MAX_DESTROY_BLOCKS} 格，<b>不掉落</b>）。</li>
  *   <li><b>替换（2）</b>：右键方块 = 把被点方块的连通块换成副手拿的方块（最多
  *       {@value #MAX_REPLACE_BLOCKS} 格），旧方块掉成物品。</li>
+ *   <li><b>潜行 + 右键空气</b>：打开设置界面（模式 / 撤销 / 预览 / 相似方块开关，纯客户端 Screen）。</li>
  * </ul>
  *
  * <p>材料（建造 / 替换 / 天使放置）先扣玩家自己的背包（主背包 36 格 + 快捷栏 + 副手），
  * 不够再去 AE 网络里抽（见 {@link ConstructionAeSource}，用物品绑定的无线访问点）。
  * 创造模式（{@code hasInfiniteMaterials}）不扣材料。</p>
  *
- * <p>所有动作只在服务端执行；客户端一律回报成功（返回 PASS 会让后面的方块 / 副手物品接着响应）。</p>
+ * <p>右键方块一律走 {@link #onItemUseFirst}（箱子 / 机器这类会开界面的方块也能正常触发建造）；
+ * 改方块的动作为了权威性只在服务端执行，客户端只回报成功，顺带阻止方块自己的交互再跑一遍。</p>
  */
 public class GodConstructionItem extends Item
 {
@@ -72,36 +75,62 @@ public class GodConstructionItem extends Item
         return stack.getOrDefault(Godofthings.GOD_CONSTRUCTION_MODE.get(), MODE_BUILD);
     }
 
+    /** 预览线框开关；没写过组件就是开（默认开） */
+    public static boolean isPreviewEnabled(ItemStack stack)
+    {
+        return stack.getOrDefault(Godofthings.GOD_CONSTRUCTION_PREVIEW.get(), Boolean.TRUE);
+    }
+
+    /** 相似方块开关；没写过组件就是关（默认关） */
+    public static boolean isSimilarEnabled(ItemStack stack)
+    {
+        return stack.getOrDefault(Godofthings.GOD_CONSTRUCTION_SIMILAR.get(), Boolean.FALSE);
+    }
+
+    /**
+     * 右键方块统一从这里进。
+     *
+     * <p><b>为什么不用 {@code useOn}：</b>原版只有在方块自己「没吃掉这次右键」时才会调用
+     * {@code Item#useOn}，而箱子 / 熔炉 / 本模组机器右键是 {@code useWithoutItem}（打开界面），
+     * 一旦 {@code consumesAction} 就轮不到 {@code useOn} 了 —— 对着这些方块根本造不起来。
+     * {@code onItemUseFirst} 在方块交互之前跑，所以能抢先。</p>
+     *
+     * <p>客户端只回报 {@code SUCCESS}（既阻止方块自己开界面，也不跑第二遍逻辑）。
+     * 真正改方块的三个动作只在服务端执行。</p>
+     */
     @Override
-    public InteractionResult useOn(UseOnContext context)
+    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context)
     {
         Player player = context.getPlayer();
         Level level = context.getLevel();
-        // 批量操作里一律用不可变坐标：后面 BFS 会到处 relative，可变 pos 被复用会串格
-        BlockPos clickedPos = context.getClickedPos().immutable();
+        if (player == null)
+        {
+            return InteractionResult.PASS;
+        }
 
-        // 客户端只回报「这次右键我用了」，真正的动作全在服务端（返回 PASS 会再触发方块 / 副手物品）
-        if (level.isClientSide || player == null)
+        // 客户端：拦下方块交互就行，动作等服务器的权威结果
+        if (level.isClientSide)
         {
             return InteractionResult.SUCCESS;
         }
 
-        ItemStack wand = context.getItemInHand();
         if (player.isShiftKeyDown())
         {
-            cycleMode(player, wand);
+            cycleMode(player, stack);
             return InteractionResult.SUCCESS;
         }
 
+        // 批量操作里一律用不可变坐标：后面 BFS 会到处 relative，可变 pos 被复用会串格
+        BlockPos clickedPos = context.getClickedPos().immutable();
         // clickedFace = 玩家点中的那个面（也就是玩家面向的那一面），
         // 它对建造来说是「上方」，对被点方块来说是「外侧」；
         // face.getOpposite() 指回方块本体，是每一格的「背面」。
         Direction face = context.getClickedFace();
-        switch (getMode(wand))
+        switch (getMode(stack))
         {
             case MODE_DESTROY -> ConstructionActions.destroy(player, level, clickedPos, face);
-            case MODE_REPLACE -> ConstructionActions.replace(player, wand, level, clickedPos);
-            default -> ConstructionActions.build(player, wand, level, clickedPos, face);
+            case MODE_REPLACE -> ConstructionActions.replace(player, stack, level, clickedPos);
+            default -> ConstructionActions.build(player, stack, level, clickedPos, face);
         }
         return InteractionResult.SUCCESS;
     }
@@ -112,11 +141,16 @@ public class GodConstructionItem extends Item
         ItemStack wand = player.getItemInHand(hand);
         if (level.isClientSide)
         {
+            // 潜行 + 右键空气 = 打开设置界面（纯客户端 Screen，服务端什么都不做）
+            if (player.isShiftKeyDown())
+            {
+                GodConstructionScreen.open();
+            }
             return InteractionResultHolder.success(wand);
         }
 
         // 右键空气只有建造模式有事可做：天使放置。
-        // 潜行时空手右键不触发（潜行是「切模式」的手势，避免顺手在脚下放方块）。
+        // 潜行是「切模式 / 开界面」的手势，不在脚下顺手放方块。
         if (getMode(wand) == MODE_BUILD && !player.isShiftKeyDown())
         {
             ConstructionActions.angel(player, wand, level);

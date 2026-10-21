@@ -230,6 +230,20 @@ public class Godofthings
                     .networkSynchronized(ByteBufCodecs.VAR_INT)
                     .build());
 
+    // 预览开关（默认开）：手持时对着方块画出「将要铺下去的格子」线框（见 construction.client 包）。
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> GOD_CONSTRUCTION_PREVIEW =
+            DATA_COMPONENTS.register("god_construction_preview", () -> DataComponentType.<Boolean>builder()
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(ByteBufCodecs.BOOL)
+                    .build());
+    // 相似方块开关（默认关）：建造时「背后那一格」的判定从「同种方块」放宽到「同种或相似方块」
+    // （按被点方块的物品标签收集，跳过 mineable* 标签，见 ConstructionActions#similarBlocks）。
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> GOD_CONSTRUCTION_SIMILAR =
+            DATA_COMPONENTS.register("god_construction_similar", () -> DataComponentType.<Boolean>builder()
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(ByteBufCodecs.BOOL)
+                    .build());
+
     // ---- 方块 ----
     // 注意：不能用 BlockBehaviour.Properties.copy(Blocks.FURNACE) —— 会连带原版熔炉的
     // `lit` 状态属性，而本方块未定义该属性，注册时直接崩溃。因此手动构造属性。
