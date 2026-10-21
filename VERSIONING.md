@@ -1591,3 +1591,18 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **不动的东西**：机器逻辑、方块实体存档格式、界面、神之配置物品的粘贴语义全部未改。
   - 键集不变（仍 622）；不新增 GameTest，**测试总数仍 45 条不变**。
   - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。
+
+- 5.20.6 → **5.21.0（新增「神之建筑」：建筑棒移植 + AE 取料）** —— 新增小物品，按规则**第二位 +1、末位归零**。
+  - **来源**：只移植 [ConstructionSticks](https://github.com/Mrbysco/ConstructionSticks) 的下界合金棒（`netherite_stick`），并把 [Applied Construction Sticks](https://github.com/benbenlaw/Applied-Construction-Sticks) 的 AE 取料能力一起搬过来。源码与 jar 从 `D:\下载` 解包阅读，**没有引入任何模组依赖**。
+  - **物品** `godofthings:god_construction`（神之建筑，`stacksTo(1)` + `fireResistant`，**没有耐久 = 不毁永久生效**）。新模式组件 `godofthings:god_construction_mode`（`Codec.INT` / `ByteCodecs.VAR_INT`，0=建造 1=销毁 2=替换）。
+  - **四项能力出厂自带**：天使（右键空气在视线前方 2 格悬空放置）、销毁（3D 连通破坏，上限 81 格，不掉落）、替换（副手拿方块，整片替换并弹出旧方块，上限 1024）、不毁。
+  - **三种模式**：右键方块按当前模式执行；**潜行 + 右键**循环切换并给 actionbar 提示。
+  - **建造算法**（照 `ActionConstruction`）：起点 = `clickedPos.relative(clickedFace)`，在垂直于点击面的平面内 BFS（4 正交 + 4 斜角），每格要求「背后那一格仍是同种方块」+ 目标格可替换 + `canSurvive` + `mayInteract`；某格不满足就既不铺也不向外扩散；blockstate 以被点方块为模板复制 `HORIZONTAL_FACING / FACING / AXIS / HALF / ROTATION_16`（双半砖会退化成单砖，防复制）。上限 1024。
+  - **AE 取料**：`ConstructionAeSource` 读物品上的 `AEComponents.WIRELESS_LINK_TARGET` → `IWirelessAccessPoint#getGrid()` → `MEStorage#extract(AEItemKey, long, Actionable.MODULATE, IActionSource.ofPlayer)`；`ConstructionAeLink` 在 `FMLCommonSetupEvent` 里 `GridLinkables.register(...)`，所以本体能直接放进 **AE2 无线接入点（WAP）的链接槽**完成绑定。材料先从玩家背包（主背包 + 快捷栏 + 副手）扣，不够才走网络。
+  - **配方**：沿用原版建筑棒的斜放形状，材料换成本模组的底料 —— `"  X" / " # " / "#  "`，X = **神之配方 ×1**，`#` = **下界合金锭 ×2**。
+  - **资源**：`models/item/god_construction.json` + `textures/item/god_construction.png`（128×128 程序化绘制：金身法杖 + 黄金环 + 青蓝发光方块头）。
+  - **实测**（临时 GameTest 探针，跑完即删）：5×5 石墙前点一下 → 平面正确铺开 21 格（场地里本来被占用的 4 格被正确跳过）；切替换 + 副手木板 → 连通区域整体变成木板；切销毁 → 整片清除。`[WAND-PROBE] wall=25 built=21 map=#####/#####/XX###/#X###/X####/ replaced=21 afterDestroy{stone=0 plank=6}`。
+  - **已知取舍**（相对上游精简）：不做预览 / 撤销 / GUI / 电池 / 相似方块匹配 / 容器（潜影盒等）取物；只覆盖「背包 + AE 网络」两种来源；`useOn` 单入口，所以右键会开界面的方块（箱子、本模组机器）上不会触发建造 —— 与上游一致。
+  - **文档**：README 核心特性表新增一行、物品数 26 → **27**；zh/en 各 +7 键（item / manual / 5 条 message），622 → **629** 双向一致。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+  - 验证：`gradlew build` 成功并自动部署；`check-lang.ps1` OK；GameTest 45/45。

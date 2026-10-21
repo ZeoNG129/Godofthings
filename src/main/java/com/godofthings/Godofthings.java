@@ -35,6 +35,7 @@ import com.godofthings.backpack.GodBackpackItem;
 import com.godofthings.backpack.GodBackpackMenu;
 import com.godofthings.backpack.GodBackpackSettings;
 import com.godofthings.config.MachinesConfig;
+import com.godofthings.construction.GodConstructionItem;
 import com.godofthings.energy.CreativeEnergyCubeBlock;
 import com.godofthings.energy.CreativeEnergyCubeEntity;
 import com.godofthings.energy.CreativeEnergyCubeMenu;
@@ -98,6 +99,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
@@ -217,6 +219,15 @@ public class Godofthings
             DATA_COMPONENTS.register("machine_state", () -> DataComponentType.<GodConfigData>builder()
                     .persistent(GodConfigData.CODEC)
                     .networkSynchronized(GodConfigData.STREAM_CODEC)
+                    .build());
+
+    // ---- 神之建筑的数据组件 ----
+    // 当前模式：0 = 建造 / 1 = 销毁 / 2 = 替换（潜行右键方块切换，见 construction 包的 GodConstructionItem）。
+    // persistent = 跟着物品存盘，networkSynchronized = 物品栏同步时一起发给客户端。
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> GOD_CONSTRUCTION_MODE =
+            DATA_COMPONENTS.register("god_construction_mode", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
                     .build());
 
     // ---- 方块 ----
@@ -342,6 +353,14 @@ public class Godofthings
             ITEMS.registerItem("god_black_box", GodBlackBoxItem::new);
     public static final DeferredItem<GodBinderItem> GOD_BINDER =
             ITEMS.registerItem("god_binder", GodBinderItem::new);
+
+    /**
+     * 神之建筑：建筑棒「下界合金棒」的精简移植（无耐久，永久生效）。
+     * 潜行右键方块切模式（建造 / 销毁 / 替换），建造是平面扩展铺同种方块，销毁不掉落，替换用副手方块顶替。
+     * 材料先扣背包，不够再去绑定的 AE 网络取（见 construction 包）。
+     */
+    public static final DeferredItem<GodConstructionItem> GOD_CONSTRUCTION =
+            ITEMS.registerItem("god_construction", props -> new GodConstructionItem(props.stacksTo(1).fireResistant()));
 
     /** 神之配置：潜行右键机器保存六面 I/O / AE 开关 / 加速数量，普通右键同类机器一键粘贴（见 GodConfigItem） */
     public static final DeferredItem<GodConfigItem> GOD_CONFIG =
@@ -678,6 +697,7 @@ public class Godofthings
                         output.accept(GOD_MEASURE.get());
                         output.accept(GOD_BLACK_BOX.get());
                         output.accept(GOD_BINDER.get());
+                        output.accept(GOD_CONSTRUCTION.get());
                         // ---- 物品：卡片 / 石板类 ----
                         output.accept(GOD_RECIPE.get());
                         output.accept(GOD_CONFIG.get());
@@ -764,6 +784,8 @@ public class Godofthings
             StorageCellModels.registerModel(INFINITY_COBBLESTONE_CELL.get(), godofthingsId("block/drive/infinity_cobblestone_cell"));
             StorageCellModels.registerModel(INFINITY_BLANK_PATTERN_CELL.get(), godofthingsId("block/drive/infinity_blank_pattern_cell"));
         });
+        // 神之建筑：让 AE2 认「这个物品能绑到无线访问点」（绑上后材料可以从 ME 网络里取）
+        event.enqueueWork(com.godofthings.construction.ConstructionAeLink::register);
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         LOGGER.info("Godofthings loaded");
     }
