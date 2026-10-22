@@ -41,29 +41,29 @@ public final class GodGridLayout
     // ---- 原版 Y 坐标 ----
 
     /** 输入行（原版 y=17） */
-    public static final int INPUT_Y = 17;
+    public static final int INPUT_Y = 41;
 
     /** 进度箭头（原版 GuiProgress 在 y=33） */
-    public static final int ARROW_Y = 33;
+    public static final int ARROW_Y = 57;
     public static final int ARROW_H = 20;
 
     /** 输出三排（原版 y=57 / 77 / 97） */
-    public static final int OUTPUT_Y0 = 57;
+    public static final int OUTPUT_Y0 = 101;
     public static final int OUTPUT_ROW_PITCH = 20;
 
     /** 物品栏（原版 getInventoryYOffset = 135） */
-    public static final int INVENTORY_Y = 105;
+    public static final int INVENTORY_Y = 149;
     public static final int HOTBAR_OFFSET = 58;
 
     // ---- 神之加速槽：占用原版流体罐的位置（x=7, y=84） ----
 
     public static final int ACCEL_X = 7;
-    public static final int ACCEL_Y = 84;
+    public static final int ACCEL_Y = 128;
 
     // ---- 面板尺寸（原版 ME 无限级） ----
 
     public static final int IMAGE_W = 362;
-    public static final int IMAGE_H = 188;
+    public static final int IMAGE_H = 242;
 
     /** 原版 getInventoryXOffset：8 + (imageWidth/2 - 90) */
     public static final int INVENTORY_X = 8 + (IMAGE_W / 2 - 90);
@@ -73,9 +73,9 @@ public final class GodGridLayout
     public static final int TAB_SIZE = 22;
     public static final int TAB_LEFT_X = -26;
     public static final int TAB_RIGHT_X = IMAGE_W + 4;
-    public static final int TAB_FACE_Y = 9;
-    public static final int TAB_AE_Y = 9;
-    public static final int TAB_SORT_Y = 33;
+    public static final int TAB_FACE_Y = 33;
+    public static final int TAB_AE_Y = 33;
+    public static final int TAB_SORT_Y = 57;
 
     // ---- 配色（照原版红/蓝槽框） ----
     public static final int COLOR_PANEL = 0xFFC6C6C6;
@@ -87,6 +87,10 @@ public final class GodGridLayout
     public static final int COLOR_ACCEL_BORDER = 0xFF7A5C1E;
     public static final int COLOR_ARROW = 0xFF9AA6B8;
     public static final int COLOR_TEXT = 0xFFE8ECF4;
+    /** v5.28.0：菱牌上的金色标题（贴近原画的金字） */
+    public static final int COLOR_TITLE = 0xFFFFE6A8;
+    /** v5.28.0：白色大理石底板上的深色文字 */
+    public static final int COLOR_TEXT_DARK = 0xFF3A3020;
     public static final int COLOR_BUTTON_BG = 0xFF3A3A3A;
     public static final int COLOR_BUTTON_BG_HOVER = 0xFF5A5A5A;
 

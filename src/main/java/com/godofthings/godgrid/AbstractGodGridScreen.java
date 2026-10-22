@@ -233,12 +233,14 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
         // 原版工厂界面标题居中在顶部
+        // v5.28.0：标题画在铭牌上（铭牌中心与面板中心对齐，文字基线 y=6）
         gui.drawString(this.font, this.title,
                 (this.imageWidth - this.font.width(this.title)) / 2, 6,
-                GodGridLayout.COLOR_TEXT, false);
+                GodGridLayout.COLOR_TITLE, false);
+        // v5.28.0：物品栏现在画在白色大理石底板上，文字改用深色才看得清
         gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"),
                 GodGridLayout.INVENTORY_X, GodGridLayout.INVENTORY_Y - 12,
-                GodGridLayout.COLOR_TEXT, false);
+                GodGridLayout.COLOR_TEXT_DARK, false);
     }
 
     @Override
