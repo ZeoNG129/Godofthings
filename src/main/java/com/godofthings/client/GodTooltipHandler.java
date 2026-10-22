@@ -22,7 +22,7 @@ import com.godofthings.Godofthings;
  * {@link ItemTooltipEvent} 一次性接管：凡是 {@code godofthings:} 命名空间的物品，都按
  * 「题词 + 基础介绍 / Shift 展开明细」的双层规范追加。</p>
  *
- * <p>样式规范与键名见 {@code GodTooltips}：{@code tooltip.godofthings.<注册名>.lore / .desc / .shift_N}。
+ * <p>样式规范与键名见 {@code GodTooltips}：{@code tooltip.godofthings.<注册名>.lore / .shift_N}。
  * 文案全部放语言文件、用 {@code §} 上色，Java 侧不做颜色处理。</p>
  *
  * <p><b>为什么只挂客户端</b>：{@code ItemTooltipEvent} 只在客户端渲染 tooltip 时触发，
@@ -54,9 +54,9 @@ public final class GodTooltipHandler
         String id = key.getPath();
         boolean shift = Screen.hasShiftDown();
 
-        // 题词（金色斜体）+ 基础介绍
+        // 题词（金色斜体）。基础介绍 .desc 已按用户要求全局移除，
+        // 不再注入，相关语言键也已删除；机制细节统一放在 Shift 展开里。
         appendIfPresent(event, id + ".lore");
-        appendIfPresent(event, id + ".desc");
 
         if (shift)
         {
