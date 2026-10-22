@@ -61,14 +61,16 @@ import com.godofthings.item.GodMinerItem;
 import com.godofthings.item.GodNoteItem;
 import com.godofthings.item.GodRecipeItem;
 import com.godofthings.item.GodUnbreakableItem;
-import com.godofthings.infinitecell.InfinityCellInventory;
-import com.godofthings.infinitecell.InfinityCellItem;
+import com.godofthings.infinitecell.UniversalCellInventory;
+import com.godofthings.infinitecell.UniversalCellItem;
 import com.godofthings.measurement.GodMeasureItem;
 import appeng.api.client.StorageCellModels;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.StorageCells;
+import appeng.api.util.AEColor;
 import appeng.core.definitions.AEItems;
+import appeng.core.definitions.AEParts;
 import com.godofthings.menu.GodBlackBoxMenu;
 import com.godofthings.menu.GodChangeMenu;
 import com.godofthings.menu.GodCraftConfigMenu;
@@ -600,19 +602,19 @@ public class Godofthings
     public static final DeferredItem<GodMeasureItem> GOD_MEASURE =
             ITEMS.registerItem("god_measure", GodMeasureItem::new);
 
-    // ---- ME 无限存储元件（自 ExtendedAE LGPL-3.0 移植：固定资源无限存取，不写 NBT）----
-    public static final DeferredItem<InfinityCellItem> INFINITY_WATER_CELL =
-            ITEMS.registerItem("infinity_water_cell",
-                    props -> new InfinityCellItem(() -> AEFluidKey.of(Fluids.WATER), props.stacksTo(1)));
-    public static final DeferredItem<InfinityCellItem> INFINITY_LAVA_CELL =
-            ITEMS.registerItem("infinity_lava_cell",
-                    props -> new InfinityCellItem(() -> AEFluidKey.of(Fluids.LAVA), props.stacksTo(1)));
-    public static final DeferredItem<InfinityCellItem> INFINITY_COBBLESTONE_CELL =
-            ITEMS.registerItem("infinity_cobblestone_cell",
-                    props -> new InfinityCellItem(() -> AEItemKey.of(Blocks.COBBLESTONE), props.stacksTo(1)));
-    public static final DeferredItem<InfinityCellItem> INFINITY_BLANK_PATTERN_CELL =
-            ITEMS.registerItem("infinity_blank_pattern_cell",
-                    props -> new InfinityCellItem(() -> AEItemKey.of(AEItems.BLANK_PATTERN), props.stacksTo(1)));
+    // ---- 「万物元件」（v5.25.0：合并原 4 个单资源无限元件 + 新增福禄伊克斯色玻璃线缆，共 5 种）----
+    // 自 ExtendedAE（LGPL-3.0）的无限元件移植思路：固定资源无限存取、不写 NBT、幻影存储。
+    // 容量口径从原来的 Integer.MAX_VALUE（2.1G）提升到 Long.MAX_VALUE（9.2E），
+    // 多元件叠加时的溢出由 KeyCounterMixin + InfinityBigStorage 兜住（BigInteger 精确记账）。
+    public static final DeferredItem<UniversalCellItem> UNIVERSAL_CELL =
+            ITEMS.registerItem("universal_cell",
+                    props -> new UniversalCellItem(() -> java.util.List.of(
+                            AEFluidKey.of(Fluids.WATER),
+                            AEFluidKey.of(Fluids.LAVA),
+                            AEItemKey.of(Blocks.COBBLESTONE),
+                            AEItemKey.of(AEItems.BLANK_PATTERN),
+                            AEItemKey.of(AEParts.GLASS_CABLE.stack(AEColor.TRANSPARENT))),
+                            props.stacksTo(1)));
 
     // ---- 「吞噬万籁的寂静」无限存储元件（自 ExtendedAE+ LGPL-3.0 移植：无限种类 + BigInteger 容量）----
     // 与上面 4 个固定资源的无限元件不同，这个是**通用**的：任意物品 / 流体都能存，
@@ -829,10 +831,7 @@ public class Godofthings
                         output.accept(GOD_ACCELERATOR.get());
                         output.accept(GOD_UNBREAKABLE.get());
                         // ---- 物品：ME 无限元件 ----
-                        output.accept(INFINITY_WATER_CELL.get());
-                        output.accept(INFINITY_LAVA_CELL.get());
-                        output.accept(INFINITY_COBBLESTONE_CELL.get());
-                        output.accept(INFINITY_BLANK_PATTERN_CELL.get());
+                        output.accept(UNIVERSAL_CELL.get());
                         output.accept(INFINITY_BIGINTEGER_CELL.get());
                     })
                     .build());
@@ -911,12 +910,9 @@ public class Godofthings
         // StorageCellModels 虽在 api.client 包里，但上游 ExtendedAE 同样在双侧通用初始化中调用）
         event.enqueueWork(() -> {
             StorageCells.addCellHandler(com.godofthings.infinitecell.big.InfinityCellHandler.INSTANCE);
-            StorageCells.addCellHandler(InfinityCellInventory.HANDLER);
-            StorageCellModels.registerModel(INFINITY_WATER_CELL.get(), godofthingsId("block/drive/infinity_water_cell"));
-            StorageCellModels.registerModel(INFINITY_LAVA_CELL.get(), godofthingsId("block/drive/infinity_lava_cell"));
-            StorageCellModels.registerModel(INFINITY_COBBLESTONE_CELL.get(), godofthingsId("block/drive/infinity_cobblestone_cell"));
+            StorageCells.addCellHandler(UniversalCellInventory.HANDLER);
             StorageCellModels.registerModel(INFINITY_BIGINTEGER_CELL.get(), godofthingsId("block/drive/infinity_biginteger_cell"));
-            StorageCellModels.registerModel(INFINITY_BLANK_PATTERN_CELL.get(), godofthingsId("block/drive/infinity_blank_pattern_cell"));
+            StorageCellModels.registerModel(UNIVERSAL_CELL.get(), godofthingsId("block/drive/universal_cell"));
         });
         // 神之建筑：让 AE2 认「这个物品能绑到无线访问点」（绑上后材料可以从 ME 网络里取）
         event.enqueueWork(com.godofthings.construction.ConstructionAeLink::register);

@@ -1724,3 +1724,14 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **数据影响**：本次事故前存档里的 `infinity_biginteger_cells.dat` 是空壳（`infinity_cell_list` 为空、不含任何 `infinity_cell_uuid`），即还没有任何元件存过东西，改文件名不丢数据。
   - 语言键 / 物品数 / 手册条目 / GameTest 条数全部不变。
 
+- 5.24.2 → **5.25.0（4 个无限元件合并为「万物元件」+ 容量提升到 9.2E）** —— 新增小物品 / 结构性调整，按规则**第二位 +1、末位归零**。
+  - **容量口径**：原来 4 个元件报告 `(long) Integer.MAX_VALUE` = **2,147,483,647（2.1G）**，现在统一报告 `Long.MAX_VALUE` = **9,223,372,036,854,775,807（9.2E）**。
+  - **为什么不能到 9.2P / 9.2Z**：AE2 的单位表实测是 `KMGTPE`（`ReadableNumberConverter` 里的字符串常量），**最大只到 E**，没有 Z / Y。所以 9.2E 既是 `long` 上限、也是界面上能显示的最大刻度；再大的数会显示成 `9223372.0P` 这类溢出单位。真实容量仍可超过 9.2E（见下），只是界面无法再往上显示。
+  - **「万物元件」`godofthings:universal_cell`**：一件元件同时无限供应 **5 种资源** —— 水 / 熔岩 / 圆石 / 空白样板 / **福禄伊克斯色 ME 玻璃线缆**（`ae2:fluix_glass_cable`，代码取 `AEParts.GLASS_CABLE.stack(AEColor.TRANSPARENT)`）。行为与旧元件一致：固定清单凭空供应、幻影存储、不写 NBT、闲置耗电 8 AE/t。
+  - **新增 `KeyCounterMixin`**（`com.godofthings.mixin`，注册进 `godofthings.mixins.json` 的 `mixins` 数组，服务端也生效）：AE2 的 `KeyCounter` 内部是裸 long 加法，某 key 顶到 MAX 后再加会回绕成负数，后果是终端把物品当「没有」、自动合成判定可用量为负、`ReadableNumberConverter.format(long)` 拒绝负数导致客户端崩溃。此 mixin 拦截 `add` / `get` / `remove` / `set`，把 long 钉在 MAX，真实值转 `InfinityBigStorage`（`ConcurrentHashMap<AEKey, BigInteger>`）精确记账。思路参考 Cell4（作者 iamSpencerr，MIT），本模组重写。
+  - **删除**：旧 4 个单资源元件（`infinity_water_cell` / `infinity_lava_cell` / `infinity_cobblestone_cell` / `infinity_blank_pattern_cell`）的注册、配方、物品模型、驱动器槽位模型、语言键（物品名 + 手册各 4 条 × 双语）全部移除；旧实现类 `infinitecell/InfinityCellItem` 与 `infinitecell/InfinityCellInventory` 一并删除（已被 `UniversalCellItem` / `UniversalCellInventory` 取代）。存档里已有的旧元件会变成空气 —— 它们本来就不存数据（幻影存储），所以**不丢任何内容**。
+  - **配方**：`CGC / GXG / CWL` —— C=石英玻璃、G=神之配方、X=256k 存储组件、W=水桶、L=熔岩桶。
+  - **资源**：物品贴图由旧 4 张单资源贴图的四象限拼合 + 右下角青色线缆示意（16×16），驱动器槽位贴图沿用 `infinity_cell` 样式。
+  - **语言键** 819 → **815**（删 8、加 4，净 -4）；**物品数 31 → 28**（删 4、加 1），README 同步。
+  - 不新增 GameTest，**测试总数仍 45 条不变**；mixin 在 `runGameTestServer` 下正常加载（日志 `SpongePowered MIXIN` 与 45/45 通过）。
+

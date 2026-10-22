@@ -5,26 +5,26 @@
     "C": {
       "item": "ae2:quartz_glass"
     },
-    "I": {
-      "tag": "c:gems/diamond"
+    "G": {
+      "item": "godofthings:god_recipe"
     },
-    "L": {
-      "item": "minecraft:lava_bucket"
+    "X": {
+      "item": "ae2:cell_component_256k"
     },
     "W": {
       "item": "minecraft:water_bucket"
     },
-    "X": {
-      "item": "ae2:cell_component_16k"
+    "L": {
+      "item": "minecraft:lava_bucket"
     }
   },
   "pattern": [
-    "CLC",
-    "WXW",
-    "III"
+    "CGC",
+    "GXG",
+    "CWL"
   ],
   "result": {
     "count": 1,
-    "id": "godofthings:infinity_cobblestone_cell"
+    "id": "godofthings:universal_cell"
   }
 }
