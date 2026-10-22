@@ -1708,3 +1708,10 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **语言键** 809 → **819**（+1 名字 +5 tooltip +1 手册 +3 指令消息 = 10 条 × 双语言），zh/en 双向一致、无空值；**物品数 30 → 31**，README 同步。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
 
+- 5.24.0 → **5.24.1（吞噬万籁的寂静在 ME 驱动器里贴图变紫黑格）** —— 行为修复，按规则**末位 +1**。
+  - **现象**：元件拿在手上正常，一放进 ME 驱动器槽位就整块显示成紫黑格（missing texture）。
+  - **真因**：驱动器槽位模型放错了目录。上游 ExtendedAE+ 把它放在 `models/block/drive/cells/` 下，我照搬了那个目录结构，但本模组既有的 4 个无限元件模型都直接放在 `models/block/drive/` 下，而注册代码写的是 `block/drive/infinity_biginteger_cell` —— 路径与实际文件差了一层 `cells/`，`StorageCellModels` 找不到模型就回退成紫黑格。
+  - **修法**：模型从 `models/block/drive/cells/infinity_biginteger_cell.json` 移到 `models/block/drive/infinity_biginteger_cell.json`，与其余 4 个元件的目录约定对齐；空掉的 `cells/` 目录一并删掉。
+  - **验证**：直接开 jar 核对，`assets/godofthings/models/block/drive/infinity_biginteger_cell.json` 与它引用的 `assets/godofthings/textures/block/drive/infinity_biginteger_cell.png` 都在，且模型里所有贴图 id 都能在 jar 内解析到。
+  - 语言键 / 物品数 / 手册条目 / GameTest 条数全部不变。
+
