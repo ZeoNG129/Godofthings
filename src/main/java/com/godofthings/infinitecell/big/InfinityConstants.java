@@ -15,8 +15,16 @@ public interface InfinityConstants
     /** 格式版本字段名 */
     String FORMAT_VERSION_FIELD = "infinity_format_version";
 
-    /** SavedData 文件名（{@code world/data/<这个名字>.dat}） */
-    String SAVE_FILE_NAME = "infinity_biginteger_cells";
+    /**
+     * SavedData 文件名（{@code world/data/<这个名字>.dat}）。
+     *
+     * <p><b>必须带 {@code godofthings_} 前缀，不能照抄上游的 {@code infinity_biginteger_cells}</b>：
+     * {@code DimensionDataStorage#computeIfAbsent} 只按<b>文件名</b>查找，不校验类型。
+     * 上游 ExtendedAE+ 也用 {@code infinity_biginteger_cells} 这个名字注册它自己的
+     * {@code InfinityStorageManager}；两个模组同时装了就会拿到对方的对象，
+     * 强转直接 {@code ClassCastException} 崩服（v5.24.2 踩过）。</p>
+     */
+    String SAVE_FILE_NAME = "godofthings_infinity_biginteger_cells";
 
     /** 磁盘唯一标识符（同时写在 ItemStack 与 StorageManager 里） */
     String INFINITY_CELL_UUID = "infinity_cell_uuid";

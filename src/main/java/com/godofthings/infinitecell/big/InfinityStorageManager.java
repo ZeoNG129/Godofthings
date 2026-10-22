@@ -7,6 +7,10 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import com.mojang.logging.LogUtils;
+
+import org.slf4j.Logger;
+
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -29,6 +33,8 @@ import net.minecraft.world.level.saveddata.SavedData;
  */
 public class InfinityStorageManager extends SavedData
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     private static final Factory<InfinityStorageManager> FACTORY =
             new Factory<>(InfinityStorageManager::new, InfinityStorageManager::readNbt);
 
@@ -146,11 +152,27 @@ public class InfinityStorageManager extends SavedData
         return cell;
     }
 
-    /** 取当前服务器的实例（主世界的 SavedData） */
+    /**
+     * 取当前服务器的实例（主世界的 SavedData）。
+     *
+     * <p>这里刻意<b>不用 {@code computeIfAbsent} 的隐式强转</b>：{@code DimensionDataStorage}
+     * 只按文件名查，若别的模组占了同一个文件名，返回的就是它的对象，隐式强转会抛
+     * {@code ClassCastException} 并把整个服务器带崩。先按 {@code SavedData} 取回来再显式判类型，
+     * 冲突时给一条能看懂的日志。</p>
+     */
     public static InfinityStorageManager getInstance(MinecraftServer server)
     {
         ServerLevel world = server.getLevel(ServerLevel.OVERWORLD);
-        var manager = world.getDataStorage().computeIfAbsent(FACTORY, InfinityConstants.SAVE_FILE_NAME);
+        SavedData data = world.getDataStorage().computeIfAbsent(FACTORY, InfinityConstants.SAVE_FILE_NAME);
+        if (!(data instanceof InfinityStorageManager manager))
+        {
+            // 理论上不会发生（文件名已加 godofthings_ 前缀），但绝不在这里崩服
+            LOGGER.error("[godofthings] SavedData '{}' 被其它模组占用（实际类型 {}），"
+                    + "「吞噬万籁的寂静」本次会话将不可用",
+                    InfinityConstants.SAVE_FILE_NAME,
+                    data == null ? "null" : data.getClass().getName());
+            return null;
+        }
         manager.registries = new WeakReference<>(server.registryAccess());
         return manager;
     }

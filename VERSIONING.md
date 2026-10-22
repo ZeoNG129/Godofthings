@@ -1715,3 +1715,12 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **验证**：直接开 jar 核对，`assets/godofthings/models/block/drive/infinity_biginteger_cell.json` 与它引用的 `assets/godofthings/textures/block/drive/infinity_biginteger_cell.png` 都在，且模型里所有贴图 id 都能在 jar 内解析到。
   - 语言键 / 物品数 / 手册条目 / GameTest 条数全部不变。
 
+- 5.24.1 → **5.24.2（与 ExtendedAE+ 同时安装时开局崩服）** —— 严重修复，按规则**末位 +1**。
+  - **现象**：进世界（或开服）在 `ServerStartedEvent` 阶段直接崩，`Exception in server tick loop`。
+  - **报错**：`java.lang.ClassCastException: class com.extendedae_plus.util.storage.InfinityStorageManager cannot be cast to class com.godofthings.infinitecell.big.InfinityStorageManager`。
+  - **真因**：`DimensionDataStorage#computeIfAbsent(factory, name)` **只按文件名查找，不校验类型**。上游 ExtendedAE+ 用它自己的 `infinity_biginteger_cells` 注册了一个 `SavedData`；我为了「存档可与上游互读」，把本模组的存档文件名也设成了同一个字符串。整合包里两个模组同时装，`computeIfAbsent` 先返回了上游的对象，隐式强转成我们的类型就炸了。
+  - **修法**：存档文件名改成 `godofthings_infinity_biginteger_cells`（带模组前缀，不再与任何模组撞名）。**代价**：不再与上游 ExtendedAE+ 的存档互通 —— 但这条「互读」本来就不成立（同名字只会互相覆盖/崩溃），改名才是唯一正确做法。
+  - **加固**：`getInstance` 不再依赖 `computeIfAbsent` 的隐式强转，改成先取 `SavedData` 再显式 `instanceof` 判断；万一将来又被别的模组占用同名文件，只打一条 `LOGGER.error` 并让本元件本次会话不可用，**绝不崩服**。
+  - **数据影响**：本次事故前存档里的 `infinity_biginteger_cells.dat` 是空壳（`infinity_cell_list` 为空、不含任何 `infinity_cell_uuid`），即还没有任何元件存过东西，改文件名不丢数据。
+  - 语言键 / 物品数 / 手册条目 / GameTest 条数全部不变。
+
