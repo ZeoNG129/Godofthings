@@ -2,6 +2,7 @@ package com.godofthings.godgrid;
 
 import com.godofthings.backpack.GodBackpackSorting;
 import com.godofthings.backpack.SortBy;
+import com.godofthings.block.entity.InfiniteItemHandler;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
@@ -177,5 +178,15 @@ public final class GodGridSorting
     private static ItemStack viewStack(ItemStack key, long amount)
     {
         return key.copyWithCount((int) Math.max(1L, Math.min(amount, LongSlotHandler.VIEW_CAP)));
+    }
+
+    /**
+     * 整理内置无限储存（v5.29.1）：{@link InfiniteItemHandler} 的语义是「每种物品恒一堆、
+     * 数量无上限」，所以排序只需要按当前键重排那一个 {@code stacks} 列表本身，
+     * 不涉及合并、拆分或容量计算 —— 排序永远不会改变任何物品的数量。
+     */
+    public static void sortInfinite(InfiniteItemHandler handler, int mode)
+    {
+        handler.getStacks().sort(GodBackpackSorting.comparator(sortBy(mode)));
     }
 }

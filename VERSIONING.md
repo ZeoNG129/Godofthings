@@ -1802,3 +1802,19 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **新增 5×2 条语言键**：`gui.godofthings.miner.radius_value` / `.ae.on` / `.ae.off` / `.fortune.tooltip` / `.silk_touch.tooltip`。语言键 940 → **945**（+5，中文 5 + 英文 5）。
   - 语言键 / 物品数 / 方块数 / 手册条目 / GameTest 条数结构不变。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
+
+- 5.29.0 → **5.29.1（掘机网格残留清理 + 全机器方块贴图安装）** —— 修复，按规则**末位 +1**。
+  - **问题**：v5.29.0 只把掘机**界面**上的槽位删了，数据层的 `gridHandler`（34 格 = 17 输入占位 + 17 输出缓冲）还在，`GodMinerBlockEntity` 里仍有一整套 `OUTPUT_SLOT_COUNT` / `OUTPUT_SLOT_START` / `TOTAL_SLOTS` 引用。用户指出「下方的输出槽没有删除干净」。
+  - **修法（彻底下线网格，不是只改界面）**：
+    - 删除 `gridHandler` 字段与 `INPUT_SLOT_COUNT` / `OUTPUT_SLOT_COUNT` / `TOTAL_SLOTS` / `OUTPUT_SLOT_START` 四个常量；
+    - `insertDrop` / `flushPendingOutputs` 改为直接写 `InfiniteItemHandler`（同类合并、数量无上限、最多 4096 种）—— **产物路径不再有中间缓冲**；
+    - 删除 `insertIntoOutputs`（网格写入）与 `pushGridSlotTo`（网格推送）两个方法；
+    - `gridItems()` 改为返回 `itemHandler`（AE / 管道 / 排序对外契约不变）；
+    - `gridAmount()` 恒返回 0、`gridHasLongAmounts()` 返回 false（界面已无可见网格槽）；
+    - `SideHandler` 槽位布局简化为「槽 0 = 加速槽，槽 1..N = 内置储存」，删除 `OUTPUT_SLOT_COUNT` 分支；
+    - AE 推送循环删掉第一个（网格）分支，只保留 `itemHandler` 分支。
+  - **老存档不丢物**：`migrateLegacyGrid` 重写为把两代网格格式（`GridInventoryLong` 的 long 格式、`GridInventory` 的 `ItemStackHandler` 格式）全部按 int 分片灌进 `itemHandler`，`loadAdditional` 检测到任一旧键就调用它。
+  - **排序**：新增 `GodGridSorting#sortInfinite(InfiniteItemHandler, int)` —— 因为该 handler 的语义是「每种物品恒一堆」，排序只需重排 `stacks` 列表本身，不涉及合并/拆分/容量计算，**排序永不改变数量**。（注意不能重载成 `sort(...)`，否则 `LongSlotHandler` 版本的调用会变歧义。）
+  - **方块贴图**：资源包 18 个机器目录下的 **47 张** `方块贴图/*.png` 全部拷入 `assets/godofthings/textures/block/`（实测全部 64×64 与目标尺寸一致）。其中 **12 张是模型已引用但之前缺失**的：`god_absorber_side/top`、`god_devourer_side/top`、`god_slaughter_side/top`、`god_transmitter_side/top`、`void_teleporter_side/top`、`creative_energy_cube_side/top`。装完模型引用的 37 个贴图名**全部可解析**。
+  - 语言键 / 物品数 / 方块数 / 手册条目 / GameTest 条数结构不变。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
