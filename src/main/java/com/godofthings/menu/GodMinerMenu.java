@@ -33,20 +33,21 @@ public class GodMinerMenu extends AbstractContainerMenu
         this.be = be;
         this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
 
-        // 神之加速槽（只接受神之加速，最多 64 个），位于界面右上角
-        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 148, 30));
+        // 神之加速槽（只接受神之加速，最多 64 个），画在左侧熔岩柱顶端
+        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 22, 52));
 
         // 无储存槽：挖掘产物直接进入内置无限储存，仅显示玩家物品栏
+        // 底图 9×4 网格：居中 x 从 95 起、格距 18；背包 3 行 y=166/184/202，快捷栏 y=220
         for (int row = 0; row < 3; row++)
         {
             for (int col = 0; col < 9; col++)
             {
-                this.addSlot(new Slot(playerInv, col + row * 9 + 9, 8 + col * 18, 156 + row * 18));
+                this.addSlot(new Slot(playerInv, col + row * 9 + 9, 95 + col * 18, 166 + row * 18));
             }
         }
         for (int col = 0; col < 9; col++)
         {
-            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 214));
+            this.addSlot(new Slot(playerInv, col, 95 + col * 18, 220));
         }
 
         // 运行 / 半径 / 当前深度 / 效率 / 液体量 / 内置储存堆数
