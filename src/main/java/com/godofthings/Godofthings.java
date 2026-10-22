@@ -614,6 +614,13 @@ public class Godofthings
             ITEMS.registerItem("infinity_blank_pattern_cell",
                     props -> new InfinityCellItem(() -> AEItemKey.of(AEItems.BLANK_PATTERN), props.stacksTo(1)));
 
+    // ---- 「吞噬万籁的寂静」无限存储元件（自 ExtendedAE+ LGPL-3.0 移植：无限种类 + BigInteger 容量）----
+    // 与上面 4 个固定资源的无限元件不同，这个是**通用**的：任意物品 / 流体都能存，
+    // 真实数据放在世界存档 world/data/infinity_biginteger_cells.dat 里（见 InfinityStorageManager）。
+    public static final DeferredItem<com.godofthings.infinitecell.big.InfinityCellItem> INFINITY_BIGINTEGER_CELL =
+            ITEMS.registerItem("infinity_biginteger_cell",
+                    props -> new com.godofthings.infinitecell.big.InfinityCellItem());
+
     // ---- 神之合成 ----
     public static final DeferredBlock<GodCraftBlock> GOD_CRAFT = BLOCKS.registerBlock("god_craft",
             GodCraftBlock::new,
@@ -826,6 +833,7 @@ public class Godofthings
                         output.accept(INFINITY_LAVA_CELL.get());
                         output.accept(INFINITY_COBBLESTONE_CELL.get());
                         output.accept(INFINITY_BLANK_PATTERN_CELL.get());
+                        output.accept(INFINITY_BIGINTEGER_CELL.get());
                     })
                     .build());
 
@@ -902,10 +910,12 @@ public class Godofthings
         // ME 无限元件：存储处理器 + 驱动器槽位模型注册（enqueueWork 保证注册表就绪且主线程执行；
         // StorageCellModels 虽在 api.client 包里，但上游 ExtendedAE 同样在双侧通用初始化中调用）
         event.enqueueWork(() -> {
+            StorageCells.addCellHandler(com.godofthings.infinitecell.big.InfinityCellHandler.INSTANCE);
             StorageCells.addCellHandler(InfinityCellInventory.HANDLER);
             StorageCellModels.registerModel(INFINITY_WATER_CELL.get(), godofthingsId("block/drive/infinity_water_cell"));
             StorageCellModels.registerModel(INFINITY_LAVA_CELL.get(), godofthingsId("block/drive/infinity_lava_cell"));
             StorageCellModels.registerModel(INFINITY_COBBLESTONE_CELL.get(), godofthingsId("block/drive/infinity_cobblestone_cell"));
+            StorageCellModels.registerModel(INFINITY_BIGINTEGER_CELL.get(), godofthingsId("block/drive/infinity_biginteger_cell"));
             StorageCellModels.registerModel(INFINITY_BLANK_PATTERN_CELL.get(), godofthingsId("block/drive/infinity_blank_pattern_cell"));
         });
         // 神之建筑：让 AE2 认「这个物品能绑到无线访问点」（绑上后材料可以从 ME 网络里取）

@@ -96,7 +96,10 @@ public class GodofthingsCommand
                                 .then(Commands.argument("name", StringArgumentType.word())
                                         .executes(ctx -> importPoints(ctx.getSource(), arg(ctx, "name"))))))
                 .then(Commands.literal("manual")
-                        .executes(GodofthingsCommand::openManual)));
+                        .executes(GodofthingsCommand::openManual))
+                .then(Commands.literal("infinity")
+                        .then(Commands.literal("recover")
+                                .executes(GodofthingsCommand::recoverInfinityCells))));
     }
 
     private static String arg(CommandContext<CommandSourceStack> ctx, String key)
@@ -401,5 +404,78 @@ public class GodofthingsCommand
                     String.valueOf(e.getMessage())));
             return 0;
         }
+    }
+
+    /**
+     * {@code /godofthings infinity recover} —— 给存档里每一份「吞噬万籁的寂静」数据重新发一个元件。
+     *
+     * <p>上游 ExtendedAE+ 的 {@code /eap give_infinity_disks} 是同一用途的保底手段：数据本身在
+     * 世界存档里（{@code world/data/infinity_biginteger_cells.dat}），元件丢了不代表数据丢了，
+     * 用这个指令就能把数据重新绑到新元件上。</p>
+     */
+    private static int recoverInfinityCells(CommandContext<CommandSourceStack> ctx)
+    {
+        CommandSourceStack source = ctx.getSource();
+        ServerPlayer player = source.getPlayer();
+        if (player == null)
+        {
+            source.sendFailure(Component.translatable("message.godofthings.infinity.need_player"));
+            return 0;
+        }
+
+        var manager = com.godofthings.infinitecell.big.InfinityCellStorage.get();
+        if (manager == null)
+        {
+            source.sendFailure(Component.translatable("message.godofthings.infinity.no_data"));
+            return 0;
+        }
+
+        var uuids = manager.getAllLoadedUUIDs();
+        if (uuids.isEmpty())
+        {
+            source.sendFailure(Component.translatable("message.godofthings.infinity.no_data"));
+            return 0;
+        }
+
+        int given = 0;
+        for (java.util.UUID uuid : uuids)
+        {
+            var storage = manager.getCell(uuid);
+            // 只补有内容的（空壳没意义）
+            if (storage == null || !storage.hasItems())
+            {
+                continue;
+            }
+
+            net.minecraft.world.item.ItemStack stack =
+                    new net.minecraft.world.item.ItemStack(Godofthings.INFINITY_BIGINTEGER_CELL.get());
+
+            // 把 UUID 与摘要写回元件，让它重新指向存档里这份数据
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID(com.godofthings.infinitecell.big.InfinityConstants.INFINITY_CELL_UUID, uuid);
+            byte[] totalBytes = storage.getItemCount().toByteArray();
+            tag.putByteArray(com.godofthings.infinitecell.big.InfinityConstants.INFINITY_ITEM_TOTAL, totalBytes);
+            tag.putInt(com.godofthings.infinitecell.big.InfinityConstants.INFINITY_ITEM_TYPES, storage.size());
+            tag.putByteArray(com.godofthings.infinitecell.big.InfinityConstants.INFINITY_CELL_ITEM_COUNT, totalBytes);
+            stack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                    net.minecraft.world.item.component.CustomData.of(tag));
+
+            if (!player.getInventory().add(stack))
+            {
+                player.drop(stack, false);
+            }
+            given++;
+        }
+
+        if (given == 0)
+        {
+            source.sendFailure(Component.translatable("message.godofthings.infinity.no_data"));
+            return 0;
+        }
+
+        final int total = given;
+        source.sendSuccess(() -> Component.translatable("message.godofthings.infinity.recovered",
+                String.valueOf(total)).withStyle(ChatFormatting.GREEN), false);
+        return given;
     }
 }

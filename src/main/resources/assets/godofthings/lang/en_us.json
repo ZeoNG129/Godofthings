@@ -808,5 +808,15 @@
   "structure.minecraft.village_plains": "Plains Village",
   "structure.minecraft.village_savanna": "Savanna Village",
   "structure.minecraft.village_snowy": "Snowy Village",
-  "structure.minecraft.village_taiga": "Taiga Village"
+  "structure.minecraft.village_taiga": "Taiga Village",
+  "item.godofthings.infinity_biginteger_cell": "\u00a74D\u00a7ce\u00a76v\u00a7eo\u00a7au\u00a7br\u00a7di\u00a7bn\u00a7dg \u00a7bS\u00a7di\u00a7bl\u00a7de\u00a7bn\u00a7dc\u00a7de",
+  "tooltip.godofthings.infinity_cell.line1": "\u00a77-- \u00a7bA reality projection of absolute storage; \u00a7e\"finite\" \u00a76has been defined as \u00a7cillegal",
+  "tooltip.godofthings.infinity_cell.line2": "\u00a7bIts very existence is the ultimate negation of \u00a7dentropy\u00a7b",
+  "tooltip.godofthings.infinity_cell.uuid": "\u00a77UUID: \u00a7e%s",
+  "tooltip.godofthings.infinity_cell.types": "\u00a77Stored Types: \u00a7a%s",
+  "tooltip.godofthings.infinity_cell.total": "\u00a77Stored Total: \u00a7b%s",
+  "manual.godofthings.infinity_biginteger_cell": "What: \"Devouring Silence of Ten Thousand Voices\" -- the ultimate ME storage cell (full port of ExtendedAE+ 1.6.3, LGPL-3.0). Unlike the four fixed-resource infinity cells, this one is generic:\nCapacity: backed by BigInteger, effectively unlimited. AE2 screens can only show a long, so a single item tops out at 9.2E (9,223,372,036,854,775,808) in the terminal -- but you can keep inserting past that and nothing is lost; the excess is still accounted for exactly.\nTypes: unlimited. Items / fluids / any AE2-integrated resource (FE, chemicals, source, ...) can be stored; the latter need their respective addon installed.\nSpecs: 512 AE/t idle drain; 4 upgrade slots (inverter / fuzzy / capacity ...) plus a config slot for partition filtering; refuses to store a non-empty cell of its own kind (no recursion).\nWhere the data lives: not on the item -- in the world save at world/data/infinity_biginteger_cells.dat, with the item carrying only a UUID (so removing / replacing / dropping the cell never loses data). Field names match upstream, so saves are interchangeable.\nRecovery: if the cell is ever lost, the data is still in the save; /godofthings infinity recover hands you a cell for every dataset stored there.\nObtain: crafting (4 Quartz Glass + 4 God Recipes + 1 256k Cell Component + 1 Nether Star + 2 Netherite Ingots).",
+  "message.godofthings.infinity.need_player": "This command must be run by a player (it hands the cells to you)",
+  "message.godofthings.infinity.no_data": "No recoverable \"Devouring Silence\" data in this save",
+  "message.godofthings.infinity.recovered": "Re-issued %s cell(s) from the save data"
 }

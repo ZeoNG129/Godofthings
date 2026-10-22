@@ -1694,3 +1694,17 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     - 顺带修掉上游一处真 bug：`StructureSearchEntry` 的「组」那一行是 `Component.translatable(getPrettyStructureName(groupKey))`，而该方法返回的**已经是翻译后的文本**，再交给 `translatable` 会去查一个不存在的键、永远显示原文；改为 `Component.literal`。
   - **语言键** 708 → **809**（+67 群系 +34 结构），zh/en 双向一致、无空值；**物品数 / 方块数 / 手册条目 / GameTest 条数全部不变**。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
+
+- 5.23.1 → **5.24.0（新增「吞噬万籁的寂静」无限存储元件）** —— 新增小物品，按规则**第二位 +1、末位归零**。
+  - 整包移植自 ExtendedAE+ 1.6.3（`extendedae_plus-1.6.3`，LGPL-3.0）的 `infinity_biginteger_cell`，物品注册为 `godofthings:infinity_biginteger_cell`，显示名保留「吞噬万籁的寂静」。
+  - **6 个类**落在新包 `com.godofthings.infinitecell.big`：`InfinityConstants`（存档字段名，**刻意与上游一致**，两边存档可互读）、`InfinityDataStorage`（long/BigInteger 双轨数量表）、`InfinityStorageManager`（`SavedData`，`world/data/infinity_biginteger_cells.dat`）、`InfinityCellItem`（物品本体）、`InfinityCellInventory`（AE2 `StorageCell` 视图）、`InfinityCellHandler`（AE2 `ICellHandler`），另加 `InfinityCellStorage`（服务器生命周期静态持有）。
+  - **零第三方依赖**：只用到 AE2 API 与原版，与既有的 4 个固定资源无限元件并存（`InfinityCellInventory.HANDLER` 与新 handler 并列注册）。
+  - **数据不进物品**：真实内容在世界存档里按 UUID 索引，物品只带 UUID 与「种类数 / 总数量」摘要；字段名与上游完全一致，所以从 ExtendedAE+ 换过来（或换回去）存档互通。
+  - **容量口径**：内部是 BigInteger，理论上无限；AE2 界面只认 `long`，终端里单个物品最多显示 **9.2E（9,223,372,036,854,775,808）**，但继续插入不丢、超出部分仍精确记账。种类不限；闲置耗电 **512 AE/t**；4 个升级卡槽 + 配置槽（分区过滤）；不许把带内容的同类元件塞进自己。
+  - **彩色名字与 tooltip**：按《AE2LT-彩色名字与Tooltip-移植说明》的方案 B，直接在语言文件里用 `§` 格式码，Java 侧零渲染处理 —— 名字 `§4吞§c噬§6万§e籁§a的§b寂§d静`，另加 2 行风味 tooltip（`§7——§b绝对存储的现实投影，§e"有限"§6已被定义为§c非法` / `§b其存在本身，即是对§d熵增§b的终极否定`）与 uuid / types / total 三条摘要，`en_us.json` 同步给了英文配色版。
+  - **资源**：物品模型 + 驱动器槽位模型（`block/drive/cells/infinity_biginteger_cell`）+ 3 张贴图（item / block / block/drive）二进制原样搬运，命名空间改 `godofthings`。
+  - **配方**（走神之配方体系）：`CGC / GXG / INI` —— C=石英玻璃、G=神之配方、X=256k 存储组件、N=下界星、I=下界合金锭。上游原配方依赖它自己的 `OBLIVION_SINGULARITY` / `INFINITY_CORE`，本模组没有这些物品，故按体系重做。
+  - **恢复指令**：`/godofthings infinity recover` —— 对应上游 `/eap give_infinity_disks` 的保底手段，给存档里每份有内容的磁盘数据重新发一个元件（元件丢了数据不丢）。
+  - **语言键** 809 → **819**（+1 名字 +5 tooltip +1 手册 +3 指令消息 = 10 条 × 双语言），zh/en 双向一致、无空值；**物品数 30 → 31**，README 同步。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+

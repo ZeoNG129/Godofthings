@@ -57,6 +57,7 @@
 | 🌦️ **神之改造** <br/>`God Change` | 创世天象仪：主世界时间流逝步长、晴雨雷雪天气一键随心调控 |
 | 📏 **神之测量** <br/>`God Measurement` | 激光卷尺：两点选区高亮显示三轴坐标跨度与包围盒体积（纯客户端轻量零开销） |
 | ♾️ **ME 无限存储元件** <br/>`Infinite Cells` | 4 种无限存储体（无限水 / 熔岩 / 圆石 / 空白样板）：单一元件吞吐 **21.4 亿**资源无限存取 |
+ | 🌌 **吞噬万籁的寂静** <br/>`Devouring Silence` | 终极 ME 存储元件（整包移植自 [ExtendedAE+](https://github.com/GLodBlock/ExtendedAE-Plus)，LGPL-3.0）：**种类不限 + 容量 BigInteger 无限**，任意物品 / 流体 / AE2 附属资源都能存；终端里单个物品最多显示 **9.2E**，但继续插入不丢、超出仍精确记账；闲置耗电 512 AE/t，4 个升级卡槽 + 分区过滤；真实数据存于世界存档（`world/data/infinity_biginteger_cells.dat`），元件只带 UUID，**丢了可用 `/godofthings infinity recover` 找回**；名字与 tooltip 用 `§` 格式码做彩色渐变 |
 | 🛠️ **神之合成** <br/>`God Craft` | 高级自动化合成台：直观参数配置 / 8 组模板预设槽 / 智能均分投料 |
 | 🛡️ **神之护甲** <br/>`God Armor` | 诸神四件套：集成 **8 大被动功能开关** 与天神技能树（7 项增幅 + 7 项共鸣特权） |
 | ❤️ **神之请神** <br/>`God Invite` | 生物赐福法杖：右键生物赋予超限无限生命值（支持随时切换反转） |
@@ -156,7 +157,7 @@
                               #   刷怪蛋、资源三机过滤、去皮机、神之共鸣、神之皮带（10 个测试类）
 ```
 
- `check-lang.ps1` 一次查完这些：zh/en 键集双向一致、无空值、代码里所有 `translatable("字面量")` 都有键、运行时拼接的 7 个键前缀仍能解析、**注册的 22 个方块 / 30 个物品 / 0 个实体 ↔ blockstate · item 模型 · 语言键全覆盖**、**每个物品 / 方块都有手册条目**（`manual.godofthings.<注册名>`，系统条目另验标题与正文）、反向的孤儿 blockstate，以及**仓库内所有 `.ps1` 必须纯 ASCII**（UTF-8 无 BOM 又含中文的脚本被 PowerShell 5.1 读错编码时，注释尾字节会被当成续行符、把下一行代码吞掉 —— 这个坑已经踩过两次）；**文档计数与源码一致**（回归测试条数 / AE2 并网机数 / 成就数 / 方块物品实体与前缀数，直接对着源码树数）与**仓库根无解包污染目录**（防解包事故复发）。
+ `check-lang.ps1` 一次查完这些：zh/en 键集双向一致、无空值、代码里所有 `translatable("字面量")` 都有键、运行时拼接的 7 个键前缀仍能解析、**注册的 22 个方块 / 31 个物品 / 0 个实体 ↔ blockstate · item 模型 · 语言键全覆盖**、**每个物品 / 方块都有手册条目**（`manual.godofthings.<注册名>`，系统条目另验标题与正文）、反向的孤儿 blockstate，以及**仓库内所有 `.ps1` 必须纯 ASCII**（UTF-8 无 BOM 又含中文的脚本被 PowerShell 5.1 读错编码时，注释尾字节会被当成续行符、把下一行代码吞掉 —— 这个坑已经踩过两次）；**文档计数与源码一致**（回归测试条数 / AE2 并网机数 / 成就数 / 方块物品实体与前缀数，直接对着源码树数）与**仓库根无解包污染目录**（防解包事故复发）。
 
 `runGameTestServer` 需要运行期有 AE2（本模组有 7 个方块实体直接 implements AE2 接口），`prepareGameTestMods` 任务会自动从 `libs/` 与 `run-server/mods/` 把 AE2 与 guideme 拷进 `run-gametest/mods/`。CI（`.github/workflows/build.yml`）跑的是 fetch-libs → check-lang → build → game tests。
 
