@@ -14,6 +14,8 @@ import com.godofthings.block.entity.machine.OutputCapacity;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
+import com.godofthings.godgrid.GodGridLayoutSpec;
+import com.godofthings.godgrid.GodGridLayouts;
 import com.godofthings.godgrid.GodGridSorting;
 import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.item.GodAcceleratorItem;
@@ -78,15 +80,33 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         return owner;
     }
 
-    /** 输入槽数量（v5.18.0：9 → 17，与共用网格界面一致） */
-    public static final int INPUT_SLOT_COUNT = GodGridLayout.INPUT_COUNT;
+    /**
+     * 三台资源机共用本类，各自的界面布局不同（秘柜上 14 下 16、温床左右各 3×4、圣坛上 14 下 15），
+     * 所以按当前 {@link GodResourceVariant} 的注册名去 {@link GodGridLayouts} 查表。
+     */
+    @Override
+    public String gridLayoutId()
+    {
+        return variant.id;
+    }
 
-    /** 输出槽数量（17 格缓冲，产物先进这里，满了再落进内置无限储存） */
-    public static final int OUTPUT_SLOT_COUNT = GodGridLayout.OUTPUT_COUNT;
+    @Override
+    public IItemHandler gridItems()
+    {
+        return gridHandler;
+    }
 
-    public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
-
-    /** 输出区起点：输入在前、输出在后 */
+    /**
+     * 三台资源机共用本类，{@link #gridHandler} 是字段初始化时创建的（那时 {@code variant} 还没赋值），
+     * 所以槽位容量必须取三者的<b>最大值</b>，界面再按各自的 {@link GodGridLayouts} spec 只画自己那几格。
+     *
+     * <p>三者上限：秘柜 14+16=30、温床 12+16=28、圣坛 14+15=29 → 取 <b>30</b>；
+     * 输入上限取三者最大 = <b>14</b>，故输出区从第 14 格开始。</p>
+     */
+    public static final int MAX_MACHINE_SLOTS = 30;
+    public static final int INPUT_SLOT_COUNT = 14;
+    public static final int OUTPUT_SLOT_COUNT = MAX_MACHINE_SLOTS - INPUT_SLOT_COUNT;
+    public static final int TOTAL_SLOTS = MAX_MACHINE_SLOTS;
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
 
     /**
@@ -343,12 +363,6 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
     }
 
     // ---- GodGridHost：共用网格界面所需的机器侧契约 ----
-
-    @Override
-    public IItemHandler gridItems()
-    {
-        return gridHandler;
-    }
 
     @Override
     public IItemHandler gridAccel()

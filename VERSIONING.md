@@ -1818,3 +1818,30 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **方块贴图**：资源包 18 个机器目录下的 **47 张** `方块贴图/*.png` 全部拷入 `assets/godofthings/textures/block/`（实测全部 64×64 与目标尺寸一致）。其中 **12 张是模型已引用但之前缺失**的：`god_absorber_side/top`、`god_devourer_side/top`、`god_slaughter_side/top`、`god_transmitter_side/top`、`void_teleporter_side/top`、`creative_energy_cube_side/top`。装完模型引用的 37 个贴图名**全部可解析**。
   - 语言键 / 物品数 / 方块数 / 手册条目 / GameTest 条数结构不变。
   - 不新增 GameTest，**测试总数仍 45 条不变**。
+
+- 5.29.1 → **5.30.0（7 台网格机器界面按各自 UI 原画重做，槽位数量随之删减）** —— 系统性改造，按规则**首位不变、第二位 +1、末位归零**。
+  - **用户定的口径**：①以 UI 图为准，原来输入输出槽位过多就删减到与图一致；②原画上排/左块 = 输入、下排/右块 = 输出；③面板按每台原画各自的比例（选 A：忠于原画，即使超出 GUI 缩放 4 的可视高度）。
+  - **框架重构（这是本次的主体）**：原先 7 台机器共用一套 `GodGridLayout` 常量（17 输入 + 17 输出、面板 362×242），对不上任何一张原画。现改为 per-machine：
+    - 新增 `GodGridLayoutSpec` —— 单台机器的几何描述（面板尺寸、输入/输出行列与坐标、槽位边长与间距、加速槽、玩家栏、贴图尺寸），带链式 Builder；
+    - 新增 `GodGridLayouts` —— 7 台机器各自实测的布局表，按注册名查询；
+    - `GodGridHost` 新增 `gridLayoutId()`（缺省回退熔炉），三台资源机按 `GodResourceVariant.id` 返回各自 id；
+    - `AbstractGodGridMenu` 的 `SLOT_ACCEL` / `SLOT_PLAYER_START` 从 `static final` 改为**实例字段**（每台机器槽位数不同），槽位创建、玩家栏、数量同步全部改为走 `layout`；
+    - `AbstractGodGridScreen` 改为按 `layout` 绘制，底图按机器 id 取 `textures/gui/<id>.png`，blit 用 11 参数重载显式传贴图真实尺寸。
+  - **各机槽位数（在原画上逐格数出来的）**：
+    | 机器 | 输入 | 输出 | 面板 |
+    |---|---|---|---|
+    | 熔炉 01 | 17（上排） | 15（下排） | 335×344 |
+    | 秘柜 03 | 14（上排） | 16（下排） | 324×330 |
+    | 温床 04 | 3×4=12（左块） | 8×2=16（下带） | 256×256 |
+    | 圣坛 05 | 14（上排） | 15（下排） | 310×298 |
+    | 祭台 06 | 3×3=9（左块） | 3×3=9（右块） | 256×256 |
+    | 鉴录仪 07 | 15（上排） | 15（下排） | 297×302 |
+    | 圣卵 08 | 15（上排） | 15（下排） | 283×261 |
+  - **两处刻意偏离原画，均为保证功能语义**：
+    1. **祭台输出从原画的 3×2=6 补到 3×3=9** —— 去皮机的核心语义是「输入 i 一一对应输出 i」（`convertOne`），GameTest 的 9 槽独立测试硬依赖这个配对，输入输出格数必须相等；
+    2. **三台资源机共用 `GodResourceBlockEntity`，`gridHandler` 在字段初始化时创建**（那时 `variant` 尚未赋值），无法按变体取不同容量，故容量统一取三者最大值 **30**（14 输入 + 16 输出），界面再按各自 spec 只画自己那几格。
+  - **底图**：7 张 `*_256x256.png` 拷入 `textures/gui/<id>.png`，再按各 spec 的面板尺寸做 HighQualityBicubic 重采样（256→335/324/310/297/283），实测 7 张尺寸与 spec 声明**全部一致**。
+  - **保留 `static final` 槽位常量的理由**：`GameTest` 与其它类直接用 `GodXxxBlockEntity.TOTAL_SLOTS` 等常量建 handler，改成实例字段会波及测试代码，而测试总数必须保持 45 条不变。
+  - 语言键 / 物品数 / 方块数 / 手册条目结构不变。
+  - 不新增 GameTest，**测试总数仍 45 条不变**（`nineinputslotsstripindependently` 在祭台输出补到 9 格后恢复通过）。
+  - **已知代价**：面板高度 344/330/302 超出 GUI 缩放 4 下的可视高度（480×270），玩家需把界面缩放调到 3 或更小才能完整显示 —— 这是用户选 A 方案时明确接受的。

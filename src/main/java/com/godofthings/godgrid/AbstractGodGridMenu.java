@@ -29,10 +29,16 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
     public static final int BTN_AE_TOGGLE = 10;
     public static final int BTN_SORT = 12;
 
-    /** 加速槽在容器内的槽位序号 */
-    public static final int SLOT_ACCEL = GodGridLayout.MACHINE_SLOTS;
+    /**
+     * 本机的界面几何（v5.30.0：每台机器一套，见 {@link GodGridLayouts}）。
+     * 槽位数量、坐标、面板尺寸全部来自这里，因此 7 台机器可以各不相同。
+     */
+    public final GodGridLayoutSpec layout;
+
+    /** 加速槽在容器内的槽位序号（= 本机 machineSlots，随机器变化） */
+    public final int slotAccel;
     /** 玩家物品栏第一个槽位的序号 */
-    public static final int SLOT_PLAYER_START = GodGridLayout.MACHINE_SLOTS + 1;
+    public final int slotPlayerStart;
 
     protected final BlockEntity blockEntity;
     protected final GodGridHost host;
@@ -43,10 +49,10 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
     /** 网格槽是否是自管 long 槽（六台神之机器均为 true；true 才会走数量同步与差额结算的点击逻辑） */
     private final boolean longSlots;
     /** 自管 long 槽的数量缓存（客户端渲染大数字用；-1 = 不显示），由低 16 / 高 15 两个 DataSlot 重组 */
-    private final long[] cachedAmounts = filled(GodGridLayout.MACHINE_SLOTS, -1L);
+    private final long[] cachedAmounts;
     /** 双通道数量同步的两半（低 16 位 / 高 15 位），每次 set 后重组进 cachedAmounts */
-    private final int[] cachedAmountLows = new int[GodGridLayout.MACHINE_SLOTS];
-    private final int[] cachedAmountHighs = new int[GodGridLayout.MACHINE_SLOTS];
+    private final int[] cachedAmountLows;
+    private final int[] cachedAmountHighs;
 
     protected AbstractGodGridMenu(MenuType<?> type, int containerId, Inventory playerInv, BlockEntity be)
     {
@@ -57,27 +63,35 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         this.cachedAe = host.gridAeEnabled() ? 1 : 0;
         this.cachedSortMode = host.gridSortMode();
 
+        // v5.30.0：按本机自己的 UI 原画取布局（每台面板尺寸/槽位排布都不同）
+        this.layout = GodGridLayouts.of(host.gridLayoutId());
+        this.slotAccel = this.layout.machineSlots();
+        this.slotPlayerStart = this.slotAccel + 1;
+        this.cachedAmounts = filled(this.layout.machineSlots(), -1L);
+        this.cachedAmountLows = new int[this.layout.machineSlots()];
+        this.cachedAmountHighs = new int[this.layout.machineSlots()];
+
         IItemHandler items = host.gridItems();
         // 自管 long 槽换用专用槽位包装：对外视图 ≤99，点击按「视图差额」结算，不丢量
         LongSlotHandler longItems = items instanceof LongSlotHandler handler ? handler : null;
         this.longSlots = longItems != null;
-        for (int i = 0; i < GodGridLayout.INPUT_COUNT; i++)
+        for (int i = 0; i < this.layout.inputCount(); i++)
         {
             if (longItems != null)
             {
                 addSlot(new LongSlotHandler.LongSlot(longItems, i,
-                        GodGridLayout.inputX(i), GodGridLayout.INPUT_Y));
+                        this.layout.inputX(i), this.layout.inputY(i)));
             }
             else
             {
-                addSlot(new SlotItemHandler(items, i, GodGridLayout.inputX(i), GodGridLayout.INPUT_Y));
+                addSlot(new SlotItemHandler(items, i, this.layout.inputX(i), this.layout.inputY(i)));
             }
         }
-        for (int j = 0; j < GodGridLayout.OUTPUT_COUNT; j++)
+        for (int j = 0; j < this.layout.outputCount(); j++)
         {
-            final int handlerIndex = GodGridLayout.INPUT_COUNT + j;
-            final int slotX = GodGridLayout.outputX(j);
-            final int slotY = GodGridLayout.outputY(j);
+            final int handlerIndex = this.layout.inputCount() + j;
+            final int slotX = this.layout.outputX(j);
+            final int slotY = this.layout.outputY(j);
             Slot outputSlot;
             if (longItems != null)
             {
@@ -106,7 +120,7 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
             addSlot(outputSlot);
         }
         addSlot(new SlotItemHandler(host.gridAccel(), 0,
-                GodGridLayout.accelX(), GodGridLayout.ACCEL_Y)
+                this.layout.accelX, this.layout.accelY)
         {
             @Override
             public boolean mayPlace(ItemStack stack)
@@ -120,15 +134,13 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
             for (int col = 0; col < 9; col++)
             {
                 addSlot(new Slot(playerInv, col + row * 9 + 9,
-                        GodGridLayout.INVENTORY_X + col * GodGridLayout.SLOT,
-                        GodGridLayout.INVENTORY_Y + row * GodGridLayout.SLOT));
+                        this.layout.invSlotX(col), this.layout.invSlotY(row)));
             }
         }
         for (int col = 0; col < 9; col++)
         {
             addSlot(new Slot(playerInv, col,
-                    GodGridLayout.INVENTORY_X + col * GodGridLayout.SLOT,
-                    GodGridLayout.INVENTORY_Y + GodGridLayout.HOTBAR_OFFSET));
+                    this.layout.invSlotX(col), this.layout.hotbarY()));
         }
 
         addDataSlot(new DataSlot()
@@ -169,7 +181,7 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         // 值比较，变了才发包 —— 方块实体改数量（onContentsChanged → setChanged）后下一 tick 自动同步。
         if (host.gridHasLongAmounts())
         {
-            for (int i = 0; i < GodGridLayout.MACHINE_SLOTS; i++)
+            for (int i = 0; i < this.layout.machineSlots(); i++)
             {
                 final int machineSlot = i;
                 // 先 low 后 high：两半都到齐后重组值即为服务端真实数量
@@ -296,20 +308,20 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         }
         // 自管 long 槽：getItem() 只是「视图」（≤99 的副本），直接交给 moveItemStackTo 会把
         // 已搬走的那部分复制出来 → 先真正取出再搬运，搬不动的原样塞回槽里
-        if (index < SLOT_PLAYER_START && slot instanceof LongSlotHandler.LongSlot longSlot)
+        if (index < slotPlayerStart && slot instanceof LongSlotHandler.LongSlot longSlot)
         {
             return quickMoveOutOfLongSlot(longSlot);
         }
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
-        if (index < SLOT_PLAYER_START)
+        if (index < slotPlayerStart)
         {
-            if (!moveItemStackTo(stack, SLOT_PLAYER_START, this.slots.size(), true))
+            if (!moveItemStackTo(stack, slotPlayerStart, this.slots.size(), true))
             {
                 return ItemStack.EMPTY;
             }
         }
-        else if (!moveItemStackTo(stack, SLOT_ACCEL, SLOT_ACCEL + 1, false)
+        else if (!moveItemStackTo(stack, slotAccel, slotAccel + 1, false)
                 && !moveIntoMachineSlots(stack))
         {
             return ItemStack.EMPTY;
@@ -342,10 +354,10 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         if (!this.longSlots)
         {
             // 其它五台机器保持原来的整段 moveItemStackTo（合堆优先、再找空槽），行为零变化
-            return moveItemStackTo(stack, 0, GodGridLayout.INPUT_COUNT, false);
+            return moveItemStackTo(stack, 0, this.layout.inputCount(), false);
         }
         boolean moved = false;
-        for (int i = 0; i < GodGridLayout.INPUT_COUNT && !stack.isEmpty(); i++)
+        for (int i = 0; i < this.layout.inputCount() && !stack.isEmpty(); i++)
         {
             Slot slot = this.slots.get(i);
             if (slot instanceof LongSlotHandler.LongSlot longSlot)
@@ -382,7 +394,7 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         {
             return ItemStack.EMPTY;
         }
-        if (!moveItemStackTo(taken, SLOT_PLAYER_START, this.slots.size(), true) || !taken.isEmpty())
+        if (!moveItemStackTo(taken, slotPlayerStart, this.slots.size(), true) || !taken.isEmpty())
         {
             // 一件都没搬动 / 只搬走一部分：余量原样塞回机器槽
             slot.longHandler().insertItem(slot.slotIndex(), taken, false);

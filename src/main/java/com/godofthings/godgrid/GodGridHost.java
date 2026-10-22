@@ -10,7 +10,19 @@ import net.neoforged.neoforge.items.IItemHandler;
  */
 public interface GodGridHost
 {
-    /** 机器槽位处理器：前 {@link GodGridLayout#INPUT_COUNT} 格输入，其后 {@link GodGridLayout#OUTPUT_COUNT} 格输出 */
+    /**
+     * 本机的界面布局 id（= 方块注册名，如 {@code god_furnace}）。
+     *
+     * <p>v5.30.0 起每台机器面板尺寸与槽位排布各按自己的 UI 原画，
+     * {@link AbstractGodGridMenu} / {@link AbstractGodGridScreen} 用它去
+     * {@link GodGridLayouts#of(String)} 查表。缺省回退熔炉那份。</p>
+     */
+    default String gridLayoutId()
+    {
+        return "god_furnace";
+    }
+
+    /** 机器槽位处理器：前 {@link GodGridLayoutSpec#inputCount()} 格输入，其后输出格 */
     IItemHandler gridItems();
 
     /** 神之加速槽（单格，只接受神之加速） */

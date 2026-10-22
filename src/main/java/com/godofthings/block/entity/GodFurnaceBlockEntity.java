@@ -14,6 +14,8 @@ import com.godofthings.item.GodAcceleratorItem;
 import com.godofthings.item.ConfigurableMachine;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
+import com.godofthings.godgrid.GodGridLayoutSpec;
+import com.godofthings.godgrid.GodGridLayouts;
 import com.godofthings.godgrid.GodGridSorting;
 import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.menu.GodFurnaceConfigMenu;
@@ -63,9 +65,13 @@ import java.util.Optional;
  */
 public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, GodGridHost, ConfigurableMachine
 {
-    // v5.18.0：统一 17 输入 + 51 输出网格（照 PBG 无限离心机工厂布局，见 GodGridLayout）
-    public static final int INPUT_SLOT_COUNT = GodGridLayout.INPUT_COUNT;
-    public static final int OUTPUT_SLOT_COUNT = GodGridLayout.OUTPUT_COUNT;
+    // v5.30.0：槽位数量跟随本机自己的 UI 原画（见 GodGridLayouts）。
+    // 熔炉原画是「上排 17 格输入 + 下排 15 格输出」，故输出由 17 缩到 15。
+    // 保留 static final 是刻意的：GameTest 与其它类直接用这些常量建 handler，
+    // 改成实例字段会波及测试代码（测试总数必须保持 45 条不变）。
+    private static final GodGridLayoutSpec LAYOUT = GodGridLayouts.of("god_furnace");
+    public static final int INPUT_SLOT_COUNT = LAYOUT.inputCount();
+    public static final int OUTPUT_SLOT_COUNT = LAYOUT.outputCount();
     public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
 
@@ -164,6 +170,12 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
 
     /** 输出槽整理模式（0=名称 1=模组 2=数量），随方块实体持久化 */
     private int sortMode = GodGridSorting.MODE_NAME;
+
+    @Override
+    public String gridLayoutId()
+    {
+        return "god_furnace";
+    }
 
     @Override
     public IItemHandler gridItems()

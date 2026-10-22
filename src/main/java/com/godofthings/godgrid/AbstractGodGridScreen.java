@@ -1,5 +1,6 @@
 package com.godofthings.godgrid;
 
+import com.godofthings.Godofthings;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -7,38 +8,39 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
-import net.minecraft.util.Mth;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.resources.ResourceLocation;
-
-import com.godofthings.Godofthings;
-
 
 import java.util.Locale;
 
 /**
- * 六台神之机器共用的网格界面 —— 几何一比一照抄 PBG「无限通用机械离心机工厂」，
- * 全部用 {@link GuiGraphics#fill} 绘制（不 blit 贴图）。
+ * 7 台神之机器共用的网格界面 —— v5.30.0 起<b>每台机器按自己的 UI 原画</b>绘制。
  *
- * <p>与原版一致的部分：面板 362×218、输入行 y=17、进度箭头 y=33、输出三排 y=57/77/97、
- * 物品栏 y=135 居中。改动的部分：删掉流体罐 / 多流体页签 / PB 升级页签 / Mek 升级槽，
- * 原流体罐位置改成 1 格加速槽，左右两侧只留「面配置」「AE」「排序」三个按钮。</p>
+ * <p>布局来自 {@link AbstractGodGridMenu#layout}（{@link GodGridLayouts} 按机器 id 查表），
+ * 面板尺寸、槽位坐标、玩家栏位置全部由它决定，因此 7 台机器各不相同：</p>
+ * <ul>
+ *   <li>底图按机器名取 {@code textures/gui/<id>.png}，用 11 参数 blit 显式传贴图真实尺寸
+ *       （否则会按 256×256 UV 采样被静默拉伸）；</li>
+ *   <li>槽框 / 箭头 / 页签仍由本类按 spec 坐标程序化绘制 —— 保证点击区域与视觉永远对齐；</li>
+ *   <li>输入槽画金框、输出槽画青框、加速槽画暗金框，与原画的功能分区呼应。</li>
+ * </ul>
  */
 public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> extends AbstractContainerScreen<T>
 {
-    /** 面板底图（v5.27.0 起改用贴图，重绘资源包风格） */
-    private static final ResourceLocation GOD_GRID_BG =
-            ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "textures/gui/god_grid_bg.png");
-    /** 底图实际像素尺寸（blit 时显式传入，避免按 256×256 UV 采样被拉伸） */
-    private static final int GOD_GRID_BG_W = 512;
-    private static final int GOD_GRID_BG_H = 256;
+    /** 本机的几何（构造时从菜单取的同一份 spec） */
+    protected final GodGridLayoutSpec layout;
+    /** 本机底图：textures/gui/<layout id>.png */
+    private final ResourceLocation background;
 
     protected AbstractGodGridScreen(T menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
-        this.imageWidth = GodGridLayout.IMAGE_W;
-        this.imageHeight = GodGridLayout.IMAGE_H;
+        this.layout = menu.layout;
+        this.imageWidth = this.layout.imageW;
+        this.imageHeight = this.layout.imageH;
+        this.background = ResourceLocation.fromNamespaceAndPath(
+                Godofthings.MODID, "textures/gui/" + this.layout.id + ".png");
     }
 
     @Override
@@ -47,87 +49,65 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
         int x = this.leftPos;
         int y = this.topPos;
 
-        // v5.27.0：面板底图改成贴图（重绘资源包风格：深空底 + 双线金边），
-        // 槽位 / 箭头 / 页签仍由本类按 GodGridLayout 的精确坐标程序化绘制，
-        // 这样 18 台机器共用同一张底图、且槽位点击区域与视觉永远对齐。
-        // blit 用 11 参数重载显式传入贴图实际尺寸（512×256），避免按 256×256 UV 采样被拉伸。
-        gui.blit(GOD_GRID_BG, x, y, 0, 0, this.imageWidth, this.imageHeight,
-                GOD_GRID_BG_W, GOD_GRID_BG_H);
+        // 11 参数重载：显式传贴图真实尺寸，避免按 256×256 UV 采样被拉伸
+        gui.blit(this.background, x, y, 0, 0, this.imageWidth, this.imageHeight,
+                this.layout.texW, this.layout.texH);
 
-        for (int i = 0; i < GodGridLayout.INPUT_COUNT; i++)
+        // 输入槽（金框）
+        for (int i = 0; i < this.layout.inputCount(); i++)
         {
-            drawSlot(gui, x + GodGridLayout.inputX(i), y + GodGridLayout.INPUT_Y,
+            drawSlot(gui, x + this.layout.inputX(i), y + this.layout.inputY(i),
                     GodGridLayout.COLOR_INPUT_BORDER);
         }
-        for (int i = 0; i < GodGridLayout.COLS; i++)
+        // 输出槽（青框）
+        for (int j = 0; j < this.layout.outputCount(); j++)
         {
-            drawArrow(gui, x + GodGridLayout.columnX(i) + (GodGridLayout.SLOT - 8) / 2,
-                    y + GodGridLayout.ARROW_Y);
-        }
-        for (int j = 0; j < GodGridLayout.OUTPUT_COUNT; j++)
-        {
-            drawSlot(gui, x + GodGridLayout.outputX(j), y + GodGridLayout.outputY(j),
+            drawSlot(gui, x + this.layout.outputX(j), y + this.layout.outputY(j),
                     GodGridLayout.COLOR_OUTPUT_BORDER);
         }
-        // 原版流体罐位置（x=7,y=84）→ 1 格加速槽
-        drawSlot(gui, x + GodGridLayout.accelX(), y + GodGridLayout.ACCEL_Y,
-                GodGridLayout.COLOR_ACCEL_BORDER);
+        // 加速槽（暗金框）
+        if (this.layout.hasAccel)
+        {
+            drawSlot(gui, x + this.layout.accelX, y + this.layout.accelY,
+                    GodGridLayout.COLOR_ACCEL_BORDER);
+        }
 
-        // 左侧页签：面配置（只有真正有面配置的机器才画）
+        // 页签：面配置（左侧）、AE / 排序（右侧）。位置固定在面板外边框上。
+        int tabLeftX = x - 26;
+        int tabRightX = x + this.imageWidth + 4;
         if (this.menu.host.gridSupportsFaceConfig())
         {
-            drawTab(gui, x + GodGridLayout.TAB_LEFT_X, y + GodGridLayout.TAB_FACE_Y,
-                    Component.translatable("gui.godofthings.grid.face"), isHovered(mouseX, mouseY,
-                            x + GodGridLayout.TAB_LEFT_X, y + GodGridLayout.TAB_FACE_Y), 0xFF6B6B6B);
+            drawTab(gui, tabLeftX, y + 33, Component.translatable("gui.godofthings.grid.face"),
+                    isHovered(mouseX, mouseY, tabLeftX, y + 33), 0xFF6B6B6B);
         }
-        // 右侧页签：AE / 排序
-        drawTab(gui, x + GodGridLayout.TAB_RIGHT_X, y + GodGridLayout.TAB_AE_Y,
-                Component.literal("AE"), isHovered(mouseX, mouseY,
-                        x + GodGridLayout.TAB_RIGHT_X, y + GodGridLayout.TAB_AE_Y),
+        drawTab(gui, tabRightX, y + 33, Component.literal("AE"),
+                isHovered(mouseX, mouseY, tabRightX, y + 33),
                 this.menu.isAeEnabled() ? 0xFF2F8F3F : 0xFF3A4048);
-        drawTab(gui, x + GodGridLayout.TAB_RIGHT_X, y + GodGridLayout.TAB_SORT_Y,
+        drawTab(gui, tabRightX, y + 57,
                 Component.translatable(GodGridSorting.modeLabelKey(this.menu.sortMode())),
-                isHovered(mouseX, mouseY, x + GodGridLayout.TAB_RIGHT_X, y + GodGridLayout.TAB_SORT_Y),
-                0xFF2F5F8F);
+                isHovered(mouseX, mouseY, tabRightX, y + 57), 0xFF2F5F8F);
     }
 
+    /** 按 spec 的槽位尺寸画一格（外框 + 内底） */
     private void drawSlot(GuiGraphics gui, int sx, int sy, int border)
     {
-        gui.fill(sx, sy, sx + GodGridLayout.SLOT, sy + GodGridLayout.SLOT, border);
-        gui.fill(sx + 1, sy + 1, sx + GodGridLayout.SLOT - 1, sy + GodGridLayout.SLOT - 1,
-                GodGridLayout.COLOR_SLOT_INNER);
-    }
-
-    /** 原版是 ProgressType.DOWN 的箭头贴图，这里用 4 段矩形近似同尺寸（8×20） */
-    private void drawArrow(GuiGraphics gui, int ax, int ay)
-    {
-        int color = GodGridLayout.COLOR_ARROW;
-        gui.fill(ax + 3, ay, ax + 5, ay + 12, color);
-        gui.fill(ax + 2, ay + 12, ax + 6, ay + 14, color);
-        gui.fill(ax + 1, ay + 14, ax + 7, ay + 16, color);
-        gui.fill(ax, ay + 16, ax + 8, ay + 18, color);
+        int s = this.layout.slot;
+        gui.fill(sx, sy, sx + s, sy + s, border);
+        gui.fill(sx + 1, sy + 1, sx + s - 1, sy + s - 1, GodGridLayout.COLOR_SLOT_INNER);
     }
 
     /**
      * 自管 long 槽：图标 + 自绘数量数字。
      *
-     * <p>原版 {@code AbstractContainerScreen#renderSlot} 会因「视图 count &gt; 1」在物品左上角另外画一个
-     * 堆叠数字（视图被钳到 ≤99，例如 4.6M 的槽会画出「64」），与自绘数字重影，所以这里不复用原版。
-     * 数字<b>紧跟</b>在图标之后画 —— 顺序即层次，「物品先、数字后」，数字永远在图标上层，
-     * 不会被图标盖住（v5.17.x 之前数字在 {@code render()} 里另外单独画，顺序上仍会被后画的图标压住）。</p>
-     *
-     * <p>非 long 槽（加速槽 / 玩家物品栏）原样走原版；没有 long 槽的机器
-     * {@link GodGridHost#gridHasLongAmounts()} 为 false，整个方法等价于原版，观感零变化。</p>
-     *
-     * <p>坐标：{@code AbstractContainerScreen#render} 调用本方法时 pose 已经平移过 {@code leftPos / topPos}，
-     * 所以这里只用槽位本地坐标 {@code slot.x / slot.y}，<b>不能</b>再加 leftPos / topPos。</p>
+     * <p>原版 {@code AbstractContainerScreen#renderSlot} 会因「视图 count &gt; 1」在物品左上角
+     * 另外画一个堆叠数字，与自绘数字重影，所以这里不复用原版。数字紧跟图标之后画 ——
+     * 顺序即层次，「物品先、数字后」，数字永远在图标上层。</p>
      */
     @Override
     protected void renderSlot(GuiGraphics gui, Slot slot)
     {
         if (this.menu.host.gridHasLongAmounts() && slot instanceof LongSlotHandler.LongSlot longSlot)
         {
-            // 先图标、后数字：数字压在图标上，不会被物品图标遮挡
             gui.renderItem(slot.getItem(), slot.x, slot.y);
             drawLongAmount(gui, longSlot);
             return;
@@ -135,23 +115,7 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
         super.renderSlot(gui, slot);
     }
 
-    /**
-     * 单个 long 槽的数量数字 —— 白色带阴影（{@code drawString(..., true)}）、<b>没有</b>半透明底衬，
-     * 整段文本完整落在这一个槽的 16×16 内容区内。
-     *
-     * <p>宽度：缩放后可视宽度压到 ≤12px（原版堆叠数字大约就是这个宽度），
-     * {@code scale = min(0.75, 12 / font.width(text))}；因此短文本固定 0.75 倍（高约 6px），
-     * 长文本（99.9M 之类）按 12px 反推缩得更小，保证不越出槽框、不压相邻槽。</p>
-     *
-     * <p>位置：右对齐贴槽内右下角 —— 右边缘 {@code slot.x + 16}、底边 {@code slot.y + 16}，
-     * 即 {@code x = slot.x + 16 - ceil(width * scale)}、{@code y = slot.y + 16 - ceil(8 * scale)}，
-     * 让数字尽量只压图标右下角一小块，而不是横贯整个图标。</p>
-     *
-     * <p>{@link AbstractGodGridMenu#gridAmount(int)} &gt; 99 画紧凑数字（≥1e9 → 1.1B、≥1e6 → 1.1M、
-     * ≥1000 → 1.2K）；1 &lt; 存量 ≤ 99 画普通数字（原版堆叠数字已被
-     * {@link #renderSlot(GuiGraphics, Slot)} 关掉，这里不补就会出现「存量 50 却一个数字都没有」）；
-     * ≤ 1 不画。</p>
-     */
+    /** 单个 long 槽的数量数字 —— 右对齐贴槽内右下角，缩到 0.85 倍 */
     private void drawLongAmount(GuiGraphics gui, LongSlotHandler.LongSlot slot)
     {
         long amount = this.menu.gridAmount(slot.slotIndex());
@@ -173,7 +137,6 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
         {
             return;
         }
-        // 以槽右下角为锚点整体缩到 0.85：比原版计数再小一档，观感更收敛（用户选定）
         var pose = gui.pose();
         pose.pushPose();
         pose.translate(slot.x + 16, slot.y + 16, 0.0D);
@@ -204,7 +167,6 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
     private void drawTab(GuiGraphics gui, int bx, int by, Component label, boolean hovered, int fillColor)
     {
         int size = GodGridLayout.TAB_SIZE;
-        // Mekanism 页签观感：深底 + 左上高光 + 右下阴影
         gui.fill(bx, by, bx + size, by + size, 0xFF1B1B1B);
         gui.fill(bx + 1, by + 1, bx + size - 1, by + size - 1,
                 hovered ? GodGridLayout.COLOR_BUTTON_BG_HOVER : fillColor);
@@ -218,13 +180,6 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
 
     private boolean isHovered(int mouseX, int mouseY, int bx, int by)
     {
-        // 没有面配置的机器（资源三机 / 掉落机 / 怪蛋机）不画左侧页签，命中检测也一律不成立
-        if (!this.menu.host.gridSupportsFaceConfig()
-                && bx == this.leftPos + GodGridLayout.TAB_LEFT_X
-                && by == this.topPos + GodGridLayout.TAB_FACE_Y)
-        {
-            return false;
-        }
         int size = GodGridLayout.TAB_SIZE;
         return mouseX >= bx && mouseX < bx + size && mouseY >= by && mouseY < by + size;
     }
@@ -232,14 +187,12 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
     @Override
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
-        // 原版工厂界面标题居中在顶部
-        // v5.28.0：标题画在铭牌上（铭牌中心与面板中心对齐，文字基线 y=6）
+        // 标题居中在面板顶部（各机器面板高度不同，这里用常量 6 的基线刚好落在铭牌上）
         gui.drawString(this.font, this.title,
                 (this.imageWidth - this.font.width(this.title)) / 2, 6,
                 GodGridLayout.COLOR_TITLE, false);
-        // v5.28.0：物品栏现在画在白色大理石底板上，文字改用深色才看得清
         gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"),
-                GodGridLayout.INVENTORY_X, GodGridLayout.INVENTORY_Y - 12,
+                this.layout.invX, this.layout.invY - 11,
                 GodGridLayout.COLOR_TEXT_DARK, false);
     }
 
@@ -251,17 +204,20 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
         int mx = (int) mouseX;
         int my = (int) mouseY;
 
-        if (isHovered(mx, my, x + GodGridLayout.TAB_LEFT_X, y + GodGridLayout.TAB_FACE_Y))
+        int tabLeftX = x - 26;
+        int tabRightX = x + this.imageWidth + 4;
+
+        if (this.menu.host.gridSupportsFaceConfig() && isHovered(mx, my, tabLeftX, y + 33))
         {
             sendButton(AbstractGodGridMenu.BTN_FACE_CONFIG);
             return true;
         }
-        if (isHovered(mx, my, x + GodGridLayout.TAB_RIGHT_X, y + GodGridLayout.TAB_AE_Y))
+        if (isHovered(mx, my, tabRightX, y + 33))
         {
             sendButton(AbstractGodGridMenu.BTN_AE_TOGGLE);
             return true;
         }
-        if (isHovered(mx, my, x + GodGridLayout.TAB_RIGHT_X, y + GodGridLayout.TAB_SORT_Y))
+        if (isHovered(mx, my, tabRightX, y + 57))
         {
             sendButton(AbstractGodGridMenu.BTN_SORT);
             return true;
@@ -282,30 +238,31 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick)
     {
         super.render(gui, mouseX, mouseY, partialTick);
-        // long 槽的数量数字已在 renderSlot 里紧跟图标画完（见 drawLongAmount），这里不再单独画
         this.renderTooltip(gui, mouseX, mouseY);
 
         int x = this.leftPos;
         int y = this.topPos;
+        int tabLeftX = x - 26;
+        int tabRightX = x + this.imageWidth + 4;
 
-        if (isHovered(mouseX, mouseY, x + GodGridLayout.TAB_LEFT_X, y + GodGridLayout.TAB_FACE_Y))
+        if (this.menu.host.gridSupportsFaceConfig() && isHovered(mouseX, mouseY, tabLeftX, y + 33))
         {
             gui.renderTooltip(this.font,
                     Component.translatable("gui.godofthings.grid.face.tooltip"), mouseX, mouseY);
         }
-        else if (isHovered(mouseX, mouseY, x + GodGridLayout.TAB_RIGHT_X, y + GodGridLayout.TAB_AE_Y))
+        else if (isHovered(mouseX, mouseY, tabRightX, y + 33))
         {
             gui.renderTooltip(this.font, Component.translatable(this.menu.isAeEnabled()
                     ? "gui.godofthings.grid.ae.on" : "gui.godofthings.grid.ae.off"), mouseX, mouseY);
         }
-        else if (isHovered(mouseX, mouseY, x + GodGridLayout.TAB_RIGHT_X, y + GodGridLayout.TAB_SORT_Y))
+        else if (isHovered(mouseX, mouseY, tabRightX, y + 57))
         {
             gui.renderTooltip(this.font, Component.translatable("gui.godofthings.grid.sort.tooltip",
                     Component.translatable(GodGridSorting.modeLabelKey(this.menu.sortMode()))), mouseX, mouseY);
         }
-        else if (this.hoveredSlot != null && !this.hoveredSlot.hasItem()
-                && mouseX >= x + GodGridLayout.ACCEL_X && mouseX < x + GodGridLayout.ACCEL_X + GodGridLayout.SLOT
-                && mouseY >= y + GodGridLayout.ACCEL_Y && mouseY < y + GodGridLayout.ACCEL_Y + GodGridLayout.SLOT)
+        else if (this.layout.hasAccel && this.hoveredSlot != null && !this.hoveredSlot.hasItem()
+                && mouseX >= x + this.layout.accelX && mouseX < x + this.layout.accelX + this.layout.slot
+                && mouseY >= y + this.layout.accelY && mouseY < y + this.layout.accelY + this.layout.slot)
         {
             gui.renderTooltip(this.font, Component.translatable("gui.godofthings.grid.accel.tooltip",
                     this.menu.host.gridOperationsPerColumn()), mouseX, mouseY);

@@ -14,6 +14,8 @@ import com.godofthings.block.entity.machine.OutputCapacity;
 import com.godofthings.config.MachinesConfig;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
+import com.godofthings.godgrid.GodGridLayoutSpec;
+import com.godofthings.godgrid.GodGridLayouts;
 import com.godofthings.godgrid.GodGridSorting;
 import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.item.GodAcceleratorItem;
@@ -92,9 +94,10 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
 
     // v5.18.0：统一 17 输入 + 17 输出网格（照 PBG 无限离心机工厂布局，见 GodGridLayout）
     /** 刷怪蛋输入槽数量（网格第一行） */
-    public static final int INPUT_SLOT_COUNT = GodGridLayout.INPUT_COUNT;
+    private static final GodGridLayoutSpec LAYOUT = GodGridLayouts.of("god_drop");
+    public static final int INPUT_SLOT_COUNT = LAYOUT.inputCount();
     /** 产物输出槽数量（网格第二行） */
-    public static final int OUTPUT_SLOT_COUNT = GodGridLayout.OUTPUT_COUNT;
+    public static final int OUTPUT_SLOT_COUNT = LAYOUT.outputCount();
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
     public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
 
@@ -689,6 +692,12 @@ public class GodDropBlockEntity extends BlockEntity implements MenuProvider, IGr
     }
 
     // ---- GodGridHost：共用网格界面所需的机器侧契约 ----
+
+    @Override
+    public String gridLayoutId()
+    {
+        return "god_drop";
+    }
 
     @Override
     public IItemHandler gridItems()

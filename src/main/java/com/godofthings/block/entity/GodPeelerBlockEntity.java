@@ -12,6 +12,8 @@ import com.godofthings.Godofthings;
 import com.godofthings.ae2.AeGridNode;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
+import com.godofthings.godgrid.GodGridLayoutSpec;
+import com.godofthings.godgrid.GodGridLayouts;
 import com.godofthings.godgrid.GodGridSorting;
 import com.godofthings.godgrid.LongSlotHandler;
 import com.godofthings.block.entity.machine.LogStripper;
@@ -64,8 +66,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, GodGridHost, ConfigurableMachine
 {
-    public static final int INPUT_SLOT_COUNT = GodGridLayout.INPUT_COUNT;
-    public static final int OUTPUT_SLOT_COUNT = GodGridLayout.OUTPUT_COUNT;
+    private static final GodGridLayoutSpec LAYOUT = GodGridLayouts.of("god_peeler");
+    public static final int INPUT_SLOT_COUNT = LAYOUT.inputCount();
+    public static final int OUTPUT_SLOT_COUNT = LAYOUT.outputCount();
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
     public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
 
@@ -163,6 +166,12 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
 
     /** 输出槽整理模式（0=名称 1=模组 2=数量），随方块实体持久化 */
     private int sortMode = GodGridSorting.MODE_NAME;
+
+    @Override
+    public String gridLayoutId()
+    {
+        return "god_peeler";
+    }
 
     @Override
     public IItemHandler gridItems()
