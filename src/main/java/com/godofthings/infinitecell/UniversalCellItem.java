@@ -78,11 +78,6 @@ public class UniversalCellItem extends AEBaseItem
         return Optional.of(new StorageCellTooltipComponent(List.of(), content, false, true));
     }
 
-    @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context,
-            List<Component> tooltip, TooltipFlag flag)
-    {
-        tooltip.add(Component.translatable("tooltip.godofthings.universal_cell.line1"));
-        tooltip.add(Component.translatable("tooltip.godofthings.universal_cell.line2"));
-    }
+    // tooltip 统一由 GodTooltipHandler（ItemTooltipEvent）按 lore / desc / shift_N 注入，
+    // 这里不再重复添加，避免同一条文案出现两遍。
 }

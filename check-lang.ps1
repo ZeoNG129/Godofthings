@@ -41,7 +41,10 @@ $prefixAllow = @(
     # Every concrete key under them is checked separately (see the "manual coverage" block below),
     # so registering the bare prefixes here is enough.
     'gui.godofthings.manual.tab.',
-    'manual.godofthings.'
+    'manual.godofthings.',
+    # GodTooltipHandler builds tooltip.godofthings.<id>.lore / .desc / .shift_N at runtime.
+    # Every concrete key under it is verified by the lang key-set equality check.
+    'tooltip.godofthings.'
 )
 
 $itemModelAllow = @()

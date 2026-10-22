@@ -1735,3 +1735,13 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **语言键** 819 → **815**（删 8、加 4，净 -4）；**物品数 31 → 28**（删 4、加 1），README 同步。
   - 不新增 GameTest，**测试总数仍 45 条不变**；mixin 在 `runGameTestServer` 下正常加载（日志 `SpongePowered MIXIN` 与 45/45 通过）。
 
+- 5.25.0 → **5.26.0（全模组改名 + 圣遗物 Tooltip 体系）** —— 系统性文案改造，按规则**第二位 +1、末位归零**。
+  - **45 项注册内容全部改名**（对照 `GOD_OF_THINGS_RENAME_AND_TOOLTIPS.md` 的映射总表）：机器 18 台（炽神圣火熔炉 / 撼地穿霄掘机 / 万魂余响鉴录仪 …）、神装四件（众神之冠 · 昭明 / 众神之铠 · 不朽 / 众神之裙 · 庇护 / 众神之履 · 翱翔）、工具（免死敕 / 翻云令 / 量天裁度金尺 / 微型黑洞 / 同心契 / 筑界杖 / 开天权 / 摹律印 / 永固印）、容器与 AE2（须弥囊 / 巧匠神巡束带 / 原初万象圣晶 / 吞噬万籁的永寂）、信息与探索（众神全知启示录 / 神思夙愿天书 / 万物原石 / 寻境司 / 探古司 / 普朗克超频催化组件）。**注册 ID 一律不变**，只改显示名，旧存档不受影响。
+  - **新增 `GodTooltipHandler`**（`com.godofthings.client`，`ItemTooltipEvent` + `Dist.CLIENT`）：本模组绝大多数方块/物品是无自定义类的 `BlockItem`，逐个写 `appendHoverText` 既啰嗦又易漏，故改为**全局接管** —— 凡 `godofthings:` 命名空间的物品，一律按双层规范注入 tooltip：默认显示 `.lore`（神性题词，金色斜体）+ `.desc`（基础介绍）；**按住 Shift** 展开 `.shift_1..8`（精准数值与机制）。缺的键自动跳过（`I18n.exists`），没有明细条目的物品不显示 Shift 提示。
+  - **tooltip 文案全部在语言文件里**、用 `§` 格式码上色，Java 侧零颜色处理 —— 与 v5.24.0 的彩色名字做法一致，改配色不用重编译。共新增 **173 条** tooltip 键（lore / desc / shift_N），中英双语一一对应。
+  - **清掉重复注入**：`UniversalCellItem` 与 `big/InfinityCellItem` 原先自己 `appendHoverText` 加静态文案，会与全局处理器重复；现已删除静态部分，`InfinityCellItem` 只保留「带数据实例」才有的动态摘要（UUID / 类型数 / 总量）。相应删除 4 条不再使用的旧键（`tooltip.godofthings.universal_cell.line1/.line2`、`infinity_cell.line1/.line2`）。
+  - **手册正文同步改名**：中文 168 处、英文 205 处旧名批量替换（长名优先、避免「神之建筑」误伤「天神建筑」这类前缀冲突），否则手册标题与正文会对不上。
+  - **`check-lang.ps1`**：`$prefixAllow` 增加 `tooltip.godofthings.`（`GodTooltipHandler` 运行时拼接键名），README 的「7 个键前缀」同步改为 8。
+  - **语言键** 815 → **985**（+173 tooltip，-4 旧键 +1 shift_hint，另含改名不改数）；zh/en 双向一致、无空值。**物品数 / 方块数 / 手册条目 / GameTest 条数全部不变**。
+  - 不新增 GameTest，**测试总数仍 45 条不变**。
+
