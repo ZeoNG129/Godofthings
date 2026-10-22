@@ -10,6 +10,10 @@ import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.resources.ResourceLocation;
+
+import com.godofthings.Godofthings;
+
 
 import java.util.Locale;
 
@@ -23,6 +27,13 @@ import java.util.Locale;
  */
 public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> extends AbstractContainerScreen<T>
 {
+    /** 面板底图（v5.27.0 起改用贴图，重绘资源包风格） */
+    private static final ResourceLocation GOD_GRID_BG =
+            ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "textures/gui/god_grid_bg.png");
+    /** 底图实际像素尺寸（blit 时显式传入，避免按 256×256 UV 采样被拉伸） */
+    private static final int GOD_GRID_BG_W = 512;
+    private static final int GOD_GRID_BG_H = 256;
+
     protected AbstractGodGridScreen(T menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
@@ -36,12 +47,12 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
         int x = this.leftPos;
         int y = this.topPos;
 
-        // 面板（原版是 Mekanism 的 176 底图横向拉伸，这里直接画）
-        gui.fill(x, y, x + this.imageWidth, y + this.imageHeight, GodGridLayout.COLOR_PANEL);
-        gui.fill(x, y, x + this.imageWidth, y + 1, GodGridLayout.COLOR_PANEL_LIGHT);
-        gui.fill(x, y, x + 1, y + this.imageHeight, GodGridLayout.COLOR_PANEL_LIGHT);
-        gui.fill(x + this.imageWidth - 1, y, x + this.imageWidth, y + this.imageHeight, GodGridLayout.COLOR_PANEL_DARK);
-        gui.fill(x, y + this.imageHeight - 1, x + this.imageWidth, y + this.imageHeight, GodGridLayout.COLOR_PANEL_DARK);
+        // v5.27.0：面板底图改成贴图（重绘资源包风格：深空底 + 双线金边），
+        // 槽位 / 箭头 / 页签仍由本类按 GodGridLayout 的精确坐标程序化绘制，
+        // 这样 18 台机器共用同一张底图、且槽位点击区域与视觉永远对齐。
+        // blit 用 11 参数重载显式传入贴图实际尺寸（512×256），避免按 256×256 UV 采样被拉伸。
+        gui.blit(GOD_GRID_BG, x, y, 0, 0, this.imageWidth, this.imageHeight,
+                GOD_GRID_BG_W, GOD_GRID_BG_H);
 
         for (int i = 0; i < GodGridLayout.INPUT_COUNT; i++)
         {

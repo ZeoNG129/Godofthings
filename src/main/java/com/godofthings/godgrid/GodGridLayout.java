@@ -81,12 +81,12 @@ public final class GodGridLayout
     public static final int COLOR_PANEL = 0xFFC6C6C6;
     public static final int COLOR_PANEL_LIGHT = 0xFFFFFFFF;
     public static final int COLOR_PANEL_DARK = 0xFF555555;
-    public static final int COLOR_SLOT_INNER = 0xFF8B8B8B;
+    public static final int COLOR_SLOT_INNER = 0xFF2A2F3A;
     public static final int COLOR_INPUT_BORDER = 0xFFB03A3A;
     public static final int COLOR_OUTPUT_BORDER = 0xFF3A5FBE;
     public static final int COLOR_ACCEL_BORDER = 0xFF7A5C1E;
-    public static final int COLOR_ARROW = 0xFF8A8A8A;
-    public static final int COLOR_TEXT = 0xFF404040;
+    public static final int COLOR_ARROW = 0xFF9AA6B8;
+    public static final int COLOR_TEXT = 0xFFE8ECF4;
     public static final int COLOR_BUTTON_BG = 0xFF3A3A3A;
     public static final int COLOR_BUTTON_BG_HOVER = 0xFF5A5A5A;
 
