@@ -18,8 +18,10 @@ public class OmniConfig {
 
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    public static final ModConfigSpec SPEC = BUILDER.build();
-
+    // 注意：SPEC 必须在全部配置项定义【之后】才能 BUILDER.build()。
+    // 反编译稿里 build() 出现在文件靠前位置（Vineflower 按字节码顺序呈现），照抄会导致
+    // 四个配置项创建于 build 之后、从未挂进 spec，客户端配置加载时 .get() 直接 NPE 闪退
+    // （v7.1.1 首发 crash：Cannot get config value before spec is built）。
     public static final ModConfigSpec.BooleanValue ENABLED = BUILDER.comment(
             "总开关（默认开启）。关闭后全能升级完全不工作：批量安装、高亮预览与右键接管全部跳过，",
             "把操作交还原版或其他模组。游戏中按 Shift+O 切换，也可直接修改本文件。")
@@ -44,6 +46,9 @@ public class OmniConfig {
             "每行填物品注册 id；以 '#' 开头表示屏蔽整个物品标签（例如 '#ae2:upgrade_cards'）。",
             "该名单在进入服务器时同步给服务端；修改后重启游戏生效。")
             .defineListAllowEmpty("blacklist", List.of(), () -> "", obj -> obj instanceof String);
+
+    // 全部配置项就绪后再 build（顺序不能提前，见上方注释）。
+    public static final ModConfigSpec SPEC = BUILDER.build();
 
     public static boolean isEnabled = true;
     public static boolean isSequentialFillEnabled = false;
