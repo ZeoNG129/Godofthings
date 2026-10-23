@@ -1,0 +1,30 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.godofthings.doll.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "LivingHealthDataAccessor",
+    "TwoIDollRemovalGuardMixin",
+    "TwoIDollLookupGuardMixin",
+    "TwoIDollTickListGuardMixin",
+    "TwoIDollSectionGuardMixin",
+    "TwoIDollManagerLifecycleMixin",
+    "TwoIDollSectionLifecycleMixin",
+    "TwoIDollLevelCallbackGuardMixin",
+    "TwoIDollBrainTargetMixin",
+    "TwoISummonCommandMixin",
+    "TwoIArsRitualMixin",
+    "TwoIArsJarMixin",
+    "TwoIBeeEncaseMixin",
+    "TwoIAmberMixin"
+  ],
+  "client": [
+    "TwoIDollClientRemovalMixin",
+    "TwoIPlayerArmMixin",
+    "TwoIHeldDollMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

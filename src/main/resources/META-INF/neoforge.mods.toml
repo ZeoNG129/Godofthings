@@ -86,3 +86,10 @@ config="${mod_id}.mixins.json"
 # 无敌模式与高级隐身的玩家保护（7 个）。照抄自 useless_mod 的 mixin 包。
 [[mixins]]
 config="${mod_id}.beef.mixins.json"
+
+# 绯绯玩偶（移植自 useless_stretcher）的 Mixin：实体保护（服务端 9 个，防实体系统误删玩偶）、
+# 手持/手臂渲染接管（客户端 3 个，拿在手上是托举姿态）、血量同步 accessor、
+# 外部 mod 兼容（@Pseudo，目标 mod 不在时自动跳过）。单独一个 config，
+# 因为 package 与主配置不同（com.godofthings.doll.mixin）。
+[[mixins]]
+config="${mod_id}.doll.mixins.json"
