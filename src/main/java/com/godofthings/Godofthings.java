@@ -799,8 +799,12 @@ public class Godofthings
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
-                        // 皮肤玩偶「HoYooG Fumo」
-                        output.accept(com.godofthings.fumo.registry.ModFumos.HOYOOG_FUMO_ITEM.get());
+                         // 皮肤玩偶「HoYooG Fumo」
+                         output.accept(com.godofthings.fumo.registry.ModFumos.HOYOOG_FUMO_ITEM.get());
+                         // 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件
+                         // 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）
+                         // 这一个物品同时是摆件的物品形态（TwoIDollItem extends BlockItem）
+                         output.accept(com.godofthings.doll.init.DollRegistry.TWO_I_DOLL_ITEM.get());
                         // ---- 物品：神之套装（四件套放一起）----
                         output.accept(GOD_HELMET.get());
                         output.accept(GOD_CHESTPLATE.get());

@@ -67,10 +67,11 @@ public final class DollRegistry
                             .sound(SoundType.WOOL)
                             .noOcclusion()));
 
-    /** 摆件方块的物品形态 */
-    public static final DeferredHolder<Item, BlockItem> TWO_I_DOLL_DISPLAY_ITEM =
-            ITEMS.register("two_i_doll_display", () -> new BlockItem(TWO_I_DOLL_DISPLAY.get(),
-                    new Item.Properties()));
+    // 注意：摆件方块**没有**独立的 BlockItem。
+    // 原版就是这么设计的：TwoIDollItem extends BlockItem 并直接 super(TWO_I_DOLL_DISPLAY)，
+    // 所以「玩偶物品」本身就是摆件的物品形态，放下时放置摆件、拿起时变回玩偶。
+    // 如果这里再注册一个普通 BlockItem 抢同一个方块，两个 BlockItem 会争抢方块的 item
+    // 映射，导致 two_i_doll 在创造模式物品栏里注册异常（表现为"游戏里找不到玩偶"）。
 
     /** 摆件方块实体 */
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TwoIDollDisplayBlockEntity>> TWO_I_DOLL_DISPLAY_BE =
