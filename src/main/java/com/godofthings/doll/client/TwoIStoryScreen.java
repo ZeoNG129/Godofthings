@@ -53,7 +53,7 @@ public final class TwoIStoryScreen extends Screen implements TwoIInteractionScre
     private final List<Button> controls = new ArrayList<>();
     private final List<Button> overlayControls = new ArrayList<>();
     private final Button[] choices = new Button[3];
-    private Button nextButton, autoButton, fastButton, speedButton, voiceButton, libraryButton, galleryButton;
+    private Button nextButton, autoButton, fastButton, speedButton, voiceButton, libraryButton;
 
     public TwoIStoryScreen(TwoIDialogueScreen parent, int entityId, long sessionId, int chapter, int bond) {
         this(parent, entityId, sessionId, chapter, bond, 0);
@@ -130,13 +130,6 @@ public final class TwoIStoryScreen extends Screen implements TwoIInteractionScre
             minecraft.setScreen(new TwoIStoryLibraryScreen(this, bond));
         });
         controls.add(libraryButton);
-        galleryButton = control(565, 12, 102, "gallery", b -> {
-            automatic = false;
-            fastForward = false;
-            voice.stop();
-            minecraft.setScreen(new TwoIStoryGalleryScreen(this));
-        });
-        controls.add(galleryButton);
         controls.add(control(672, 12, 104, "return", b -> onClose()));
         for (int i = 0; i < choices.length; i++) {
             int choice = i;
@@ -202,7 +195,6 @@ public final class TwoIStoryScreen extends Screen implements TwoIInteractionScre
         }
         if (nextButton != null) {
             libraryButton.active = !waiting;
-            galleryButton.active = !waiting;
             nextButton.active = (!waiting && stage != 1) || failed;
             nextButton.setMessage(ui(failed || stage == 3 && lineIndex == lines.size() - 1 ? "return" : "continue"));
             autoButton.active = stage != 1 && !failed;

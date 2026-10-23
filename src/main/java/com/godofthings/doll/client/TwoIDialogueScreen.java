@@ -74,12 +74,9 @@ public final class TwoIDialogueScreen extends Screen implements TwoIInteractionS
         int buttonWidth = (actionWidth - gap) / 2;
         int firstY = panelY + 167;
 
-        int libraryWidth = Math.min(86, (panelWidth - 95) / 2);
-        addAction(panelX + panelWidth - 2 * libraryWidth - 16, panelY + 5, libraryWidth,
+        int libraryWidth = Math.min(86 * 2 + 6, panelWidth - 95);
+        addAction(panelX + panelWidth - libraryWidth - 16, panelY + 5, libraryWidth,
                 "library", button -> minecraft.setScreen(new TwoIStoryLibraryScreen(this, bond)))
-                .setHeight(18);
-        addAction(panelX + panelWidth - libraryWidth - 10, panelY + 5, libraryWidth,
-                "gallery", button -> minecraft.setScreen(new TwoIStoryGalleryScreen(this)))
                 .setHeight(18);
 
         if (itemMode) {
@@ -100,7 +97,7 @@ public final class TwoIDialogueScreen extends Screen implements TwoIInteractionS
             DollNetwork.sendTwoIDollInvite(entityId);
             onClose();
         });
-        inviteButton.active = inviteReady && com.godofthings.doll.config.DollConfig.starfieldInvitationEnabled();
+        inviteButton.active = inviteReady;
         reclaimButton = addAction(actionX, firstY + 52, buttonWidth, "reclaim", button -> {
             DollNetwork.sendTwoIDollReclaim(entityId);
             onClose();
@@ -154,14 +151,14 @@ public final class TwoIDialogueScreen extends Screen implements TwoIInteractionS
         super.tick();
         if (startWait > 0 && --startWait == 0) onStoryUnavailable();
         if (inviteButton != null) inviteButton.active = inviteReady
-                && com.godofthings.doll.config.DollConfig.starfieldInvitationEnabled();
+                ;
     }
 
     public void updateGiftStatus(boolean inviteReady, int bond) {
         this.inviteReady = inviteReady;
         this.bond = Math.max(-100, Math.min(100, bond));
         if (inviteButton != null) inviteButton.active = inviteReady
-                && com.godofthings.doll.config.DollConfig.starfieldInvitationEnabled();
+                ;
     }
 
     @Override

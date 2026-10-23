@@ -523,7 +523,6 @@ public final class TwoIDollEntity extends PathfinderMob {
         }
         if (!level().isClientSide && level() instanceof ServerLevel server) {
             updateEnvironmentReaction(server);
-            TwoIDollService.tickCompanion(this);
             if (isRemoved()) return;
             tickDollFriendship(server);
             tickCompanionship(server);
@@ -1028,17 +1027,14 @@ public final class TwoIDollEntity extends PathfinderMob {
     }
 
     public boolean canInvite() {
-        return com.godofthings.doll.config.DollConfig.starfieldInvitationEnabled()
-                && (giftScore >= MAX_BOND || invitationUsed);
+        return giftScore >= MAX_BOND || invitationUsed;
     }
 
     public void acceptInvitation(ServerPlayer player) {
         if (!canReadStory(player)) return;
         if (!canInvite()) return;
-        boolean usedBefore = invitationUsed;
-        // Set before vanilla serializes this entity for its dimension transfer.
-        invitationUsed = true;
-        if (!TwoIDollService.sendPlayerToStarfield(player, !usedBefore, this)) invitationUsed = usedBefore;
+        // 星光庭院维度已随本模组的裁剪移除：邀请按钮保留（界面布局依赖它），
+        // 但点了不做任何事，invitationUsed 不消耗。
     }
 
     private static int prankCooldownForBond(int bond, RandomSource random) {
@@ -1090,15 +1086,6 @@ public final class TwoIDollEntity extends PathfinderMob {
                     action == 0 ? SoundEvents.ENDERMAN_TELEPORT : SoundEvents.VILLAGER_AMBIENT,
                     SoundSource.NEUTRAL, 0.35F + intensity * 0.08F,
                     0.8F + random.nextFloat() * (0.25F + intensity * 0.08F));
-        }
-
-        // 时间停止彩蛋未移植：原实现依赖本模组没有的 TimeStopManager +
-        // ServerLevelTimeStopMixin 整套系统（那是原 mod 的主系统，不在玩偶范围内）。
-        // 条件写成恒假保留结构，以后要接回时把 DollConfig.serverTimeStop() 换成真实现即可。
-        if (false && owner != null && timeStopCooldown == 0 && DollConfig.serverTimeStop()
-                && random.nextInt(TIME_STOP_CHANCE_DENOMINATOR) == 0) {
-            timeStopCooldown = TIME_STOP_COOLDOWN;
-            owner.displayClientMessage(Component.translatable("msg.godofthings.two_i.time_stop_prank"), true);
         }
         if (owner != null) owner.displayClientMessage(Component.translatable("msg.godofthings.two_i.prank"), true);
     }

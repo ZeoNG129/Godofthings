@@ -52,9 +52,6 @@ public final class TwoIStoryLibraryScreen extends Screen implements TwoIInteract
             }).bounds(panelX + 12 + i % 2 * (half + 10), rowsY + i / 2 * 31, half, 25).build());
         }
         int bottom = panelY + panelHeight - 34;
-        addRenderableWidget(Button.builder(ui("gallery"), b ->
-                minecraft.setScreen(new TwoIStoryGalleryScreen(this)))
-                .bounds(panelX + 12, bottom, half, 22).build());
         addRenderableWidget(Button.builder(ui("return"), b -> onClose())
                 .bounds(panelX + 22 + half, bottom, half, 22).build());
         retry = addRenderableWidget(Button.builder(ui("library_retry"), b -> requestLibrary())
