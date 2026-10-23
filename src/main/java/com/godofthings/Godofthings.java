@@ -945,6 +945,9 @@ public class Godofthings
         // ===== 玩偶系统（移植自 useless_stretcher 的 2i 玩偶，按源码原样移植）=====
         // 实体 / 物品 / 方块 / 方块实体 / 音效各有独立注册表，见 DollRegistry
         modEventBus.addListener(com.godofthings.doll.network.DollNetwork::register);
+        // 玩偶实体属性（移动速度等）——漏挂会导致客户端创建预览实体时
+        // AttributeMap.supplier 为 null 而 NPE（对齐上游 ModEntities::registerAttributes）。
+        modEventBus.addListener(com.godofthings.doll.init.DollRegistry::registerAttributes);
         com.godofthings.doll.init.DollRegistry.register(modEventBus);
         com.godofthings.doll.init.DollSounds.SOUNDS.register(modEventBus);
         // 星光庭院维度（玩偶的私人星空拜访空间；按原样移植，含 ChunkGenerator 注册）
