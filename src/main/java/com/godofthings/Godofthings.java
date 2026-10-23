@@ -99,6 +99,9 @@ import com.godofthings.menu.WaypointMenu;
 import com.godofthings.recipe.GodUnbreakableRecipe;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -306,6 +309,44 @@ public class Godofthings
             DATA_COMPONENTS.register("natures_compass_damage", () -> DataComponentType.<Integer>builder()
                     .persistent(Codec.INT)
                     .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+    // ---- 纬紬玩偶的数据组件（移植自 useless_stretcher 的 StretcherComponents 玩偶段）----
+    // 注册必须发生在 Godofthings 的静态初始化里（仓库硬规则）：DollComponents 只是别名引用。
+    // 若在这里之外首次加载该类，RegisterEvent 已结束，DeferredRegister.register 会直接抛
+    // IllegalStateException（v5.23.0 与 v7.0.0 都在同一个坑里栽过）。
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> DOLL_TWO_I_ROTATION =
+            DATA_COMPONENTS.register("two_i_rotation", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(StreamCodec.of(FriendlyByteBuf::writeVarInt, FriendlyByteBuf::readVarInt))
+                    .build());
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> DOLL_TWO_I_GIFT_SCORE =
+            DATA_COMPONENTS.register("two_i_gift_score", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(StreamCodec.of(FriendlyByteBuf::writeVarInt, FriendlyByteBuf::readVarInt))
+                    .build());
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> DOLL_TWO_I_BOND =
+            DATA_COMPONENTS.register("two_i_bond", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(StreamCodec.of(FriendlyByteBuf::writeVarInt, FriendlyByteBuf::readVarInt))
+                    .build());
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<java.util.UUID>> DOLL_TWO_I_OWNER =
+            DATA_COMPONENTS.register("two_i_owner", () -> DataComponentType.<java.util.UUID>builder()
+                    .persistent(UUIDUtil.CODEC)
+                    .networkSynchronized(StreamCodec.<FriendlyByteBuf, java.util.UUID>of((buf, value) -> buf.writeUUID(value), buf -> buf.readUUID()))
+                    .build());
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<java.util.UUID>> DOLL_TWO_I_DOLL_ID =
+            DATA_COMPONENTS.register("two_i_doll_id", () -> DataComponentType.<java.util.UUID>builder()
+                    .persistent(UUIDUtil.CODEC)
+                    .networkSynchronized(StreamCodec.<FriendlyByteBuf, java.util.UUID>of((buf, value) -> buf.writeUUID(value), buf -> buf.readUUID()))
+                    .build());
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<com.godofthings.doll.entity.TwoIDollMemory>> DOLL_TWO_I_MEMORY =
+            DATA_COMPONENTS.register("two_i_memory", () -> DataComponentType.<com.godofthings.doll.entity.TwoIDollMemory>builder()
+                    .persistent(com.godofthings.doll.entity.TwoIDollMemory.CODEC)
+                    .build());
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> DOLL_TWO_I_INVITATION_USED =
+            DATA_COMPONENTS.register("two_i_invitation_used", () -> DataComponentType.<Boolean>builder()
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(StreamCodec.of(FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean))
                     .build());
 
     // ---- 方块 ----
@@ -903,6 +944,7 @@ public class Godofthings
 
         // ===== 玩偶系统（移植自 useless_stretcher 的 2i 玩偶，按源码原样移植）=====
         // 实体 / 物品 / 方块 / 方块实体 / 音效各有独立注册表，见 DollRegistry
+        modEventBus.addListener(com.godofthings.doll.network.DollNetwork::register);
         com.godofthings.doll.init.DollRegistry.register(modEventBus);
         com.godofthings.doll.init.DollSounds.SOUNDS.register(modEventBus);
         // 星光庭院维度（玩偶的私人星空拜访空间；按原样移植，含 ChunkGenerator 注册）

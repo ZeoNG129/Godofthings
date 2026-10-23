@@ -4,12 +4,10 @@ import com.godofthings.Godofthings;
 import com.godofthings.doll.entity.TwoIDollEntity;
 import com.godofthings.doll.item.TwoIDollItem;
 import com.godofthings.doll.init.DollComponents;
-import net.minecraft.client.Minecraft;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -25,15 +23,13 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
  * <p>版本号 {@code "1"}：玩偶是全新通道，与主模组既有的 {@code "1"} 不冲突
  * （NeoForge 的 registrar 版本是按 payload 类型独立的）。</p>
  */
-@EventBusSubscriber(modid = Godofthings.MODID, bus = EventBusSubscriber.Bus.MOD)
 public final class DollNetwork
 {
     private DollNetwork()
     {
     }
 
-    @SubscribeEvent
-    private static void onRegisterPayloads(final RegisterPayloadHandlersEvent event)
+    public static void register(final RegisterPayloadHandlersEvent event)
     {
         PayloadRegistrar registrar = event.registrar("1");
 
@@ -327,73 +323,31 @@ public final class DollNetwork
     }
 
     // ---- 客户端侧处理 ----
-    // 照源码 ClientStateReceiver 的做法：playToClient 的处理器只在客户端执行，
-    // lambda 里引用客户端界面类不会影响专用服务端（类在服务端根本不会被加载）。
+    // 照源码 Network -> ClientStateReceiver 的结构：本类的方法体里【禁止】出现任何
+    // net.minecraft.client.* 引用（Minecraft / Screen 都是 @OnlyIn(CLIENT)）。
+    // DollNetwork 在专用服务端也会被加载（主类构造器的 addListener），而
+    // RuntimeDistCleaner 在类转换期扫描常量池，见到 @OnlyIn 类引用就把整条 invokedynamic
+    // 的 bootstrap 拦下来 —— v7.0.0 的「拿着玩偶闪退 / GameTest 建服失败」就是这个：
+    // 曾经直接在 lambda 里写 Minecraft.getInstance()。
+    // 处理器只在客户端执行， DollClientHooks 只会在那一刻首次类加载，服务端永不加载它。
 
     private static void handleDialogue(TwoIDialoguePayload payload, IPayloadContext context)
     {
-        context.enqueueWork(() -> Minecraft.getInstance().execute(() -> {
-            var mc = Minecraft.getInstance();
-            if (mc.screen instanceof com.godofthings.doll.client.TwoIDialogueScreen screen
-                    && screen.entityId() == payload.entityId())
-            {
-                screen.updateGiftStatus(payload.inviteReady(), payload.giftScore());
-            }
-            else if (payload.open())
-            {
-                mc.setScreen(new com.godofthings.doll.client.TwoIDialogueScreen(
-                        payload.entityId(), payload.inviteReady(), payload.giftScore()));
-            }
-        }));
+        context.enqueueWork(() -> com.godofthings.doll.client.DollClientHooks.handleDialogue(payload));
     }
 
     private static void handleItemDialogue(TwoIItemDialoguePayload payload, IPayloadContext context)
     {
-        context.enqueueWork(() -> Minecraft.getInstance().execute(() ->
-                Minecraft.getInstance().setScreen(com.godofthings.doll.client.TwoIDialogueScreen.forItem(
-                        payload.offhand() ? net.minecraft.world.InteractionHand.OFF_HAND
-                                : net.minecraft.world.InteractionHand.MAIN_HAND,
-                        payload.bond(), payload.invitationUsed()))));
+        context.enqueueWork(() -> com.godofthings.doll.client.DollClientHooks.handleItemDialogue(payload));
     }
 
     private static void handleStoryState(TwoIStoryStatePayload payload, IPayloadContext context)
     {
-        context.enqueueWork(() -> Minecraft.getInstance().execute(() -> {
-            var mc = Minecraft.getInstance();
-            if (mc.screen instanceof com.godofthings.doll.client.TwoIDialogueScreen screen
-                    && screen.entityId() == payload.entityId())
-            {
-                if (payload.result() == 0)
-                {
-                    screen.openStory(payload.sessionId(), payload.chapter(), payload.bond(), payload.round());
-                }
-                else if (payload.result() == 2 && payload.sessionId() == 0L)
-                {
-                    screen.onStoryUnavailable();
-                }
-            }
-            else if (mc.screen instanceof com.godofthings.doll.client.TwoIStoryScreen screen
-                    && screen.entityId() == payload.entityId())
-            {
-                if (payload.result() == 1)
-                {
-                    screen.onChoiceResult(payload.sessionId(), payload.bond(), payload.round());
-                }
-                else if (payload.result() == 2)
-                {
-                    screen.onStoryUnavailable(payload.sessionId(), payload.round());
-                }
-            }
-        }));
+        context.enqueueWork(() -> com.godofthings.doll.client.DollClientHooks.handleStoryState(payload));
     }
 
     private static void handleStoryLibraryState(TwoIStoryLibraryStatePayload payload, IPayloadContext context)
     {
-        context.enqueueWork(() -> Minecraft.getInstance().execute(() -> {
-            if (Minecraft.getInstance().screen instanceof com.godofthings.doll.client.TwoIStoryLibraryScreen screen)
-            {
-                screen.acceptLibrary(payload.requestId(), payload.completedMask());
-            }
-        }));
+        context.enqueueWork(() -> com.godofthings.doll.client.DollClientHooks.handleStoryLibraryState(payload));
     }
 }
