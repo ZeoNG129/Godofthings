@@ -940,35 +940,7 @@ public final class TwoIDollEntity extends PathfinderMob {
         DollNetwork.updateTwoIDialogue(player, getId(), canInvite(), giftScore);
     }
 
-    public void talkTo(ServerPlayer player) {
-        if (!canReadStory(player)) return;
-        if (talkCooldown > 0) {
-            setBubbleText("msg.godofthings.two_i.talk_cooldown", Math.max(1, (talkCooldown + 19) / 20));
-            player.displayClientMessage(Component.translatable("msg.godofthings.two_i.talk_cooldown",
-                    Math.max(1, (talkCooldown + 19) / 20)), true);
-            return;
-        }
-        talkCooldown = TALK_COOLDOWN_TICKS;
-        refreshInteractionDay();
-        int line;
-        // Common chatter plus relationship-specific lines. Never penalize a random line.
-        do {
-            line = random.nextInt(4) == 0 ? (giftScore < 0 ? 34 : giftScore >= 70 ? 38 : 30) + random.nextInt(4)
-                    : random.nextInt(30);
-        } while (line == interaction.lastChat());
-        int bondChange = interaction.talks() < 2 ? 1 : 0;
-        changeBond(bondChange);
-        interaction = new TwoIDollMemory.Interaction(interaction.day(), interaction.pats(),
-                Math.min(2, interaction.talks() + 1), interaction.stories(), interaction.companionship(),
-                interaction.companionTicks(), line, interaction.lastGift(), interaction.repeatedGift(), interaction.gifts());
-        getLookControl().setLookAt(player, 45.0F, 45.0F);
-        playPoseAction(bondChange > 0 ? ACTION_GREETING : ACTION_CURIOUS);
-        setBubbleText("msg.godofthings.two_i.talk." + line);
-        if (bondChange == 0) entityData.set(BUBBLE_MESSAGE, getBubbleMessage().copy().append("\n")
-                .append(Component.translatable("msg.godofthings.two_i.talk_daily_limit")));
-        player.displayClientMessage(Component.translatable("msg.godofthings.two_i.talk." + line), false);
-        DollNetwork.updateTwoIDialogue(player, getId(), canInvite(), giftScore);
-    }
+
 
     private static boolean isSpecialGift(ItemStack stack) {
         ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());

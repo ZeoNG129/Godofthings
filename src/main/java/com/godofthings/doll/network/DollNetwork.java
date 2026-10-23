@@ -17,7 +17,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
  * 玩偶系统的网络通道。
  *
  * <p>原 mod 把 15 个 payload 全塞进一个 2397 行的 {@code Network} 类，和手杖、胶囊、
- * 范围加速、万象方块等十几套系统混在一起。移植时只把玩偶这 15 个抽出来独立成类，
+ * 范围加速、万象方块等十几套系统混在一起。移植时只把玩偶这 14 个抽出来独立成类，
  * 每个 payload 一个文件（放在同包的 record 里），本类只负责<b>注册</b>与<b>收发</b>。</p>
  *
  * <p>版本号 {@code "1"}：玩偶是全新通道，与主模组既有的 {@code "1"} 不冲突
@@ -52,8 +52,6 @@ public final class DollNetwork
                 DollNetwork::handleInvite);
         registrar.playToServer(TwoIDollPatPayload.TYPE, TwoIDollPatPayload.STREAM_CODEC,
                 DollNetwork::handlePat);
-        registrar.playToServer(TwoIDollTalkPayload.TYPE, TwoIDollTalkPayload.STREAM_CODEC,
-                DollNetwork::handleTalk);
         registrar.playToServer(TwoIDollStoryStartPayload.TYPE, TwoIDollStoryStartPayload.STREAM_CODEC,
                 DollNetwork::handleStoryStart);
         registrar.playToServer(TwoIDollStoryPayload.TYPE, TwoIDollStoryPayload.STREAM_CODEC,
@@ -135,11 +133,6 @@ public final class DollNetwork
         PacketDistributor.sendToServer(new TwoIDollPatPayload(entityId));
     }
 
-    public static void sendTwoIDollTalk(int entityId)
-    {
-        PacketDistributor.sendToServer(new TwoIDollTalkPayload(entityId));
-    }
-
     public static void sendTwoIDollStoryStart(int entityId)
     {
         PacketDistributor.sendToServer(new TwoIDollStoryStartPayload(entityId));
@@ -206,15 +199,6 @@ public final class DollNetwork
                 && player.serverLevel().getEntity(payload.entityId()) instanceof TwoIDollEntity doll)
         {
             doll.patBy(player);
-        }
-    }
-
-    private static void handleTalk(TwoIDollTalkPayload payload, IPayloadContext context)
-    {
-        if (context.player() instanceof ServerPlayer player
-                && player.serverLevel().getEntity(payload.entityId()) instanceof TwoIDollEntity doll)
-        {
-            doll.talkTo(player);
         }
     }
 

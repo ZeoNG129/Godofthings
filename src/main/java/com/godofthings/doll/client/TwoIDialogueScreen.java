@@ -103,8 +103,6 @@ public final class TwoIDialogueScreen extends Screen implements TwoIInteractionS
             onClose();
         });
 
-        addAction(actionX + buttonWidth + gap, firstY + 52, buttonWidth, "smalltalk",
-                button -> DollNetwork.sendTwoIDollTalk(entityId));
         talkButton.active = startWait == 0;
     }
 
