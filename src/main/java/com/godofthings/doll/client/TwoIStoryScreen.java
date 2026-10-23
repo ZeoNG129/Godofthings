@@ -385,7 +385,7 @@ public final class TwoIStoryScreen extends Screen implements TwoIInteractionScre
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         // Explicit destination and source sizes are essential: the short blit overload crops instead of scaling.
-        g.blit(cg, 0, 0, CANVAS_W, CANVAS_H, 0f, 0f, 836, 471, 836, 471);
+        g.blit(cg, 0, 0, CANVAS_W, CANVAS_H, 0f, 0f, 800, 450, 800, 450);
         if (!hidden) {
             g.fillGradient(0, 0, CANVAS_W, 80, 0xB0182448, 0x00182448);
             g.drawString(font, title, 24, 21, 0xFFFFFFFF, true);
@@ -395,7 +395,7 @@ public final class TwoIStoryScreen extends Screen implements TwoIInteractionScre
             if (!line.cg()) {
                 // The supplied full-body expressions have a white background. Present them as a character card.
                 g.fill(579, 48, 751, 298, 0xFFF6F8FF);
-                g.blit(expression, 583, 50, 164, 246, 0f, 0f, 512, 768, 512, 768);
+                g.blit(expression, 583, 50, 164, 246, 0f, 0f, 256, 384, 256, 384);
                 g.renderOutline(579, 48, 172, 250, 0xFFB3C7F5);
             }
             drawFrame(g, 24, 314, 752, 128);
