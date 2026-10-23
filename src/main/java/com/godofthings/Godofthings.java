@@ -953,7 +953,13 @@ public class Godofthings
                  com.godofthings.doll.config.DollConfig.SPEC, "godofthings-doll-server.toml");
          // 神之皮带（移植自 ToolBelt 2.2.10）：网络包 / 物品能力 / 皮带槽事件 / 配置刷新
          BeltRegistration.init(modEventBus);
-        // 皮带自己的配置文件（服务器白黑名单 / 客户端轮盘显示选项），与上面两份文件名区分开
+        // ===== 全能升级（移植自 Omni Upgrades：批量安装插件 / 等级安装器 + 高亮预览）=====
+        // 适配器内部用 ModList.isLoaded 守护；网络通道 + 客户端/服务端双配置
+        modEventBus.addListener(com.godofthings.omni.OmniNetwork::onRegisterPayloads);
+        modContainer.registerConfig(ModConfig.Type.CLIENT,
+                com.godofthings.omni.OmniConfig.SPEC, "godofthings-omni-client.toml");
+        // 全能升级没有服务端配置（上游 ServerConfig 的升级上限规则只服务蜂巢模组，随环境裁剪）
+         // 皮带自己的配置文件（服务器白黑名单 / 客户端轮盘显示选项），与上面两份文件名区分开
         modContainer.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC, "godofthings-belt-server.toml");
         modContainer.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC, "godofthings-belt-client.toml");
     }

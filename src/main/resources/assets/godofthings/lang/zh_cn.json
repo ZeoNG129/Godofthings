@@ -1330,5 +1330,17 @@
     "manual.godofthings.pink_pigmee_building_panel":  "粉红色众神素板：同色方块相邻时自动隐藏边框的装饰板，对应染料包围染料基底合成 8 个。",
     "manual.godofthings.pink_pigmee_framed_building_panel":  "粉红色众神框板：带边框的装饰板，无论怎么拼接都保留描边，用素板加同色染料合成。",
     "manual.godofthings.pink_pigmee_building_slab":  "粉红色众神素板台阶：素板的台阶形态，三个素板合成 6 个，拼接时同样自动隐藏边框。",
-    "manual.godofthings.pink_pigmee_framed_building_slab":  "粉红色众神框板台阶：框板的台阶形态，三个框板合成 6 个。"
+    "manual.godofthings.pink_pigmee_framed_building_slab":  "粉红色众神框板台阶：框板的台阶形态，三个框板合成 6 个。",
+    "key.categories.godofthings.omni":  "全能升级（众神之物）",
+    "key.godofthings.omni.toggle_enabled":  "切换全能升级总开关",
+    "key.godofthings.omni.toggle_sequential_fill":  "切换顺序填满模式",
+    "key.godofthings.omni.toggle_diagonal_detection":  "切换对角检测模式",
+    "message.godofthings.omni.batch_install.success":  "§a[批量成功] §f已成功为 %1$s 台机器应用了 %2$s§f，共消耗 %3$s 个。",
+    "message.godofthings.omni.batch_install.fail":  "§c[操作取消] §7范围内没有可应用该物品的机器，或机器已达上限。",
+    "message.godofthings.omni.sequential_fill.enabled":  "§a[顺序填满] §f已开启 §7- 先把一台机器塞满，再塞下一台。",
+    "message.godofthings.omni.sequential_fill.disabled":  "§c[顺序填满] §f已关闭 §7- 在所有机器之间平均分配插件。",
+    "message.godofthings.omni.diagonal_detection.enabled":  "§a[对角检测] §f已开启 §7- 批量检测同时检查斜对角的机器。",
+    "message.godofthings.omni.diagonal_detection.disabled":  "§c[对角检测] §f已关闭 §7- 批量检测只检查直接相邻的机器。",
+    "message.godofthings.omni.enabled.enabled":  "§a[全能升级] §f已开启 §7- 批量安装、高亮预览与右键接管均已生效。",
+    "message.godofthings.omni.enabled.disabled":  "§c[全能升级] §f已关闭 §7- 模组功能已被完全禁用，操作交还原版或其他模组。"
 }

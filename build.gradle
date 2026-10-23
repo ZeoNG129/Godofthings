@@ -84,6 +84,11 @@ dependencies {
     compileOnly files('libs/ae2-1.21.1-neoforge.jar')
 // Curios（可选依赖）：玩偶饰品栏集成需要编译期 API；运行期仍按 optional 处理，没装也能进游戏
 compileOnly files('libs/curios-neoforge-9.5.1+1.21.1.jar')
+// 全能升级（Omni Upgrades 移植）的适配器编译依赖：通用机械 / 工业先锋(+titanium) / 气动工艺。
+// 仅编译期需要；运行期由 ModList.isLoaded 守护，装不装对应模组都能正常加载。
+compileOnly files('libs/Mekanism-1.21.1-10.7.19.85.jar')
+compileOnly files('libs/industrialforegoing-1.21-3.6.39.jar', 'libs/titanium-1.21-4.0.51.jar')
+compileOnly files('libs/pneumaticcraft-repressurized-8.2.23+mc1.21.1.jar')
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

@@ -1330,5 +1330,17 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "manual.godofthings.pink_pigmee_building_panel":  "Pink God Plain Panel: a decorative panel whose borders vanish against same-colored neighbours. Craft 8 from dyes surrounding a dye base.",
     "manual.godofthings.pink_pigmee_framed_building_panel":  "Pink God Framed Panel: a bordered decorative panel that keeps its outline no matter how it is tiled. Craft from plain panels plus a matching dye.",
     "manual.godofthings.pink_pigmee_building_slab":  "Pink God Plain Panel Slab: the slab form of the plain panel; three panels make six slabs, and tiling still merges borders.",
-    "manual.godofthings.pink_pigmee_framed_building_slab":  "Pink God Framed Panel Slab: the slab form of the framed panel; three panels make six slabs."
+    "manual.godofthings.pink_pigmee_framed_building_slab":  "Pink God Framed Panel Slab: the slab form of the framed panel; three panels make six slabs.",
+    "key.categories.godofthings.omni":  "Omni Upgrades (God of Things)",
+    "key.godofthings.omni.toggle_enabled":  "Toggle Omni Upgrades",
+    "key.godofthings.omni.toggle_sequential_fill":  "Toggle Sequential Fill Mode",
+    "key.godofthings.omni.toggle_diagonal_detection":  "Toggle Diagonal Detection Mode",
+    "message.godofthings.omni.batch_install.success":  "§a[Batch Success] §fApplied %2$s§f to %1$s machines, consuming %3$s in total.",
+    "message.godofthings.omni.batch_install.fail":  "§c[Cancelled] §7No machine in range can accept this item, or all machines are at their limit.",
+    "message.godofthings.omni.sequential_fill.enabled":  "§a[Sequential Fill] §fEnabled §7- fill one machine completely before moving on.",
+    "message.godofthings.omni.sequential_fill.disabled":  "§c[Sequential Fill] §fDisabled §7- distribute upgrades evenly across all machines.",
+    "message.godofthings.omni.diagonal_detection.enabled":  "§a[Diagonal Detection] §fEnabled §7- batch detection also checks diagonal machines.",
+    "message.godofthings.omni.diagonal_detection.disabled":  "§c[Diagonal Detection] §fDisabled §7- batch detection only checks directly adjacent machines.",
+    "message.godofthings.omni.enabled.enabled":  "§a[Omni Upgrades] §fEnabled §7- batch install, highlights and click interception are active.",
+    "message.godofthings.omni.enabled.disabled":  "§c[Omni Upgrades] §fDisabled §7- the feature is fully disabled; vanilla/other mods take over."
 }
