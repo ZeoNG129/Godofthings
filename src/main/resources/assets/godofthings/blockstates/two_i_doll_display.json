@@ -1,0 +1,5 @@
+{
+  "multipart": [
+    { "apply": { "model": "godofthings:block/two_i_doll_display" } }
+  ]
+}

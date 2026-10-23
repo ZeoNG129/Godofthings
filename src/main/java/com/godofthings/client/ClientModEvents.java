@@ -161,6 +161,10 @@ public class ClientModEvents
 
         addLayerToPlayerSkin(event, PlayerSkin.Model.WIDE, ToolBeltLayer::new);
         addLayerToPlayerSkin(event, PlayerSkin.Model.SLIM, ToolBeltLayer::new);
+
+        // 玩偶：头顶玩偶渲染层（构造器直接吃 PlayerRenderer，不走 HumanoidModel 泛型）
+        addDollHeadLayer(event, PlayerSkin.Model.WIDE);
+        addDollHeadLayer(event, PlayerSkin.Model.SLIM);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -177,5 +181,14 @@ public class ClientModEvents
     {
         EntityRenderer<E> renderer = event.getRenderer(entityType);
         if (renderer instanceof LivingEntityRenderer ler) ler.addLayer(factory.apply(ler));
+    }
+
+    /** 给指定皮肤模型的玩家渲染器挂上玩偶头顶层（构造器直接吃 PlayerRenderer） */
+    private static void addDollHeadLayer(EntityRenderersEvent.AddLayers event, PlayerSkin.Model skin)
+    {
+        if (event.getSkin(skin) instanceof net.minecraft.client.renderer.entity.player.PlayerRenderer renderer)
+        {
+            renderer.addLayer(new com.godofthings.doll.render.TwoIDollHeadLayer(renderer));
+        }
     }
 }

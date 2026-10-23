@@ -897,8 +897,15 @@ public class Godofthings
 
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
 
-        // 神之皮带（移植自 ToolBelt 2.2.10）：网络包 / 物品能力 / 皮带槽事件 / 配置刷新
-        BeltRegistration.init(modEventBus);
+         // ===== 玩偶系统（移植自 useless_stretcher 的 2i 玩偶，星光庭院维度未移植）=====
+         // 实体 / 物品 / 方块 / 方块实体 / 音效各有独立注册表，见 DollRegistry
+         com.godofthings.doll.init.DollRegistry.register(modEventBus);
+         com.godofthings.doll.init.DollSounds.SOUNDS.register(modEventBus);
+         // 玩偶配置（树叶掉落开关与概率）
+         modContainer.registerConfig(ModConfig.Type.SERVER,
+                 com.godofthings.doll.config.DollConfig.SPEC, "godofthings-doll-server.toml");
+         // 神之皮带（移植自 ToolBelt 2.2.10）：网络包 / 物品能力 / 皮带槽事件 / 配置刷新
+         BeltRegistration.init(modEventBus);
         // 皮带自己的配置文件（服务器白黑名单 / 客户端轮盘显示选项），与上面两份文件名区分开
         modContainer.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC, "godofthings-belt-server.toml");
         modContainer.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC, "godofthings-belt-client.toml");

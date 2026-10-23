@@ -1,0 +1,64 @@
+package com.godofthings.doll.event;
+
+import com.godofthings.doll.entity.TwoIDollEntity;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+
+@EventBusSubscriber(
+   modid = "godofthings"
+)
+public final class TwoIDollProtection {
+   private TwoIDollProtection() {
+   }
+
+   @SubscribeEvent(
+      priority = EventPriority.LOWEST
+   )
+   public static void preventTarget(LivingChangeTargetEvent event) {
+      if (event.getNewAboutToBeSetTarget() instanceof TwoIDollEntity) {
+         event.setNewAboutToBeSetTarget(null);
+      }
+   }
+
+   @SubscribeEvent(
+      priority = EventPriority.HIGHEST
+   )
+   public static void preventPlayerAttack(AttackEntityEvent event) {
+      if (event.getTarget() instanceof TwoIDollEntity) {
+         event.setCanceled(true);
+      }
+   }
+
+   @SubscribeEvent(
+      priority = EventPriority.HIGHEST
+   )
+   public static void preventDamage(LivingIncomingDamageEvent event) {
+      if (event.getEntity() instanceof TwoIDollEntity) {
+         event.setCanceled(true);
+      }
+   }
+
+   @SubscribeEvent(
+      priority = EventPriority.HIGHEST
+   )
+   public static void preventDeath(LivingDeathEvent event) {
+      if (event.getEntity() instanceof TwoIDollEntity) {
+         event.setCanceled(true);
+      }
+   }
+
+   @SubscribeEvent(
+      priority = EventPriority.LOWEST
+   )
+   public static void preventEggSpawn(FinalizeSpawnEvent event) {
+      if (event.getEntity() instanceof TwoIDollEntity) {
+         event.setSpawnCancelled(true);
+      }
+   }
+}

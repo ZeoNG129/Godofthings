@@ -1955,3 +1955,51 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 语言键 / 物品数 / 方块数 / 手册条目 / GameTest 条数全部不变，**测试总数仍 45 条**。
   - **发版方式（与 5.x 不同）**：6.0.0 是首位大版本变化，按规则**新建 tag `v6.0.0` + 新建 GitHub Release**，
     6.x 后续小版本一律把 jar 追加到这个 release 下，不再新建 tag。
+
+- 6.0.0 → **7.0.0（移植「无用担架」的 2i 玩偶系统，做成自己的玩偶）** —— 系统性新增，按规则**首位 +1、后两位归零**。
+  - **用户诉求**：把 `useless_stretcher` 里的 2i 玩偶搬进本模组，用**自己的皮肤**当玩偶外观，**删掉图片欣赏**，其余完整保留，对话里的 2i 换成「紬紬」。
+  - **移植规模**：`com.godofthings.doll` 新包，**64 个文件 / 8782 行**（原 66 个文件 9418 行，砍掉星光庭院与外部兼容）。
+  - **怎么做的（关键方法）**：原 mod 没有源码，先用 Vineflower 1.10.1 把 448 个 class 全反编译看清实现，再按依赖边界裁剪，
+    最后逐轮编译修错（错误数 100+ → 52 → 19 → 3 → 0）。**没有靠猜 API**。
+  - **保留的完整功能**：
+    | 子系统 | 内容 |
+    |---|---|
+    | 玩偶实体 | `TwoIDollEntity`（1784 行）：跟随 / 摸头 / 送礼 / 好感度 / 捣蛋 / 环境反应 / 天气共伞 |
+    | 渲染 | 实体渲染器、尾巴（`TwoIDollTail` 529 行）、伞盖、头顶层、手持层、第三人称、摆件渲染 |
+    | 界面 | 互动对话屏、故事阅读屏（打字机 / 语音 / 章节）、故事库屏 |
+    | 故事 | 6 章长剧情 JSON + `TwoILongStory` 加载器 + 好感度分支 |
+    | 物品/方块 | `two_i_doll`（可放出 / 收回 / 头顶 / 饰品栏）、`two_i_doll_display`（摆件） |
+    | 音效 | 5 个 ogg（摸头 ×3 + 语音 ×3，保留原音效，以后可换自己的） |
+  - **你的皮肤已设为玩偶外观**：`textures/entity/two_i.png` ← `kon_mugi_skin.png`。
+    这里有个必须处理的点 —— 你的皮肤是**纤细手臂（slim/Alex）**，而玩偶模型是 `PlayerModel.createMesh(..., false)` 的**粗手臂**布局。
+    原 mod 的 `TwoIDollSkin.normalizedCopy()` 会自动检测 slim 并把手臂 UV 重映射过去，所以直接换图是安全的；它还会
+    基于脸部像素**自动生成半闭 / 全闭两帧眨眼贴图**，不需要额外做图。
+  - **删掉的图片欣赏**：三个入口按钮（故事阅读屏顶部、故事库底部、对话屏右上）全部移除，
+    `TwoIStoryGalleryScreen` 与 17 张 CG/表情/头像贴图**未移植**。
+  - **删掉的部分（按依赖边界裁剪）**：
+    - **星光庭院维度**：`TwoIStarfield*` 6 个类、自定义 ChunkGenerator、SavedData、星空演出网络包。
+      `TwoIDollService` 从 449 行精简到 145 行（只留安全落点工具 + 停机清追踪表）。
+    - **外部 mod 兼容 Mixin**：Amber / Ars Nouveau / Productive Bees / useless_mod 共 6 个。
+    - **12 个实体管理保护性 Mixin**：原 mod 用来对抗它的实体管理系统误删玩偶，本模组没有那套系统。
+      备份在 scratch（`doll_mixins_backup`），以后真需要可以挑回来。
+    - **时间停止彩蛋**：依赖原 mod 的 `TimeStopManager`，未移植；蟑螂应激仍会召唤末影龙。
+  - **两处必须改写的技术点**：
+    1. **Curios 改反射**：本仓库硬规则是「Curios 只能反射访问」，否则没装 Curios 的整合包会在类加载阶段
+       `NoClassDefFoundError`。`TwoICuriosCompat` 重写为纯反射（`CuriosApi#getCuriosInventory` → `getCurios`
+       → `getStacks` → `getStackInSlot`），解析一次缓存，失败静默降级。
+       代价：`TwoIDollCurioRenderer` 不再实现 Curios 的渲染接口，**饰品栏里的玩偶不会额外显示在人物模型上**
+       （头顶 / 手持 / 放出实体都不受影响）。
+    2. **界面样式脱离 AE2**：原 `StretcherScreenStyle` 调 AE2 的 `BackgroundGenerator.draw(...)`，
+       改成纯 `fill` 手绘（`DollScreenStyle`），配色沿用原十六进制值。
+  - **命名空间全量替换**：包名 `com.sorrowmist.useless.stretcher.*` → `com.godofthings.doll.*`；
+    资源 `useless_stretcher:` → `godofthings:`；语言键 387 个 × 3 语言；SavedData 文件名加 `godofthings_` 前缀
+    （本仓库规则，防跨模组撞名）；NBT 标签 `useless_stretcher_2i_prank_owner` **保留原样**（旧存档兼容）。
+  - **对话改名**：387 个语言键里的 `2i` → `紬紬`（只改值不改键），6 个章节 JSON 里的 64 处也一并改。
+    唯一保留的 `2i` 是键名 `...portrait.2i_portrait`（贴图路径索引）。
+  - **自查**：`gradlew build` 成功并自动部署；`check-lang.ps1` 从 5 类失败修到 **`checks: OK`**
+    （补 6 个拼接前缀白名单、2 条手册条目、README 计数 23 方块 / 30 物品 / 1 实体）；
+    `runGameTestServer` **45 条全部通过**。
+  - **已知限制**：
+    - 星光庭院没移植 → 对话里的「去星空玩一会儿」按钮会提示功能未启用（不会崩）。
+    - 饰品栏玩偶不在人物模型上显示（见上）。
+    - 面板与界面只在编译层面验证，**没有实机跑过客户端**（本工程无 `runClient` 任务）。
