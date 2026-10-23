@@ -15,8 +15,18 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
+
 public class GodMinerMenu extends AbstractContainerMenu
 {
+    // ---- 界面几何（与 GodMinerScreen 的常量严格一致，面板 224×248；改了这里必须同步改那边）----
+    /** 神之加速槽（左上角熔岩柱顶端） */
+    private static final int ACCEL_X = 11;
+    private static final int ACCEL_Y = 25;
+    /** 玩家物品栏起点（背包 3 行 + 快捷栏 = 第 4 行，格距 18） */
+    private static final int INV_X = 32;
+    private static final int INV_Y = 166;
+    private static final int INV_PITCH = 18;
+
     private final GodMinerBlockEntity be;
     private final ContainerLevelAccess access;
     private int cachedAeEnabled = 1;
@@ -33,21 +43,23 @@ public class GodMinerMenu extends AbstractContainerMenu
         this.be = be;
         this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
 
-        // 神之加速槽（只接受神之加速，最多 64 个），画在左侧熔岩柱顶端
-        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, 14, 24));
+        // 神之加速槽（只接受神之加速，最多 64 个），画在左上角熔岩柱顶端
+        this.addSlot(new SlotItemHandler(be.getAccelSlot(), 0, ACCEL_X, ACCEL_Y));
 
         // 无储存槽：挖掘产物直接进入内置无限储存，仅显示玩家物品栏
-        // 底图 9×4 网格：居中 x 从 95 起、格距 18；背包 3 行 y=166/184/202，快捷栏 y=220
+        // 3 行背包 + 快捷栏 = 底部 4 行，格距 18（快捷栏 = 第 4 行，不再单独给偏移量）
         for (int row = 0; row < 3; row++)
         {
             for (int col = 0; col < 9; col++)
             {
-                this.addSlot(new Slot(playerInv, col + row * 9 + 9, 25 + col * 18, 124 + row * 18));
+                this.addSlot(new Slot(playerInv, col + row * 9 + 9,
+                        INV_X + col * INV_PITCH, INV_Y + row * INV_PITCH));
             }
         }
         for (int col = 0; col < 9; col++)
         {
-            this.addSlot(new Slot(playerInv, col, 25 + col * 18, 178));
+            this.addSlot(new Slot(playerInv, col,
+                    INV_X + col * INV_PITCH, INV_Y + 3 * INV_PITCH));
         }
 
         // 运行 / 半径 / 当前深度 / 效率 / 液体量 / 内置储存堆数

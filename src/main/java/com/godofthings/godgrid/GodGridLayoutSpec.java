@@ -54,7 +54,6 @@ public final class GodGridLayoutSpec
     // ---- 玩家物品栏 ----
     public final int invX;
     public final int invY;
-    public final int hotbarOffset;
     /** 物品栏格距（原画若是紧排网格，可小于 18） */
     public final int invPitch;
 
@@ -89,7 +88,6 @@ public final class GodGridLayoutSpec
         this.hasAccel = b.hasAccel;
         this.invX = b.invX;
         this.invY = b.invY;
-        this.hotbarOffset = b.hotbarOffset;
         this.invPitch = b.invPitch;
         this.arrowX = b.arrowX;
         this.arrowY = b.arrowY;
@@ -148,10 +146,17 @@ public final class GodGridLayoutSpec
         return this.invY + row * this.invPitch;
     }
 
-    /** 快捷栏 Y */
+    /**
+     * 快捷栏 Y —— <b>不再是可配置量</b>：它就是背包第 4 行（{@code invSlotY(3)}）。
+     *
+     * <p>v5.31.3 修正：v5.31.2 曾把它写成 {@code invY + 4*invPitch}，而背包 3 行是
+     * {@code invY + 0/1/2*invPitch}，第 4 行是 {@code invY + 3*invPitch} —— 写 4 倍
+     * 会整整多出一行（18px），快捷栏掉到物品栏底板(bottom = invY+76)外面去。
+     * 改成从背包行数推导后，底图底板按 4×18 均匀排布画出来的第 4 行永远与槽位重合。</p>
+     */
     public int hotbarY()
     {
-        return this.invY + this.hotbarOffset;
+        return this.invY + 3 * this.invPitch;
     }
 
     // ---------------- builder ----------------
@@ -183,7 +188,6 @@ public final class GodGridLayoutSpec
         private boolean hasAccel = true;
         private int invX = 0;
         private int invY = 0;
-        private int hotbarOffset = 58;
         private int invPitch = 18;
         private int arrowX = 0;
         private int arrowY = 0;
@@ -237,11 +241,10 @@ public final class GodGridLayoutSpec
             return this;
         }
 
-        public Builder inventory(int x, int y, int hotbarOffset, int pitch)
+        public Builder inventory(int x, int y, int pitch)
         {
             this.invX = x;
             this.invY = y;
-            this.hotbarOffset = hotbarOffset;
             this.invPitch = pitch;
             return this;
         }

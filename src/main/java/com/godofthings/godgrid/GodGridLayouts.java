@@ -59,7 +59,7 @@ public final class GodGridLayouts
             .outputs(15, 1, centerX(335, 15), 172)
             .slot(S, S, S)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(invX(335), invY(344), 4 * S, S)
+            .inventory(invX(335), invY(344), S)
             .arrow(160, 106)
             .texture(335, 344)
             .build();
@@ -72,7 +72,7 @@ public final class GodGridLayouts
             .outputs(14, 1, centerX(324, 14), 217)
             .slot(S, S, S)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(invX(324), invY(330), 4 * S, S)
+            .inventory(invX(324), invY(330), S)
             .arrow(155, 134)
             .texture(324, 330)
             .build();
@@ -88,7 +88,7 @@ public final class GodGridLayouts
             .outputs(4, 3, centerX(256, 4), 139)
             .slot(S, 25, 19)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(invX(256), invY(288), 4 * S, S)
+            .inventory(invX(256), invY(288), S)
             .arrow(196, 132)
             .texture(256, 288)
             .build();
@@ -101,7 +101,7 @@ public final class GodGridLayouts
             .outputs(14, 1, centerX(310, 14), 186)
             .slot(S, S, S)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(invX(310), invY(298), 4 * S, S)
+            .inventory(invX(310), invY(298), S)
             .arrow(148, 124)
             .texture(310, 298)
             .build();
@@ -118,7 +118,7 @@ public final class GodGridLayouts
             .outputs(3, 3, 142, 46)
             .slot(S, 24, 24)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(invX(256), invY(256), 4 * S, S)
+            .inventory(invX(256), invY(256), S)
             .arrow(122, 126)
             .texture(256, 256)
             .build();
@@ -131,7 +131,7 @@ public final class GodGridLayouts
             .outputs(15, 1, centerX(297, 15), 165)
             .slot(S, S, S)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(invX(297), invY(302), 4 * S, S)
+            .inventory(invX(297), invY(302), S)
             .arrow(141, 110)
             .texture(297, 302)
             .build();
@@ -144,7 +144,7 @@ public final class GodGridLayouts
             .outputs(15, 1, centerX(300, 15), 145)
             .slot(S, S, S)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(invX(300), invY(270), 4 * S, S)
+            .inventory(invX(300), invY(270), S)
             .arrow(143, 100)
             .texture(300, 270)
             .build();

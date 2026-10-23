@@ -15,65 +15,69 @@ import net.minecraft.world.entity.player.Inventory;
 /**
  * 神之掘机界面 —— 按《撼地穿霄掘机_UI设计原画》重做（v5.29.0）。
  *
- * <p><b>面板 352×256</b>（原画金框实测 988×718，宽高比 1.376，故选 352×256 保持同一比例）。
- * 底图 {@code textures/gui/god_miner.png} 画的是 512×512 画布上左上角 352×256 的那一块，
- * blit 必须用 11 参数重载显式传贴图真实尺寸，否则会按 256×256 采样被拉伸。</p>
+ * 神之掘机界面 —— 面板 224×248，全部元素各自分道，互不重叠（v5.31.3）。
  *
- * <p><b>槽位</b>：本机<b>没有输入/输出格</b> —— 挖掘产物直接进内置无限储存并推 AE，
- * 所以界面上只有 1 个神之加速槽（左侧熔岩柱位置）+ 玩家物品栏 9×3 + 快捷栏 9。
- * 底图上那条青色槽位带是纯装饰（原画里的「产物展示带」），不挂任何槽位。</p>
+ * <p>本机<b>没有输入/输出格</b> —— 挖掘产物直接进内置无限储存并推 AE，所以界面上只有
+ * 1 个神之加速槽 + 玩家物品栏 9×3 + 快捷栏 9。</p>
  *
- * <p><b>按钮</b>：6 个范围 ±（左 3 右 3）、3 个符文按钮（时运 / 精准采集 / 面配置）、
- * 中央范围读数、右侧 AE 接入核心。全部按底图的原画位置摆放。</p>
+ * <p><b>v5.31.3 修复的布局事故</b>：v5.31.2 把面板压到 210×210 时，几个元素直接叠在一起 ——</p>
+ * <ul>
+ *   <li>左侧范围按钮 {@code x=20..54} 压住加速槽 {@code (14,24)}（截图里物品被按钮盖住）；</li>
+ *   <li>右侧范围按钮 {@code x=156..190} 压住 AE 核心 {@code x=189}；</li>
+ *   <li>符文按钮 {@code r=17} 用 {@code gui.fill} 画成了 34×34 实心方块，比 ± 按钮大两倍。</li>
+ * </ul>
+ * <p>现在：面板 224×248，元素分行分列；符文按钮缩到 r=13，并且改用<b>逐行扫描填圆</b>
+ * （{@link #fillCircle}）而不是 {@code fill} 矩形，圆就是圆。</p>
  */
 public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
 {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "textures/gui/god_miner.png");
-    /** 贴图实际像素尺寸（512×512 画布，面板画在左上角） */
-    private static final int TEX_W = 210;
-    private static final int TEX_H = 210;
+    /** 贴图实际像素尺寸（与面板一致，1:1 采样，不会拉伸） */
+    private static final int TEX_W = 224;
+    private static final int TEX_H = 248;
 
     private static final String[] RADIUS_LABELS = { "-100", "-10", "-1", "+1", "+10", "+100" };
     private static final int[] RADIUS_DELTAS = { -100, -10, -1, 1, 10, 100 };
 
-    /** 神之加速槽（画在左侧熔岩柱顶端的位置） */
-    private static final int ACCEL_X = 14;
-    private static final int ACCEL_Y = 24;
+    /** 神之加速槽（左上角） */
+    private static final int ACCEL_X = 11;
+    private static final int ACCEL_Y = 25;
 
     // ---- 范围调节：左侧 3 个（-100/-10/-1）、右侧 3 个（+1/+10/+100） ----
-    private static final int RANGE_BTN_W = 34;
+    private static final int RANGE_BTN_W = 46;
     private static final int RANGE_BTN_H = 16;
-    private static final int RANGE_L_X = 20;
-    private static final int RANGE_R_X = 156;
-    private static final int RANGE_BTN_Y0 = 24;
-    private static final int RANGE_BTN_PITCH = 20;
+    private static final int RANGE_L_X = 13;
+    private static final int RANGE_R_X = 165;
+    private static final int RANGE_BTN_Y0 = 60;
+    private static final int RANGE_BTN_PITCH = 18;
 
     /** 中央范围读数面板 */
-    private static final int RANGE_PANEL_X = 60;
+    private static final int RANGE_PANEL_X = 68;
     private static final int RANGE_PANEL_Y = 24;
-    private static final int RANGE_PANEL_W = 90;
-    private static final int RANGE_PANEL_H = 26;
+    private static final int RANGE_PANEL_W = 88;
+    private static final int RANGE_PANEL_H = 24;
 
     // ---- 3 个符文按钮：时运 / 精准采集 / 面配置 ----
-    private static final int RUNE_R = 17;
-    private static final int RUNE_Y = 92;
-    private static final int[] RUNE_X = { 46, 105, 164 };
+    private static final int RUNE_R = 13;
+    private static final int RUNE_Y = 126;
+    private static final int[] RUNE_X = { 56, 112, 168 };
 
     /** 右侧 AE 核心（点它切换 AE 接入） */
-    private static final int AE_CORE_X = 189;
-    private static final int AE_CORE_Y = 31;
-    private static final int AE_CORE_R = 13;
+    private static final int AE_CORE_X = 204;
+    private static final int AE_CORE_Y = 36;
+    private static final int AE_CORE_R = 12;
 
-    /** 玩家物品栏（底图 9×4 网格的精确位置） */
-    private static final int INV_X = 92;
-    private static final int INV_Y = 172;
+    /** 玩家物品栏（背包 3 行 + 快捷栏，格距 18） */
+    private static final int INV_X = 32;
+    private static final int INV_Y = 166;
+    private static final int INV_PITCH = 18;
 
     public GodMinerScreen(GodMinerMenu menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
-        this.imageWidth = 210;
-        this.imageHeight = 210;
+        this.imageWidth = 224;
+        this.imageHeight = 248;
     }
 
     @Override
@@ -82,7 +86,7 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         int x = this.leftPos;
         int y = this.topPos;
 
-        // 11 参数重载：显式给贴图真实尺寸 512×512，避免按 256×256 采样被拉伸
+        // 11 参数重载：显式给贴图真实尺寸，避免按 256×256 采样被拉伸
         gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, TEX_W, TEX_H);
 
         GodMinerBlockEntity be = this.menu.getBlockEntity();
@@ -126,13 +130,13 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
             drawRuneRing(gui, cx, cy, RUNE_R, hover, on, i);
         }
 
-        // ---- AE 核心 ----
+        // ---- AE 核心（同心圆，不是方块） ----
         boolean aeOn = this.menu.isAeEnabled();
         boolean aeHover = isInCircle(mouseX, mouseY, x + AE_CORE_X, y + AE_CORE_Y, AE_CORE_R);
         int coreGlow = aeOn ? 0xFF9EF6FF : 0xFF43505C;
-        gui.fill(x + AE_CORE_X - 9, y + AE_CORE_Y - 9, x + AE_CORE_X + 9, y + AE_CORE_Y + 9,
+        fillCircle(gui, x + AE_CORE_X, y + AE_CORE_Y, AE_CORE_R,
                 aeHover ? 0xFFE8FFFF : coreGlow);
-        gui.fill(x + AE_CORE_X - 6, y + AE_CORE_Y - 6, x + AE_CORE_X + 6, y + AE_CORE_Y + 6,
+        fillCircle(gui, x + AE_CORE_X, y + AE_CORE_Y, AE_CORE_R - 3,
                 aeOn ? 0xFF37C8E8 : 0xFF2A3540);
         Component aeLabel = Component.literal("AE");
         gui.drawString(this.font, aeLabel,
@@ -150,31 +154,57 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         }
     }
 
-    /** 符文按钮：金环 + 内部暗底；开启时环变亮青色 */
+    /**
+     * 逐行扫描填一个实心圆 —— {@code GuiGraphics} 只有 {@code fill} 矩形，
+     * 直接拿矩形当圆画出来就是「大方块」（v5.31.2 的符文按钮正是这么废掉的）。
+     * 每行按半弦长 {@code sqrt(r² - dy²)} 求左右边界，再填一条横向像素带。
+     */
+    private static void fillCircle(GuiGraphics gui, int cx, int cy, int r, int color)
+    {
+        if (r <= 0)
+        {
+            return;
+        }
+        for (int dy = -r; dy <= r; dy++)
+        {
+            int half = (int) Math.sqrt((double) (r * r - dy * dy));
+            if (half <= 0)
+            {
+                continue;
+            }
+            gui.fill(cx - half, cy + dy, cx + half, cy + dy + 1, color);
+        }
+    }
+
+    /** 符文按钮：金环 + 内部暗底；开启时环变亮青色。环与底都是真圆。 */
     private void drawRuneRing(GuiGraphics gui, int cx, int cy, int r, boolean hover, boolean on, int index)
     {
         int ring = on ? 0xFF7DF0FF : (hover ? 0xFFFFF0B0 : 0xFFC8983E);
-        gui.fill(cx - r, cy - r, cx + r, cy + r, ring);
-        gui.fill(cx - r + 2, cy - r + 2, cx + r - 2, cy + r - 2, 0xFF121828);
-        // 中间一个小符号（不引贴图，用两条短线区分三个按钮）
+        fillCircle(gui, cx, cy, r, ring);
+        fillCircle(gui, cx, cy, r - 2, 0xFF121828);
+        // 中间一个小符号（不引贴图，用几何图形区分三个按钮）
         int glyph = on ? 0xFF7DF0FF : 0xFFE0C070;
+        int g = Math.max(3, r / 3);
         if (index == 0)
         {
-            gui.fill(cx - 4, cy - 1, cx + 4, cy, glyph);
-            gui.fill(cx - 1, cy - 4, cx, cy + 4, glyph);
+            // 时运：加号
+            gui.fill(cx - g, cy, cx + g + 1, cy + 1, glyph);
+            gui.fill(cx, cy - g, cx + 1, cy + g + 1, glyph);
         }
         else if (index == 1)
         {
-            gui.fill(cx - 4, cy - 4, cx + 4, cy - 3, glyph);
-            gui.fill(cx - 4, cy + 3, cx + 4, cy + 4, glyph);
-            gui.fill(cx - 4, cy - 4, cx - 3, cy + 4, glyph);
-            gui.fill(cx + 3, cy - 4, cx + 4, cy + 4, glyph);
+            // 精准采集：空心方框
+            gui.fill(cx - g, cy - g, cx + g + 1, cy - g + 1, glyph);
+            gui.fill(cx - g, cy + g, cx + g + 1, cy + g + 1, glyph);
+            gui.fill(cx - g, cy - g, cx - g + 1, cy + g + 1, glyph);
+            gui.fill(cx + g, cy - g, cx + g + 1, cy + g + 1, glyph);
         }
         else
         {
-            gui.fill(cx - 4, cy - 3, cx + 4, cy - 2, glyph);
-            gui.fill(cx - 4, cy + 2, cx + 4, cy + 3, glyph);
-            gui.fill(cx - 4, cy - 3, cx - 3, cy + 3, glyph);
+            // 面配置：齿轮感的双横线
+            gui.fill(cx - g, cy - g / 2 - 1, cx + g + 1, cy - g / 2, glyph);
+            gui.fill(cx - g, cy + g / 2, cx + g + 1, cy + g / 2 + 1, glyph);
+            gui.fill(cx - g, cy - g / 2 - 1, cx - g + 1, cy + g / 2 + 1, glyph);
         }
     }
 
@@ -188,9 +218,9 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
     @Override
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
-        // 标题画在拱形铭牌正中（铭牌 y 0..26，文字基线 9）
+        // 标题画在铭牌正中（铭牌 y 2..17，文字基线 6）
         gui.drawString(this.font, this.title,
-                (this.imageWidth - this.font.width(this.title)) / 2, 9,
+                (this.imageWidth - this.font.width(this.title)) / 2, 6,
                 0xFFFFE6A8, false);
     }
 
