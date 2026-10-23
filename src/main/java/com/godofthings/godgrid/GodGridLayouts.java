@@ -90,20 +90,21 @@ public final class GodGridLayouts
 
     // ---------------- 06 净木剥相祭台 ----------------
     /**
-     * 左 3×3 = 9 格输入（x=46/76/106、y=54/84/114，格距 30）；右 3×3 = 9 格输出（x=160/190/220、y=98/128）。
+     * 左 3×3 = 9 格输入（x=22/46/70、y=46/70/94，格距 24）；右 3×3 = 9 格输出（x=142/166/190，同 y）。
      *
-     * <p><b>为什么输出是 9 格而不是原画的 6 格</b>：去皮机的核心语义是「输入 i 一一对应输出 i」
-     * （见 {@code convertOne}，GameTest 的 9 槽独立测试依赖这个配对），所以输入/输出格数必须相等。
-     * 原画右块只画了 3×2=6 格，这里补到 3×3 以保证语义正确 —— 第 3 行正好落在原画那块装饰底板上。</p>
+     * <p><b>为什么左右并排且输出 9 格</b>：①去皮机的核心语义是「输入 i 一一对应输出 i」
+     * （`convertOne`，GameTest 的 9 槽独立测试依赖这个配对），输入输出格数必须相等，
+     * 原画右块只画了 3×2=6 格，补到 3×3；②原画是木质立柜，但木板贴图在 256 宽的面板里
+     * 塞不下上下两排，故改为左右并排 —— 这样上下还留出空间给中央徽记与玩家栏。</p>
      */
     private static final GodGridLayoutSpec PEELER = GodGridLayoutSpec
             .builder("god_peeler", 256, 256)
-            .inputs(3, 3, 46, 54)
-            .outputs(3, 3, 160, 98)
-            .slot(18, 30, 30)
+            .inputs(3, 3, 22, 46)
+            .outputs(3, 3, 142, 46)
+            .slot(18, 24, 24)
             .accel(0, 0)
-            .inventory(66, 162, 44, 16)
-            .arrow(130, 120)
+            .inventory(56, 128, 64, 16)
+            .arrow(122, 122)
             .texture(256, 256)
             .build();
 
@@ -130,11 +131,11 @@ public final class GodGridLayouts
      */
     private static final GodGridLayoutSpec SPAWN_EGG = GodGridLayoutSpec
             .builder("god_spawn_egg", 283, 261)
-            .inputs(15, 1, 2, 41)
-            .outputs(15, 1, 2, 139)
+            .inputs(15, 1, 12, 41)
+            .outputs(15, 1, 12, 139)
             .slot(18, 18, 18)
             .accel(0, 0)
-            .inventory(73, 168, 50, 17)
+            .inventory(66, 168, 50, 17)
             .arrow(141, 98)
             .texture(283, 261)
             .build();
