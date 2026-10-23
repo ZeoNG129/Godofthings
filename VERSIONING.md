@@ -2022,3 +2022,18 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     registerSimpleBlockItem 的 2 个物品），静态校验器从此能覆盖无字面量注册的 id。
   - **自查**：`check-lang.ps1` checks: OK（zh/en 各 1187 键，88 方块 / 95 物品 / 1 实体）；
     `gradlew build` 成功并自动部署；`runGameTestServer` 45 条全部通过。
+
+- 7.1.0 -> **7.1.1（新增小物品：全能升级，移植自 Omni Upgrades 1.0.4）**。
+  - **来源**：Omni Upgrades（omni_upgrades）1.0.4 闭源 jar，Vineflower 反编译后原样移植，
+    功能 = 手持受支持的升级插件按住 Shift+右键机器，把插件批量装进相连的全部同类机器
+    （BFS 洪泛，曼哈顿距离 ≤16、上限 1000 台，严守各模组自己的安装上限），
+    外加受影响机器的高亮线框预览与三个开关按键（Shift+O 总开关 / Shift+N 顺序填满 / Shift+M 对角检测）。
+  - **规模**：`com.godofthings.omni` 新包 12 类 + `client` 3 类 —— 适配器接口 / 管理器 /
+    批量安装处理器 / 黑名单 / 邻居偏移 / AE2 适配器 / 通用机械适配器 / 工业先锋适配器 /
+    气动工艺适配器 / 3 个网络包 / 登录同步 / 配置；客户端 = 按键注册 + 开关处理 + 高亮渲染器。
+  - **适配器取舍**：上游 7 个适配器按本机环境保留 4 个（AE2 系覆盖 AE2 + AE2 Lightning Tech，
+    加上通用机械 / 工业先锋 / 气动工艺，与测试整合包对齐）；ExtendedAE / AdvancedAE /
+    ProductiveBees 及上游 ServerConfig 的蜂巢升级上限规则随环境裁剪。
+  - **编译依赖**：Mekanism / industrialforegoing / titanium / pneumaticcraft 四个 jar 从测试包
+    拷进 libs/ 作 compileOnly（运行期由 ModList.isLoaded 守护，缺模组不崩）。
+  - **自查**：check-lang OK（zh/en 各 1199 键）；build + GameTest 45 条全绿（0 配方 / 标签错误）。
