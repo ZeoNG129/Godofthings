@@ -2,7 +2,6 @@ package com.godofthings.doll.entity;
 
 import com.godofthings.doll.network.DollNetwork;
 
-import com.godofthings.doll.config.DollConfig;
 import com.godofthings.doll.init.DollRegistry;
 import com.godofthings.doll.init.DollComponents;
 
@@ -100,7 +99,6 @@ public final class TwoIDollEntity extends PathfinderMob {
     /** Center spacing while two owned dolls share one umbrella; their plush bodies visibly touch. */
     public static final double SHARED_UMBRELLA_DISTANCE = 0.34D;
     private static final int GIFT_COOLDOWN_TICKS = 1_200;
-    private static final int TALK_COOLDOWN_TICKS = 200;
     private static final Set<String> SPECIAL_GIFTS = Set.of(
             "avaritia:infinity_ingot",
             "mekanism_extras:qio_drive_singularity",
@@ -150,8 +148,6 @@ public final class TwoIDollEntity extends PathfinderMob {
     private int lastPrank = -1;
     private int patCooldown;
     private int giftCooldown;
-    private int talkCooldown;
-    private final Map<UUID, TwoIStorySession> storySessions = new HashMap<>();
     private int timeStopCooldown;
     private int panicCooldown;
     private boolean panicDragonSpawned;
@@ -267,7 +263,6 @@ public final class TwoIDollEntity extends PathfinderMob {
     @Override
     public void onRemovedFromLevel() {
         if (TwoILifecycleGuard.blocks(this)) return;
-        storySessions.clear();
         interactionViewers.clear();
         clearFriendship();
         untrack();
@@ -328,13 +323,13 @@ public final class TwoIDollEntity extends PathfinderMob {
     }
 
     private TwoIDollMemory memory() {
-        return new TwoIDollMemory(new TwoIDollMemory.Cooldowns(patCooldown, giftCooldown, talkCooldown,
+        return new TwoIDollMemory(new TwoIDollMemory.Cooldowns(patCooldown, giftCooldown,
                 prankCooldown, timeStopCooldown, panicCooldown, lastPrank, panicDragonSpawned), interaction, lastCompanionSample);
     }
 
     private void restoreMemory(TwoIDollMemory memory) {
         TwoIDollMemory.Cooldowns c = memory.cooldowns();
-        patCooldown = c.pat(); giftCooldown = c.gift(); talkCooldown = c.talk();
+        patCooldown = c.pat(); giftCooldown = c.gift();
         prankCooldown = c.prank(); timeStopCooldown = c.timeStop(); panicCooldown = c.panic();
         lastPrank = c.lastPrank(); panicDragonSpawned = c.panicDragonSpawned();
         interaction = memory.interaction();
@@ -472,7 +467,7 @@ public final class TwoIDollEntity extends PathfinderMob {
     public void keepInteraction(ServerPlayer player, boolean active) {
         if (!active) {
             interactionViewers.remove(player.getUUID());
-        } else if (canReadStory(player)) {
+        } else if (canInteract(player)) {
             interactionViewers.put(player.getUUID(), level().getGameTime() + 60L);
             getNavigation().stop();
             setDeltaMovement(0, isNoGravity() ? 0 : getDeltaMovement().y, 0);
@@ -486,7 +481,7 @@ public final class TwoIDollEntity extends PathfinderMob {
         long now = server.getGameTime();
         interactionViewers.entrySet().removeIf(entry -> {
             ServerPlayer player = server.getServer().getPlayerList().getPlayer(entry.getKey());
-            return entry.getValue() <= now || player == null || !canReadStory(player);
+            return entry.getValue() <= now || player == null || !canInteract(player);
         });
     }
 
@@ -529,8 +524,6 @@ public final class TwoIDollEntity extends PathfinderMob {
             if (prankCooldown > 0) prankCooldown--;
             if (patCooldown > 0) patCooldown--;
             if (giftCooldown > 0) giftCooldown--;
-            if (talkCooldown > 0) talkCooldown--;
-            if (tickCount % 20 == 0) storySessions.values().removeIf(session -> session.expired(server.getGameTime()));
             if (timeStopCooldown > 0) timeStopCooldown--;
             if (panicCooldown > 0) panicCooldown--;
             if (getPoseAction() != ACTION_NONE && getPoseActionProgress(0.0F) >= 1.0F) {
@@ -742,7 +735,7 @@ public final class TwoIDollEntity extends PathfinderMob {
             player.displayClientMessage(Component.translatable("msg.godofthings.two_i.owner_only"), true);
             return;
         }
-        if (!canReadStory(player) || distanceToSqr(player) > 64.0D) return;
+        if (!canInteract(player) || distanceToSqr(player) > 64.0D) return;
         keepInteraction(player, true);
         getLookControl().setLookAt(player, 45.0F, 45.0F);
         playPoseAction(ACTION_CURIOUS);
@@ -815,15 +808,15 @@ public final class TwoIDollEntity extends PathfinderMob {
     }
 
     public boolean patBy(ServerPlayer player) {
-        if (!canReadStory(player) || distanceToSqr(player) > 64.0D || patCooldown > 0) return false;
+        if (!canInteract(player) || distanceToSqr(player) > 64.0D || patCooldown > 0) return false;
         patCooldown = 30;
         refreshInteractionDay();
         boolean rewarded = interaction.pats() < 1;
         if (rewarded) {
             changeBond(1);
             interaction = new TwoIDollMemory.Interaction(interaction.day(), interaction.pats() + 1,
-                    interaction.talks(), interaction.stories(), interaction.companionship(), interaction.companionTicks(),
-                    interaction.lastChat(), interaction.lastGift(), interaction.repeatedGift(), interaction.gifts());
+                    interaction.companionship(), interaction.companionTicks(),
+                    interaction.lastGift(), interaction.repeatedGift(), interaction.gifts());
         }
         getLookControl().setLookAt(player, 45.0F, 45.0F);
         playPoseAction(ACTION_PATTED);
@@ -869,7 +862,7 @@ public final class TwoIDollEntity extends PathfinderMob {
     }
 
     public void acceptGift(ServerPlayer player) {
-        if (!canReadStory(player)) return;
+        if (!canInteract(player)) return;
         ItemStack stack = player.getMainHandItem();
         if (stack.isEmpty()) {
             setBubbleText("msg.godofthings.two_i.no_gift");
@@ -917,8 +910,8 @@ public final class TwoIDollEntity extends PathfinderMob {
         }
         stack.shrink(1);
         interaction = new TwoIDollMemory.Interaction(interaction.day(), interaction.pats(),
-                interaction.talks(), interaction.stories(), interaction.companionship(), interaction.companionTicks(),
-                interaction.lastChat(), giftId, repetitions, !specialGift && bondChange > 0 ? 1 : interaction.gifts());
+                interaction.companionship(), interaction.companionTicks(),
+                giftId, repetitions, !specialGift && bondChange > 0 ? 1 : interaction.gifts());
         changeBond(bondChange);
         if (!specialGift) giftCooldown = GIFT_COOLDOWN_TICKS;
         playPoseAction(ACTION_RECEIVE_GIFT);
@@ -1003,7 +996,7 @@ public final class TwoIDollEntity extends PathfinderMob {
     }
 
     public void acceptInvitation(ServerPlayer player) {
-        if (!canReadStory(player)) return;
+        if (!canInteract(player)) return;
         if (!canInvite()) return;
         // 星光庭院维度已随本模组的裁剪移除：邀请按钮保留（界面布局依赖它），
         // 但点了不做任何事，invitationUsed 不消耗。
@@ -1178,71 +1171,14 @@ public final class TwoIDollEntity extends PathfinderMob {
                 8, 0.55D, 0.5D, 0.55D, 0.01D);
     }
 
-    /** Opening a story never rolls the ordinary chat's random bond reward. */
-    public void startStory(ServerPlayer player) {
-        if (!canReadStory(player)) {
-            DollNetwork.sendTwoIStoryState(player, getId(), 0L, 0, giftScore, 2);
-            return;
-        }
-        long now = level().getGameTime();
-        keepInteraction(player, true);
-        TwoIStorySession session = storySessions.get(player.getUUID());
-        if (session != null && session.expired(now)) {
-            storySessions.remove(player.getUUID());
-            session = null;
-        }
-        // Reopening an unfinished conversation resumes the same unspent session.
-        if (session == null) {
-            if (talkCooldown > 0) {
-                player.displayClientMessage(Component.translatable("msg.godofthings.two_i.talk_cooldown",
-                        Math.max(1, (talkCooldown + 19) / 20)), true);
-                DollNetwork.sendTwoIStoryState(player, getId(), 0L, 0, giftScore, 2);
-                return;
-            }
-            TwoIStoryData progress = TwoIStoryData.get(player.serverLevel().getServer());
-            int chapter = progress.nextChapter(player.getUUID(), giftScore);
-            session = new TwoIStorySession(player.getUUID(), chapter, now);
-            storySessions.put(player.getUUID(), session);
-            talkCooldown = TALK_COOLDOWN_TICKS;
-        }
-        getLookControl().setLookAt(player, 45.0F, 45.0F);
-        playPoseAction(ACTION_CURIOUS);
-        DollNetwork.sendTwoIStoryState(player, getId(), session.id(), session.chapter(), giftScore, 0, session.expectedRound());
-    }
-
-    private boolean canReadStory(ServerPlayer player) {
+    /** Owner-presence gate shared by every interaction; the story system it once served is gone. */
+    private boolean canInteract(ServerPlayer player) {
         return !level().isClientSide && !isRemoved() && isAlive() && player.isAlive()
                 && isOwner(player) && level() == player.level() && distanceToSqr(player) <= 100.0D;
     }
 
     public boolean isOwner(Player player) {
         return ownerId != null && ownerId.equals(player.getUUID());
-    }
-
-    /** Only the starter can consume a live session, and its reward is applied once. */
-    public void storyChoice(ServerPlayer player, long sessionId, int choice) {
-        TwoIStorySession session = storySessions.get(player.getUUID());
-        if (!canReadStory(player) || session == null
-                || !session.accept(player.getUUID(), sessionId, choice, level().getGameTime())) {
-            DollNetwork.sendTwoIStoryState(player, getId(), sessionId, 0, giftScore, 2, TwoIStorySession.choiceRound(choice));
-            return;
-        }
-        if (session.finished()) storySessions.remove(player.getUUID());
-        int delta = TwoIStorySession.bondDelta(TwoIStorySession.choiceIndex(choice));
-        refreshInteractionDay();
-        if (delta > 0) {
-            if (interaction.stories() >= 3) delta = 0;
-            else interaction = new TwoIDollMemory.Interaction(interaction.day(), interaction.pats(),
-                    interaction.talks(), interaction.stories() + 1, interaction.companionship(),
-                    interaction.companionTicks(), interaction.lastChat(), interaction.lastGift(), interaction.repeatedGift(), interaction.gifts());
-        }
-        changeBond(delta);
-        talkCooldown = Math.max(talkCooldown, TALK_COOLDOWN_TICKS);
-        if (session.finished()) TwoIStoryData.get(player.serverLevel().getServer()).complete(player.getUUID(), session.chapter());
-        getLookControl().setLookAt(player, 45.0F, 45.0F);
-        playPoseAction(delta < 0 ? ACTION_CURIOUS : ACTION_GREETING);
-        DollNetwork.sendTwoIStoryState(player, getId(), sessionId, session.chapter(), giftScore, 1, TwoIStorySession.choiceRound(choice));
-        DollNetwork.updateTwoIDialogue(player, getId(), canInvite(), giftScore);
     }
 
     private void spawnPrankMobs(ServerLevel server, Vec3 center, int intensity, RandomSource random) {
@@ -1315,11 +1251,9 @@ public final class TwoIDollEntity extends PathfinderMob {
         panicCooldown = Math.clamp(tag.getInt("panic_cooldown"), 0, 24000);
         panicDragonSpawned = tag.getBoolean("panic_dragon_spawned");
         giftCooldown = Math.clamp(tag.getInt("gift_cooldown"), 0, 24000);
-        talkCooldown = Math.clamp(tag.getInt("talk_cooldown"), 0, 24000);
         if (tag.contains("doll_item")) {
             ItemStack.parse(registryAccess(), tag.getCompound("doll_item")).ifPresent(this::restoreFromItem);
         }
-        storySessions.clear();
         // Flight follows a live owner, never a stale saved NoGravity flag after restart.
         setNoGravity(false);
     }
@@ -1337,7 +1271,6 @@ public final class TwoIDollEntity extends PathfinderMob {
         tag.putInt("panic_cooldown", panicCooldown);
         tag.putBoolean("panic_dragon_spawned", panicDragonSpawned);
         tag.putInt("gift_cooldown", giftCooldown);
-        tag.putInt("talk_cooldown", talkCooldown);
     }
 
     @Override

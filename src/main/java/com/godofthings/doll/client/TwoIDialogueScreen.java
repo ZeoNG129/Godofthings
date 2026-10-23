@@ -4,7 +4,6 @@ import com.godofthings.doll.network.DollNetwork;
 
 import com.godofthings.doll.entity.TwoIDollEntity;
 import com.godofthings.doll.init.DollRegistry;
-import com.godofthings.doll.init.DollRegistry;
 
 import com.godofthings.doll.client.StretcherScreenStyle;
 import net.minecraft.client.Minecraft;
@@ -36,11 +35,9 @@ public final class TwoIDialogueScreen extends Screen implements TwoIInteractionS
     private int panelX;
     private int panelY;
     private int panelWidth;
-    private Button talkButton;
     private Button patButton;
     private Button giftButton;
     private Button reclaimButton;
-    private int startWait;
 
     public TwoIDialogueScreen(int entityId, boolean inviteReady, int giftScore) {
         this(entityId, false, null, inviteReady, false, giftScore);
@@ -74,11 +71,6 @@ public final class TwoIDialogueScreen extends Screen implements TwoIInteractionS
         int buttonWidth = (actionWidth - gap) / 2;
         int firstY = panelY + 167;
 
-        int libraryWidth = Math.min(86 * 2 + 6, panelWidth - 95);
-        addAction(panelX + panelWidth - libraryWidth - 16, panelY + 5, libraryWidth,
-                "library", button -> minecraft.setScreen(new TwoIStoryLibraryScreen(this, bond)))
-                .setHeight(18);
-
         if (itemMode) {
             addRenderableWidget(Button.builder(Component.translatable("gui.godofthings.two_i.deploy"), button -> {
                 DollNetwork.sendTwoIDollDeploy(itemHand);
@@ -87,23 +79,20 @@ public final class TwoIDialogueScreen extends Screen implements TwoIInteractionS
             return;
         }
 
-        talkButton = addAction(actionX, firstY, buttonWidth, "talk", button -> startStory());
-        patButton = addAction(actionX + buttonWidth + gap, firstY, buttonWidth, "pat",
+        patButton = addAction(actionX, firstY, buttonWidth, "pat",
                 button -> DollNetwork.sendTwoIDollPat(entityId));
-        giftButton = addAction(actionX, firstY + 26, buttonWidth, "gift",
+        giftButton = addAction(actionX + buttonWidth + gap, firstY, buttonWidth, "gift",
                 button -> DollNetwork.sendTwoIDollGift(entityId));
-        inviteButton = addAction(actionX + buttonWidth + gap, firstY + 26, buttonWidth,
+        inviteButton = addAction(actionX, firstY + 26, buttonWidth,
                 invitationUsed || inviteReady && bond < 100 ? "revisit" : "invite", button -> {
             DollNetwork.sendTwoIDollInvite(entityId);
             onClose();
         });
         inviteButton.active = inviteReady;
-        reclaimButton = addAction(actionX, firstY + 52, buttonWidth, "reclaim", button -> {
+        reclaimButton = addAction(actionX + buttonWidth + gap, firstY + 26, buttonWidth, "reclaim", button -> {
             DollNetwork.sendTwoIDollReclaim(entityId);
             onClose();
         });
-
-        talkButton.active = startWait == 0;
     }
 
     private Button addAction(int x, int y, int buttonWidth, String action,
@@ -112,31 +101,6 @@ public final class TwoIDialogueScreen extends Screen implements TwoIInteractionS
                         "gui.godofthings.two_i." + action), onPress)
                 .bounds(x, y, buttonWidth, 22).build());
     }
-
-    private void startStory() {
-        if (itemMode || startWait > 0) return;
-        startWait = 100;
-        talkButton.active = false;
-        DollNetwork.sendTwoIDollStoryStart(entityId);
-    }
-
-    public void openStory(long sessionId, int chapter, int bond) {
-        openStory(sessionId, chapter, bond, 0);
-    }
-
-    public void openStory(long sessionId, int chapter, int bond, int round) {
-        if (startWait == 0 || minecraft == null) return;
-        onStoryUnavailable();
-        this.bond = Math.max(-100, Math.min(100, bond));
-        minecraft.setScreen(new TwoIStoryScreen(this, entityId, sessionId, chapter, bond, round));
-    }
-
-    public void onStoryUnavailable() {
-        startWait = 0;
-        if (talkButton != null) talkButton.active = true;
-    }
-
-    public void updateStoryBond(int bond) { this.bond = Math.max(-100, Math.min(100, bond)); }
 
     public int entityId() {
         return entityId;
@@ -147,7 +111,6 @@ public final class TwoIDialogueScreen extends Screen implements TwoIInteractionS
     @Override
     public void tick() {
         super.tick();
-        if (startWait > 0 && --startWait == 0) onStoryUnavailable();
         if (inviteButton != null) inviteButton.active = inviteReady
                 ;
     }

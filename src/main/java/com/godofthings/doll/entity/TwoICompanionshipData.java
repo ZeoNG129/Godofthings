@@ -30,8 +30,8 @@ public final class TwoICompanionshipData extends SavedData {
             long mergedDay = Math.max(old.day(), day);
             if (old.day() < mergedDay) old = old.forDay(Math.max(0, mergedDay) * 24000L);
             return new TwoIDollMemory(memory.cooldowns(), new TwoIDollMemory.Interaction(mergedDay,
-                    old.pats(), old.talks(), old.stories(), day == mergedDay ? earned : 0,
-                    day == mergedDay ? ticks : 0, old.lastChat(),
+                    old.pats(), day == mergedDay ? earned : 0,
+                    day == mergedDay ? ticks : 0,
                     old.lastGift(), old.repeatedGift(), old.gifts()), lastSample);
         }
     }

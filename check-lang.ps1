@@ -37,13 +37,11 @@ $prefixAllow = @(
     'gui.godofthings.god_change.weather_',
     # Doll (ported from useless_stretcher): runtime-concatenated prefixes.
     #   gui.godofthings.two_i.status.action.<id> / status.environment.<id> / relationship.<tier>
-    #   gui.godofthings.two_i.vn.<chapter>.<round>.<choice>
     #   msg.godofthings.two_i.gift.<mood>
     # Every concrete key is shipped in zh_cn/en_us, so whitelisting the prefixes is enough.
     'gui.godofthings.two_i.status.action.',
     'gui.godofthings.two_i.status.environment.',
     'gui.godofthings.two_i.relationship.',
-    'gui.godofthings.two_i.vn.',
     'msg.godofthings.two_i.gift.',
     'gui.godofthings.two_i.',
     'msg.godofthings.two_i.',

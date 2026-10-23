@@ -6,20 +6,5 @@
       "godofthings:two_i_pat_2",
       "godofthings:two_i_pat_3"
     ]
-  },
-  "two_i_voice": {
-    "sounds": [
-      "godofthings:two_i_voice"
-    ]
-  },
-  "two_i_voice_soft": {
-    "sounds": [
-      "godofthings:two_i_voice_soft"
-    ]
-  },
-  "two_i_voice_bright": {
-    "sounds": [
-      "godofthings:two_i_voice_bright"
-    ]
   }
 }

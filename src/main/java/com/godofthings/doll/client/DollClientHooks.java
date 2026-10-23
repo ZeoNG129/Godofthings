@@ -2,8 +2,6 @@ package com.godofthings.doll.client;
 
 import com.godofthings.doll.network.TwoIDialoguePayload;
 import com.godofthings.doll.network.TwoIItemDialoguePayload;
-import com.godofthings.doll.network.TwoIStoryLibraryStatePayload;
-import com.godofthings.doll.network.TwoIStoryStatePayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 
@@ -36,12 +34,6 @@ public final class DollClientHooks
             screen.updateGiftStatus(payload.inviteReady(), payload.giftScore());
             return;
         }
-        if (minecraft.screen instanceof com.godofthings.doll.client.TwoIStoryScreen story
-                && story.entityId() == payload.entityId())
-        {
-            story.updateGiftStatus(payload.inviteReady(), payload.giftScore());
-            return;
-        }
         if (payload.open())
         {
             minecraft.setScreen(new com.godofthings.doll.client.TwoIDialogueScreen(
@@ -55,45 +47,5 @@ public final class DollClientHooks
         Minecraft.getInstance().setScreen(com.godofthings.doll.client.TwoIDialogueScreen.forItem(
                 payload.offhand() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND,
                 payload.bond(), payload.invitationUsed()));
-    }
-
-    /** 剧情推进：对话界面 → 进入故事；故事界面 → 处理选项结果 / 失效 */
-    public static void handleStoryState(TwoIStoryStatePayload payload)
-    {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.screen instanceof com.godofthings.doll.client.TwoIDialogueScreen screen
-                && screen.entityId() == payload.entityId())
-        {
-            if (payload.result() == 0)
-            {
-                screen.openStory(payload.sessionId(), payload.chapter(), payload.bond(), payload.round());
-            }
-            else if (payload.result() == 2 && payload.sessionId() == 0L)
-            {
-                screen.onStoryUnavailable();
-            }
-            return;
-        }
-        if (minecraft.screen instanceof com.godofthings.doll.client.TwoIStoryScreen screen
-                && screen.entityId() == payload.entityId())
-        {
-            if (payload.result() == 1)
-            {
-                screen.onChoiceResult(payload.sessionId(), payload.bond(), payload.round());
-            }
-            else if (payload.result() == 2)
-            {
-                screen.onStoryUnavailable(payload.sessionId(), payload.round());
-            }
-        }
-    }
-
-    /** 故事库的章节解锁进度回包 */
-    public static void handleStoryLibraryState(TwoIStoryLibraryStatePayload payload)
-    {
-        if (Minecraft.getInstance().screen instanceof com.godofthings.doll.client.TwoIStoryLibraryScreen screen)
-        {
-            screen.acceptLibrary(payload.requestId(), payload.completedMask());
-        }
     }
 }
