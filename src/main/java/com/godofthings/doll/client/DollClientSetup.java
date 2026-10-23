@@ -38,6 +38,25 @@ public final class DollClientSetup
         event.enqueueWork(TwoIDollCurioRenderer::register);
     }
 
+    /**
+     * 物品自定义渲染器（BLE）：物品栏 / 掉落物 / 展示框里的玩偶用真实 3D 模型渲染。
+     * <b>漏了这一段物品栏就是透明的</b> —— builtin/entity 模型没有 BLE 时什么都画不出来。
+     * 对齐上游 ClientSetup#registerItemRenderers。
+     */
+    @SubscribeEvent
+    public static void registerItemRenderers(
+            net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent event)
+    {
+        event.registerItem(new net.neoforged.neoforge.client.extensions.common.IClientItemExtensions()
+        {
+            @Override
+            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer()
+            {
+                return TwoIDollItemRenderer.get();
+            }
+        }, DollRegistry.TWO_I_DOLL_ITEM.get());
+    }
+
     /** 玩偶模型骨骼（PlayerModel 那套，缩放与比例在 Model.createLayer 里） */
     @SubscribeEvent
     public static void registerDollLayer(EntityRenderersEvent.RegisterLayerDefinitions event)

@@ -16,7 +16,8 @@ public final class TwoIUmbrellaCanopy {
     private static final float SECTOR = (float) Math.PI / 4;
     /** Radius in model pixels. 18.5 keeps the full doll under one canopy. */
     public static final float CANOPY_RADIUS = 18.5F;
-    private static final int[] FABRIC = {0xF7F0E5, 0xADC9EE};
+    /** 琴吹紬配色：焦糖棕（发色）与柚黄（发带）交替的伞面。 */
+    private static final int[] FABRIC = {0xC98A4B, 0xF3C64F};
     private static final List<Quad> MESH = build();
     private record Point(float x, float y, float z) { }
     private record Quad(Point a, Point b, Point c, Point d, float nx, float ny, float nz, int color) { }
@@ -44,21 +45,21 @@ public final class TwoIUmbrellaCanopy {
                             surface(outer, b, 0), surface(outer, a, 0), FABRIC[panel % 2]);
                 }
                 quad(mesh, surface(0.962F, a, -0.035F), surface(0.962F, b, -0.035F),
-                        surface(1, b, -0.035F), surface(1, a, -0.035F), 0xF4F7FF);
+                        surface(1, b, -0.035F), surface(1, a, -0.035F), 0xE8C890);
             }
             // Thin ribs sit on the underside, terminating underneath the fabric edge.
             float angle = panel * SECTOR;
             for (int ring = 0; ring < 4; ring++) {
                 float inner = Math.max(0.02F, ring / 4F), outer = (ring + 1) / 4F * 0.99F;
                 quad(mesh, surface(inner, angle - 0.006F, 0.08F), surface(inner, angle + 0.006F, 0.08F),
-                        surface(outer, angle + 0.006F, 0.08F), surface(outer, angle - 0.006F, 0.08F), 0x46516B);
+                        surface(outer, angle + 0.006F, 0.08F), surface(outer, angle - 0.006F, 0.08F), 0x6B4526);
             }
             // A four-point stitched star follows the dome instead of floating above it.
             float middle = (panel + 0.5F) * SECTOR;
             Point center = surface(0.71F, middle, -0.045F);
             for (int point = 0; point < 8; point++) {
                 Point a = starPoint(middle, point), b = starPoint(middle, (point + 1) % 8);
-                quad(mesh, center, a, b, b, 0xD9BF82);
+                quad(mesh, center, a, b, b, 0x8A5A30);
             }
         }
         return List.copyOf(mesh);

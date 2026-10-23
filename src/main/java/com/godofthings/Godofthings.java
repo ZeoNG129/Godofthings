@@ -840,8 +840,6 @@ public class Godofthings
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
-                         // 皮肤玩偶「HoYooG Fumo」
-                         output.accept(com.godofthings.fumo.registry.ModFumos.HOYOOG_FUMO_ITEM.get());
                          // 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件
                          // 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）
                          // 这一个物品同时是摆件的物品形态（TwoIDollItem extends BlockItem）
@@ -924,8 +922,6 @@ public class Godofthings
         com.godofthings.beef.init.ModBlocks.BLOCKS.register(modEventBus);
         com.godofthings.beef.init.ModPOIs.POI_TYPES.register(modEventBus);
         com.godofthings.beef.world.dimension.UselessDimensions.init(modEventBus);
-        // 皮肤玩偶「HoYooG Fumo」（照抄 ae2lt 的 fumo 系统，源码 LGPL-3.0 / 模型 CC BY-NC-SA 3.0）
-        com.godofthings.fumo.registry.ModFumos.register(modEventBus);
         modEventBus.addListener(com.godofthings.beef.init.ModNetwork::registerPayloadHandlers);
         // beef 子系统配置（如今只剩无用维度地板黑白名单这一块；上游 ConfigManager 的其余
         // 机器 / 配方转换 / 礼物包 / 植物盆等段都已按「零调用方」删除）
