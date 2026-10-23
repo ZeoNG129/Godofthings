@@ -28,14 +28,14 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
     /** 手绘底图（176×166，与本面板尺寸一致） */
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
             com.godofthings.Godofthings.MODID, "textures/gui/god_slaughter.png");
-    private static final int TEX_W = 176;
-    private static final int TEX_H = 166;
+    private static final int TEX_W = 210;
+    private static final int TEX_H = 190;
 
     public GodSlaughterScreen(GodSlaughterMenu menu, Inventory playerInv, Component title)
     {
         super(menu, playerInv, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        this.imageWidth = 210;
+        this.imageHeight = 190;
         this.inventoryLabelY = this.imageHeight - 94;
     }
 
@@ -57,10 +57,10 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
         drawButton(gui, x + 84, y + 4, TAB_W, TAB_H,
                 Component.translatable("gui.godofthings.slaughter.tab_experience"),
                 this.menu.getCurrentTab() == GodSlaughterMenu.TAB_EXPERIENCE);
-        drawButton(gui, x + 122, y + 4, 40, TAB_H,
+        drawButton(gui, x + 122, y + 4, 46, TAB_H,
                 Component.translatable("gui.godofthings.face_config"), false);
         // AE 接入开关（绿色=开，灰色=关），位于顶部最右侧
-        drawButton(gui, x + 162, y + 4, 14, TAB_H,
+        drawButton(gui, x + 172, y + 4, 16, TAB_H,
                 Component.literal("AE"), this.menu.isAeEnabled());
 
         int tab = this.menu.getCurrentTab();
@@ -78,12 +78,12 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
     private void renderFunction(GuiGraphics gui, int x, int y)
     {
         // 开关 + 秒杀
-        drawButton(gui, x + 8, y + 24, 76, 16,
+        drawButton(gui, x + 8, y + 24, 92, 16,
                 this.menu.isEnabled()
                         ? Component.translatable("gui.godofthings.slaughter.on")
                         : Component.translatable("gui.godofthings.slaughter.off"),
                 this.menu.isEnabled());
-        drawButton(gui, x + 88, y + 24, 76, 16,
+        drawButton(gui, x + 108, y + 24, 92, 16,
                 this.menu.isInstantKill()
                         ? Component.translatable("gui.godofthings.slaughter.instant_on")
                         : Component.translatable("gui.godofthings.slaughter.instant_off"),
@@ -92,32 +92,32 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
         // 范围
         gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.range",
                 this.menu.getRange()), x + 8, y + 50, 0xFFFFFF);
-        drawButton(gui, x + 96, y + 46, 18, 16, Component.literal("-"), false);
-        drawButton(gui, x + 116, y + 46, 18, 16, Component.literal("+"), false);
+        drawButton(gui, x + 160, y + 44, 18, 16, Component.literal("-"), false);
+        drawButton(gui, x + 182, y + 44, 18, 16, Component.literal("+"), false);
 
         // 抢夺
-        drawButton(gui, x + 8, y + 66, 76, 16,
+        drawButton(gui, x + 8, y + 68, 92, 16,
                 this.menu.isLootingEnabled()
                         ? Component.translatable("gui.godofthings.slaughter.looting_on")
                         : Component.translatable("gui.godofthings.slaughter.looting_off"),
                 this.menu.isLootingEnabled());
         gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.looting",
-                this.menu.getLooting()), x + 136, y + 70, 0xFFFFFF);
-        drawButton(gui, x + 96, y + 66, 18, 16, Component.literal("-"), false);
-        drawButton(gui, x + 116, y + 66, 18, 16, Component.literal("+"), false);
+                this.menu.getLooting()), x + 136, y + 72, 0xFFFFFF);
+        drawButton(gui, x + 160, y + 68, 18, 16, Component.literal("-"), false);
+        drawButton(gui, x + 182, y + 68, 18, 16, Component.literal("+"), false);
     }
 
     private void renderExperience(GuiGraphics gui, int x, int y)
     {
         gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.xp_stored",
                 this.menu.getExperienceLevel()), x + 8, y + 26, 0x55FF55);
-        drawButton(gui, x + 8, y + 48, 40, 16,
+        drawButton(gui, x + 8, y + 48, 60, 16,
                 Component.translatable("gui.godofthings.slaughter.xp_take_1"), false);
-        drawButton(gui, x + 52, y + 48, 40, 16,
+        drawButton(gui, x + 74, y + 48, 60, 16,
                 Component.translatable("gui.godofthings.slaughter.xp_take_10"), false);
-        drawButton(gui, x + 96, y + 48, 40, 16,
+        drawButton(gui, x + 140, y + 48, 60, 16,
                 Component.translatable("gui.godofthings.slaughter.xp_take_100"), false);
-        drawButton(gui, x + 8, y + 66, 40, 16,
+        drawButton(gui, x + 8, y + 68, 60, 16,
                 Component.translatable("gui.godofthings.slaughter.xp_take_all"), false);
     }
 

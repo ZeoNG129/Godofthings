@@ -31,39 +31,39 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "textures/gui/god_miner.png");
     /** 贴图实际像素尺寸（512×512 画布，面板画在左上角） */
-    private static final int TEX_W = 512;
-    private static final int TEX_H = 512;
+    private static final int TEX_W = 210;
+    private static final int TEX_H = 210;
 
     private static final String[] RADIUS_LABELS = { "-100", "-10", "-1", "+1", "+10", "+100" };
     private static final int[] RADIUS_DELTAS = { -100, -10, -1, 1, 10, 100 };
 
     /** 神之加速槽（画在左侧熔岩柱顶端的位置） */
-    private static final int ACCEL_X = 22;
-    private static final int ACCEL_Y = 52;
+    private static final int ACCEL_X = 14;
+    private static final int ACCEL_Y = 24;
 
     // ---- 范围调节：左侧 3 个（-100/-10/-1）、右侧 3 个（+1/+10/+100） ----
-    private static final int RANGE_BTN_W = 26;
-    private static final int RANGE_BTN_H = 15;
-    private static final int RANGE_L_X = 98;
-    private static final int RANGE_R_X = 262;
-    private static final int RANGE_BTN_Y0 = 44;
-    private static final int RANGE_BTN_PITCH = 19;
+    private static final int RANGE_BTN_W = 34;
+    private static final int RANGE_BTN_H = 16;
+    private static final int RANGE_L_X = 20;
+    private static final int RANGE_R_X = 156;
+    private static final int RANGE_BTN_Y0 = 24;
+    private static final int RANGE_BTN_PITCH = 20;
 
     /** 中央范围读数面板 */
-    private static final int RANGE_PANEL_X = 128;
-    private static final int RANGE_PANEL_Y = 44;
-    private static final int RANGE_PANEL_W = 128;
-    private static final int RANGE_PANEL_H = 33;
+    private static final int RANGE_PANEL_X = 60;
+    private static final int RANGE_PANEL_Y = 24;
+    private static final int RANGE_PANEL_W = 90;
+    private static final int RANGE_PANEL_H = 26;
 
     // ---- 3 个符文按钮：时运 / 精准采集 / 面配置 ----
-    private static final int RUNE_R = 15;
-    private static final int RUNE_Y = 110;
-    private static final int[] RUNE_X = { 176, 220, 264 };
+    private static final int RUNE_R = 17;
+    private static final int RUNE_Y = 92;
+    private static final int[] RUNE_X = { 46, 105, 164 };
 
     /** 右侧 AE 核心（点它切换 AE 接入） */
-    private static final int AE_CORE_X = 306;
-    private static final int AE_CORE_Y = 62;
-    private static final int AE_CORE_R = 15;
+    private static final int AE_CORE_X = 189;
+    private static final int AE_CORE_Y = 31;
+    private static final int AE_CORE_R = 13;
 
     /** 玩家物品栏（底图 9×4 网格的精确位置） */
     private static final int INV_X = 92;
@@ -72,8 +72,8 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
     public GodMinerScreen(GodMinerMenu menu, Inventory playerInventory, Component title)
     {
         super(menu, playerInventory, title);
-        this.imageWidth = 352;
-        this.imageHeight = 256;
+        this.imageWidth = 210;
+        this.imageHeight = 210;
     }
 
     @Override
@@ -97,7 +97,7 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         Component rangeText = Component.translatable("gui.godofthings.miner.radius_value", be.getRadius());
         gui.drawString(this.font, rangeText,
                 x + RANGE_PANEL_X + (RANGE_PANEL_W - this.font.width(rangeText)) / 2,
-                y + RANGE_PANEL_Y + 12, 0xFFFFD24A, false);
+                y + RANGE_PANEL_Y + 9, 0xFFFFD24A, false);
 
         // ---- 6 个范围按钮 ----
         for (int i = 0; i < 6; i++)

@@ -137,10 +137,13 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
                         this.layout.invSlotX(col), this.layout.invSlotY(row)));
             }
         }
+        // v5.31.2：快捷栏改到 invY + 4*18（与底图底板一致）。
+        // 之前用 hotbarY() = invY + hotbarOffset(58)，而底图按 4×18 均匀排布画在第 4 行
+        // （invY + 54），两者差 4px —— 这就是「物品栏最下面一行背景相对槽位偏上」的原因。
         for (int col = 0; col < 9; col++)
         {
             addSlot(new Slot(playerInv, col,
-                    this.layout.invSlotX(col), this.layout.hotbarY()));
+                    this.layout.invSlotX(col), this.layout.invY + 4 * this.layout.invPitch));
         }
 
         addDataSlot(new DataSlot()

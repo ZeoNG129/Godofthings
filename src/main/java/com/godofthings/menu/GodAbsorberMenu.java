@@ -20,7 +20,10 @@ import net.minecraft.world.item.ItemStack;
  */
 public class GodAbsorberMenu extends AbstractContainerMenu
 {
-    public static final int TAB_FUNCTION = 0;
+    /** 9 格网格的水平起点（面板 210 宽，9*18=162 居中 -> 24） */
+    private static final int INV_X = 24;
+
+public static final int TAB_FUNCTION = 0;
     public static final int TAB_STORAGE = 1;
     public static final int TAB_EXPERIENCE = 2;
 
@@ -54,7 +57,7 @@ public class GodAbsorberMenu extends AbstractContainerMenu
         {
             for (int col = 0; col < 9; col++)
             {
-                this.addSlot(new LongSlotHandler.LongSlot(be.getStorageView(), row * 9 + col, 8 + col * 18, 17 + row * 18)
+                this.addSlot(new LongSlotHandler.LongSlot(be.getStorageView(), row * 9 + col, INV_X + col * 18, 26 + row * 18)
                 {
                     @Override
                     public boolean isActive() { return currentTab == TAB_STORAGE; }
@@ -66,12 +69,12 @@ public class GodAbsorberMenu extends AbstractContainerMenu
         {
             for (int col = 0; col < 9; col++)
             {
-                this.addSlot(new Slot(playerInv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+                this.addSlot(new Slot(playerInv, col + row * 9 + 9, INV_X + col * 18, 96 + row * 18));
             }
         }
         for (int col = 0; col < 9; col++)
         {
-            this.addSlot(new Slot(playerInv, col, 8 + col * 18, 142));
+            this.addSlot(new Slot(playerInv, col, INV_X + col * 18, 154));
         }
     }
 

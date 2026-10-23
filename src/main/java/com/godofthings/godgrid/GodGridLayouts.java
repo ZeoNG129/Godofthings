@@ -4,19 +4,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 7 台共用网格框架的机器的界面几何 —— 每台的槽位行列按自己的 UI 原画定，但
- * <b>玩家物品栏一律用 MC 标准 18 格距</b>（v5.31.1 修正）。
+ * 7 台共用网格框架的机器的界面几何。
  *
- * <p><b>为什么物品栏必须 18 格距</b>：v5.30.0 给几台机器用了 15/16/17 的紧凑格距，
- * 结果 4 行（3 背包 + 1 快捷栏）挤在 60~68px 里，而 Slot 本身按 16px 图标绘制，
- * 视觉上就出现「槽位压在底板上、整体偏上」的错位。现在统一 18 格距 +
- * hotbarOffset 58（MC 标准），底板与槽位就永远对得上。</p>
+ * <p><b>v5.31.2 的两条硬规则</b>：</p>
+ * <ol>
+ *   <li><b>上排输入格数 = 下排输出格数</b>（用户要求「上下槽位数量一致」）。每台取原来两者中的
+ *       较小值，然后重新居中：{@code x = (panelW - (n*18)) / 2}。</li>
+ *   <li><b>玩家物品栏一律 MC 标准 18 格距</b>，且快捷栏就在 {@code invY + 4*18} ——
+ *       与底图底板按 4×18 均匀排布画出来的第 4 行完全重合（之前用 hotbarOffset 58 差了 4px）。</li>
+ * </ol>
  *
- * <p><b>加速槽统一在左上角 (10, 6)</b>：所有机器同一位置，符合「和其他机器一样在左上角」。</p>
+ * <p>加速槽统一在左上角 (10, 6)，7 台一致。</p>
  */
 public final class GodGridLayouts
 {
-    /** 加速槽的统一位置（面板左上角，标题铭牌左侧的空位） */
+    /** 槽位边长 / 列距 / 行距（标准 MC 值） */
+    private static final int S = 18;
+
+    /** 加速槽位置（面板左上角，所有机器一致） */
     private static final int ACCEL_X = 10;
     private static final int ACCEL_Y = 6;
 
@@ -24,102 +29,124 @@ public final class GodGridLayouts
     {
     }
 
+    /** 输入/输出区水平居中：{@code (panelW - n*S) / 2} */
+    private static int centerX(int panelW, int n)
+    {
+        return (panelW - n * S) / 2;
+    }
+
+    /** 物品栏水平居中：9 格 × 18 格距 = 162 宽 */
+    private static int invX(int panelW)
+    {
+        return (panelW - 9 * S) / 2 + 1;
+    }
+
+    /**
+     * 物品栏纵向位置：底图里的底板占 {@code 4*18 + 8}（上下各 4px 内衬），
+     * 面板底部再留 6px，所以 {@code invY = panelH - (4*18+8) - 6 + 4}。
+     * 之前写成 {@code panelH - 4*18 - 8}，底板会被面板下沿裁掉一条。
+     */
+    private static int invY(int panelH)
+    {
+        return panelH - (4 * S + 8) - 6 + 4;
+    }
+
     // ---------------- 01 炽神圣火熔炉 ----------------
-    /** 上排 17 格输入（y=40）、下排 15 格输出（y=172）；面板 335×344。 */
+    /** 上排 15 格输入 / 下排 15 格输出（原 17/15，取小者 15）；面板 335×344。 */
     private static final GodGridLayoutSpec FURNACE = GodGridLayoutSpec
             .builder("god_furnace", 335, 344)
-            .inputs(17, 1, 17, 40)
-            .outputs(15, 1, 17, 172)
-            .slot(18, 18, 18)
+            .inputs(15, 1, centerX(335, 15), 40)
+            .outputs(15, 1, centerX(335, 15), 172)
+            .slot(S, S, S)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(87, 262, 58, 18)
-            .arrow(160, 108)
+            .inventory(invX(335), invY(344), 4 * S, S)
+            .arrow(160, 106)
             .texture(335, 344)
             .build();
 
     // ---------------- 03 点金圣灵秘柜 ----------------
-    /** 上排 14 格输入（y=52）、下排 16 格输出（y=217）；面板 324×330。 */
+    /** 上排 14 格 / 下排 14 格（原 14/16，取小者 14）；面板 324×330。 */
     private static final GodGridLayoutSpec ORE_MACHINE = GodGridLayoutSpec
             .builder("god_ore_machine", 324, 330)
-            .inputs(14, 1, 31, 52)
-            .outputs(16, 1, 23, 217)
-            .slot(18, 18, 18)
+            .inputs(14, 1, centerX(324, 14), 52)
+            .outputs(14, 1, centerX(324, 14), 217)
+            .slot(S, S, S)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(82, 248, 58, 18)
-            .arrow(155, 120)
+            .inventory(invX(324), invY(330), 4 * S, S)
+            .arrow(155, 134)
             .texture(324, 330)
             .build();
 
     // ---------------- 04 丰饶母神温床 ----------------
     /**
-     * 左 3×4 = 12 格输入、下带 8×2 = 16 格输出；面板 256×256。
-     * 输入 x=20/44/69、y=50/69/89（格距 25/19）；输出 x=10 起、格距 25、y=128。
+     * 左 3×4 = 12 格输入、下带 4×3 = 12 格输出（原 12/16，取小者 12）；面板 256×256。
+     * 输出仍横排在下方，只是列数从 8 收到 4、行数 2 增到 3。
      */
     private static final GodGridLayoutSpec CROP_MACHINE = GodGridLayoutSpec
-            .builder("god_crop_machine", 256, 256)
+            .builder("god_crop_machine", 256, 288)
             .inputs(3, 4, 20, 50)
-            .outputs(8, 2, 10, 128)
-            .slot(18, 25, 19)
+            .outputs(4, 3, centerX(256, 4), 139)
+            .slot(S, 25, 19)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(48, 174, 58, 18)
-            .arrow(150, 108)
-            .texture(256, 256)
+            .inventory(invX(256), invY(288), 4 * S, S)
+            .arrow(196, 132)
+            .texture(256, 288)
             .build();
 
     // ---------------- 05 创生摹刻圣坛 ----------------
-    /** 上排 14 格输入（y=60）、下排 15 格输出（y=186）；面板 310×298。 */
+    /** 上排 14 格 / 下排 14 格（原 14/15，取小者 14）；面板 310×298。 */
     private static final GodGridLayoutSpec DUPLICATE_MACHINE = GodGridLayoutSpec
             .builder("god_duplicate_machine", 310, 298)
-            .inputs(14, 1, 16, 60)
-            .outputs(15, 1, 14, 186)
-            .slot(18, 18, 18)
+            .inputs(14, 1, centerX(310, 14), 60)
+            .outputs(14, 1, centerX(310, 14), 186)
+            .slot(S, S, S)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(75, 216, 58, 18)
-            .arrow(150, 128)
+            .inventory(invX(310), invY(298), 4 * S, S)
+            .arrow(148, 124)
             .texture(310, 298)
             .build();
 
     // ---------------- 06 净木剥相祭台 ----------------
     /**
-     * 左 3×3 = 9 格输入（x=22/46/70、y=46/70/94）、右 3×3 = 9 格输出（x=142/166/190）；
-     * 面板 256×256。输出补到 9 格是因为去皮机「输入 i 一一对应输出 i」的语义
-     * （{@code convertOne}，GameTest 的 9 槽独立测试依赖这个配对）。
+     * 左 3×3 = 9 格输入、右 3×3 = 9 格输出（本来就是 9/9）；面板 256×256。
+     * 输出必须与输入等量：去皮机「输入 i 一一对应输出 i」（{@code convertOne}，
+     * GameTest 的 9 槽独立测试依赖这个配对）。
      */
     private static final GodGridLayoutSpec PEELER = GodGridLayoutSpec
             .builder("god_peeler", 256, 256)
             .inputs(3, 3, 22, 46)
             .outputs(3, 3, 142, 46)
-            .slot(18, 24, 24)
+            .slot(S, 24, 24)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(48, 174, 58, 18)
+            .inventory(invX(256), invY(256), 4 * S, S)
             .arrow(122, 126)
             .texture(256, 256)
             .build();
 
     // ---------------- 07 万魂余响鉴录仪 ----------------
-    /** 上排 15 格输入（y=47）、下排 15 格输出（y=165）；面板 297×302。 */
+    /** 上排 15 格 / 下排 15 格（本来就是 15/15）；面板 297×302。 */
     private static final GodGridLayoutSpec DROP = GodGridLayoutSpec
             .builder("god_drop", 297, 302)
-            .inputs(15, 1, 16, 47)
-            .outputs(15, 1, 16, 165)
-            .slot(18, 18, 18)
+            .inputs(15, 1, centerX(297, 15), 47)
+            .outputs(15, 1, centerX(297, 15), 165)
+            .slot(S, S, S)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(68, 220, 58, 18)
-            .arrow(141, 112)
+            .inventory(invX(297), invY(302), 4 * S, S)
+            .arrow(141, 110)
             .texture(297, 302)
             .build();
 
     // ---------------- 08 灵胚孳生圣卵 ----------------
-    /** 上排 15 格输入（y=41）、下排 15 格输出（y=139）；面板 283×261。 */
+    /** 上排 15 格 / 下排 15 格；面板 300×270（加宽到能放下 15 格并留边距）。 */
     private static final GodGridLayoutSpec SPAWN_EGG = GodGridLayoutSpec
-            .builder("god_spawn_egg", 283, 261)
-            .inputs(15, 1, 12, 41)
-            .outputs(15, 1, 12, 139)
-            .slot(18, 18, 18)
+            .builder("god_spawn_egg", 300, 270)
+            .inputs(15, 1, centerX(300, 15), 41)
+            .outputs(15, 1, centerX(300, 15), 145)
+            .slot(S, S, S)
             .accel(ACCEL_X, ACCEL_Y)
-            .inventory(61, 179, 58, 18)
-            .arrow(134, 98)
-            .texture(283, 261)
+            .inventory(invX(300), invY(270), 4 * S, S)
+            .arrow(143, 100)
+            .texture(300, 270)
             .build();
 
     private static final Map<String, GodGridLayoutSpec> BY_ID = new HashMap<>();

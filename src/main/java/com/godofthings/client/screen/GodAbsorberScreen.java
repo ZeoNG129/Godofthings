@@ -27,14 +27,14 @@ public class GodAbsorberScreen extends AbstractContainerScreen<GodAbsorberMenu>
     /** 手绘底图（176×166，与本面板尺寸一致） */
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
             com.godofthings.Godofthings.MODID, "textures/gui/god_absorber.png");
-    private static final int TEX_W = 176;
-    private static final int TEX_H = 166;
+    private static final int TEX_W = 210;
+    private static final int TEX_H = 190;
 
     public GodAbsorberScreen(GodAbsorberMenu menu, Inventory playerInv, Component title)
     {
         super(menu, playerInv, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        this.imageWidth = 210;
+        this.imageHeight = 190;
         this.inventoryLabelY = this.imageHeight - 94;
     }
 
@@ -57,24 +57,24 @@ public class GodAbsorberScreen extends AbstractContainerScreen<GodAbsorberMenu>
 
     private void renderFunction(GuiGraphics gui, int x, int y)
     {
-        drawButton(gui, x + 8, y + 24, 76, 16,
+        drawButton(gui, x + 8, y + 24, 92, 16,
                 this.menu.isEnabled() ? Component.translatable("gui.godofthings.slaughter.on") : Component.translatable("gui.godofthings.slaughter.off"),
                 this.menu.isEnabled());
-        drawButton(gui, x + 88, y + 24, 76, 16,
+        drawButton(gui, x + 108, y + 24, 92, 16,
                 this.menu.isAeEnabled() ? Component.translatable("gui.godofthings.ae.on") : Component.translatable("gui.godofthings.ae.off"),
                 this.menu.isAeEnabled());
         gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.range", this.menu.getRange()), x + 8, y + 50, 0xFFFFFF);
-        drawButton(gui, x + 96, y + 46, 18, 16, Component.literal("-"), false);
-        drawButton(gui, x + 116, y + 46, 18, 16, Component.literal("+"), false);
+        drawButton(gui, x + 160, y + 44, 18, 16, Component.literal("-"), false);
+        drawButton(gui, x + 182, y + 44, 18, 16, Component.literal("+"), false);
     }
 
     private void renderExperience(GuiGraphics gui, int x, int y)
     {
         gui.drawString(this.font, Component.translatable("gui.godofthings.slaughter.xp_stored", this.menu.getExperienceLevel()), x + 8, y + 26, 0x55FF55);
-        drawButton(gui, x + 8, y + 48, 40, 16, Component.translatable("gui.godofthings.slaughter.xp_take_1"), false);
-        drawButton(gui, x + 52, y + 48, 40, 16, Component.translatable("gui.godofthings.slaughter.xp_take_10"), false);
-        drawButton(gui, x + 96, y + 48, 40, 16, Component.translatable("gui.godofthings.slaughter.xp_take_100"), false);
-        drawButton(gui, x + 8, y + 66, 40, 16, Component.translatable("gui.godofthings.slaughter.xp_take_all"), false);
+        drawButton(gui, x + 8, y + 48, 60, 16, Component.translatable("gui.godofthings.slaughter.xp_take_1"), false);
+        drawButton(gui, x + 74, y + 48, 60, 16, Component.translatable("gui.godofthings.slaughter.xp_take_10"), false);
+        drawButton(gui, x + 140, y + 48, 60, 16, Component.translatable("gui.godofthings.slaughter.xp_take_100"), false);
+        drawButton(gui, x + 8, y + 68, 60, 16, Component.translatable("gui.godofthings.slaughter.xp_take_all"), false);
     }
 
     private void drawButton(GuiGraphics gui, int bx, int by, int w, int h, Component label, boolean active)
