@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -22,6 +23,12 @@ public class GodAbsorberScreen extends AbstractContainerScreen<GodAbsorberMenu>
 {
     private static final int TAB_W = 36;
     private static final int TAB_H = 14;
+
+    /** 手绘底图（176×166，与本面板尺寸一致） */
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
+            com.godofthings.Godofthings.MODID, "textures/gui/god_absorber.png");
+    private static final int TEX_W = 176;
+    private static final int TEX_H = 166;
 
     public GodAbsorberScreen(GodAbsorberMenu menu, Inventory playerInv, Component title)
     {
@@ -36,7 +43,8 @@ public class GodAbsorberScreen extends AbstractContainerScreen<GodAbsorberMenu>
     {
         int x = this.leftPos;
         int y = this.topPos;
-        gui.fill(x, y, x + this.imageWidth, y + this.imageHeight, 0xFF1E1E22);
+        // v5.31.1：底图改为手绘贴图（配色取自本模组方块贴图）
+        gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, TEX_W, TEX_H);
 
         drawButton(gui, x + 8, y + 4, TAB_W, TAB_H, Component.translatable("gui.godofthings.slaughter.tab_function"), this.menu.getCurrentTab() == GodAbsorberMenu.TAB_FUNCTION);
         drawButton(gui, x + 46, y + 4, TAB_W, TAB_H, Component.translatable("gui.godofthings.slaughter.tab_storage"), this.menu.getCurrentTab() == GodAbsorberMenu.TAB_STORAGE);

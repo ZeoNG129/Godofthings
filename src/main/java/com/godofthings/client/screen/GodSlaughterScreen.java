@@ -3,6 +3,7 @@ package com.godofthings.client.screen;
 import com.godofthings.block.entity.GodSlaughterBlockEntity;
 import com.godofthings.client.GuiStep;
 import com.godofthings.menu.GodSlaughterMenu;
+import net.minecraft.resources.ResourceLocation;
 import com.godofthings.network.SlaughterMessages;
 import com.godofthings.util.NumberText;
 import net.minecraft.client.Minecraft;
@@ -24,6 +25,12 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
     private static final int TAB_W = 36;
     private static final int TAB_H = 14;
 
+    /** 手绘底图（176×166，与本面板尺寸一致） */
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
+            com.godofthings.Godofthings.MODID, "textures/gui/god_slaughter.png");
+    private static final int TEX_W = 176;
+    private static final int TEX_H = 166;
+
     public GodSlaughterScreen(GodSlaughterMenu menu, Inventory playerInv, Component title)
     {
         super(menu, playerInv, title);
@@ -37,7 +44,8 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
     {
         int x = this.leftPos;
         int y = this.topPos;
-        gui.fill(x, y, x + this.imageWidth, y + this.imageHeight, 0xFF1E1E22);
+        // v5.31.1：底图改为手绘贴图（配色取自本模组方块贴图）
+        gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, TEX_W, TEX_H);
 
         // 顶部：三个板块按钮 + 面配置按钮
         drawButton(gui, x + 8, y + 4, TAB_W, TAB_H,
