@@ -901,10 +901,12 @@ public class Godofthings
 
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
 
-         // ===== 玩偶系统（移植自 useless_stretcher 的 2i 玩偶，星光庭院维度未移植）=====
-         // 实体 / 物品 / 方块 / 方块实体 / 音效各有独立注册表，见 DollRegistry
-         com.godofthings.doll.init.DollRegistry.register(modEventBus);
-         com.godofthings.doll.init.DollSounds.SOUNDS.register(modEventBus);
+        // ===== 玩偶系统（移植自 useless_stretcher 的 2i 玩偶，按源码原样移植）=====
+        // 实体 / 物品 / 方块 / 方块实体 / 音效各有独立注册表，见 DollRegistry
+        com.godofthings.doll.init.DollRegistry.register(modEventBus);
+        com.godofthings.doll.init.DollSounds.SOUNDS.register(modEventBus);
+        // 星光庭院维度（玩偶的私人星空拜访空间；按原样移植，含 ChunkGenerator 注册）
+        com.godofthings.doll.dimension.world.TwoIStarfieldDimensions.init(modEventBus);
          // 玩偶配置（树叶掉落开关与概率）
          modContainer.registerConfig(ModConfig.Type.SERVER,
                  com.godofthings.doll.config.DollConfig.SPEC, "godofthings-doll-server.toml");

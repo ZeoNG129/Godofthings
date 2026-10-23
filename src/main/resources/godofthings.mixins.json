@@ -4,12 +4,29 @@
   "package": "com.godofthings.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "KeyCounterMixin"
+    "KeyCounterMixin",
+    "doll.LivingHealthDataAccessor",
+    "doll.TwoIDollRemovalGuardMixin",
+    "doll.TwoIDollLookupGuardMixin",
+    "doll.TwoIDollTickListGuardMixin",
+    "doll.TwoIDollSectionGuardMixin",
+    "doll.TwoIDollManagerLifecycleMixin",
+    "doll.TwoIDollSectionLifecycleMixin",
+    "doll.TwoIDollLevelCallbackGuardMixin",
+    "doll.TwoIDollBrainTargetMixin",
+    "doll.TwoISummonCommandMixin",
+    "doll.TwoIArsRitualMixin",
+    "doll.TwoIArsJarMixin",
+    "doll.TwoIBeeEncaseMixin",
+    "doll.TwoIAmberMixin"
   ],
   "client": [
     "GuiHeartsCompressMixin",
     "FogRendererMixin",
-    "ScreenEffectRendererMixin"
+    "ScreenEffectRendererMixin",
+    "doll.TwoIDollClientRemovalMixin",
+    "doll.TwoIPlayerArmMixin",
+    "doll.TwoIHeldDollMixin"
   ],
   "injectors": {
     "defaultRequire": 0

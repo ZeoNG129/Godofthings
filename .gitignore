@@ -43,3 +43,6 @@ libs/
 /com/
 /io/
 *.class
+
+# 2i 玩偶的上游源码（本地参考用，不进库）
+.ref/uselessstretcher-src/

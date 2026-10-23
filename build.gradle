@@ -82,6 +82,8 @@ dependencies {
 
     // AE2 (应用能源2) —— 7 台机器的并网方块实体直接 implements AE2 接口（运行期硬依赖）
     compileOnly files('libs/ae2-1.21.1-neoforge.jar')
+// Curios（可选依赖）：玩偶饰品栏集成需要编译期 API；运行期仍按 optional 处理，没装也能进游戏
+compileOnly files('libs/curios-neoforge-9.5.1+1.21.1.jar')
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

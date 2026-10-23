@@ -46,7 +46,7 @@ public final class DollRegistry
     /** 玩偶实体：0.44 × 0.96，追踪 10 格，2 tick 同步一次（走路动画靠它） */
     public static final DeferredHolder<EntityType<?>, EntityType<TwoIDollEntity>> TWO_I_DOLL_ENTITY =
             ENTITIES.register("two_i_doll", () -> EntityType.Builder
-                    .of(TwoIDollEntity::new, MobCategory.MISC)
+                    .<TwoIDollEntity>of(TwoIDollEntity::new, MobCategory.MISC)
                     .sized(0.44F, 0.96F)
                     .clientTrackingRange(10)
                     .updateInterval(2)
@@ -54,9 +54,12 @@ public final class DollRegistry
                     .noSummon()
                     .build("two_i_doll"));
 
-    /** 玩偶物品（可放出 / 可收回 / 可放饰品栏） */
+    /** 玩偶物品（可放出 / 可收回 / 可放饰品栏；源码原名 TWO_I_DOLL，这里保留原名作别名） */
     public static final DeferredHolder<Item, TwoIDollItem> TWO_I_DOLL_ITEM =
             ITEMS.register("two_i_doll", TwoIDollItem::new);
+
+    /** 源码命名别名（TwoIDollItem / 源码各处都用 TWO_I_DOLL 这个名字引用） */
+    public static final DeferredHolder<Item, TwoIDollItem> TWO_I_DOLL = TWO_I_DOLL_ITEM;
 
     /** 玩偶摆件方块 */
     public static final DeferredHolder<Block, TwoIDollDisplayBlock> TWO_I_DOLL_DISPLAY =

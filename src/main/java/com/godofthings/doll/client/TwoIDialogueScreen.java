@@ -1,402 +1,360 @@
 package com.godofthings.doll.client;
 
-import com.godofthings.doll.client.DollScreenStyle;
-import com.godofthings.doll.config.DollConfig;
+import com.godofthings.doll.network.DollNetwork;
+
 import com.godofthings.doll.entity.TwoIDollEntity;
 import com.godofthings.doll.init.DollRegistry;
 import com.godofthings.doll.init.DollRegistry;
-import com.godofthings.doll.network.DollNetwork;
+
+import com.godofthings.doll.client.StretcherScreenStyle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Button.OnPress;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
+/** A transparent, character-centered interaction panel for 2i. */
 public final class TwoIDialogueScreen extends Screen implements TwoIInteractionScreen {
-   private static final int PANEL_HEIGHT = 250;
-   private final int entityId;
-   private final boolean itemMode;
-   private final InteractionHand itemHand;
-   private boolean inviteReady;
-   private final boolean invitationUsed;
-   private int bond;
-   private Button inviteButton;
-   private TwoIDollEntity preview;
-   private Level previewLevel;
-   private int panelX;
-   private int panelY;
-   private int panelWidth;
-   private Button talkButton;
-   private Button patButton;
-   private Button giftButton;
-   private Button reclaimButton;
-   private int startWait;
+    /** The compact AE-style interaction window leaves the world visible around it. */
+    private static final int PANEL_HEIGHT = 250;
+    private final int entityId;
+    private final boolean itemMode;
+    private final InteractionHand itemHand;
+    private boolean inviteReady;
+    private final boolean invitationUsed;
+    private int bond;
+    private Button inviteButton;
+    private TwoIDollEntity preview;
+    private Level previewLevel;
+    private int panelX;
+    private int panelY;
+    private int panelWidth;
+    private Button talkButton;
+    private Button patButton;
+    private Button giftButton;
+    private Button reclaimButton;
+    private int startWait;
 
-   public TwoIDialogueScreen(int entityId, boolean inviteReady, int giftScore) {
-      this(entityId, false, null, inviteReady, false, giftScore);
-   }
+    public TwoIDialogueScreen(int entityId, boolean inviteReady, int giftScore) {
+        this(entityId, false, null, inviteReady, false, giftScore);
+    }
 
-   private TwoIDialogueScreen(int entityId, boolean itemMode, InteractionHand itemHand, boolean inviteReady, boolean invitationUsed, int bond) {
-      super(Component.translatable("gui.godofthings.two_i.title"));
-      this.entityId = entityId;
-      this.itemMode = itemMode;
-      this.itemHand = itemHand;
-      this.inviteReady = inviteReady;
-      this.invitationUsed = invitationUsed;
-      this.bond = Math.max(-100, Math.min(100, bond));
-   }
+    private TwoIDialogueScreen(int entityId, boolean itemMode, InteractionHand itemHand,
+                               boolean inviteReady, boolean invitationUsed, int bond) {
+        super(Component.translatable("gui.godofthings.two_i.title"));
+        this.entityId = entityId;
+        this.itemMode = itemMode;
+        this.itemHand = itemHand;
+        this.inviteReady = inviteReady;
+        this.invitationUsed = invitationUsed;
+        this.bond = Math.max(-100, Math.min(100, bond));
+    }
 
-   public static TwoIDialogueScreen forItem(InteractionHand hand, int giftScore, boolean invitationUsed) {
-      return new TwoIDialogueScreen(-1, true, hand, giftScore >= 100 || invitationUsed, invitationUsed, giftScore);
-   }
+    public static TwoIDialogueScreen forItem(InteractionHand hand, int giftScore, boolean invitationUsed) {
+        return new TwoIDialogueScreen(-1, true, hand,
+                giftScore >= 100 || invitationUsed,
+                invitationUsed, giftScore);
+    }
 
-   protected void init() {
-      this.panelWidth = Math.min(430, this.width - 20);
-      this.panelX = (this.width - this.panelWidth) / 2;
-      this.panelY = (this.height - 250) / 2;
-      int actionX = this.panelX + 145;
-      int actionWidth = this.panelWidth - 157;
-      int gap = 6;
-      int buttonWidth = (actionWidth - gap) / 2;
-      int firstY = this.panelY + 167;
-      int libraryWidth = Math.min(86, (this.panelWidth - 95) / 2);
-      this.addAction(
-            this.panelX + this.panelWidth - 2 * libraryWidth - 16,
-            this.panelY + 5,
-            libraryWidth,
-            "library",
-            button -> this.minecraft.setScreen(new TwoIStoryLibraryScreen(this, this.bond))
-         )
-         .setHeight(18);
-      if (this.itemMode) {
-         this.addRenderableWidget(Button.builder(Component.translatable("gui.godofthings.two_i.deploy"), button -> {
-            DollNetwork.sendDeploy(this.itemHand);
-            this.onClose();
-         }).bounds(actionX, firstY, Math.min(actionWidth, 132), 20).build());
-      } else {
-         this.talkButton = this.addAction(actionX, firstY, buttonWidth, "talk", button -> this.startStory());
-         this.patButton = this.addAction(actionX + buttonWidth + gap, firstY, buttonWidth, "pat", button -> DollNetwork.sendPat(this.entityId));
-         this.giftButton = this.addAction(actionX, firstY + 26, buttonWidth, "gift", button -> DollNetwork.sendGift(this.entityId));
-         this.inviteButton = this.addAction(
-            actionX + buttonWidth + gap,
-            firstY + 26,
-            buttonWidth,
-            !this.invitationUsed && (!this.inviteReady || this.bond >= 100) ? "invite" : "revisit",
-            button -> {
-               DollNetwork.sendInvite(this.entityId);
-               this.onClose();
+    @Override
+    protected void init() {
+        panelWidth = Math.min(430, width - 20);
+        panelX = (width - panelWidth) / 2;
+        panelY = (height - PANEL_HEIGHT) / 2;
+        int actionX = panelX + 145;
+        int actionWidth = panelWidth - 157;
+        int gap = 6;
+        int buttonWidth = (actionWidth - gap) / 2;
+        int firstY = panelY + 167;
+
+        int libraryWidth = Math.min(86, (panelWidth - 95) / 2);
+        addAction(panelX + panelWidth - 2 * libraryWidth - 16, panelY + 5, libraryWidth,
+                "library", button -> minecraft.setScreen(new TwoIStoryLibraryScreen(this, bond)))
+                .setHeight(18);
+        addAction(panelX + panelWidth - libraryWidth - 10, panelY + 5, libraryWidth,
+                "gallery", button -> minecraft.setScreen(new TwoIStoryGalleryScreen(this)))
+                .setHeight(18);
+
+        if (itemMode) {
+            addRenderableWidget(Button.builder(Component.translatable("gui.godofthings.two_i.deploy"), button -> {
+                DollNetwork.sendTwoIDollDeploy(itemHand);
+                onClose();
+            }).bounds(actionX, firstY, Math.min(actionWidth, 132), 20).build());
+            return;
+        }
+
+        talkButton = addAction(actionX, firstY, buttonWidth, "talk", button -> startStory());
+        patButton = addAction(actionX + buttonWidth + gap, firstY, buttonWidth, "pat",
+                button -> DollNetwork.sendTwoIDollPat(entityId));
+        giftButton = addAction(actionX, firstY + 26, buttonWidth, "gift",
+                button -> DollNetwork.sendTwoIDollGift(entityId));
+        inviteButton = addAction(actionX + buttonWidth + gap, firstY + 26, buttonWidth,
+                invitationUsed || inviteReady && bond < 100 ? "revisit" : "invite", button -> {
+            DollNetwork.sendTwoIDollInvite(entityId);
+            onClose();
+        });
+        inviteButton.active = inviteReady && com.godofthings.doll.config.DollConfig.starfieldInvitationEnabled();
+        reclaimButton = addAction(actionX, firstY + 52, buttonWidth, "reclaim", button -> {
+            DollNetwork.sendTwoIDollReclaim(entityId);
+            onClose();
+        });
+
+        addAction(actionX + buttonWidth + gap, firstY + 52, buttonWidth, "smalltalk",
+                button -> DollNetwork.sendTwoIDollTalk(entityId));
+        talkButton.active = startWait == 0;
+    }
+
+    private Button addAction(int x, int y, int buttonWidth, String action,
+                             Button.OnPress onPress) {
+        return addRenderableWidget(Button.builder(Component.translatable(
+                        "gui.godofthings.two_i." + action), onPress)
+                .bounds(x, y, buttonWidth, 22).build());
+    }
+
+    private void startStory() {
+        if (itemMode || startWait > 0) return;
+        startWait = 100;
+        talkButton.active = false;
+        DollNetwork.sendTwoIDollStoryStart(entityId);
+    }
+
+    public void openStory(long sessionId, int chapter, int bond) {
+        openStory(sessionId, chapter, bond, 0);
+    }
+
+    public void openStory(long sessionId, int chapter, int bond, int round) {
+        if (startWait == 0 || minecraft == null) return;
+        onStoryUnavailable();
+        this.bond = Math.max(-100, Math.min(100, bond));
+        minecraft.setScreen(new TwoIStoryScreen(this, entityId, sessionId, chapter, bond, round));
+    }
+
+    public void onStoryUnavailable() {
+        startWait = 0;
+        if (talkButton != null) talkButton.active = true;
+    }
+
+    public void updateStoryBond(int bond) { this.bond = Math.max(-100, Math.min(100, bond)); }
+
+    public int entityId() {
+        return entityId;
+    }
+
+    @Override public int interactionEntityId() { return itemMode ? -1 : entityId; }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (startWait > 0 && --startWait == 0) onStoryUnavailable();
+        if (inviteButton != null) inviteButton.active = inviteReady
+                && com.godofthings.doll.config.DollConfig.starfieldInvitationEnabled();
+    }
+
+    public void updateGiftStatus(boolean inviteReady, int bond) {
+        this.inviteReady = inviteReady;
+        this.bond = Math.max(-100, Math.min(100, bond));
+        if (inviteButton != null) inviteButton.active = inviteReady
+                && com.godofthings.doll.config.DollConfig.starfieldInvitationEnabled();
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        // Leave the game world visible around the character panel.
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        panelWidth = Math.min(430, width - 20);
+        panelX = (width - panelWidth) / 2;
+        panelY = (height - PANEL_HEIGHT) / 2;
+
+        // Match the rest of the mod's AE-inspired screens instead of using an opaque black box.
+        graphics.fill(0, 0, width, height, 0x28000000);
+        StretcherScreenStyle.drawPanel(graphics, panelX, panelY, panelWidth, PANEL_HEIGHT);
+        graphics.fill(panelX + 5, panelY + 4, panelX + panelWidth - 5, panelY + 25,
+                StretcherScreenStyle.SLOT_COLOR);
+        StretcherScreenStyle.drawInset(graphics, panelX + 10, panelY + 31,
+                panelX + 137, panelY + PANEL_HEIGHT - 10);
+        graphics.fill(panelX + 145, panelY + 31, panelX + panelWidth - 10, panelY + 32,
+                StretcherScreenStyle.SLOT_SHADOW_COLOR);
+
+        graphics.drawString(font, Component.translatable("gui.godofthings.two_i.title"),
+                panelX + 10, panelY + 9, StretcherScreenStyle.TEXT_COLOR, false);
+        graphics.drawString(font, Component.translatable("gui.godofthings.two_i.interaction"),
+                panelX + 145, panelY + 40, StretcherScreenStyle.SUBTLE_TEXT_COLOR, false);
+
+        LivingEntity doll = previewEntity();
+        LivingEntity status = statusEntity();
+        if (doll != null) {
+            Minecraft minecraft = Minecraft.getInstance();
+            // Vanilla's inventory helper maps the current cursor position to yaw
+            // and pitch.  Render a client-only doll copy so network updates cannot
+            // overwrite that orbit while the mouse is moving.
+            InventoryScreen.renderEntityInInventoryFollowsMouse(graphics,
+                    panelX + 12, panelY + 35, panelX + 135, panelY + PANEL_HEIGHT - 15, 60,
+                    0.0625F, mouseX, mouseY, doll);
+            if (doll instanceof TwoIDollEntity twoI && !twoI.getBubbleText().isEmpty()) {
+                Component bubble = twoI.getBubbleMessage();
+                int bubbleWidth = Math.min(118, font.width(bubble) + 12);
+                int bubbleHeight = font.split(bubble, bubbleWidth - 12).size() * font.lineHeight + 10;
+                int bubbleX = panelX + 18;
+                int bubbleY = panelY + 38;
+                graphics.fill(bubbleX, bubbleY, bubbleX + bubbleWidth, bubbleY + bubbleHeight, 0xEDEFF7FF);
+                graphics.fill(bubbleX + 5, bubbleY + bubbleHeight, bubbleX + 10, bubbleY + bubbleHeight + 4, 0xEDEFF7FF);
+                graphics.drawWordWrap(font, bubble, bubbleX + 6, bubbleY + 5, bubbleWidth - 12,
+                        0xFF242631);
             }
-         );
-         this.inviteButton.active = this.inviteReady && true;
-         this.reclaimButton = this.addAction(actionX, firstY + 52, buttonWidth, "reclaim", button -> {
-            DollNetwork.sendReclaim(this.entityId);
-            this.onClose();
-         });
-         this.addAction(actionX + buttonWidth + gap, firstY + 52, buttonWidth, "smalltalk", button -> DollNetwork.sendTalk(this.entityId));
-         this.talkButton.active = this.startWait == 0;
-      }
-   }
+            renderEntityStatus(graphics, status == null ? doll : status,
+                    panelX + 13, panelY + PANEL_HEIGHT - 42, 121);
+        }
 
-   private Button addAction(int x, int y, int buttonWidth, String action, OnPress onPress) {
-      return (Button)this.addRenderableWidget(
-         Button.builder(Component.translatable("gui.godofthings.two_i." + action), onPress).bounds(x, y, buttonWidth, 22).build()
-      );
-   }
+        int textX = panelX + 145;
+        int textWidth = panelWidth - 157;
+        int bondColor = bond < 0 ? 0xFF9B3F55 : bond > 0 ? StretcherScreenStyle.SUCCESS_COLOR
+                : StretcherScreenStyle.SUBTLE_TEXT_COLOR;
+        graphics.drawString(font, Component.translatable("gui.godofthings.two_i.bond", bond),
+                textX, panelY + 55, bondColor, false);
+        // A small, readable bond meter gives immediate feedback without adding another widget.
+        int meterLeft = textX;
+        int meterRight = panelX + panelWidth - 10;
+        int meterTop = panelY + 68;
+        graphics.fill(meterLeft, meterTop, meterRight, meterTop + 4, StretcherScreenStyle.SLOT_SHADOW_COLOR);
+        int meterWidth = Math.max(0, meterRight - meterLeft - 2);
+        int fill = Mth.clamp((bond + 100) * meterWidth / 200, 0, meterWidth);
+        if (fill > 0) graphics.fill(meterLeft + 1, meterTop + 1, meterLeft + 1 + fill,
+                meterTop + 3, bond < 0 ? 0xFF9B3F55 : StretcherScreenStyle.ACTIVE_COLOR);
+        Component dialogue = inviteReady
+                ? Component.translatable("gui.godofthings.two_i.invite_hint")
+                : itemMode
+                    ? Component.translatable("gui.godofthings.two_i.item_dialogue")
+                    : bondDialogue();
+        graphics.drawWordWrap(font, dialogue, textX, panelY + 80, textWidth,
+                StretcherScreenStyle.TEXT_COLOR);
+        if (invitationUsed) {
+            graphics.drawWordWrap(font, Component.translatable("gui.godofthings.two_i.invitation_used"),
+                    textX, panelY + 116, textWidth, StretcherScreenStyle.MUTED_TEXT_COLOR);
+        }
+        graphics.drawString(font, Component.translatable("gui.godofthings.two_i.relationship",
+                        Component.translatable("gui.godofthings.two_i.relationship." + relationship())),
+                textX, panelY + 148, StretcherScreenStyle.SUBTLE_TEXT_COLOR, false);
 
-   private void startStory() {
-      if (!this.itemMode && this.startWait <= 0) {
-         this.startWait = 100;
-         this.talkButton.active = false;
-         DollNetwork.sendStoryStart(this.entityId);
-      }
-   }
+        super.render(graphics, mouseX, mouseY, partialTick);
+        if (mouseX >= textX && mouseX < textX + textWidth && mouseY >= panelY + 145 && mouseY < panelY + 161) {
+            graphics.renderTooltip(font, font.split(Component.translatable("help.godofthings.two_i.relationship"),
+                    240), mouseX, mouseY);
+        }
+    }
 
-   public void openStory(long sessionId, int chapter, int bond) {
-      this.openStory(sessionId, chapter, bond, 0);
-   }
+    private String relationship() {
+        if (bond <= -50) return "hurt";
+        if (bond < 0) return "wary";
+        if (bond >= 70) return "close";
+        if (bond >= 40) return "trusted";
+        if (bond >= 20) return "friend";
+        return "acquaintance";
+    }
 
-   public void openStory(long sessionId, int chapter, int bond, int round) {
-      if (this.startWait != 0 && this.minecraft != null) {
-         this.onStoryUnavailable();
-         this.bond = Math.max(-100, Math.min(100, bond));
-         this.minecraft.setScreen(new TwoIStoryScreen(this, this.entityId, sessionId, chapter, bond, round));
-      }
-   }
+    private Component bondDialogue() {
+        if (bond <= -50) return Component.translatable("gui.godofthings.two_i.dialogue.low");
+        if (bond < 0) return Component.translatable("gui.godofthings.two_i.dialogue.uneasy");
+        if (bond >= 70) return Component.translatable("gui.godofthings.two_i.dialogue.close");
+        if (bond >= 25) return Component.translatable("gui.godofthings.two_i.dialogue.warm");
+        return Component.translatable("gui.godofthings.two_i.dialogue");
+    }
 
-   public void onStoryUnavailable() {
-      this.startWait = 0;
-      if (this.talkButton != null) {
-         this.talkButton.active = true;
-      }
-   }
+    private void renderEntityStatus(GuiGraphics graphics, LivingEntity doll, int x, int y, int width) {
+        graphics.fill(x - 2, y - 2, x + width + 2, y + 29, 0xB8101014);
+        Component action = Component.translatable("gui.godofthings.two_i.status.action",
+                Component.translatable("gui.godofthings.two_i.status.action."
+                        + actionKey(doll instanceof TwoIDollEntity entity ? entity.getPoseAction() : TwoIDollEntity.ACTION_NONE)));
+        Component environment = Component.translatable("gui.godofthings.two_i.status.environment",
+                Component.translatable("gui.godofthings.two_i.status.environment."
+                        + environmentKey(doll instanceof TwoIDollEntity entity ? entity.getEnvironmentAction() : 0)));
+        Component umbrella = Component.translatable("gui.godofthings.two_i.status.umbrella",
+                doll instanceof TwoIDollEntity entity && entity.hasSharedUmbrella()
+                        ? Component.translatable("gui.godofthings.two_i.status.shared")
+                        : Component.translatable("gui.godofthings.two_i.status.single"));
+        graphics.drawString(font, action, x, y, 0xFFE5E5E5, false);
+        graphics.drawString(font, environment, x, y + 10, 0xFFB9C0CC, false);
+        graphics.drawString(font, umbrella, x, y + 20, 0xFFB9C0CC, false);
+    }
 
-   public void updateStoryBond(int bond) {
-      this.bond = Math.max(-100, Math.min(100, bond));
-   }
+    private static String actionKey(int action) {
+        return switch (action) {
+            case TwoIDollEntity.ACTION_GREETING -> "greeting";
+            case TwoIDollEntity.ACTION_CURIOUS -> "curious";
+            case TwoIDollEntity.ACTION_PATTED -> "patted";
+            case TwoIDollEntity.ACTION_RECEIVE_GIFT -> "gift";
+            case TwoIDollEntity.ACTION_INVITE -> "invite";
+            case TwoIDollEntity.ACTION_SWING_FEET -> "swing_feet";
+            case TwoIDollEntity.ACTION_UMBRELLA -> "umbrella";
+            case TwoIDollEntity.ACTION_SNEEZE -> "sneeze";
+            case TwoIDollEntity.ACTION_SHIVER -> "shiver";
+            case TwoIDollEntity.ACTION_STRETCH -> "stretch";
+            case TwoIDollEntity.ACTION_DUST -> "dust";
+            case TwoIDollEntity.ACTION_SHY -> "shy";
+            default -> "idle";
+        };
+    }
 
-   public int entityId() {
-      return this.entityId;
-   }
+    private static String environmentKey(int environment) {
+        if ((environment & com.godofthings.doll.entity.TwoIDollEnvironment.THUNDER) != 0)
+            return "thunder";
+        if ((environment & com.godofthings.doll.entity.TwoIDollEnvironment.COLD) != 0)
+            return "cold";
+        if ((environment & com.godofthings.doll.entity.TwoIDollEnvironment.RAIN) != 0)
+            return "rain";
+        return "clear";
+    }
 
-   @Override
-   public int interactionEntityId() {
-      return this.itemMode ? -1 : this.entityId;
-   }
-
-   public void tick() {
-      super.tick();
-      if (this.startWait > 0 && --this.startWait == 0) {
-         this.onStoryUnavailable();
-      }
-
-      if (this.inviteButton != null) {
-         this.inviteButton.active = this.inviteReady && true;
-      }
-   }
-
-   public void updateGiftStatus(boolean inviteReady, int bond) {
-      this.inviteReady = inviteReady;
-      this.bond = Math.max(-100, Math.min(100, bond));
-      if (this.inviteButton != null) {
-         this.inviteButton.active = inviteReady && true;
-      }
-   }
-
-   public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-   }
-
-   public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-      this.panelWidth = Math.min(430, this.width - 20);
-      this.panelX = (this.width - this.panelWidth) / 2;
-      this.panelY = (this.height - 250) / 2;
-      graphics.fill(0, 0, this.width, this.height, 671088640);
-      DollScreenStyle.drawPanel(graphics, this.panelX, this.panelY, this.panelWidth, 250);
-      graphics.fill(this.panelX + 5, this.panelY + 4, this.panelX + this.panelWidth - 5, this.panelY + 25, -5394236);
-      DollScreenStyle.drawInset(graphics, this.panelX + 10, this.panelY + 31, this.panelX + 137, this.panelY + 250 - 10);
-      graphics.fill(this.panelX + 145, this.panelY + 31, this.panelX + this.panelWidth - 10, this.panelY + 32, -6643788);
-      graphics.drawString(this.font, Component.translatable("gui.godofthings.two_i.title"), this.panelX + 10, this.panelY + 9, -12501164, false);
-      graphics.drawString(this.font, Component.translatable("gui.godofthings.two_i.interaction"), this.panelX + 145, this.panelY + 40, -9604473, false);
-      LivingEntity doll = this.previewEntity();
-      LivingEntity status = this.statusEntity();
-      if (doll != null) {
-         Minecraft minecraft = Minecraft.getInstance();
-         InventoryScreen.renderEntityInInventoryFollowsMouse(
-            graphics, this.panelX + 12, this.panelY + 35, this.panelX + 135, this.panelY + 250 - 15, 60, 0.0625F, (float)mouseX, (float)mouseY, doll
-         );
-         if (doll instanceof TwoIDollEntity twoI && !twoI.getBubbleText().isEmpty()) {
-            Component bubble = twoI.getBubbleMessage();
-            int bubbleWidth = Math.min(118, this.font.width(bubble) + 12);
-            int bubbleHeight = this.font.split(bubble, bubbleWidth - 12).size() * 9 + 10;
-            int bubbleX = this.panelX + 18;
-            int bubbleY = this.panelY + 38;
-            graphics.fill(bubbleX, bubbleY, bubbleX + bubbleWidth, bubbleY + bubbleHeight, -303040513);
-            graphics.fill(bubbleX + 5, bubbleY + bubbleHeight, bubbleX + 10, bubbleY + bubbleHeight + 4, -303040513);
-            graphics.drawWordWrap(this.font, bubble, bubbleX + 6, bubbleY + 5, bubbleWidth - 12, -14408143);
-         }
-
-         this.renderEntityStatus(graphics, status == null ? doll : status, this.panelX + 13, this.panelY + 250 - 42, 121);
-      }
-
-      int textX = this.panelX + 145;
-      int textWidth = this.panelWidth - 157;
-      int bondColor = this.bond < 0 ? -6602923 : (this.bond > 0 ? -12880302 : -9604473);
-      graphics.drawString(
-         this.font, Component.translatable("gui.godofthings.two_i.bond", new Object[]{this.bond}), textX, this.panelY + 55, bondColor, false
-      );
-      int meterRight = this.panelX + this.panelWidth - 10;
-      int meterTop = this.panelY + 68;
-      graphics.fill(textX, meterTop, meterRight, meterTop + 4, -6643788);
-      int meterWidth = Math.max(0, meterRight - textX - 2);
-      int fill = Mth.clamp((this.bond + 100) * meterWidth / 200, 0, meterWidth);
-      if (fill > 0) {
-         graphics.fill(textX + 1, meterTop + 1, textX + 1 + fill, meterTop + 3, this.bond < 0 ? -6602923 : -11438953);
-      }
-
-      Component dialogue = (Component)(this.inviteReady
-         ? Component.translatable("gui.godofthings.two_i.invite_hint")
-         : (this.itemMode ? Component.translatable("gui.godofthings.two_i.item_dialogue") : this.bondDialogue()));
-      graphics.drawWordWrap(this.font, dialogue, textX, this.panelY + 80, textWidth, -12501164);
-      if (this.invitationUsed) {
-         graphics.drawWordWrap(this.font, Component.translatable("gui.godofthings.two_i.invitation_used"), textX, this.panelY + 116, textWidth, -7893083);
-      }
-
-      graphics.drawString(
-         this.font,
-         Component.translatable(
-            "gui.godofthings.two_i.relationship", new Object[]{Component.translatable("gui.godofthings.two_i.relationship." + this.relationship())}
-         ),
-         textX,
-         this.panelY + 148,
-         -9604473,
-         false
-      );
-      super.render(graphics, mouseX, mouseY, partialTick);
-      if (mouseX >= textX && mouseX < textX + textWidth && mouseY >= this.panelY + 145 && mouseY < this.panelY + 161) {
-         graphics.renderTooltip(this.font, this.font.split(Component.translatable("help.godofthings.two_i.relationship"), 240), mouseX, mouseY);
-      }
-   }
-
-   private String relationship() {
-      if (this.bond <= -50) {
-         return "hurt";
-      } else if (this.bond < 0) {
-         return "wary";
-      } else if (this.bond >= 70) {
-         return "close";
-      } else if (this.bond >= 40) {
-         return "trusted";
-      } else {
-         return this.bond >= 20 ? "friend" : "acquaintance";
-      }
-   }
-
-   private Component bondDialogue() {
-      if (this.bond <= -50) {
-         return Component.translatable("gui.godofthings.two_i.dialogue.low");
-      } else if (this.bond < 0) {
-         return Component.translatable("gui.godofthings.two_i.dialogue.uneasy");
-      } else if (this.bond >= 70) {
-         return Component.translatable("gui.godofthings.two_i.dialogue.close");
-      } else {
-         return this.bond >= 25
-            ? Component.translatable("gui.godofthings.two_i.dialogue.warm")
-            : Component.translatable("gui.godofthings.two_i.dialogue");
-      }
-   }
-
-   private void renderEntityStatus(GuiGraphics graphics, LivingEntity doll, int x, int y, int width) {
-      Component action;
-      Component environment;
-      Object[] var13;
-      MutableComponent var15;
-      label21: {
-         graphics.fill(x - 2, y - 2, x + width + 2, y + 29, -1206906860);
-         action = Component.translatable(
-            "gui.godofthings.two_i.status.action",
-            new Object[]{
-               Component.translatable(
-                  "gui.godofthings.two_i.status.action." + actionKey(doll instanceof TwoIDollEntity entity ? entity.getPoseAction() : 0)
-               )
+    private LivingEntity previewEntity() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null) return null;
+        if (previewLevel != minecraft.level) {
+            previewLevel = minecraft.level;
+            preview = null;
+        }
+        if (preview == null) {
+            preview = DollRegistry.TWO_I_DOLL_ENTITY.get().create(minecraft.level);
+            if (preview != null) {
+                preview.setNoAi(true);
+                preview.setNoGravity(true);
+                preview.noPhysics = true;
+                preview.setPos(0.0D, 0.0D, 0.0D);
+                preview.setYRot(180.0F);
+                preview.yRotO = 180.0F;
+                preview.yBodyRot = 180.0F;
+                preview.yBodyRotO = 180.0F;
             }
-         );
-         environment = Component.translatable(
-            "gui.godofthings.two_i.status.environment",
-            new Object[]{
-               Component.translatable(
-                  "gui.godofthings.two_i.status.environment."
-                     + environmentKey(doll instanceof TwoIDollEntity entityx ? entityx.getEnvironmentAction() : 0)
-               )
-            }
-         );
-         var13 = new Object[1];
-         if (doll instanceof TwoIDollEntity entityxx && entityxx.hasSharedUmbrella()) {
-            var15 = Component.translatable("gui.godofthings.two_i.status.shared");
-            break label21;
-         }
+        }
+        if (preview == null) return null;
+        if (!itemMode && minecraft.level.getEntity(entityId) instanceof TwoIDollEntity entity) {
+            preview.restoreFromItem(entity.toDollItem());
+            preview.copyClientPreviewStateFrom(entity);
+        } else if (itemMode) {
+            ItemStack held = minecraft.player == null ? ItemStack.EMPTY
+                    : minecraft.player.getItemInHand(itemHand);
+            if (held.is(DollRegistry.TWO_I_DOLL.get())) preview.restoreFromItem(held);
+        }
+        return preview;
+    }
 
-         var15 = Component.translatable("gui.godofthings.two_i.status.single");
-      }
+    private LivingEntity statusEntity() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (!itemMode && minecraft.level != null
+                && minecraft.level.getEntity(entityId) instanceof TwoIDollEntity entity) return entity;
+        return preview;
+    }
 
-      var13[0] = var15;
-      Component umbrella = Component.translatable("gui.godofthings.two_i.status.umbrella", var13);
-      graphics.drawString(this.font, action, x, y, -1710619, false);
-      graphics.drawString(this.font, environment, x, y + 10, -4603700, false);
-      graphics.drawString(this.font, umbrella, x, y + 20, -4603700, false);
-   }
-
-   private static String actionKey(int action) {
-      return switch (action) {
-         case 1 -> "greeting";
-         case 2 -> "curious";
-         case 3 -> "patted";
-         case 4 -> "gift";
-         case 5 -> "invite";
-         case 6 -> "swing_feet";
-         case 7 -> "umbrella";
-         case 8 -> "sneeze";
-         case 9 -> "shiver";
-         case 10 -> "stretch";
-         case 11 -> "dust";
-         case 12 -> "shy";
-         default -> "idle";
-      };
-   }
-
-   private static String environmentKey(int environment) {
-      if ((environment & 4) != 0) {
-         return "thunder";
-      } else if ((environment & 2) != 0) {
-         return "cold";
-      } else {
-         return (environment & 1) != 0 ? "rain" : "clear";
-      }
-   }
-
-   private LivingEntity previewEntity() {
-      Minecraft minecraft = Minecraft.getInstance();
-      if (minecraft.level == null) {
-         return null;
-      } else {
-         if (this.previewLevel != minecraft.level) {
-            this.previewLevel = minecraft.level;
-            this.preview = null;
-         }
-
-         if (this.preview == null) {
-            this.preview = (TwoIDollEntity)DollRegistry.TWO_I_DOLL_ENTITY.get().create(minecraft.level);
-            if (this.preview != null) {
-               this.preview.setNoAi(true);
-               this.preview.setNoGravity(true);
-               this.preview.noPhysics = true;
-               this.preview.setPos(0.0, 0.0, 0.0);
-               this.preview.setYRot(180.0F);
-               this.preview.yRotO = 180.0F;
-               this.preview.yBodyRot = 180.0F;
-               this.preview.yBodyRotO = 180.0F;
-            }
-         }
-
-         if (this.preview == null) {
-            return null;
-         } else {
-            if (!this.itemMode && minecraft.level.getEntity(this.entityId) instanceof TwoIDollEntity entity) {
-               this.preview.restoreFromItem(entity.toDollItem());
-               this.preview.copyClientPreviewStateFrom(entity);
-            } else if (this.itemMode) {
-               ItemStack held = minecraft.player == null ? ItemStack.EMPTY : minecraft.player.getItemInHand(this.itemHand);
-               if (held.is((Item)DollRegistry.TWO_I_DOLL_ITEM.get())) {
-                  this.preview.restoreFromItem(held);
-               }
-            }
-
-            return this.preview;
-         }
-      }
-   }
-
-   private LivingEntity statusEntity() {
-      Minecraft minecraft = Minecraft.getInstance();
-      if (!this.itemMode && minecraft.level != null) {
-         Entity var3 = minecraft.level.getEntity(this.entityId);
-         if (var3 instanceof TwoIDollEntity) {
-            return (TwoIDollEntity)var3;
-         }
-      }
-
-      return this.preview;
-   }
-
-   public boolean isPauseScreen() {
-      return false;
-   }
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
 }

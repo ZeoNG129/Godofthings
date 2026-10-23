@@ -4,6 +4,7 @@ import com.godofthings.Godofthings;
 import com.godofthings.doll.entity.TwoIDollEntity;
 import com.godofthings.doll.item.TwoIDollItem;
 import com.godofthings.doll.init.DollComponents;
+import net.minecraft.client.Minecraft;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -73,20 +74,20 @@ public final class DollNetwork
 
     // ---------------- 服务端 → 客户端 ----------------
 
-    public static void sendDialogue(ServerPlayer player, int entityId, boolean inviteReady, int giftScore)
+    public static void sendTwoIDialogue(ServerPlayer player, int entityId, boolean inviteReady, int giftScore)
     {
         PacketDistributor.sendToPlayer(player,
                 new TwoIDialoguePayload(entityId, inviteReady, giftScore, true));
     }
 
-    public static void updateDialogue(ServerPlayer player, int entityId, boolean inviteReady, int giftScore)
+    public static void updateTwoIDialogue(ServerPlayer player, int entityId, boolean inviteReady, int giftScore)
     {
         PacketDistributor.sendToPlayer(player,
                 new TwoIDialoguePayload(entityId, inviteReady, giftScore, false));
     }
 
     /** 物品形态的对话界面（右键玩偶物品时打开） */
-    public static void sendItemDialogue(ServerPlayer player, InteractionHand hand, ItemStack stack)
+    public static void sendTwoIItemDialogue(ServerPlayer player, InteractionHand hand, ItemStack stack)
     {
         if (!player.getUUID().equals(stack.get(DollComponents.TWO_I_OWNER.get())))
         {
@@ -98,77 +99,77 @@ public final class DollNetwork
                 stack.getOrDefault(DollComponents.TWO_I_INVITATION_USED.get(), false)));
     }
 
-    public static void sendStoryState(ServerPlayer player, int entityId, long sessionId,
+    public static void sendTwoIStoryState(ServerPlayer player, int entityId, long sessionId,
                                       int chapter, int bond, int result)
     {
-        sendStoryState(player, entityId, sessionId, chapter, bond, result, 0);
+        sendTwoIStoryState(player, entityId, sessionId, chapter, bond, result, 0);
     }
 
-    public static void sendStoryState(ServerPlayer player, int entityId, long sessionId,
+    public static void sendTwoIStoryState(ServerPlayer player, int entityId, long sessionId,
                                       int chapter, int bond, int result, int round)
     {
         PacketDistributor.sendToPlayer(player,
                 new TwoIStoryStatePayload(entityId, sessionId, chapter, bond, result, round));
     }
 
-    public static void sendStoryLibraryState(ServerPlayer player, int requestId, int completedMask)
+    public static void sendTwoIStoryLibraryState(ServerPlayer player, int requestId, int completedMask)
     {
         PacketDistributor.sendToPlayer(player, new TwoIStoryLibraryStatePayload(requestId, completedMask));
     }
 
     // ---------------- 客户端 → 服务端 ----------------
 
-    public static void sendReclaim(int entityId)
+    public static void sendTwoIDollReclaim(int entityId)
     {
         PacketDistributor.sendToServer(new TwoIDollReclaimPayload(entityId));
     }
 
-    public static void sendGift(int entityId)
+    public static void sendTwoIDollGift(int entityId)
     {
         PacketDistributor.sendToServer(new TwoIDollGiftPayload(entityId));
     }
 
-    public static void sendInvite(int entityId)
+    public static void sendTwoIDollInvite(int entityId)
     {
         PacketDistributor.sendToServer(new TwoIDollInvitePayload(entityId));
     }
 
-    public static void sendPat(int entityId)
+    public static void sendTwoIDollPat(int entityId)
     {
         PacketDistributor.sendToServer(new TwoIDollPatPayload(entityId));
     }
 
-    public static void sendTalk(int entityId)
+    public static void sendTwoIDollTalk(int entityId)
     {
         PacketDistributor.sendToServer(new TwoIDollTalkPayload(entityId));
     }
 
-    public static void sendStoryStart(int entityId)
+    public static void sendTwoIDollStoryStart(int entityId)
     {
         PacketDistributor.sendToServer(new TwoIDollStoryStartPayload(entityId));
     }
 
-    public static void sendStoryChoice(int entityId, long sessionId, int choice)
+    public static void sendTwoIDollStory(int entityId, long sessionId, int choice)
     {
         PacketDistributor.sendToServer(new TwoIDollStoryPayload(entityId, sessionId, choice));
     }
 
-    public static void sendDeploy(InteractionHand hand)
+    public static void sendTwoIDollDeploy(InteractionHand hand)
     {
         PacketDistributor.sendToServer(new TwoIDollDeployPayload(hand == InteractionHand.OFF_HAND));
     }
 
-    public static void sendRemoteReclaim()
+    public static void sendTwoIDollRemoteReclaim()
     {
         PacketDistributor.sendToServer(new TwoIDollRemoteReclaimPayload());
     }
 
-    public static void sendInteraction(int entityId, boolean active)
+    public static void sendTwoIInteraction(int entityId, boolean active)
     {
         PacketDistributor.sendToServer(new TwoIInteractionPayload(entityId, active));
     }
 
-    public static void requestStoryLibrary(int requestId)
+    public static void requestTwoIStoryLibrary(int requestId)
     {
         PacketDistributor.sendToServer(new TwoIStoryLibraryRequestPayload(requestId));
     }
@@ -231,7 +232,7 @@ public final class DollNetwork
             }
             else
             {
-                sendStoryState(player, payload.entityId(), 0L, 0, 0, 2);
+                sendTwoIStoryState(player, payload.entityId(), 0L, 0, 0, 2);
             }
         }
     }
@@ -248,13 +249,13 @@ public final class DollNetwork
                 }
                 else
                 {
-                    sendStoryState(player, payload.entityId(), payload.sessionId(),
+                    sendTwoIStoryState(player, payload.entityId(), payload.sessionId(),
                             0, 0, 2, payload.choice() / 3);
                 }
             }
             else
             {
-                sendStoryState(player, payload.entityId(), payload.sessionId(),
+                sendTwoIStoryState(player, payload.entityId(), payload.sessionId(),
                         0, 0, 2, Math.clamp(payload.choice() / 3L, 0, 2));
             }
         }
@@ -320,35 +321,79 @@ public final class DollNetwork
     {
         if (context.player() instanceof ServerPlayer player)
         {
-            sendStoryLibraryState(player, payload.requestId(),
+            sendTwoIStoryLibraryState(player, payload.requestId(),
                     com.godofthings.doll.entity.TwoIStoryData.get(player.getServer()).completedMask(player.getUUID()));
         }
     }
 
-    // ---- 客户端侧处理：转发给客户端界面，避免服务端类引用 ----
+    // ---- 客户端侧处理 ----
+    // 照源码 ClientStateReceiver 的做法：playToClient 的处理器只在客户端执行，
+    // lambda 里引用客户端界面类不会影响专用服务端（类在服务端根本不会被加载）。
 
     private static void handleDialogue(TwoIDialoguePayload payload, IPayloadContext context)
     {
-        context.enqueueWork(() ->
-                com.godofthings.doll.client.DollClientHooks.openDialogue(payload));
+        context.enqueueWork(() -> Minecraft.getInstance().execute(() -> {
+            var mc = Minecraft.getInstance();
+            if (mc.screen instanceof com.godofthings.doll.client.TwoIDialogueScreen screen
+                    && screen.entityId() == payload.entityId())
+            {
+                screen.updateGiftStatus(payload.inviteReady(), payload.giftScore());
+            }
+            else if (payload.open())
+            {
+                mc.setScreen(new com.godofthings.doll.client.TwoIDialogueScreen(
+                        payload.entityId(), payload.inviteReady(), payload.giftScore()));
+            }
+        }));
     }
 
     private static void handleItemDialogue(TwoIItemDialoguePayload payload, IPayloadContext context)
     {
-        context.enqueueWork(() ->
-                com.godofthings.doll.client.DollClientHooks.openItemDialogue(payload));
+        context.enqueueWork(() -> Minecraft.getInstance().execute(() ->
+                Minecraft.getInstance().setScreen(com.godofthings.doll.client.TwoIDialogueScreen.forItem(
+                        payload.offhand() ? net.minecraft.world.InteractionHand.OFF_HAND
+                                : net.minecraft.world.InteractionHand.MAIN_HAND,
+                        payload.bond(), payload.invitationUsed()))));
     }
 
     private static void handleStoryState(TwoIStoryStatePayload payload, IPayloadContext context)
     {
-        context.enqueueWork(() ->
-                com.godofthings.doll.client.DollClientHooks.onStoryState(payload));
+        context.enqueueWork(() -> Minecraft.getInstance().execute(() -> {
+            var mc = Minecraft.getInstance();
+            if (mc.screen instanceof com.godofthings.doll.client.TwoIDialogueScreen screen
+                    && screen.entityId() == payload.entityId())
+            {
+                if (payload.result() == 0)
+                {
+                    screen.openStory(payload.sessionId(), payload.chapter(), payload.bond(), payload.round());
+                }
+                else if (payload.result() == 2 && payload.sessionId() == 0L)
+                {
+                    screen.onStoryUnavailable();
+                }
+            }
+            else if (mc.screen instanceof com.godofthings.doll.client.TwoIStoryScreen screen
+                    && screen.entityId() == payload.entityId())
+            {
+                if (payload.result() == 1)
+                {
+                    screen.onChoiceResult(payload.sessionId(), payload.bond(), payload.round());
+                }
+                else if (payload.result() == 2)
+                {
+                    screen.onStoryUnavailable(payload.sessionId(), payload.round());
+                }
+            }
+        }));
     }
 
-    private static void handleStoryLibraryState(TwoIStoryLibraryStatePayload payload,
-                                                IPayloadContext context)
+    private static void handleStoryLibraryState(TwoIStoryLibraryStatePayload payload, IPayloadContext context)
     {
-        context.enqueueWork(() ->
-                com.godofthings.doll.client.DollClientHooks.onStoryLibraryState(payload));
+        context.enqueueWork(() -> Minecraft.getInstance().execute(() -> {
+            if (Minecraft.getInstance().screen instanceof com.godofthings.doll.client.TwoIStoryLibraryScreen screen)
+            {
+                screen.acceptLibrary(payload.requestId(), payload.completedMask());
+            }
+        }));
     }
 }

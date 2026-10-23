@@ -1,649 +1,510 @@
 package com.godofthings.doll.client;
 
+import com.godofthings.doll.network.DollNetwork;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.godofthings.doll.dialogue.TwoIStoryScript;
 import com.godofthings.doll.dialogue.TwoIStoryTimeline;
-import com.godofthings.doll.dialogue.TwoIStoryVoice;
-import com.godofthings.doll.entity.TwoIStorySession;
-import com.godofthings.doll.network.DollNetwork;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.LongSupplier;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.components.Button.OnPress;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
+import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.LongSupplier;
+
+/** Presentation only: no local bond awards, and history/auto never replay network actions. */
 public final class TwoIStoryScreen extends Screen implements TwoIInteractionScreen {
-   private static final int CANVAS_W = 800;
-   private static final int CANVAS_H = 450;
-   private static final int HISTORY_ROWS = 17;
-   private static final ResourceLocation FRAME = texture("ui/dialogue_frame");
-   private static final ResourceLocation BOW = texture("ui/bow");
-   private static int textSpeed = 2;
-   private static boolean voiceEnabled = true;
-   private final TwoIStoryVoice voice = new TwoIStoryVoice();
-   private final TwoIDialogueScreen parent;
-   private final Screen returnScreen;
-   private final boolean replay;
-   private final int interactionEntityId;
-   private final int entityId;
-   private final int chapter;
-   private final long sessionId;
-   private final ResourceLocation cg;
-   private int bond;
-   private List<TwoIStoryScript.Line> lines;
-   private int stage;
-   private int lineIndex;
-   private int round;
-   private int chosen = -1;
-   private String fullText = "";
-   private String visibleText = "";
-   private int revealed;
-   private int characterCount;
-   private int readTicks;
-   private int waitingTicks;
-   private LongSupplier clock = System::nanoTime;
-   private long lastFrameNanos;
-   private TwoIStoryTimeline timeline;
-   private ResourceLocation expression;
-   private boolean automatic;
-   private boolean fastForward;
-   private boolean hidden;
-   private boolean waiting;
-   private boolean failed;
-   private int overlay;
-   private final List<Component> history = new ArrayList<>();
-   private List<FormattedCharSequence> historyLines = List.of();
-   private int historyScroll;
-   private final List<Button> controls = new ArrayList<>();
-   private final List<Button> overlayControls = new ArrayList<>();
-   private final Button[] choices = new Button[3];
-   private Button nextButton;
-   private Button autoButton;
-   private Button fastButton;
-   private Button speedButton;
-   private Button voiceButton;
-   private Button libraryButton;
-   
-   public TwoIStoryScreen(TwoIDialogueScreen parent, int entityId, long sessionId, int chapter, int bond) {
-      this(parent, entityId, sessionId, chapter, bond, 0);
-   }
+    private static final int CANVAS_W = 800, CANVAS_H = 450;
+    private static final int HISTORY_ROWS = 17;
+    private static final ResourceLocation FRAME = texture("ui/dialogue_frame");
+    private static final ResourceLocation BOW = texture("ui/bow");
+    private static int textSpeed = 2;
+    private static boolean voiceEnabled = true;
+    private final com.godofthings.doll.dialogue.TwoIStoryVoice voice =
+            new com.godofthings.doll.dialogue.TwoIStoryVoice();
+    private final TwoIDialogueScreen parent;
+    private final Screen returnScreen;
+    private final boolean replay;
+    private final int interactionEntityId;
+    private final int entityId, chapter;
+    private final long sessionId;
+    private final ResourceLocation cg;
+    private int bond;
+    private List<TwoIStoryScript.Line> lines;
+    private int stage, lineIndex, round, chosen = -1;
+    private String fullText = "", visibleText = "";
+    private int revealed, characterCount, readTicks, waitingTicks;
+    private LongSupplier clock = System::nanoTime;
+    private long lastFrameNanos;
+    private TwoIStoryTimeline timeline;
+    private ResourceLocation expression;
+    private boolean automatic, fastForward, hidden, waiting, failed;
+    private int overlay; // 0: story, 1: read-only backlog, 2: preferences
+    private final List<Component> history = new ArrayList<>();
+    private List<FormattedCharSequence> historyLines = List.of();
+    private int historyScroll;
+    private final List<Button> controls = new ArrayList<>();
+    private final List<Button> overlayControls = new ArrayList<>();
+    private final Button[] choices = new Button[3];
+    private Button nextButton, autoButton, fastButton, speedButton, voiceButton, libraryButton, galleryButton;
 
-   public TwoIStoryScreen(TwoIDialogueScreen parent, int entityId, long sessionId, int chapter, int bond, int round) {
-      this(parent, parent, entityId, sessionId, chapter, bond, false, round);
-   }
+    public TwoIStoryScreen(TwoIDialogueScreen parent, int entityId, long sessionId, int chapter, int bond) {
+        this(parent, entityId, sessionId, chapter, bond, 0);
+    }
 
-   public static TwoIStoryScreen replay(Screen parent, int chapter, int bond) {
-      return new TwoIStoryScreen(parent, null, -1, 0L, chapter, bond, true, 0);
-   }
+    public TwoIStoryScreen(TwoIDialogueScreen parent, int entityId, long sessionId, int chapter, int bond, int round) {
+        this(parent, parent, entityId, sessionId, chapter, bond, false, round);
+    }
 
-   private TwoIStoryScreen(Screen returnScreen, TwoIDialogueScreen parent, int entityId, long sessionId, int chapter, int bond, boolean replay, int round) {
-      super(TwoIStoryScript.title(chapter));
-      this.parent = parent;
-      this.returnScreen = returnScreen;
-      this.interactionEntityId = TwoIInteractionScreen.entityFor(returnScreen);
-      this.replay = replay;
-      this.entityId = entityId;
-      this.sessionId = sessionId;
-      this.chapter = Mth.clamp(chapter, 0, 5);
-      this.bond = bond;
-      this.round = Mth.clamp(round, 0, 2);
+    public static TwoIStoryScreen replay(Screen parent, int chapter, int bond) {
+        return new TwoIStoryScreen(parent, null, -1, 0L, chapter, bond, true, 0);
+    }
 
-      this.cg = texture("cg/" + switch (this.chapter) {
-         case 1, 3, 4 -> "friends";
-         case 2, 5 -> "starfield_invite";
-         default -> "first_meet";
-      });
-      this.lines = this.round == 0 ? TwoIStoryScript.opening(this.chapter, bond) : TwoIStoryScript.prompt(this.chapter, this.round);
-      this.enterLine();
-   }
+    private TwoIStoryScreen(Screen returnScreen, TwoIDialogueScreen parent, int entityId,
+                            long sessionId, int chapter, int bond, boolean replay, int round) {
+        super(TwoIStoryScript.title(chapter));
+        this.parent = parent;
+        this.returnScreen = returnScreen;
+        this.interactionEntityId = TwoIInteractionScreen.entityFor(returnScreen);
+        this.replay = replay;
+        this.entityId = entityId;
+        this.sessionId = sessionId;
+        this.chapter = Mth.clamp(chapter, 0, 5);
+        this.bond = bond;
+        this.round = Mth.clamp(round, 0, 2);
+        this.cg = texture("cg/" + switch (this.chapter) {
+            case 1, 3, 4 -> "friends";
+            case 2, 5 -> "starfield_invite";
+            default -> "first_meet";
+        });
+        lines = this.round == 0 ? TwoIStoryScript.opening(this.chapter, bond)
+                : TwoIStoryScript.prompt(this.chapter, this.round);
+        enterLine();
+    }
 
-   private static ResourceLocation texture(String file) {
-      return ResourceLocation.fromNamespaceAndPath("godofthings", "textures/dialogue/" + file + ".png");
-   }
+    private static ResourceLocation texture(String file) {
+        return ResourceLocation.fromNamespaceAndPath("godofthings", "textures/dialogue/" + file + ".png");
+    }
 
-   private static Component ui(String key) {
-      return Component.translatable("gui.godofthings.two_i.vn." + key);
-   }
+    private static Component ui(String key) {
+        return Component.translatable("gui.godofthings.two_i.vn." + key);
+    }
 
-   private static Component speaker(TwoIStoryScript.Line line) {
-      return (Component)(line.narration() ? ui("narrator") : (line.player() ? ui("you") : Component.literal("紬紬")));
-   }
+    private static Component speaker(TwoIStoryScript.Line line) {
+        return line.narration() ? ui("narrator") : line.player() ? ui("you") : Component.literal("2i");
+    }
 
-   protected void init() {
-      this.controls.clear();
-      this.overlayControls.clear();
-      this.autoButton = this.control(246, 410, 90, "auto", b -> {
-         this.automatic = !this.automatic && this.stage != 1 && !this.failed;
-         this.fastForward = false;
-         this.autoButton.setMessage(ui(this.automatic ? "auto_on" : "auto"));
-         this.readTicks = 0;
-         this.syncWidgets();
-      });
-      this.controls.add(this.autoButton);
-      this.controls.add(this.control(341, 410, 90, "log", b -> this.openOverlay(1)));
-      this.fastButton = this.control(436, 410, 90, "fast", b -> {
-         this.fastForward = !this.fastForward && this.stage != 1 && !this.failed;
-         this.automatic = false;
-         this.readTicks = 0;
-         this.syncWidgets();
-      });
-      this.controls.add(this.fastButton);
-      this.controls.add(this.control(531, 410, 90, "settings", b -> this.openOverlay(2)));
-      this.nextButton = this.control(626, 410, 142, "continue", b -> this.advance());
-      this.controls.add(this.nextButton);
-      this.libraryButton = this.control(458, 12, 102, "library", b -> {
-         this.automatic = false;
-         this.fastForward = false;
-         this.voice.stop();
-         this.minecraft.setScreen(new TwoIStoryLibraryScreen(this, this.bond));
-      });
-      this.controls.add(this.libraryButton);
-      this.controls.add(this.control(672, 12, 104, "return", b -> this.onClose()));
+    @Override protected void init() {
+        controls.clear();
+        overlayControls.clear();
+        autoButton = control(246, 410, 90, "auto", b -> {
+            automatic = !automatic && stage != 1 && !failed;
+            fastForward = false;
+            autoButton.setMessage(ui(automatic ? "auto_on" : "auto"));
+            readTicks = 0;
+            syncWidgets();
+        });
+        controls.add(autoButton);
+        controls.add(control(341, 410, 90, "log", b -> openOverlay(1)));
+        fastButton = control(436, 410, 90, "fast", b -> {
+            fastForward = !fastForward && stage != 1 && !failed;
+            automatic = false;
+            readTicks = 0;
+            syncWidgets();
+        });
+        controls.add(fastButton);
+        controls.add(control(531, 410, 90, "settings", b -> openOverlay(2)));
+        nextButton = control(626, 410, 142, "continue", b -> advance());
+        controls.add(nextButton);
+        libraryButton = control(458, 12, 102, "library", b -> {
+            automatic = false;
+            fastForward = false;
+            voice.stop();
+            minecraft.setScreen(new TwoIStoryLibraryScreen(this, bond));
+        });
+        controls.add(libraryButton);
+        galleryButton = control(565, 12, 102, "gallery", b -> {
+            automatic = false;
+            fastForward = false;
+            voice.stop();
+            minecraft.setScreen(new TwoIStoryGalleryScreen(this));
+        });
+        controls.add(galleryButton);
+        controls.add(control(672, 12, 104, "return", b -> onClose()));
+        for (int i = 0; i < choices.length; i++) {
+            int choice = i;
+            choices[i] = addRenderableWidget(new NovelButton(200, 164 + i * 40, 400, 34,
+                    choiceLabel(i), b -> choose(choice)));
+            choices[i].setTooltip(net.minecraft.client.gui.components.Tooltip.create(ui(replay
+                    ? "replay_hint" : "choice_bond_hint")));
+        }
+        overlayControls.add(control(546, 90, 96, "close", b -> { overlay = 0; syncWidgets(); }));
+        overlayControls.add(control(170, 312, 106, "previous", b -> scrollHistory(-HISTORY_ROWS)));
+        overlayControls.add(control(284, 312, 106, "next_page", b -> scrollHistory(HISTORY_ROWS)));
+        speedButton = control(270, 180, 260, "speed", b -> {
+            textSpeed = textSpeed == 1 ? 2 : textSpeed == 2 ? 4 : textSpeed == 4 ? 0 : 1;
+            speedButton.setMessage(speedLabel());
+        });
+        speedButton.setMessage(speedLabel());
+        overlayControls.add(speedButton);
+        voiceButton = control(270, 216, 260, "voice_on", b -> {
+            voiceEnabled = !voiceEnabled;
+            if (!voiceEnabled) voice.stop();
+            voiceButton.setMessage(ui(voiceEnabled ? "voice_on" : "voice_off"));
+        });
+        voiceButton.setMessage(ui(voiceEnabled ? "voice_on" : "voice_off"));
+        overlayControls.add(voiceButton);
+        // init also runs after window/GUI-scale changes; retain story, pending choice and text position.
+        if (overlay == 1) rebuildHistory();
+        syncWidgets();
+    }
 
-      for (int i = 0; i < this.choices.length; i++) {
-         int choice = i;
-         this.choices[i] = (Button)this.addRenderableWidget(
-            new TwoIStoryScreen.NovelButton(200, 164 + i * 40, 400, 34, this.choiceLabel(i), b -> this.choose(choice))
-         );
-         this.choices[i].setTooltip(Tooltip.create(ui(this.replay ? "replay_hint" : "choice_bond_hint")));
-      }
+    private Button control(int x, int y, int w, String key, Button.OnPress action) {
+        return addRenderableWidget(new NovelButton(x, y, w, 24, ui(key), action));
+    }
 
-      this.overlayControls.add(this.control(546, 90, 96, "close", b -> {
-         this.overlay = 0;
-         this.syncWidgets();
-      }));
-      this.overlayControls.add(this.control(170, 312, 106, "previous", b -> this.scrollHistory(-17)));
-      this.overlayControls.add(this.control(284, 312, 106, "next_page", b -> this.scrollHistory(17)));
-      this.speedButton = this.control(270, 180, 260, "speed", b -> {
-         textSpeed = textSpeed == 1 ? 2 : (textSpeed == 2 ? 4 : (textSpeed == 4 ? 0 : 1));
-         this.speedButton.setMessage(this.speedLabel());
-      });
-      this.speedButton.setMessage(this.speedLabel());
-      this.overlayControls.add(this.speedButton);
-      this.voiceButton = this.control(270, 216, 260, "voice_on", b -> {
-         voiceEnabled = !voiceEnabled;
-         if (!voiceEnabled) {
-            this.voice.stop();
-         }
+    private Component speedLabel() {
+        return Component.translatable("gui.godofthings.two_i.vn.speed_value",
+                ui("speed." + (textSpeed == 0 ? "instant" : textSpeed == 1 ? "slow" : textSpeed == 2 ? "normal" : "fast")));
+    }
 
-         this.voiceButton.setMessage(ui(voiceEnabled ? "voice_on" : "voice_off"));
-      });
-      this.voiceButton.setMessage(ui(voiceEnabled ? "voice_on" : "voice_off"));
-      this.overlayControls.add(this.voiceButton);
-      if (this.overlay == 1) {
-         this.rebuildHistory();
-      }
+    private Component choiceLabel(int choice) {
+        Component text = TwoIStoryScript.choice(chapter, round, choice);
+        int delta = com.godofthings.doll.entity.TwoIStorySession.bondDelta(choice);
+        return text.copy().append(Component.literal(replay ? "  [↶]"
+                : delta > 0 ? "  [+1]" : delta < 0 ? "  [-1]" : "  [±0]"));
+    }
 
-      this.syncWidgets();
-   }
+    private void syncWidgets() {
+        lastFrameNanos = clock.getAsLong();
+        if (hidden || overlay != 0 || fastForward || waiting || failed || stage == 1) voice.stop();
+        for (Button b : controls) b.visible = overlay == 0 && !hidden;
+        for (Button b : overlayControls) b.visible = false;
+        if (overlay > 0) {
+            overlayControls.getFirst().visible = true;
+            if (overlay == 1) {
+                overlayControls.get(1).visible = true;
+                overlayControls.get(2).visible = true;
+            } else { speedButton.visible = true; voiceButton.visible = true; }
+        }
+        for (int i = 0; i < choices.length; i++) {
+            Button b = choices[i];
+            b.setMessage(choiceLabel(i));
+            b.visible = stage == 1 && overlay == 0 && !hidden;
+            b.active = !waiting && !failed;
+        }
+        if (nextButton != null) {
+            libraryButton.active = !waiting;
+            galleryButton.active = !waiting;
+            nextButton.active = (!waiting && stage != 1) || failed;
+            nextButton.setMessage(ui(failed || stage == 3 && lineIndex == lines.size() - 1 ? "return" : "continue"));
+            autoButton.active = stage != 1 && !failed;
+            autoButton.setMessage(ui(automatic ? "auto_on" : "auto"));
+            fastButton.active = stage != 1 && !failed;
+            fastButton.setMessage(ui(fastForward ? "fast_on" : "fast"));
+        }
+        if (getFocused() instanceof Button b && (!b.visible || !b.active)) setFocused(null);
+    }
 
-   private Button control(int x, int y, int w, String key, OnPress action) {
-      return (Button)this.addRenderableWidget(new TwoIStoryScreen.NovelButton(x, y, w, 24, ui(key), action));
-   }
+    private void enterLine() {
+        var line = lines.get(lineIndex);
+        fullText = TwoIStoryScript.text(line).getString();
+        characterCount = fullText.codePointCount(0, fullText.length());
+        revealed = 0;
+        visibleText = "";
+        voice.stop();
+        timeline = new TwoIStoryTimeline(line.key(), fullText, line.player(), line.narration());
+        lastFrameNanos = clock.getAsLong();
+        readTicks = 0;
+        expression = texture("expressions/" + line.expression());
+        String who = speaker(line).getString();
+        history.add(Component.literal(who + "  ·  " + fullText));
+        if (history.size() > 512) history.removeFirst();
+        if (minecraft != null) minecraft.getNarrator().sayNow(Component.literal(who + ": " + fullText));
+    }
 
-   private Component speedLabel() {
-      return Component.translatable(
-         "gui.godofthings.two_i.vn.speed_value",
-         new Object[]{ui("speed." + (textSpeed == 0 ? "instant" : (textSpeed == 1 ? "slow" : (textSpeed == 2 ? "normal" : "fast"))))}
-      );
-   }
+    private void reveal() {
+        timeline.finish();
+        voice.stop();
+        revealed = characterCount;
+        visibleText = fullText;
+        readTicks = 0;
+    }
 
-   private Component choiceLabel(int choice) {
-      Component text = TwoIStoryScript.choice(this.chapter, this.round, choice);
-      int delta = TwoIStorySession.bondDelta(choice);
-      return text.copy().append(Component.literal(this.replay ? "  [↶]" : (delta > 0 ? "  [+1]" : (delta < 0 ? "  [-1]" : "  [±0]"))));
-   }
-
-   private void syncWidgets() {
-      this.lastFrameNanos = this.clock.getAsLong();
-      if (this.hidden || this.overlay != 0 || this.fastForward || this.waiting || this.failed || this.stage == 1) {
-         this.voice.stop();
-      }
-
-      for (Button b : this.controls) {
-         b.visible = this.overlay == 0 && !this.hidden;
-      }
-
-      for (Button b : this.overlayControls) {
-         b.visible = false;
-      }
-
-      if (this.overlay > 0) {
-         this.overlayControls.getFirst().visible = true;
-         if (this.overlay == 1) {
-            this.overlayControls.get(1).visible = true;
-            this.overlayControls.get(2).visible = true;
-         } else {
-            this.speedButton.visible = true;
-            this.voiceButton.visible = true;
-         }
-      }
-
-      for (int i = 0; i < this.choices.length; i++) {
-         Button b = this.choices[i];
-         b.setMessage(this.choiceLabel(i));
-         b.visible = this.stage == 1 && this.overlay == 0 && !this.hidden;
-         b.active = !this.waiting && !this.failed;
-      }
-
-      if (this.nextButton != null) {
-         this.libraryButton.active = !this.waiting;
-                  this.nextButton.active = !this.waiting && this.stage != 1 || this.failed;
-         this.nextButton.setMessage(ui(!this.failed && (this.stage != 3 || this.lineIndex != this.lines.size() - 1) ? "continue" : "return"));
-         this.autoButton.active = this.stage != 1 && !this.failed;
-         this.autoButton.setMessage(ui(this.automatic ? "auto_on" : "auto"));
-         this.fastButton.active = this.stage != 1 && !this.failed;
-         this.fastButton.setMessage(ui(this.fastForward ? "fast_on" : "fast"));
-      }
-
-      if (this.getFocused() instanceof Button b && (!b.visible || !b.active)) {
-         this.setFocused(null);
-      }
-   }
-
-   private void enterLine() {
-      TwoIStoryScript.Line line = this.lines.get(this.lineIndex);
-      this.fullText = TwoIStoryScript.text(line).getString();
-      this.characterCount = this.fullText.codePointCount(0, this.fullText.length());
-      this.revealed = 0;
-      this.visibleText = "";
-      this.voice.stop();
-      this.timeline = new TwoIStoryTimeline(line.key(), this.fullText, line.player(), line.narration());
-      this.lastFrameNanos = this.clock.getAsLong();
-      this.readTicks = 0;
-      this.expression = texture("expressions/" + line.expression());
-      String who = speaker(line).getString();
-      this.history.add(Component.literal(who + "  ·  " + this.fullText));
-      if (this.history.size() > 512) {
-         this.history.removeFirst();
-      }
-
-      if (this.minecraft != null) {
-         this.minecraft.getNarrator().sayNow(Component.literal(who + ": " + this.fullText));
-      }
-   }
-
-   private void reveal() {
-      this.timeline.finish();
-      this.voice.stop();
-      this.revealed = this.characterCount;
-      this.visibleText = this.fullText;
-      this.readTicks = 0;
-   }
-
-   private void advance() {
-      if (this.overlay == 0 && !this.hidden && !this.waiting) {
-         if (this.failed) {
-            this.onClose();
-         } else if (this.revealed < this.characterCount) {
-            this.reveal();
-         } else if (this.stage != 1) {
-            if (++this.lineIndex < this.lines.size()) {
-               this.enterLine();
-            } else if (this.stage == 0) {
-               this.lineIndex = this.lines.size() - 1;
-               this.stage = 1;
-               this.automatic = false;
-               this.fastForward = false;
+    private void advance() {
+        if (overlay != 0 || hidden || waiting) return;
+        if (failed) { onClose(); return; }
+        if (revealed < characterCount) { reveal(); return; }
+        if (stage == 1) return;
+        if (++lineIndex < lines.size()) {
+            enterLine();
+        } else if (stage == 0) {
+            lineIndex = lines.size() - 1;
+            stage = 1;
+            automatic = false;
+            fastForward = false;
+        } else if (stage == 2) {
+            if (++round < 3) {
+                stage = 0;
+                chosen = -1;
+                lines = TwoIStoryScript.prompt(chapter, round);
             } else {
-               if (this.stage != 2) {
-                  this.onClose();
-                  return;
-               }
-
-               if (++this.round < 3) {
-                  this.stage = 0;
-                  this.chosen = -1;
-                  this.lines = TwoIStoryScript.prompt(this.chapter, this.round);
-               } else {
-                  this.stage = 3;
-                  this.lines = TwoIStoryScript.ending(this.chapter);
-               }
-
-               this.lineIndex = 0;
-               this.enterLine();
+                stage = 3;
+                lines = TwoIStoryScript.ending(chapter);
             }
+            lineIndex = 0;
+            enterLine();
+        } else {
+            onClose();
+            return;
+        }
+        syncWidgets();
+    }
 
-            this.syncWidgets();
-         }
-      }
-   }
+    private void choose(int choice) {
+        if (stage != 1 || waiting || failed || chosen >= 0) return;
+        automatic = false;
+        fastForward = false;
+        chosen = choice;
+        if (replay) {
+            // Replaying a chapter is presentation only: no session is created or consumed,
+            // and no network packet can award bond or unlock another chapter.
+            showBranch();
+            return;
+        }
+        waiting = true;
+        waitingTicks = 0;
+        DollNetwork.sendTwoIDollStory(entityId, sessionId, round * 3 + choice);
+        syncWidgets();
+    }
 
-   private void choose(int choice) {
-      if (this.stage == 1 && !this.waiting && !this.failed && this.chosen < 0) {
-         this.automatic = false;
-         this.fastForward = false;
-         this.chosen = choice;
-         if (this.replay) {
-            this.showBranch();
-         } else {
-            this.waiting = true;
-            this.waitingTicks = 0;
-            DollNetwork.sendStoryChoice(this.entityId, this.sessionId, this.round * 3 + choice);
-            this.syncWidgets();
-         }
-      }
-   }
+    public int entityId() { return entityId; }
 
-   public int entityId() {
-      return this.entityId;
-   }
+    @Override public int interactionEntityId() { return interactionEntityId; }
 
-   @Override
-   public int interactionEntityId() {
-      return this.interactionEntityId;
-   }
+    public void onChoiceResult(long token, int value) {
+        onChoiceResult(token, value, round);
+    }
 
-   public void onChoiceResult(long token, int value) {
-      this.onChoiceResult(token, value, this.round);
-   }
+    public void onChoiceResult(long token, int value, int acceptedRound) {
+        if (acceptedRound != round) return;
+        if (replay || token != sessionId || !waiting || chosen < 0) return;
+        waiting = false;
+        bond = value;
+        parent.updateStoryBond(value);
+        showBranch();
+    }
 
-   public void onChoiceResult(long token, int value, int acceptedRound) {
-      if (acceptedRound == this.round) {
-         if (!this.replay && token == this.sessionId && this.waiting && this.chosen >= 0) {
-            this.waiting = false;
-            this.bond = value;
-            this.parent.updateStoryBond(value);
-            this.showBranch();
-         }
-      }
-   }
+    private void showBranch() {
+        stage = 2;
+        lineIndex = 0;
+        lines = TwoIStoryScript.branch(chapter, round, chosen);
+        enterLine();
+        syncWidgets();
+    }
 
-   private void showBranch() {
-      this.stage = 2;
-      this.lineIndex = 0;
-      this.lines = TwoIStoryScript.branch(this.chapter, this.round, this.chosen);
-      this.enterLine();
-      this.syncWidgets();
-   }
+    public void updateGiftStatus(boolean ready, int value) {
+        bond = value;
+        if (parent != null) parent.updateGiftStatus(ready, value);
+    }
 
-   public void updateGiftStatus(boolean ready, int value) {
-      this.bond = value;
-      if (this.parent != null) {
-         this.parent.updateGiftStatus(ready, value);
-      }
-   }
+    public void onStoryUnavailable(long token) {
+        onStoryUnavailable(token, round);
+    }
 
-   public void onStoryUnavailable(long token) {
-      this.onStoryUnavailable(token, this.round);
-   }
+    public void onStoryUnavailable(long token, int rejectedRound) {
+        if (rejectedRound != round) return;
+        if (token != sessionId || !waiting) return;
+        waiting = false;
+        automatic = false;
+        fastForward = false;
+        failed = true;
+        syncWidgets();
+    }
 
-   public void onStoryUnavailable(long token, int rejectedRound) {
-      if (rejectedRound == this.round) {
-         if (token == this.sessionId && this.waiting) {
-            this.waiting = false;
-            this.automatic = false;
-            this.fastForward = false;
-            this.failed = true;
-            this.syncWidgets();
-         }
-      }
-   }
+    @Override public void tick() {
+        if (waiting && ++waitingTicks >= 200) onStoryUnavailable(sessionId);
+        if (hidden || overlay != 0 || waiting || failed || stage == 1) return;
+        // Audible typewriting advances only on a displayed frame. Several logic ticks may run
+        // between low-FPS frames; playing here would get ahead of what the player can see.
+        if (revealed < characterCount) {
+            if (fastForward || textSpeed == 0) reveal();
+            return;
+        }
+        if ((automatic || fastForward)
+                && ++readTicks >= (fastForward ? 4 : Math.max(40, characterCount + 20))) advance();
+    }
 
-   public void tick() {
-      if (this.waiting && ++this.waitingTicks >= 200) {
-         this.onStoryUnavailable(this.sessionId);
-      }
+    private void updatePlayback() {
+        long now = clock.getAsLong();
+        double elapsedMs = Math.max(0, (now - lastFrameNanos) / 1_000_000.0);
+        lastFrameNanos = now;
+        if (hidden || overlay != 0 || waiting || failed || stage == 1 || revealed >= characterCount) return;
+        if (fastForward || textSpeed == 0) { reveal(); return; }
+        var cue = timeline.advance(elapsedMs, textSpeed);
+        if (cue != null) {
+            revealed = cue.revealed();
+            visibleText = fullText.substring(0, fullText.offsetByCodePoints(0, revealed));
+            // The exact same event reveals the glyph and starts its syllable, never a separate sound timer.
+            voice.play(cue, voiceEnabled);
+        }
+    }
 
-      if (!this.hidden && this.overlay == 0 && !this.waiting && !this.failed && this.stage != 1) {
-         if (this.revealed < this.characterCount) {
-            if (this.fastForward || textSpeed == 0) {
-               this.reveal();
+    private void openOverlay(int type) {
+        automatic = false;
+        fastForward = false;
+        overlay = type;
+        if (type == 1) { rebuildHistory(); historyScroll = Math.max(0, historyLines.size() - HISTORY_ROWS); }
+        syncWidgets();
+    }
+
+    private void rebuildHistory() {
+        List<FormattedCharSequence> result = new ArrayList<>();
+        for (Component entry : history) {
+            result.addAll(font.split(entry, 450));
+            result.add(FormattedCharSequence.EMPTY);
+        }
+        historyLines = List.copyOf(result);
+    }
+
+    private void scrollHistory(int delta) { historyScroll = Mth.clamp(historyScroll + delta, 0, Math.max(0, historyLines.size() - HISTORY_ROWS)); }
+
+    private float scale() { return Math.min(width / (float) CANVAS_W, height / (float) CANVAS_H); }
+    private float left() { return (width - CANVAS_W * scale()) / 2; }
+    private float top() { return (height - CANVAS_H * scale()) / 2; }
+
+    @Override public void renderBackground(GuiGraphics g, int x, int y, float partial) { }
+
+    @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
+        updatePlayback();
+        g.fill(0, 0, width, height, 0xFF192039);
+        float scale = scale();
+        int mx = (int) ((mouseX - left()) / scale), my = (int) ((mouseY - top()) / scale);
+        g.pose().pushPose();
+        g.pose().translate(left(), top(), 0);
+        g.pose().scale(scale, scale, 1);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        // Explicit destination and source sizes are essential: the short blit overload crops instead of scaling.
+        g.blit(cg, 0, 0, CANVAS_W, CANVAS_H, 0f, 0f, 836, 471, 836, 471);
+        if (!hidden) {
+            g.fillGradient(0, 0, CANVAS_W, 80, 0xB0182448, 0x00182448);
+            g.drawString(font, title, 24, 21, 0xFFFFFFFF, true);
+            g.drawString(font, Component.translatable("gui.godofthings.two_i.bond", bond), 24, 37, 0xFFE0E9FF, true);
+            if (replay) g.drawString(font, ui("replay_hint"), 24, 54, 0xFFE0E9FF, true);
+            var line = lines.get(lineIndex);
+            if (!line.cg()) {
+                // The supplied full-body expressions have a white background. Present them as a character card.
+                g.fill(579, 48, 751, 298, 0xFFF6F8FF);
+                g.blit(expression, 583, 50, 164, 246, 0f, 0f, 512, 768, 512, 768);
+                g.renderOutline(579, 48, 172, 250, 0xFFB3C7F5);
             }
-         } else {
-            if ((this.automatic || this.fastForward) && ++this.readTicks >= (this.fastForward ? 4 : Math.max(40, this.characterCount + 20))) {
-               this.advance();
-            }
-         }
-      }
-   }
+            drawFrame(g, 24, 314, 752, 128);
+            g.blit(BOW, 4, 285, 82, 82, 0f, 0f, 627, 627, 627, 627);
+            drawFrame(g, 86, 305, 122, 28);
+            g.drawCenteredString(font, speaker(line), 147, 315, 0xFF2E4476);
+            Component text = failed ? ui("rejected") : waiting ? ui("waiting") : Component.literal(visibleText);
+            g.pose().pushPose();
+            g.pose().translate(67, 342, 0);
+            g.pose().scale(1.25F, 1.25F, 1);
+            g.drawWordWrap(font, text, 0, 0, 528, 0xFF213653);
+            g.pose().popPose();
+            if (stage == 1 && !waiting && !failed) g.drawCenteredString(font, ui("choose"), 400, 148, 0xFFFFFFFF);
+            g.drawString(font, ui("click_hint"), 63, 399, 0xFF647797, false);
+            if (overlay > 0) drawOverlay(g);
+            super.render(g, mx, my, partial);
+        } else g.drawString(font, ui("show_hint"), 24, 425, 0xFFFFFFFF, true);
+        RenderSystem.disableBlend();
+        g.pose().popPose();
+    }
 
-   private void updatePlayback() {
-      long now = this.clock.getAsLong();
-      double elapsedMs = Math.max(0.0, (double)(now - this.lastFrameNanos) / 1000000.0);
-      this.lastFrameNanos = now;
-      if (!this.hidden && this.overlay == 0 && !this.waiting && !this.failed && this.stage != 1 && this.revealed < this.characterCount) {
-         if (!this.fastForward && textSpeed != 0) {
-            TwoIStoryTimeline.Cue cue = this.timeline.advance(elapsedMs, textSpeed);
-            if (cue != null) {
-               this.revealed = cue.revealed();
-               this.visibleText = this.fullText.substring(0, this.fullText.offsetByCodePoints(0, this.revealed));
-               this.voice.play(cue, voiceEnabled);
-            }
-         } else {
-            this.reveal();
-         }
-      }
-   }
+    private void drawOverlay(GuiGraphics g) {
+        g.fill(0, 0, CANVAS_W, CANVAS_H, 0x980E1428);
+        drawFrame(g, 140, 58, 520, 324);
+        g.drawString(font, ui(overlay == 1 ? "log" : "settings"), 172, 97, 0xFF243960, false);
+        if (overlay == 1) {
+            int end = Math.min(historyLines.size(), historyScroll + HISTORY_ROWS);
+            for (int i = historyScroll; i < end; i++) g.drawString(font, historyLines.get(i), 172,
+                    122 + (i - historyScroll) * 11, 0xFF344461, false);
+            g.drawWordWrap(font, ui("log_hint"), 400, 318, 222, 0xFF647797);
+        } else {
+            g.drawWordWrap(font, ui("help"), 172, 118, 454, 0xFF344461);
+            g.drawWordWrap(font, ui("settings_hint"), 172, 264, 454, 0xFF647797);
+        }
+    }
 
-   private void openOverlay(int type) {
-      this.automatic = false;
-      this.fastForward = false;
-      this.overlay = type;
-      if (type == 1) {
-         this.rebuildHistory();
-         this.historyScroll = Math.max(0, this.historyLines.size() - 17);
-      }
+    private static void drawFrame(GuiGraphics g, int x, int y, int w, int h) {
+        RenderSystem.enableBlend();
+        g.blit(FRAME, x, y, w, h, 16f, 60f, 1060, 252, 1086, 362);
+    }
 
-      this.syncWidgets();
-   }
+    @Override public boolean mouseClicked(double x, double y, int button) {
+        double mx = (x - left()) / scale(), my = (y - top()) / scale();
+        if (button == 1) {
+            if (overlay > 0) overlay = 0;
+            else hidden = !hidden;
+            automatic = false;
+            fastForward = false;
+            syncWidgets();
+            return true;
+        }
+        if (hidden) { hidden = false; syncWidgets(); return true; }
+        if (super.mouseClicked(mx, my, button)) return true;
+        if (button == 0 && overlay == 0 && mx >= 24 && mx <= 776 && my >= 314 && my < 410) {
+            advance();
+            return true;
+        }
+        return true; // Never leak clicks into world interactions.
+    }
 
-   private void rebuildHistory() {
-      List<FormattedCharSequence> result = new ArrayList<>();
+    @Override public boolean mouseReleased(double x, double y, int button) {
+        return super.mouseReleased((x - left()) / scale(), (y - top()) / scale(), button);
+    }
 
-      for (Component entry : this.history) {
-         result.addAll(this.font.split(entry, 450));
-         result.add(FormattedCharSequence.EMPTY);
-      }
+    @Override public boolean mouseScrolled(double x, double y, double horizontal, double vertical) {
+        if (overlay == 1) scrollHistory((int) -Math.signum(vertical) * 3);
+        else if (vertical > 0) openOverlay(1);
+        return true;
+    }
 
-      this.historyLines = List.copyOf(result);
-   }
+    @Override public boolean keyPressed(int key, int scan, int modifiers) {
+        if (key == GLFW.GLFW_KEY_ESCAPE) {
+            if (overlay > 0) { overlay = 0; syncWidgets(); }
+            else if (hidden) { hidden = false; syncWidgets(); }
+            else onClose();
+            return true;
+        }
+        if (key == GLFW.GLFW_KEY_SPACE || key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) {
+            if (getFocused() instanceof Button button && button.visible && button.active) return super.keyPressed(key, scan, modifiers);
+            advance();
+            return true;
+        }
+        return super.keyPressed(key, scan, modifiers);
+    }
 
-   private void scrollHistory(int delta) {
-      this.historyScroll = Mth.clamp(this.historyScroll + delta, 0, Math.max(0, this.historyLines.size() - 17));
-   }
+    @Override public void onClose() { voice.stop(); minecraft.setScreen(returnScreen); }
+    @Override public void removed() { voice.stop(); }
+    @Override public boolean isPauseScreen() { return false; }
 
-   private float scale() {
-      return Math.min((float)this.width / 800.0F, (float)this.height / 450.0F);
-   }
+    private final class NovelButton extends Button {
+        private NovelButton(int x, int y, int w, int h, Component text, OnPress callback) {
+            super(x, y, w, h, text, callback, DEFAULT_NARRATION);
+        }
 
-   private float left() {
-      return ((float)this.width - 800.0F * this.scale()) / 2.0F;
-   }
-
-   private float top() {
-      return ((float)this.height - 450.0F * this.scale()) / 2.0F;
-   }
-
-   public void renderBackground(GuiGraphics g, int x, int y, float partial) {
-   }
-
-   public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
-      this.updatePlayback();
-      g.fill(0, 0, this.width, this.height, -15130567);
-      float scale = this.scale();
-      int mx = (int)(((float)mouseX - this.left()) / scale);
-      int my = (int)(((float)mouseY - this.top()) / scale);
-      g.pose().pushPose();
-      g.pose().translate(this.left(), this.top(), 0.0F);
-      g.pose().scale(scale, scale, 1.0F);
-      RenderSystem.enableBlend();
-      RenderSystem.defaultBlendFunc();
-      g.blit(this.cg, 0, 0, 800, 450, 0.0F, 0.0F, 836, 471, 836, 471);
-      if (!this.hidden) {
-         g.fillGradient(0, 0, 800, 80, -1340595128, 1582152);
-         g.drawString(this.font, this.title, 24, 21, -1, true);
-         g.drawString(this.font, Component.translatable("gui.godofthings.two_i.bond", new Object[]{this.bond}), 24, 37, -2037249, true);
-         if (this.replay) {
-            g.drawString(this.font, ui("replay_hint"), 24, 54, -2037249, true);
-         }
-
-         TwoIStoryScript.Line line = this.lines.get(this.lineIndex);
-         if (!line.cg()) {
-            g.fill(579, 48, 751, 298, -591617);
-            g.blit(this.expression, 583, 50, 164, 246, 0.0F, 0.0F, 512, 768, 512, 768);
-            g.renderOutline(579, 48, 172, 250, -4995083);
-         }
-
-         drawFrame(g, 24, 314, 752, 128);
-         g.blit(BOW, 4, 285, 82, 82, 0.0F, 0.0F, 627, 627, 627, 627);
-         drawFrame(g, 86, 305, 122, 28);
-         g.drawCenteredString(this.font, speaker(line), 147, 315, -13745034);
-         Component text = (Component)(this.failed ? ui("rejected") : (this.waiting ? ui("waiting") : Component.literal(this.visibleText)));
-         g.pose().pushPose();
-         g.pose().translate(67.0F, 342.0F, 0.0F);
-         g.pose().scale(1.25F, 1.25F, 1.0F);
-         g.drawWordWrap(this.font, text, 0, 0, 528, -14600621);
-         g.pose().popPose();
-         if (this.stage == 1 && !this.waiting && !this.failed) {
-            g.drawCenteredString(this.font, ui("choose"), 400, 148, -1);
-         }
-
-         g.drawString(this.font, ui("click_hint"), 63, 399, -10193001, false);
-         if (this.overlay > 0) {
-            this.drawOverlay(g);
-         }
-
-         super.render(g, mx, my, partial);
-      } else {
-         g.drawString(this.font, ui("show_hint"), 24, 425, -1, true);
-      }
-
-      RenderSystem.disableBlend();
-      g.pose().popPose();
-   }
-
-   private void drawOverlay(GuiGraphics g) {
-      g.fill(0, 0, 800, 450, -1743907800);
-      drawFrame(g, 140, 58, 520, 324);
-      g.drawString(this.font, ui(this.overlay == 1 ? "log" : "settings"), 172, 97, -14403232, false);
-      if (this.overlay == 1) {
-         int end = Math.min(this.historyLines.size(), this.historyScroll + 17);
-
-         for (int i = this.historyScroll; i < end; i++) {
-            g.drawString(this.font, this.historyLines.get(i), 172, 122 + (i - this.historyScroll) * 11, -13351839, false);
-         }
-
-         g.drawWordWrap(this.font, ui("log_hint"), 400, 318, 222, -10193001);
-      } else {
-         g.drawWordWrap(this.font, ui("help"), 172, 118, 454, -13351839);
-         g.drawWordWrap(this.font, ui("settings_hint"), 172, 264, 454, -10193001);
-      }
-   }
-
-   private static void drawFrame(GuiGraphics g, int x, int y, int w, int h) {
-      RenderSystem.enableBlend();
-      g.blit(FRAME, x, y, w, h, 16.0F, 60.0F, 1060, 252, 1086, 362);
-   }
-
-   public boolean mouseClicked(double x, double y, int button) {
-      double mx = (x - (double)this.left()) / (double)this.scale();
-      double my = (y - (double)this.top()) / (double)this.scale();
-      if (button == 1) {
-         if (this.overlay > 0) {
-            this.overlay = 0;
-         } else {
-            this.hidden = !this.hidden;
-         }
-
-         this.automatic = false;
-         this.fastForward = false;
-         this.syncWidgets();
-         return true;
-      } else if (this.hidden) {
-         this.hidden = false;
-         this.syncWidgets();
-         return true;
-      } else if (super.mouseClicked(mx, my, button)) {
-         return true;
-      } else if (button == 0 && this.overlay == 0 && mx >= 24.0 && mx <= 776.0 && my >= 314.0 && my < 410.0) {
-         this.advance();
-         return true;
-      } else {
-         return true;
-      }
-   }
-
-   public boolean mouseReleased(double x, double y, int button) {
-      return super.mouseReleased((x - (double)this.left()) / (double)this.scale(), (y - (double)this.top()) / (double)this.scale(), button);
-   }
-
-   public boolean mouseScrolled(double x, double y, double horizontal, double vertical) {
-      if (this.overlay == 1) {
-         this.scrollHistory((int)(-Math.signum(vertical)) * 3);
-      } else if (vertical > 0.0) {
-         this.openOverlay(1);
-      }
-
-      return true;
-   }
-
-   public boolean keyPressed(int key, int scan, int modifiers) {
-      if (key == 256) {
-         if (this.overlay > 0) {
-            this.overlay = 0;
-            this.syncWidgets();
-         } else if (this.hidden) {
-            this.hidden = false;
-            this.syncWidgets();
-         } else {
-            this.onClose();
-         }
-
-         return true;
-      } else if (key != 32 && key != 257 && key != 335) {
-         return super.keyPressed(key, scan, modifiers);
-      } else {
-         if (this.getFocused() instanceof Button button && button.visible && button.active) {
-            return super.keyPressed(key, scan, modifiers);
-         }
-
-         this.advance();
-         return true;
-      }
-   }
-
-   public void onClose() {
-      this.voice.stop();
-      this.minecraft.setScreen(this.returnScreen);
-   }
-
-   public void removed() {
-      this.voice.stop();
-   }
-
-   public boolean isPauseScreen() {
-      return false;
-   }
-
-   private final class NovelButton extends Button {
-      private NovelButton(int x, int y, int w, int h, Component text, OnPress callback) {
-         super(x, y, w, h, text, callback, DEFAULT_NARRATION);
-      }
-
-      protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partial) {
-         TwoIStoryScreen.drawFrame(g, this.getX(), this.getY(), this.getWidth(), this.getHeight());
-         boolean selected = this.isHoveredOrFocused() && this.active;
-         if (selected) {
-            g.renderOutline(this.getX() + 3, this.getY() + 2, this.getWidth() - 6, this.getHeight() - 4, -9792800);
-         }
-
-         String label = TwoIStoryScreen.this.font.plainSubstrByWidth(this.getMessage().getString(), this.getWidth() - 16);
-         g.drawString(
-            TwoIStoryScreen.this.font,
-            label,
-            this.getX() + (this.getWidth() - TwoIStoryScreen.this.font.width(label)) / 2,
-            this.getY() + (this.getHeight() - 8) / 2,
-            this.active ? -13613451 : -7760723,
-            false
-         );
-      }
-   }
+        @Override protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partial) {
+            drawFrame(g, getX(), getY(), getWidth(), getHeight());
+            boolean selected = isHoveredOrFocused() && active;
+            if (selected) g.renderOutline(getX() + 3, getY() + 2, getWidth() - 6, getHeight() - 4, 0xFF6A92E0);
+            String label = font.plainSubstrByWidth(getMessage().getString(), getWidth() - 16);
+            g.drawString(font, label, getX() + (getWidth() - font.width(label)) / 2,
+                    getY() + (getHeight() - 8) / 2, active ? 0xFF304675 : 0xFF8994AD, false);
+        }
+    }
 }

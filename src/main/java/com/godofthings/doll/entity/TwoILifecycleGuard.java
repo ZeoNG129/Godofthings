@@ -2,36 +2,26 @@ package com.godofthings.doll.entity;
 
 import net.minecraft.world.entity.Entity;
 
+/** Narrow vanilla lifecycle scopes; direct storage purges cannot silently orphan a live doll. */
 public final class TwoILifecycleGuard implements AutoCloseable {
-   private static final ThreadLocal<Entity> CURRENT = new ThreadLocal<>();
-   private final Entity previous = CURRENT.get();
+    private static final ThreadLocal<Entity> CURRENT = new ThreadLocal<>();
+    private final Entity previous;
 
-   private TwoILifecycleGuard(Entity entity) {
-      CURRENT.set(entity);
-   }
+    private TwoILifecycleGuard(Entity entity) {
+        previous = CURRENT.get();
+        CURRENT.set(entity);
+    }
 
-   public static TwoILifecycleGuard allow(Entity entity) {
-      return new TwoILifecycleGuard(entity);
-   }
+    public static TwoILifecycleGuard allow(Entity entity) { return new TwoILifecycleGuard(entity); }
 
-   public static boolean allows(Entity entity) {
-      return CURRENT.get() == entity;
-   }
+    public static boolean allows(Entity entity) { return CURRENT.get() == entity; }
 
-   public static boolean blocks(Object entity) {
-      if (entity instanceof TwoIDollEntity doll && !doll.level().isClientSide && doll.isAddedToLevel() && !doll.isRemoved() && CURRENT.get() != doll) {
-         return true;
-      }
+    public static boolean blocks(Object entity) {
+        return entity instanceof TwoIDollEntity doll && !doll.level().isClientSide
+                && doll.isAddedToLevel() && !doll.isRemoved() && CURRENT.get() != doll;
+    }
 
-      return false;
-   }
-
-   @Override
-   public void close() {
-      if (this.previous == null) {
-         CURRENT.remove();
-      } else {
-         CURRENT.set(this.previous);
-      }
-   }
+    @Override public void close() {
+        if (previous == null) CURRENT.remove(); else CURRENT.set(previous);
+    }
 }

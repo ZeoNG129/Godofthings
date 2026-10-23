@@ -1,0 +1,40 @@
+package com.godofthings.doll.client;
+
+import appeng.client.gui.style.BackgroundGenerator;
+import net.minecraft.client.gui.GuiGraphics;
+
+/**
+ * 玩偶界面共用的调色板与面板绘制。
+ *
+ * <p>从《无用担架》原样移植（{@code StretcherScreenStyle}），调用 AE2 的
+ * {@code BackgroundGenerator.draw(...)} 画面板 —— 本模组本身就有 AE2 依赖（required），
+ * 所以这条依赖没有问题，保持与原版完全一致的观感。</p>
+ */
+public final class StretcherScreenStyle
+{
+    public static final int PANEL_COLOR = 0xFFCBCCD4;
+    public static final int HIGHLIGHT_COLOR = 0xFFF2F2F2;
+    public static final int SLOT_COLOR = 0xFFADB0C4;
+    public static final int SLOT_SHADOW_COLOR = 0xFF9A9FB4;
+    public static final int TEXT_COLOR = 0xFF413F54;
+    public static final int MUTED_TEXT_COLOR = 0xFF878FA5;
+    public static final int SUBTLE_TEXT_COLOR = 0xFF6D7287;
+    public static final int ACTIVE_COLOR = 0xFF517497;
+    public static final int SUCCESS_COLOR = 0xFF3B7652;
+    public static final int WARNING_COLOR = 0xFF9A6B18;
+
+    private StretcherScreenStyle()
+    {
+    }
+
+    public static void drawPanel(GuiGraphics graphics, int left, int top, int width, int height)
+    {
+        BackgroundGenerator.draw(width, height, graphics, left, top);
+    }
+
+    public static void drawInset(GuiGraphics graphics, int left, int top, int right, int bottom)
+    {
+        graphics.fill(left, top, right, bottom, HIGHLIGHT_COLOR);
+        graphics.fill(left + 1, top + 1, right - 1, bottom - 1, PANEL_COLOR);
+    }
+}

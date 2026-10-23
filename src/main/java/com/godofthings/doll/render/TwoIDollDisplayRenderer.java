@@ -7,36 +7,38 @@ import com.godofthings.doll.blockentity.TwoIDollDisplayBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 
+/** One cached model per renderer; placed dolls do not load chunks or tick on the server. */
 public final class TwoIDollDisplayRenderer implements BlockEntityRenderer<TwoIDollDisplayBlockEntity> {
-   private final TwoIDollRenderer.Model model;
+    private final TwoIDollRenderer.Model model;
 
-   public TwoIDollDisplayRenderer(Context context) {
-      this.model = new TwoIDollRenderer.Model(context.bakeLayer(TwoIDollRenderer.LAYER));
-   }
+    public TwoIDollDisplayRenderer(BlockEntityRendererProvider.Context context) {
+        model = new TwoIDollRenderer.Model(context.bakeLayer(TwoIDollRenderer.LAYER));
+    }
 
-   public void render(TwoIDollDisplayBlockEntity doll, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int light, int overlay) {
-      float offset = (float)Math.floorMod(doll.getBlockPos().hashCode(), 1600);
-      this.model.setupDecoration(TwoIDollItemRenderer.animationTime() + offset);
-      this.model
-         .applyWeather(
-            TwoIDollWeather.sample(doll, doll.getLevel(), doll.getBlockPos(), partialTick, doll.getBlockPos().hashCode()),
-            TwoIDollItemRenderer.animationTime() + offset
-         );
-      poseStack.pushPose();
-      poseStack.translate(0.5, 0.93F, 0.5);
-      double now = doll.getLevel() == null ? 0.0 : (double)((float)doll.getLevel().getGameTime() + partialTick);
-      poseStack.mulPose(
-         Axis.YP.rotationDegrees(-22.5F * (float)((Integer)doll.getBlockState().getValue(TwoIDollDisplayBlock.ROTATION)).intValue() + doll.rotationAt(now))
-      );
-      poseStack.scale(0.62F, -0.62F, -0.62F);
-      this.model.renderToBuffer(poseStack, buffer.getBuffer(RenderType.entityCutoutNoCull(TwoIDollSkin.texture(this.model.blink()))), light, overlay);
-      this.model.renderAccessories(poseStack, buffer, light, overlay);
-      poseStack.popPose();
-   }
+    @Override
+    public void render(TwoIDollDisplayBlockEntity doll, float partialTick, PoseStack poseStack,
+                       MultiBufferSource buffer, int light, int overlay) {
+        // A stable position offset makes a shelf of dolls use different gestures.
+        float offset = Math.floorMod(doll.getBlockPos().hashCode(), 1600);
+        model.setupDecoration(TwoIDollItemRenderer.animationTime() + offset);
+        model.applyWeather(TwoIDollWeather.sample(doll, doll.getLevel(), doll.getBlockPos(), partialTick,
+                doll.getBlockPos().hashCode()), TwoIDollItemRenderer.animationTime() + offset);
+        poseStack.pushPose();
+        poseStack.translate(0.5D, TwoIDollRenderer.FEET_Y / 16.0F * TwoIDollRenderer.RENDER_SCALE, 0.5D);
+        double now = doll.getLevel() == null ? 0 : doll.getLevel().getGameTime() + partialTick;
+        poseStack.mulPose(Axis.YP.rotationDegrees(-22.5F * doll.getBlockState()
+                .getValue(TwoIDollDisplayBlock.ROTATION) + doll.rotationAt(now)));
+        poseStack.scale(TwoIDollRenderer.RENDER_SCALE, -TwoIDollRenderer.RENDER_SCALE, -TwoIDollRenderer.RENDER_SCALE);
+        model.renderToBuffer(poseStack, buffer.getBuffer(RenderType.entityCutoutNoCull(TwoIDollSkin.texture(model.blink()))),
+                light, overlay);
+        model.renderAccessories(poseStack, buffer, light, overlay);
+        poseStack.popPose();
+    }
 
-   public int getViewDistance() {
-      return 48;
-   }
+    @Override
+    public int getViewDistance() {
+        return 48;
+    }
 }

@@ -123,6 +123,8 @@ foreach ($file in Get-ChildItem -Path $javaDir -Recurse -Filter *.java) {
     foreach ($m in $reTrans.Matches($text)) {
         $key = $m.Groups[1].Value
         if ($prefixAllow -contains $key) { continue }
+        # Vanilla keys live in the vanilla lang file, not ours - skip them.
+        if ($key.StartsWith('commands.') -or $key.StartsWith('minecraft.')) { continue }
         if (-not $keys.ContainsKey($key)) { [void]$missing.Add($key) }
     }
     foreach ($m in $reBlock.Matches($text)) { [void]$blocks.Add($m.Groups[1].Value) }
