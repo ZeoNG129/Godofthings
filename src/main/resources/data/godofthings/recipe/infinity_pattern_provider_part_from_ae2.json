@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "A": {
+      "item": "godofthings:_1024slots_pattern_provider_part"
+    },
+    "B": {
+      "item": "ae2:engineering_processor"
+    },
+    "C": {
+      "item": "ae2:cell_component_256k"
+    },
+    "D": {
+      "item": "ae2:singularity"
+    }
+  },
+  "pattern": [
+    "AB",
+    "CD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "godofthings:infinity_pattern_provider_part"
+  }
+}

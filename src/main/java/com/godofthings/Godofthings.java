@@ -844,6 +844,15 @@ public class Godofthings
                          // 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）
                          // 这一个物品同时是摆件的物品形态（TwoIDollItem extends BlockItem）
                          output.accept(com.godofthings.doll.init.DollRegistry.TWO_I_DOLL_ITEM.get());
+                         // 无限样板供应器（方块 + part 两种形态 ×4 档）
+                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1_ITEM.get());
+                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_ITEM.get());
+                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_ITEM.get());
+                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_ITEM.get());
+                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1_PART_ITEM.get());
+                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_PART_ITEM.get());
+                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_PART_ITEM.get());
+                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_PART_ITEM.get());
                         // ---- 物品：神之套装（四件套放一起）----
                         output.accept(GOD_HELMET.get());
                         output.accept(GOD_CHESTPLATE.get());
@@ -953,6 +962,8 @@ public class Godofthings
                  com.godofthings.doll.config.DollConfig.SPEC, "godofthings-doll-server.toml");
          // 神之皮带（移植自 ToolBelt 2.2.10）：网络包 / 物品能力 / 皮带槽事件 / 配置刷新
          BeltRegistration.init(modEventBus);
+        // ===== 无限样板供应器（移植自 InfinityPatternProvider：1/32/1024/无限槽 + part 形态）=====
+        com.godofthings.infinityprovider.InfProviderRegistry.register(modEventBus);
         // ===== 全能升级（移植自 Omni Upgrades：批量安装插件 / 等级安装器 + 高亮预览）=====
         // 适配器内部用 ModList.isLoaded 守护；网络通道 + 客户端/服务端双配置
         modEventBus.addListener(com.godofthings.omni.OmniNetwork::onRegisterPayloads);
@@ -969,6 +980,7 @@ public class Godofthings
         // ME 无限元件：存储处理器 + 驱动器槽位模型注册（enqueueWork 保证注册表就绪且主线程执行；
         // StorageCellModels 虽在 api.client 包里，但上游 ExtendedAE 同样在双侧通用初始化中调用）
         event.enqueueWork(() -> {
+            com.godofthings.infinityprovider.InfProviderCapabilities.bindAll();
             StorageCells.addCellHandler(com.godofthings.infinitecell.big.InfinityCellHandler.INSTANCE);
             StorageCells.addCellHandler(UniversalCellInventory.HANDLER);
             StorageCellModels.registerModel(INFINITY_BIGINTEGER_CELL.get(), godofthingsId("block/drive/infinity_biginteger_cell"));

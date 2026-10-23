@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_32slots_pattern_provider": {
+      "conditions": {
+        "items": [
+          {
+            "items": "godofthings:_32slots_pattern_provider"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "godofthings:1024slots_pattern_provider_blockentity_from_ae2"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_32slots_pattern_provider"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "godofthings:1024slots_pattern_provider_blockentity_from_ae2"
+    ]
+  }
+}

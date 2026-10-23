@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "godofthings:block/_1slots_pattern_provider"
+  }
+}

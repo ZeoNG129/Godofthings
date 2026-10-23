@@ -86,6 +86,10 @@
                    "godofthings:pink_pigmee_building_panel",
                    "godofthings:pink_pigmee_framed_building_panel",
                    "godofthings:pink_pigmee_building_slab",
-                   "godofthings:pink_pigmee_framed_building_slab"
+                   "godofthings:pink_pigmee_framed_building_slab",
+                   "godofthings:_1slots_pattern_provider",
+                   "godofthings:_32slots_pattern_provider",
+                   "godofthings:_1024slots_pattern_provider",
+                   "godofthings:infinity_pattern_provider"
                ]
 }

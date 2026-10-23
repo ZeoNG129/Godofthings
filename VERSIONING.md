@@ -2037,3 +2037,15 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **编译依赖**：Mekanism / industrialforegoing / titanium / pneumaticcraft 四个 jar 从测试包
     拷进 libs/ 作 compileOnly（运行期由 ModList.isLoaded 守护，缺模组不崩）。
   - **自查**：check-lang OK（zh/en 各 1199 键）；build + GameTest 45 条全绿（0 配方 / 标签错误）。
+
+- 7.1.2 -> **7.2.0（新增小物品：无限样板供应器四档 + 线缆部件形态，反编译移植自 Infinity Pattern Provider）**。2026-10-24
+  - **来源**：Infinity Pattern Provider 闭源 jar，反编译后移植；注册名沿用上游
+    （`_1slots_pattern_provider` / `_32slots_pattern_provider` / `_1024slots_pattern_provider` /
+    `infinity_pattern_provider`，前导下划线是上游为规避 Java 标识符限制而加的）。
+  - **规模**：`com.godofthings.infinityprovider` 新包 —— 方块 / 方块实体 / 部件 / 菜单 /
+    注册表 / 能力桥接，外加 `client` 翻页界面；四档槽位数 1 / 32 / 1024 / 32723（1023 页，8×4 一页）。
+  - **形态**：每档都有方块形态与挂在 AE2 线缆上的部件形态，两者功能一致。
+  - **配方**：与 AE2 原版样板供应器双向互转（切石机一拆九 / 处理器与元件升级 / 降级），
+    部件形态与方块形态之间也可互转。
+  - **自查**：`check-lang.ps1` checks: OK（zh/en 各 1225 键，92 方块 / 103 物品 / 1 实体 / 32 成就）；
+    `gradlew build` 成功并自动部署；`runGameTestServer` 45 条全部通过。

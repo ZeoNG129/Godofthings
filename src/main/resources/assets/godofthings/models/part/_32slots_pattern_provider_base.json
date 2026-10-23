@@ -1,0 +1,6 @@
+{
+  "parent": "ae2:part/pattern_provider_base",
+  "textures": {
+    "front": "godofthings:part/_32slots_pattern_provider_part"
+  }
+}

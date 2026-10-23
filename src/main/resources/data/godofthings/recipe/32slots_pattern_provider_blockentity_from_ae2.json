@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "A": {
+      "item": "ae2:pattern_provider"
+    },
+    "B": {
+      "item": "ae2:logic_processor"
+    },
+    "C": {
+      "item": "ae2:cell_component_1k"
+    },
+    "D": {
+      "item": "ae2:silicon"
+    }
+  },
+  "pattern": [
+    "AB",
+    "CD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "godofthings:_32slots_pattern_provider"
+  }
+}

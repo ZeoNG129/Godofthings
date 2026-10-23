@@ -136,6 +136,11 @@ $buildingColors = @('white','orange','magenta','light_blue','yellow','lime','pin
 # registerSimpleBlockItem has no name literal; list the two generic block items here.
 [void]$items.Add('pigmee_building_block')
 [void]$items.Add('pigmee_building_slab')
+# InfProviderRegistry uses registerSimpleBlockItem for its four block items.
+[void]$items.Add('_1slots_pattern_provider')
+[void]$items.Add('_32slots_pattern_provider')
+[void]$items.Add('_1024slots_pattern_provider')
+[void]$items.Add('infinity_pattern_provider')
 foreach ($c in $buildingColors) {
     [void]$blocks.Add("${c}_pigmee_building_panel")
     [void]$blocks.Add("${c}_pigmee_framed_building_panel")

@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "ae2:pattern_provider"
+  },
+  "result": {
+    "count": 9,
+    "id": "godofthings:_1slots_pattern_provider"
+  }
+}

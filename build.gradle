@@ -19,8 +19,10 @@ neoForge {
     // NeoForge 版本（gradle.properties）
     version = neoforge_version
 
-    // v5.12.1：accesstransformer.cfg 已删除 —— 其 13 条 AT 全部服务于 v5.10.0 删除的
-    // 玩家保护层 / 造化杖（EntityGetterMixin 等），目标字段在代码里 0 处引用。
+    // （历史上的 13 条 AT 已随 v5.12.1 删除；v7.2.0 起新增下面一条服务于无限样板供应器。）
+
+    // 访问转换器：无限样板供应器的翻页屏幕需要运行期重排槽位坐标（Slot.x/y 去 final，与 AE2 的 AT 相同）
+    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
         client {

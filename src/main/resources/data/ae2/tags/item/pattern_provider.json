@@ -1,0 +1,12 @@
+{
+  "values": [
+    "godofthings:_1slots_pattern_provider",
+    "godofthings:_32slots_pattern_provider",
+    "godofthings:_1024slots_pattern_provider",
+    "godofthings:infinity_pattern_provider",
+    "godofthings:_1slots_pattern_provider_part",
+    "godofthings:_32slots_pattern_provider_part",
+    "godofthings:_1024slots_pattern_provider_part",
+    "godofthings:infinity_pattern_provider_part"
+  ]
+}

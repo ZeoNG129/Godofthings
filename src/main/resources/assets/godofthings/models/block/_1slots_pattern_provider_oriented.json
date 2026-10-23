@@ -1,0 +1,12 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "particle": "godofthings:block/_1slots_pattern_provider",
+    "down": "godofthings:block/_1slots_pattern_provider_alternate",
+    "up": "godofthings:block/_1slots_pattern_provider_alternate_front",
+    "north": "godofthings:block/_1slots_pattern_provider_alternate_arrow",
+    "south": "godofthings:block/_1slots_pattern_provider_alternate_arrow",
+    "east": "godofthings:block/_1slots_pattern_provider_alternate_arrow",
+    "west": "godofthings:block/_1slots_pattern_provider_alternate_arrow"
+  }
+}
