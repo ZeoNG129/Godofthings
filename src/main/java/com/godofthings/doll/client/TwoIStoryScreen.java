@@ -113,7 +113,7 @@ public final class TwoIStoryScreen extends Screen implements TwoIInteractionScre
    }
 
    private static Component speaker(TwoIStoryScript.Line line) {
-      return (Component)(line.narration() ? ui("narrator") : (line.player() ? ui("you") : Component.literal("2i")));
+      return (Component)(line.narration() ? ui("narrator") : (line.player() ? ui("you") : Component.literal("紬紬")));
    }
 
    protected void init() {

@@ -53,12 +53,62 @@ public final class TwoIDollTail {
    private float tipY;
    private float tipZ;
 
+   /**
+    * 打开尾巴几何 JSON。
+    *
+    * <p><b>为什么不用单一句 {@code class.getResourceAsStream("/assets/...")}</b>：
+    * NeoForge 用 {@code TransformingClassLoader} 包裹模组类，方块实体渲染器在
+    * <b>资源包重载期</b>（{@code BlockEntityRenderDispatcher.onResourceManagerReload}）
+    * 就会构造，那时模组类加载器的 {@code getResourceAsStream} 对 jar 内资源的解析
+    * 还没就绪，直接拿到 null —— 表现为「Missing 2i tail geometry」→
+    * {@code ExceptionInInitializerError} → 整个资源重载失败、卡在加载界面。</p>
+    *
+    * <p>这里按可靠性从高到低依次尝试，任一成功即返回：</p>
+    * <ol>
+    *   <li>{@link TwoIDollTail} 自身的类加载器（正常开发环境、部分运行环境可用）；</li>
+    *   <li>线程上下文类加载器（NeoForge 在模组加载阶段会设成能看见模组 jar 的那个）；</li>
+    *   <li>{@code ModList} 提供的模组资源路径（最终兜底，直接走 jar 文件系统）。</li>
+    * </ol>
+    */
+   private static InputStream openGeometry() {
+      String path = "/assets/godofthings/models/entity/two_i_tail.json";
+
+      InputStream stream = TwoIDollTail.class.getResourceAsStream(path);
+      if (stream != null) {
+         return stream;
+      }
+
+      ClassLoader context = Thread.currentThread().getContextClassLoader();
+      if (context != null) {
+         stream = context.getResourceAsStream(path.substring(1));
+         if (stream != null) {
+            return stream;
+         }
+      }
+
+      ClassLoader own = TwoIDollTail.class.getClassLoader();
+      if (own != null) {
+         stream = own.getResourceAsStream(path.substring(1));
+         if (stream != null) {
+            return stream;
+         }
+      }
+
+      return null;
+   }
+
    private static TwoIDollTail.Bone[] loadGeometry() {
       try {
          TwoIDollTail.Bone[] var18;
-         try (InputStream stream = TwoIDollTail.class.getResourceAsStream("/assets/useless_stretcher/models/entity/two_i_tail.json")) {
+         try (InputStream stream = openGeometry())
+         {
             if (stream == null) {
-               throw new IllegalStateException("Missing 2i tail geometry");
+               // 资源取不到时不能让静态初始化炸掉：那会连带把 TwoIDollRenderer.Model
+               // 的构造拖进 ExceptionInInitializerError，导致整个资源重载失败、卡在加载界面。
+               // 这里退化为「没有尾巴」——玩偶本体照常渲染，只是缺了那条豹尾。
+               org.slf4j.LoggerFactory.getLogger("godofthings-doll")
+                       .warn("找不到玩偶尾巴几何数据，尾巴将被跳过（玩偶其余部分正常）");
+               return new TwoIDollTail.Bone[0];
             }
 
             JsonArray source = JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonArray("bones");

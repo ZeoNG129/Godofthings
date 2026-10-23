@@ -1,0 +1,9 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "godofthings:entity/two_i",
+      "sprite": "godofthings:entity/two_i"
+    }
+  ]
+}
