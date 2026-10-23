@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "godofthings:pigmee_building_block"
+  },
+  "result": {
+    "id": "godofthings:red_pigmee_building_slab",
+    "count": 2
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WBR",
+    "YGD"
+  ],
+  "key": {
+    "W": { "item": "minecraft:white_dye" },
+    "B": { "item": "minecraft:black_dye" },
+    "R": { "item": "minecraft:red_dye" },
+    "Y": { "item": "minecraft:yellow_dye" },
+    "G": { "item": "minecraft:green_dye" },
+    "D": { "item": "minecraft:blue_dye" }
+  },
+  "result": {
+    "id": "godofthings:dye_base",
+    "count": 4
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BBB",
+    "BBB",
+    "BBB"
+  ],
+  "key": {
+    "B": { "item": "godofthings:dye_base" }
+  },
+  "result": {
+    "id": "godofthings:pigmee_building_block",
+    "count": 8
+  }
+}

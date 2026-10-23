@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "godofthings:block/black_pigmee_building_slab_bottom"
+    },
+    "type=top": {
+      "model": "godofthings:block/black_pigmee_building_slab_top"
+    },
+    "type=double": {
+      "model": "godofthings:block/black_pigmee_building_slab_double"
+    }
+  }
+}

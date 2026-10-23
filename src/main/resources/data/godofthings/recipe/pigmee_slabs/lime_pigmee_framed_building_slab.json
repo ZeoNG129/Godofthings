@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BBB"
+  ],
+  "key": {
+    "B": { "item": "godofthings:lime_pigmee_framed_building_panel" }
+  },
+  "result": {
+    "id": "godofthings:lime_pigmee_framed_building_slab",
+    "count": 6
+  }
+}

@@ -946,6 +946,8 @@ public class Godofthings
         modEventBus.addListener(com.godofthings.doll.init.DollRegistry::registerAttributes);
         com.godofthings.doll.init.DollRegistry.register(modEventBus);
         com.godofthings.doll.init.DollSounds.SOUNDS.register(modEventBus);
+        // ===== 众神建材（移植自 AE2LT 猪咪建材：16 色素板/框板/台阶 + 建材方块 + 染料基底 + CTM）=====
+        com.godofthings.building.BuildingRegistry.register(modEventBus);
          // 玩偶配置（树叶掉落开关与概率）
          modContainer.registerConfig(ModConfig.Type.SERVER,
                  com.godofthings.doll.config.DollConfig.SPEC, "godofthings-doll-server.toml");

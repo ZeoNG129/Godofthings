@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/block",
+  "loader": "godofthings:connected_texture",
+  "render_type": "minecraft:solid",
+  "connection": "godofthings:same_block",
+  "textures": {
+    "base": "godofthings:block/pigmee_building/white_pigmee_building_panel",
+    "ctm": "godofthings:block/pigmee_building/white_pigmee_building_panel_ctm",
+    "particle": "godofthings:block/pigmee_building/white_pigmee_building_panel"
+  },
+  "slab_type": "top"
+}

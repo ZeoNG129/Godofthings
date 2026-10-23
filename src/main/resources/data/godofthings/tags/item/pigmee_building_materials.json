@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "godofthings:pigmee_building_block",
+    "#godofthings:pigmee_building_panels",
+    "#godofthings:pigmee_framed_building_panels"
+  ]
+}

@@ -129,6 +129,24 @@ foreach ($file in Get-ChildItem -Path $javaDir -Recurse -Filter *.java) {
     foreach ($m in $reEntity.Matches($text)) { [void]$entities.Add($m.Groups[1].Value) }
 }
 
+# Loop-registered ids are invisible to the regex above; keep this list in sync with
+# BuildingRegistry (one per DyeColor, four families) so their resources/tags validate.
+$buildingColors = @('white','orange','magenta','light_blue','yellow','lime','pink','gray',
+    'light_gray','cyan','purple','blue','brown','green','red','black')
+# registerSimpleBlockItem has no name literal; list the two generic block items here.
+[void]$items.Add('pigmee_building_block')
+[void]$items.Add('pigmee_building_slab')
+foreach ($c in $buildingColors) {
+    [void]$blocks.Add("${c}_pigmee_building_panel")
+    [void]$blocks.Add("${c}_pigmee_framed_building_panel")
+    [void]$blocks.Add("${c}_pigmee_building_slab")
+    [void]$blocks.Add("${c}_pigmee_framed_building_slab")
+    [void]$items.Add("${c}_pigmee_building_panel")
+    [void]$items.Add("${c}_pigmee_framed_building_panel")
+    [void]$items.Add("${c}_pigmee_building_slab")
+    [void]$items.Add("${c}_pigmee_framed_building_slab")
+}
+
 Write-Host ("java files scanned: {0}   blocks: {1}   items: {2}   entities: {3}" -f `
         $scanned, $blocks.Count, $items.Count, $entities.Count)
 

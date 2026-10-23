@@ -2003,3 +2003,22 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     - 星光庭院没移植 → 对话里的「去星空玩一会儿」按钮会提示功能未启用（不会崩）。
     - 饰品栏玩偶不在人物模型上显示（见上）。
     - 面板与界面只在编译层面验证，**没有实机跑过客户端**（本工程无 `runClient` 任务）。
+
+- 7.0.0 -> **7.1.0（新增小物品：众神建材 66 个装饰方块 + 染料基底，移植自 AE2 闪电科技）**。
+  - **来源**：AE2 Lightning Tech（ae2lt）2.1.2-beta4 的猪咪建材线；方块/物品注册名沿用上游
+    （`white_pigmee_building_panel` 等），显示名按需求把「猪咪」换成「众神」；通用款
+    `pigmee_building_block` / `pigmee_building_slab` 原样移植（显示名保留「猪咪建材」）。
+  - **规模**：`com.godofthings.building` 新包 —— 3 个方块类 + `BuildingRegistry`（66 方块 / 67 物品）
+    + CTM 连接贴图框架 10 个客户端类（`building.client.ctm`，几何加载器注册为
+    `godofthings:connected_texture`；移植时去掉了上游的调试输出与机器专用谓词）。
+  - **创造页**：新增第二个标签页「众神之物：方块」（`god_building_tab`），收录染料基底 + 全部 66 方块。
+  - **配方（按用户口径，非上游原配方）**：染料基底 = 白/黑/红 + 黄/绿/蓝六染料两行 3x2 → 4 个；
+    素板 = 对应染料 8 围 1（中心染料基底）→ 8 个；框板 = 对应染料 8 围 1（中心同色素板）→ 8 个
+    （上游没有素板→框板配方，为避免与素板配方撞形而如此设计）；各台阶 = 3 板 → 6 个；
+    猪咪建材方块 = 9 染料基底 → 8 个，另可切石成任意 64 种变种；猪咪建材台阶 = 3 建材方块 → 6。
+  - **资源**：从上游 jar 提取 66 blockstate / 132 方块模型 / 67 物品模型 / 66 战利品表 / 66 张贴图，
+    命名空间 ae2lt → godofthings（CTM 加载器与谓词 id 同步改写）；mineable/pickaxe 追加 66 条。
+  - **check-lang**：新增「循环注册 id」手动清单（BuildingRegistry 按 DyeColor 注册的 64 方块 +
+    registerSimpleBlockItem 的 2 个物品），静态校验器从此能覆盖无字面量注册的 id。
+  - **自查**：`check-lang.ps1` checks: OK（zh/en 各 1187 键，88 方块 / 95 物品 / 1 实体）；
+    `gradlew build` 成功并自动部署；`runGameTestServer` 45 条全部通过。
