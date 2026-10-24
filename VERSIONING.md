@@ -2056,3 +2056,17 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **修复**：直接改用上游 jar 自带的原始背景图（`infinity_pattern_provider.png` 与 `_1slots_pattern_provider.png`，
     三张大容量档共用前者），删除两张自绘孤儿图；json 无需改动（坐标本就与上游一致）。
   - **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功并自动部署。客户端界面需实机复核。
+
+- 7.2.1 -> **7.3.0（新增小物品级功能：四档样板供应器全面增强——无线模式 / 回收模式 / 自适应倍增 / 高级设置）**。2026-10-24
+  - **来源**：AE2LT「扩展过载样板供应器」（ae2lt:extended_overloaded_pattern_provider）功能移植；
+    上游依赖 Thunderbolt（EJECT 全局 mixin / 批处理 CPU）与 FE 计费 / 频率绑定 / AdvancedAE 兼容，
+    本版裁剪为自包含实现（约 40 个支撑类 → 8 个核心类），无线派发用 AE2 原生 PatternProviderTarget 直连。
+  - **无线模式**：同心契右键供应器选中（需先开无线模式），再右键远程机器绑定其被点面（最多 1024 台，潜行解除）；
+    WIRELESS 下贴邻派发关闭，样板输入直接推给连接机器，界面左侧工具栏一键切换，标题旁显示连接数。
+  - **回收模式**：OFF / AUTO / EJECT 三态。AUTO 每 20 tick 扫描连接机器，抽取与当前样板产物匹配的输出回网络；
+    EJECT 把返回栏包装成 ME 存储暴露给机器输出面（被动接收）。
+  - **自适应倍增**：每台机器按样板记忆上次成功批次，被拒折半、成功维持，配合「机器并行数」上限（高级设置里调）。
+  - **高级设置子屏**：齿轮按钮进入，无线派发策略（逐台/均分语义保留为设置项）、无线速度、机器并行数输入框。
+  - **实现**：`PatternProviderLogicAccessor` mixin 暴露 AE2 私有成员；`InfEnhancedBlockEntity` 基类（NBT + 客户端流同步）；
+    `InfProviderLogic`（派发/回收/EJECT 存储）；菜单 GuiSync 高位段（22000+）+ client action；同心契三用绑定。
+  - **自查**：`check-lang.ps1` checks: OK（zh/en 各 +33 键）；`gradlew build` 成功；`runGameTestServer` 45 条全过。

@@ -43,10 +43,10 @@ public final class InfProviderClientSetup {
                 InfProviderScreens.SInf::new, "/screens/infinity_pattern_provider.json");
     }
 
-    /** 1 槽版直接复用 AE2 样板供应器屏幕；具名工厂避免 register 重载的 lambda 推断歧义。 */
-    private static appeng.client.gui.implementations.PatternProviderScreen<InfProviderMenu.Provider1Menu> provider1Screen(
+    /** 1 槽版增强屏幕；具名工厂避免 register 重载的 lambda 泛型推断歧义。 */
+    private static InfProviderEnhancedScreen<InfProviderMenu.Provider1Menu> provider1Screen(
             InfProviderMenu.Provider1Menu menu, Inventory playerInventory, Component title, ScreenStyle style) {
-        return new appeng.client.gui.implementations.PatternProviderScreen<>(menu, playerInventory, title, style);
+        return new InfProviderEnhancedScreen<>(menu, playerInventory, title, style);
     }
 
     @SubscribeEvent

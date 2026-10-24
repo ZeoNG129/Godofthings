@@ -71,14 +71,14 @@ public final class InfProviderBlockEntity {
         }
     }
 
-    public static class Provider1 extends PatternProviderBlockEntity {
+    public static class Provider1 extends InfEnhancedBlockEntity {
         public Provider1(BlockPos pos, BlockState blockState) {
             super(InfProviderRegistry.P1_BE.get(), pos, blockState);
         }
 
         @Override
         protected PatternProviderLogic createLogic() {
-            return new PatternProviderLogic(this.getMainNode(), this, 1);
+            return new InfProviderLogic(this.getMainNode(), this, 1, this);
         }
 
         @Override
@@ -146,14 +146,14 @@ public final class InfProviderBlockEntity {
         }
     }
 
-    public static class Provider32 extends PatternProviderBlockEntity {
+    public static class Provider32 extends InfEnhancedBlockEntity {
         public Provider32(BlockPos pos, BlockState blockState) {
             super(InfProviderRegistry.P32_BE.get(), pos, blockState);
         }
 
         @Override
         protected PatternProviderLogic createLogic() {
-            return new PatternProviderLogic(this.getMainNode(), this, 32);
+            return new InfProviderLogic(this.getMainNode(), this, 32, this);
         }
 
         @Override
@@ -221,14 +221,14 @@ public final class InfProviderBlockEntity {
         }
     }
 
-    public static class Provider1024 extends PatternProviderBlockEntity {
+    public static class Provider1024 extends InfEnhancedBlockEntity {
         public Provider1024(BlockPos pos, BlockState blockState) {
             super(InfProviderRegistry.P1024_BE.get(), pos, blockState);
         }
 
         @Override
         protected PatternProviderLogic createLogic() {
-            return new PatternProviderLogic(this.getMainNode(), this, 1024);
+            return new InfProviderLogic(this.getMainNode(), this, 1024, this);
         }
 
         @Override
@@ -296,14 +296,14 @@ public final class InfProviderBlockEntity {
         }
     }
 
-    public static class ProviderInf extends PatternProviderBlockEntity {
+    public static class ProviderInf extends InfEnhancedBlockEntity {
         public ProviderInf(BlockPos pos, BlockState blockState) {
             super(InfProviderRegistry.PINF_BE.get(), pos, blockState);
         }
 
         @Override
         protected PatternProviderLogic createLogic() {
-            return new PatternProviderLogic(this.getMainNode(), this, INFINITY_SLOTS);
+            return new InfProviderLogic(this.getMainNode(), this, INFINITY_SLOTS, this);
         }
 
         @Override
