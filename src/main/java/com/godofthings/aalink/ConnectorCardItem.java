@@ -155,6 +155,9 @@ public class ConnectorCardItem extends Item
         tooltip.add(Component.translatable("tooltip.godofthings.aalink.card_controls")
                 .withStyle(ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable(
+                        "tooltip.godofthings.aalink.card_scroll_toggle")
+                .withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable(
                         "tooltip.godofthings.aalink.card_link_shortcut",
                         Component.keybind("key.godofthings.aalink.card_link"))
                 .withStyle(ChatFormatting.DARK_GRAY));

@@ -99,14 +99,8 @@ public class GodofthingsCommand
                         .executes(GodofthingsCommand::openManual))
                 .then(Commands.literal("infinity")
                         .then(Commands.literal("recover")
-                                .executes(GodofthingsCommand::recoverInfinityCells)))
-                // 无线网格桥接自动连接开关（移植自 AALink 的 /aalink；并入本指令为 /godofthings link）
-                .then(Commands.literal("link")
-                        .requires(source -> source.hasPermission(2))
-                        .then(Commands.literal("on").executes(ctx ->
-                                com.godofthings.aalink.AaLinkCommands.setEnabled(ctx.getSource(), true)))
-                        .then(Commands.literal("off").executes(ctx ->
-                                com.godofthings.aalink.AaLinkCommands.setEnabled(ctx.getSource(), false)))));
+                                .executes(GodofthingsCommand::recoverInfinityCells))));
+        // /godofthings link on|off 已按需求删除（v7.11.1）：自动桥接的开关改由卡自动连接替代
     }
 
     private static String arg(CommandContext<CommandSourceStack> ctx, String key)

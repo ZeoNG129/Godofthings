@@ -61,7 +61,7 @@ public final class ConnectorCardKeyMappings
         {
             while (TOGGLE_AUTO_CONNECT.consumeClick())
             {
-                PacketDistributor.sendToServer(new ConnectorCardToggleAutoPayload());
+                PacketDistributor.sendToServer(ConnectorCardToggleAutoPayload.forPreferredCard());
             }
             while (TOGGLE_LINK.consumeClick())
             {

@@ -2293,3 +2293,11 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 右键 AE 设备接入绑定网络、已同网再点一次**断开**（新增 AaLinkBridge.disconnect + SavedData.unlink）；
     潜行对空气右键清除绑定；
   - 配方本地化：无线接收器×4 + 末影珍珠×4 + 进阶卡 + 工程处理器；贴图用上游 overloaded_frequency_card.png。
+## 7.11.1（2026-10-25）
+- **Shift + 滚轮切换自动连接**（上游绑定频率后同款交互）：手持或副手拿着无线连接器卡时，
+  Shift+滚轮直接切换那张卡的自动连接开关并取消滚轮默认行为；ToggleAuto 包加 hand 参数区分
+  「指定手」与「按键自动选卡」两条路径；卡 tooltip 补一行操作提示。
+- **删除 /godofthings link on|off 两条指令**（连同 AaLinkCommands 类与 auto_state/on/off 语言键）：
+  全局自动桥接的开关已由卡的自动连接替代。
+- **修复卡无法放进其他无线终端**：升级卡注册从仅 AE2 无线终端扩展到全系列——
+  无线终端 / 无线合成终端 / 无线样板编码终端 / 染色 applicator 均可插入。

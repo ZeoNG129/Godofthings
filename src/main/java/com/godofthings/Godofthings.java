@@ -1076,12 +1076,13 @@ public class Godofthings
         event.enqueueWork(com.godofthings.superfusion.SuperFusionRegistry::registerAeLinkable);
         // ME 放置工具：三件套都注册成 AE2 可绑定物（同上，enqueueWork 里才安全）
         event.enqueueWork(com.godofthings.mept.MeptItems::registerAeLinkables);
-        // 无线连接器卡：注册成 AE2 无线终端的升级卡（可插进终端升级槽随身携带；
-        // 与其他无线终端兼容——任何 IUpgradeableItem 终端都能装）
+        // 无线连接器卡：注册成 AE2 全系列可升级手持设备的升级卡（原版共有：
+        // 无线终端 / 无线合成终端 / 染色器；样板编码终端等属 ae2wtlib，走 IUpgradeableItem 同样可装）
         event.enqueueWork(() -> {
-            appeng.api.upgrades.Upgrades.add(
-                    com.godofthings.aalink.AaLinkRegistry.WIRELESS_LINK_TOOL.get(),
-                    AEItems.WIRELESS_TERMINAL.get(), 1);
+            var card = com.godofthings.aalink.AaLinkRegistry.WIRELESS_LINK_TOOL.get();
+            appeng.api.upgrades.Upgrades.add(card, AEItems.WIRELESS_TERMINAL.get(), 1);
+            appeng.api.upgrades.Upgrades.add(card, AEItems.WIRELESS_CRAFTING_TERMINAL.get(), 1);
+            appeng.api.upgrades.Upgrades.add(card, AEItems.COLOR_APPLICATOR.get(), 1);
         });
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上
