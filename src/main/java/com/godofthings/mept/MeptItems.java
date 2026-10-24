@@ -24,14 +24,6 @@ public final class MeptItems
             ITEMS.registerItem("multiblock_placement_tool",
                     props -> new ItemMultiblockPlacementTool(props.stacksTo(1)));
 
-    public static final DeferredItem<ItemKeyOfSpectrum> KEY_OF_SPECTRUM =
-            ITEMS.registerItem("key_of_spectrum",
-                    props -> new ItemKeyOfSpectrum(props.stacksTo(64)));
-
-    public static final DeferredItem<ItemPrismCore> PRISM_CORE =
-            ITEMS.registerItem("prism_core",
-                    props -> new ItemPrismCore(props.stacksTo(64)));
-
     public static final DeferredItem<ItemMECablePlacementTool> ME_CABLE_PLACEMENT_TOOL =
             ITEMS.registerItem("me_cable_placement_tool",
                     props -> new ItemMECablePlacementTool(props.stacksTo(1)));

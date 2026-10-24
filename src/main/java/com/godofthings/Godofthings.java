@@ -919,12 +919,10 @@ public class Godofthings
                         {
                             output.accept(com.godofthings.superfusion.SuperFusionRegistry.itemOrNull());
                         }
-                        // ---- ME 放置工具三件套 + 光谱钥匙 + 棱镜核心（移植自 ME-Placement-Tool，不耗能源版）----
+                        // ---- ME 放置工具三件套（移植自 ME-Placement-Tool，不耗能源版；光谱钥匙功能已内置进线缆工具）----
                         output.accept(com.godofthings.mept.MeptItems.ME_PLACEMENT_TOOL.get());
                         output.accept(com.godofthings.mept.MeptItems.MULTIBLOCK_PLACEMENT_TOOL.get());
                         output.accept(com.godofthings.mept.MeptItems.ME_CABLE_PLACEMENT_TOOL.get());
-                        output.accept(com.godofthings.mept.MeptItems.KEY_OF_SPECTRUM.get());
-                        output.accept(com.godofthings.mept.MeptItems.PRISM_CORE.get());
                     })
                     .build());
 

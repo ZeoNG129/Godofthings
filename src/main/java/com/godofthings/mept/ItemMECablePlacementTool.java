@@ -920,15 +920,16 @@ public class ItemMECablePlacementTool extends BasePlacementToolItem
         stack.set(MeptDataComponents.CABLE_COLOR.get(), color.ordinal());
     }
 
+    // [本地改动] 上游需要「光谱的钥匙」升级卡才会解锁任意颜色；本地按需求内置升级：
+    // 工具本身永久视为已安装升级，不再存在未解锁状态。
     public static boolean hasUpgrade(ItemStack stack)
     {
-        Boolean has = stack.get(MeptDataComponents.HAS_UPGRADE.get());
-        return has != null && has;
+        return true;
     }
 
     public static void setUpgrade(ItemStack stack, boolean has)
     {
-        stack.set(MeptDataComponents.HAS_UPGRADE.get(), has);
+        // 内置升级：不再持久化升级状态（保留空实现供旧调用点编译）
     }
 
     public static int[] getColorShortcuts(ItemStack stack)

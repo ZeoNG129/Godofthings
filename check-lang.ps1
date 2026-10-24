@@ -200,8 +200,7 @@ if ($missingModel.Count -gt 0) {
 
 $missingName = New-Object System.Collections.Generic.SortedSet[string]
 foreach ($id in ($blocks + $items)) {
-    # mept items use the item.godofthings.mept.<id> prefix (ported namespace)
-    if (-not ($keys.ContainsKey("item.godofthings.$id") -or $keys.ContainsKey("block.godofthings.$id") -or $keys.ContainsKey("item.godofthings.mept.$id"))) {
+    if (-not ($keys.ContainsKey("item.godofthings.$id") -or $keys.ContainsKey("block.godofthings.$id"))) {
         [void]$missingName.Add($id)
     }
 }

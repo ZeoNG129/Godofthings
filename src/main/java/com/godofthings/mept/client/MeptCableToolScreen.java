@@ -3,14 +3,10 @@ package com.godofthings.mept.client;
 import com.godofthings.mept.client.MeptKeyBindings;
 import appeng.api.util.AEColor;
 import appeng.client.Point;
-import appeng.client.gui.widgets.UpgradesPanel;
 import appeng.menu.SlotSemantics;
-import appeng.menu.slot.AppEngSlot;
 import com.godofthings.mept.CableToolMenu;
 import com.godofthings.mept.ItemMECablePlacementTool;
-import com.godofthings.mept.MeptItems;
 import com.godofthings.mept.network.UpdateCableToolPayload;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -91,10 +87,6 @@ public class MeptCableToolScreen extends AbstractContainerScreen<CableToolMenu> 
     private static final int MODE_BTN_HEIGHT = 11;
     private static final int MODE_BTN_SPACING = 3;
 
-    // AE2 Upgrade Panel - positioned to the right of GUI
-    private static final int AE2_PADDING = 5;
-    private final UpgradesPanel upgradesPanel;
-
     // UI state
     private boolean colorMenuExpanded = false;
     private int hoveredColorIndex = -1;
@@ -119,9 +111,6 @@ public class MeptCableToolScreen extends AbstractContainerScreen<CableToolMenu> 
         this.inventoryLabelX = -9999;
         this.inventoryLabelY = -9999;
 
-        // Create AE2 UpgradesPanel for the upgrade slot
-        this.upgradesPanel = new UpgradesPanel(menu.getSlots(SlotSemantics.UPGRADE));
-
         // Load current color for slot 0
         colorShortcuts[0] = menu.currentColor;
         
@@ -135,9 +124,6 @@ public class MeptCableToolScreen extends AbstractContainerScreen<CableToolMenu> 
     @Override
     protected void init() {
         super.init();
-        // Position the AE2 upgrade panel to the right side of GUI (left-shifted by 1px)
-        this.upgradesPanel.setPosition(new Point(GUI_WIDTH - 2, AE2_PADDING));
-        this.upgradesPanel.populateScreen(this::addRenderableWidget, getBounds(), null);
     }
 
     private Rect2i getBounds() {
@@ -173,13 +159,6 @@ public class MeptCableToolScreen extends AbstractContainerScreen<CableToolMenu> 
         if (colorMenuExpanded) {
             drawColorMenu(guiGraphics, x, y, mouseX, mouseY);
         }
-
-        // Update and draw AE2 upgrade panel
-        upgradesPanel.updateBeforeRender();
-        upgradesPanel.drawBackgroundLayer(guiGraphics, getBounds(), new Point(mouseX - leftPos, mouseY - topPos));
-        
-        // Draw upgrade slot icon if empty
-        drawUpgradeSlotIcon(guiGraphics);
     }
 
     @Override
@@ -215,12 +194,8 @@ public class MeptCableToolScreen extends AbstractContainerScreen<CableToolMenu> 
         int startX = baseX + COLOR_BAR_LEFT + (areaWidth - totalCellsWidth) / 2;
         int startY = baseY + COLOR_BAR_TOP + (areaHeight - COLOR_CELL_SIZE) / 2;
 
-        // Slot 0: shows current color only if upgrade is installed, otherwise stays Fluix
-        if (menu.hasUpgrade) {
-            colorShortcuts[0] = menu.currentColor;
-        } else {
-            colorShortcuts[0] = AEColor.TRANSPARENT.ordinal(); // Fluix = 16
-        }
+        // Slot 0: shows current color (built-in upgrade: always the selected color)
+        colorShortcuts[0] = menu.currentColor;
 
         for (int i = 0; i < COLOR_CELL_COUNT; i++) {
             int cellX = startX + i * (COLOR_CELL_SIZE + COLOR_CELL_SPACING);
@@ -256,13 +231,9 @@ public class MeptCableToolScreen extends AbstractContainerScreen<CableToolMenu> 
         hoveredExpandButton = isInBounds(mouseX, mouseY, expandX, expandY, EXPAND_BTN_SIZE, EXPAND_BTN_SIZE);
 
         if (hoveredExpandButton) {
-            if (menu.hasUpgrade) {
-                hintText = Component.translatable(colorMenuExpanded ? "gui.godofthings.mept.collapse_colors" : "gui.godofthings.mept.expand_colors");
-                hintColor = 0x000000;
-            } else {
-                hintText = Component.translatable("gui.godofthings.mept.need_spectrum_key");
-                hintColor = 0xFF5555; // Red color to indicate requirement
-            }
+            // 内置升级：不需要提示未解锁
+            hintText = Component.translatable(colorMenuExpanded ? "gui.godofthings.mept.collapse_colors" : "gui.godofthings.mept.expand_colors");
+            hintColor = 0x000000;
         }
 
         guiGraphics.blit(EXPAND_BUTTON, expandX, expandY, 0, 0, EXPAND_BTN_SIZE, EXPAND_BTN_SIZE, EXPAND_BTN_SIZE, EXPAND_BTN_SIZE);
@@ -406,24 +377,6 @@ public class MeptCableToolScreen extends AbstractContainerScreen<CableToolMenu> 
         }
     }
 
-    /**
-     * Draw upgrade slot icon when slot is empty
-     */
-    private void drawUpgradeSlotIcon(GuiGraphics guiGraphics) {
-        List<Slot> upgradeSlots = menu.getSlots(SlotSemantics.UPGRADE);
-        if (!upgradeSlots.isEmpty()) {
-            Slot upgradeSlot = upgradeSlots.get(0);
-            if (upgradeSlot.getItem().isEmpty() && upgradeSlot instanceof AppEngSlot appEngSlot) {
-                if (appEngSlot.isSlotEnabled() && appEngSlot.getIcon() != null) {
-                    appEngSlot.getIcon().getBlitter()
-                        .dest(leftPos + upgradeSlot.x, topPos + upgradeSlot.y)
-                        .opacity(0.7f)
-                        .blit(guiGraphics);
-                }
-            }
-        }
-    }
-
     private int getDisplayColor(AEColor color) {
         return color == AEColor.TRANSPARENT ? 0x8B479B : color.mediumVariant;
     }
@@ -434,26 +387,6 @@ public class MeptCableToolScreen extends AbstractContainerScreen<CableToolMenu> 
 
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        List<Slot> upgradeSlots = menu.getSlots(SlotSemantics.UPGRADE);
-        if (!upgradeSlots.isEmpty()) {
-            Slot upgradeSlot = upgradeSlots.get(0);
-            int slotX = leftPos + upgradeSlot.x;
-            int slotY = topPos + upgradeSlot.y;
-
-            if (isInBounds(mouseX, mouseY, slotX, slotY, 16, 16)) {
-                if (upgradeSlot.getItem().isEmpty()) {
-                    List<Component> tooltip = new ArrayList<>();
-                    tooltip.add(Component.translatable("gui.godofthings.mept.compatible_upgrades").withStyle(ChatFormatting.GOLD));
-                    tooltip.add(Component.translatable("gui.godofthings.mept.upgrade_hint",
-                            new ItemStack(MeptItems.KEY_OF_SPECTRUM.get()).getHoverName()).withStyle(ChatFormatting.GRAY));
-                    guiGraphics.renderTooltip(font, tooltip, java.util.Optional.empty(), mouseX, mouseY);
-                    return;
-                } else {
-                    guiGraphics.renderTooltip(font, upgradeSlot.getItem(), mouseX, mouseY);
-                    return;
-                }
-            }
-        }
         super.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
@@ -461,11 +394,9 @@ public class MeptCableToolScreen extends AbstractContainerScreen<CableToolMenu> 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
             if (hoveredExpandButton) {
-                // Only allow expanding if upgrade is installed
-                if (menu.hasUpgrade) {
-                    colorMenuExpanded = !colorMenuExpanded;
-                    playButtonClickSound();
-                }
+                // 内置升级：直接展开/收起颜色菜单
+                colorMenuExpanded = !colorMenuExpanded;
+                playButtonClickSound();
                 return true;
             }
 

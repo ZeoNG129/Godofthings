@@ -1,13 +1,8 @@
 package com.godofthings.mept;
 
-import appeng.api.inventories.InternalInventory;
-import appeng.client.gui.Icon;
 import appeng.menu.AEBaseMenu;
 import appeng.menu.SlotSemantics;
 import appeng.menu.guisync.GuiSync;
-import appeng.menu.slot.AppEngSlot;
-import appeng.util.inv.AppEngInternalInventory;
-import appeng.util.inv.InternalInventoryHost;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -16,7 +11,8 @@ import appeng.api.util.AEColor;
 
 /**
  * 线缆放置工具的配置菜单（照抄上游 CableToolMenu）。
- * 提供线缆类型 / 颜色 / 放置模式选择，升级槽只收光谱钥匙。
+ * 提供线缆类型 / 颜色 / 放置模式选择。
+ * [本地改动] 升级槽已删除——光谱钥匙功能按需求内置进工具（hasUpgrade 恒真）。
  */
 public class CableToolMenu extends AEBaseMenu
 {
@@ -47,7 +43,6 @@ public class CableToolMenu extends AEBaseMenu
     @GuiSync(8)
     public int colorShortcut5 = -1;
 
-    private final InternalInventory upgradeInv;
     private final ItemStack toolStack;
     private final Player player;
 
@@ -77,31 +72,6 @@ public class CableToolMenu extends AEBaseMenu
         this.player = playerInventory.player;
         this.toolStack = toolStack;
 
-        // 升级库存：内容变化时回调
-        this.upgradeInv = new AppEngInternalInventory(new InternalInventoryHost()
-        {
-            @Override
-            public void saveChangedInventory(AppEngInternalInventory inv)
-            {
-                onUpgradeChanged();
-            }
-
-            @Override
-            public boolean isClientSide()
-            {
-                return player.level().isClientSide;
-            }
-        }, 1, 1);
-
-        // 从工具上装载已有的升级
-        loadUpgradeFromTool();
-
-        // 升级槽——只收光谱钥匙
-        // 位置：GUI_WIDTH(175) + AE2_PADDING(5) + 1 = 181, Y = AE2_PADDING(5) + 1 = 6
-        var upgradeSlot = new KeyOfSpectrumSlot(this.upgradeInv, 0, 181, 6);
-        upgradeSlot.setIcon(Icon.BACKGROUND_UPGRADE);
-        this.addSlot(upgradeSlot, SlotSemantics.UPGRADE);
-
         // 玩家背包槽位（自定义坐标，与贴图对齐）
         createCustomPlayerInventorySlots(playerInventory);
 
@@ -115,21 +85,13 @@ public class CableToolMenu extends AEBaseMenu
         registerClientAction(ACTION_SET_COLOR_SHORTCUT, int[].class, this::setColorShortcutFromClient);
     }
 
-    private void loadUpgradeFromTool()
-    {
-        if (ItemMECablePlacementTool.hasUpgrade(toolStack))
-        {
-            this.upgradeInv.setItemDirect(0, new ItemStack(MeptItems.KEY_OF_SPECTRUM.get()));
-        }
-        this.hasUpgrade = !this.upgradeInv.getStackInSlot(0).isEmpty();
-    }
-
     private void loadSettings()
     {
         this.currentMode = ItemMECablePlacementTool.getMode(toolStack).ordinal();
         this.currentCableType = ItemMECablePlacementTool.getCableType(toolStack).ordinal();
         this.currentColor = ItemMECablePlacementTool.getColor(toolStack).ordinal();
-        this.hasUpgrade = ItemMECablePlacementTool.hasUpgrade(toolStack);
+        // 内置升级：恒为已安装
+        this.hasUpgrade = true;
 
         // 装载颜色快捷槽
         int[] shortcuts = ItemMECablePlacementTool.getColorShortcuts(toolStack);
@@ -172,16 +134,6 @@ public class CableToolMenu extends AEBaseMenu
         {
             int x = INV_X + col * SLOT_SIZE;
             this.addSlot(new net.minecraft.world.inventory.Slot(playerInventory, col, x, HOTBAR_Y), SlotSemantics.PLAYER_HOTBAR);
-        }
-    }
-
-    private void onUpgradeChanged()
-    {
-        boolean newHasUpgrade = !this.upgradeInv.getStackInSlot(0).isEmpty();
-        if (this.hasUpgrade != newHasUpgrade)
-        {
-            this.hasUpgrade = newHasUpgrade;
-            ItemMECablePlacementTool.setUpgrade(toolStack, newHasUpgrade);
         }
     }
 
@@ -295,48 +247,10 @@ public class CableToolMenu extends AEBaseMenu
     }
 
     @Override
-    public void removed(Player player)
-    {
-        super.removed(player);
-
-        if (!player.level().isClientSide)
-        {
-            ItemStack upgradeStack = this.upgradeInv.getStackInSlot(0);
-            ItemMECablePlacementTool.setUpgrade(toolStack, !upgradeStack.isEmpty());
-        }
-    }
-
-    @Override
     public boolean stillValid(Player player)
     {
         // 按物品类型匹配而非栈引用（引用会被数据组件同步换掉导致菜单意外关闭）
         return player.getMainHandItem().getItem() instanceof ItemMECablePlacementTool
                 || player.getOffhandItem().getItem() instanceof ItemMECablePlacementTool;
-    }
-
-    /**
-     * 只收光谱钥匙的槽位。
-     */
-    public static class KeyOfSpectrumSlot extends AppEngSlot
-    {
-        public KeyOfSpectrumSlot(InternalInventory inv, int invSlot, int x, int y)
-        {
-            super(inv, invSlot);
-            // 槽位坐标（相对 GUI 左上角）
-            this.x = x;
-            this.y = y;
-        }
-
-        @Override
-        public boolean mayPlace(ItemStack stack)
-        {
-            return stack.getItem() == MeptItems.KEY_OF_SPECTRUM.get();
-        }
-
-        @Override
-        public int getMaxStackSize()
-        {
-            return 1;
-        }
     }
 }

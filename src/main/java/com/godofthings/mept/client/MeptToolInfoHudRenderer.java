@@ -200,14 +200,10 @@ public class MeptToolInfoHudRenderer {
         String cableTypeName = getCableTypeName(cableType);
         lines.add(Component.translatable("godofthings.mept.hud.cable_type", cableTypeName).getString());
 
-        // Color - only show when upgrade (Key of Spectrum) is installed
-        // Without upgrade, the tool always uses transparent color, so no need to display
-        boolean hasUpgrade = ItemMECablePlacementTool.hasUpgrade(tool);
-        if (hasUpgrade) {
-            AEColor color = ItemMECablePlacementTool.getColor(tool);
-            String colorName = getColorName(color);
-            lines.add(Component.translatable("godofthings.mept.hud.color", colorName).getString());
-        }
+        // Color - built-in upgrade: always show the selected color
+        AEColor color = ItemMECablePlacementTool.getColor(tool);
+        String colorName = getColorName(color);
+        lines.add(Component.translatable("godofthings.mept.hud.color", colorName).getString());
 
         // Mode
         ItemMECablePlacementTool.PlacementMode mode = ItemMECablePlacementTool.getMode(tool);
