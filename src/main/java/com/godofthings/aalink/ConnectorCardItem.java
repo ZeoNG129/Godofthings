@@ -251,6 +251,18 @@ public class ConnectorCardItem extends appeng.items.materials.UpgradeCardItem
             return CardSelection.selected(curiosCard);
         }
 
+        // 插在无线终端升级槽里的卡（照抄上游 TerminalFrequencyCardFinder；只用于
+        // 自动连接这种「只读」路径——升级槽返回的是反序列化快照，改了不落盘，
+        // 所以 requireAutoConnect=false 的切换/连接动作跳过终端内卡，与上游一致）
+        if (requireAutoConnect)
+        {
+            ItemStack terminalCard = findCardInTerminals(player, playerUuid);
+            if (!terminalCard.isEmpty())
+            {
+                return CardSelection.selected(terminalCard);
+            }
+        }
+
         var inventory = player.getInventory();
         ItemStack best = ItemStack.EMPTY;
         int bestCount = 0;
@@ -288,6 +300,43 @@ public class ConnectorCardItem extends appeng.items.materials.UpgradeCardItem
             return data.isBound() && data.autoConnect() && data.canBeUsedBy(playerUuid);
         }
         return !data.isBound() || data.canBeUsedBy(playerUuid);
+    }
+
+    /**
+     * 找插在玩家携带的无线终端（任何 {@code IUpgradeableItem}）升级槽里的连接器卡。
+     * 只读快照（照抄上游 TerminalFrequencyCardFinder 的口径）。
+     */
+    private static ItemStack findCardInTerminals(Player player, UUID playerUuid)
+    {
+        var inventory = player.getInventory();
+        for (int i = 0; i < inventory.items.size(); i++)
+        {
+            var found = findCardInTerminalStack(inventory.items.get(i), playerUuid);
+            if (!found.isEmpty())
+            {
+                return found;
+            }
+        }
+        return findCardInTerminalStack(player.getOffhandItem(), playerUuid);
+    }
+
+    private static ItemStack findCardInTerminalStack(ItemStack terminalStack, UUID playerUuid)
+    {
+        if (terminalStack.isEmpty()
+                || !(terminalStack.getItem() instanceof appeng.api.upgrades.IUpgradeableItem upgradeable))
+        {
+            return ItemStack.EMPTY;
+        }
+        var upgrades = upgradeable.getUpgrades(terminalStack);
+        for (int slot = 0; slot < upgrades.size(); slot++)
+        {
+            var card = upgrades.getStackInSlot(slot);
+            if (isCandidate(card, playerUuid, true))
+            {
+                return card;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     /** 选卡结果（对应上游 FrequencyCardCandidateSelector.Selection）。 */
