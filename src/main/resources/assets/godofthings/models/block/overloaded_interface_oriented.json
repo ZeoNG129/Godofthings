@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "godofthings:block/overloaded_interface",
+    "down": "godofthings:block/overloaded_interface_top",
+    "up": "godofthings:block/overloaded_interface_bottom",
+    "north": "godofthings:block/overloaded_interface_side",
+    "south": "godofthings:block/overloaded_interface_side",
+    "west": "godofthings:block/overloaded_interface_side",
+    "east": "godofthings:block/overloaded_interface_side"
+  }
+}

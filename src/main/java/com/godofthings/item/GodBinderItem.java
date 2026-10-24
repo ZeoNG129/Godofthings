@@ -187,9 +187,29 @@ public class GodBinderItem extends Item
                             .withStyle(ChatFormatting.YELLOW), true);
             return;
         }
-        // 分支一：点到自家供应器 → 选中 / 取消选中
         if (level.getBlockEntity(pos) instanceof InfEnhancedBlockEntity provider) {
             handleProviderClick(stack, player, level, pos, provider);
+            return;
+        }
+        // 分支一之二：点到过载接口 → 选中 / 取消选中（它有自己的无线连接列表）
+        if (level.getBlockEntity(pos)
+                instanceof com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity iface) {
+            handleOverloadedInterfaceClick(stack, player, level, pos, iface);
+            return;
+        }
+
+        // 分支二：点到「已选中的过载接口」时连到它
+        var ifaceSelection = getOverloadedInterfaceSelection(stack);
+        if (ifaceSelection != null) {
+            var ifaceBe = resolveOverloadedInterface(level, ifaceSelection);
+            if (ifaceBe == null) {
+                clearOverloadedInterfaceSelection(stack);
+                player.displayClientMessage(
+                        Component.translatable("message.godofthings.binder.host_lost")
+                                .withStyle(ChatFormatting.RED), true);
+                return;
+            }
+            handleOverloadedInterfaceConnection(stack, player, level, pos, face, contiguous, ifaceBe);
             return;
         }
 
@@ -309,6 +329,148 @@ public class GodBinderItem extends Item
                         pos.getX(), pos.getY(), pos.getZ()).withStyle(ChatFormatting.GREEN), true);
     }
 
+    // ---- 过载接口的选中与连接（复用同一份 CustomData 键，二选一存储）----
+
+    private static final String TAG_IFACE_DIM = "InfIfaceDim";
+    private static final String TAG_IFACE_POS = "InfIfacePos";
+
+    private record IfaceSelection(ResourceKey<Level> dimension, BlockPos pos) {
+    }
+
+    private static void selectOverloadedInterface(ItemStack stack, ResourceKey<Level> dim, BlockPos pos) {
+        // 清掉供应器选中，避免两个宿主同时被选中
+        clearProviderSelection(stack);
+        var tag = new CompoundTag();
+        tag.putString(TAG_IFACE_DIM, dim.location().toString());
+        tag.putLong(TAG_IFACE_POS, pos.asLong());
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+    }
+
+    @Nullable
+    private static IfaceSelection getOverloadedInterfaceSelection(ItemStack stack) {
+        var data = stack.get(DataComponents.CUSTOM_DATA);
+        if (data == null) {
+            return null;
+        }
+        var tag = data.copyTag();
+        if (!tag.contains(TAG_IFACE_POS)) {
+            return null;
+        }
+        return new IfaceSelection(
+                ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
+                        net.minecraft.resources.ResourceLocation.parse(tag.getString(TAG_IFACE_DIM))),
+                BlockPos.of(tag.getLong(TAG_IFACE_POS)));
+    }
+
+    private static void clearOverloadedInterfaceSelection(ItemStack stack) {
+        var data = stack.get(DataComponents.CUSTOM_DATA);
+        if (data == null) {
+            return;
+        }
+        var tag = data.copyTag();
+        tag.remove(TAG_IFACE_DIM);
+        tag.remove(TAG_IFACE_POS);
+        if (tag.isEmpty()) {
+            stack.remove(DataComponents.CUSTOM_DATA);
+        } else {
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        }
+    }
+
+    @Nullable
+    private static com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity
+            resolveOverloadedInterface(Level level, IfaceSelection selection) {
+        if (!level.dimension().equals(selection.dimension()) || !level.isLoaded(selection.pos())) {
+            return null;
+        }
+        return level.getBlockEntity(selection.pos())
+                instanceof com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity iface
+                        ? iface
+                        : null;
+    }
+
+    /** 点过载接口本身：选中 / 取消（要求已切无线模式，与供应器一致）。 */
+    private static void handleOverloadedInterfaceClick(ItemStack stack, Player player, Level level,
+            BlockPos pos, com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity iface) {
+        var selection = getOverloadedInterfaceSelection(stack);
+        if (player.isShiftKeyDown() && selection != null) {
+            clearOverloadedInterfaceSelection(stack);
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.provider_deselected")
+                            .withStyle(ChatFormatting.YELLOW), true);
+            return;
+        }
+        if (selection != null && selection.pos().equals(pos)) {
+            clearOverloadedInterfaceSelection(stack);
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.provider_deselected")
+                            .withStyle(ChatFormatting.YELLOW), true);
+            return;
+        }
+        if (iface.getInterfaceMode()
+                != com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity.InterfaceMode.WIRELESS) {
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.need_wireless")
+                            .withStyle(ChatFormatting.RED), true);
+            return;
+        }
+        selectOverloadedInterface(stack, level.dimension(), pos);
+        player.displayClientMessage(
+                Component.translatable("message.godofthings.binder.provider_selected",
+                        pos.getX(), pos.getY(), pos.getZ()).withStyle(ChatFormatting.GREEN), true);
+    }
+
+    /** 已选中过载接口后点机器：连接 / 潜行断开（Ctrl 批量）。 */
+    private static void handleOverloadedInterfaceConnection(ItemStack stack, Player player,
+            ServerLevel level, BlockPos pos, Direction face, boolean contiguous,
+            com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity iface) {
+        if (level.getBlockEntity(pos) == null) {
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.not_machine")
+                            .withStyle(ChatFormatting.RED), true);
+            return;
+        }
+        var targets = collectTargets(level, pos, contiguous);
+        if (targets.isEmpty()) {
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.not_machine")
+                            .withStyle(ChatFormatting.RED), true);
+            return;
+        }
+        if (player.isShiftKeyDown()) {
+            int disconnected = 0;
+            for (var targetPos : targets) {
+                if (iface.removeConnection(level.dimension(), targetPos)) {
+                    disconnected++;
+                }
+            }
+            player.displayClientMessage(disconnected > 0
+                    ? Component.translatable("message.godofthings.binder.machines_disconnected_many",
+                            disconnected).withStyle(ChatFormatting.GREEN)
+                    : Component.translatable("message.godofthings.binder.not_connected")
+                            .withStyle(ChatFormatting.YELLOW), true);
+            return;
+        }
+        int connected = 0;
+        for (var targetPos : targets) {
+            if (iface.addOrUpdateConnection(
+                    new com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity
+                            .WirelessConnection(level.dimension(), targetPos, face))) {
+                connected++;
+            }
+        }
+        if (connected > 1) {
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.machines_connected_many",
+                            connected, face.getName()).withStyle(ChatFormatting.GREEN), true);
+        } else if (connected == 1) {
+            var p = targets.iterator().next();
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.machine_connected",
+                            p.getX(), p.getY(), p.getZ(), face.getName())
+                            .withStyle(ChatFormatting.GREEN), true);
+        }
+    }
     /**
      * 收集连接目标（移植上游 WirelessConnectorTargetHelper.collectTargets）：
      * 非 Ctrl 只返回原点；Ctrl 时从原点 BFS 扩展到六向连通、

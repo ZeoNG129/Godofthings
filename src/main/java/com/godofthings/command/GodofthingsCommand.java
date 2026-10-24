@@ -100,8 +100,8 @@ public class GodofthingsCommand
                 .then(Commands.literal("infinity")
                         .then(Commands.literal("recover")
                                 .executes(GodofthingsCommand::recoverInfinityCells)))
-                // 无线网格桥接自动连接开关（移植自 AALink；原 /aalink 已并入本指令）
-                .then(Commands.literal("aalink")
+                // 无线网格桥接自动连接开关（移植自 AALink 的 /aalink；并入本指令为 /godofthings link）
+                .then(Commands.literal("link")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.literal("on").executes(ctx ->
                                 com.godofthings.aalink.AaLinkCommands.setEnabled(ctx.getSource(), true)))

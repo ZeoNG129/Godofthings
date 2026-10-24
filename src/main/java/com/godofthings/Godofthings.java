@@ -858,6 +858,10 @@ public class Godofthings
                         output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
                         // 无线连接器（移植自 AALink：把任意位置的 AE 设备无线并入中枢网络）
                         output.accept(com.godofthings.aalink.AaLinkRegistry.WIRELESS_CONNECTOR_ITEM.get());
+                        // 过载接口（移植自 AE2LT：36 槽 + 无线 + 导出导入 + 弹出）
+                        output.accept(
+                                com.godofthings.overloadedinterface.OverloadedInterfaceRegistry
+                                        .OVERLOADED_INTERFACE_ITEM.get());
                     })
                     .build());
 
@@ -1003,7 +1007,9 @@ public class Godofthings
         com.godofthings.aalink.AaLinkRegistry.register(modEventBus);
         // 方块放置 / 区块加载 / 服务端 tick 时把任意位置的 AE 设备接入中枢网络
         NeoForge.EVENT_BUS.register(com.godofthings.aalink.AaLinkBridge.class);
-        // 指令开关并入 /godofthings aalink on|off，不再注册独立的 /aalink
+        // 指令开关并入 /godofthings link on|off，不再注册独立的 /aalink
+        // ===== 过载接口（移植自 AE2LT）：36 槽 / 无线 / 导出导入 / 弹出 / IO 速度 =====
+        com.godofthings.overloadedinterface.OverloadedInterfaceRegistry.register(modEventBus);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
@@ -1029,7 +1035,7 @@ public class Godofthings
         LOGGER.info("Godofthings loaded");
     }
 
-    private static net.minecraft.resources.ResourceLocation godofthingsId(String path)
+    public static net.minecraft.resources.ResourceLocation godofthingsId(String path)
     {
         return net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, path);
     }

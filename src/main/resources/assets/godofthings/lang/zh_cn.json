@@ -1425,5 +1425,18 @@
   "message.godofthings.aalink.auto_state": "AALink 自动连接已%s",
   "message.godofthings.aalink.auto_status": "AALink 自动连接状态：%s",
   "message.godofthings.aalink.on": "开启",
-  "message.godofthings.aalink.off": "关闭"
+  "message.godofthings.aalink.off": "关闭",
+  "block.godofthings.overloaded_interface": "过载接口",
+  "manual.godofthings.overloaded_interface": "36 槽的增强型 ME 接口：可以把配置里的物资主动推向相邻（或无线连接的）目标机器，也可以把目标机器的产物抽回 ME 网络。导入设为「弹出」时，接口直接充当机器的输出仓，塞进来的东西立刻回网。",
+  "gui.godofthings.overloaded_interface.mode.normal": "接口模式：普通（只与贴邻方块交互）",
+  "gui.godofthings.overloaded_interface.mode.wireless": "接口模式：无线（只与连接列表里的机器交互）",
+  "gui.godofthings.overloaded_interface.export.off": "导出：关闭",
+  "gui.godofthings.overloaded_interface.export.auto": "导出：自动（把配置里的物资推给目标）",
+  "gui.godofthings.overloaded_interface.import.off": "导入：关闭",
+  "gui.godofthings.overloaded_interface.import.auto": "导入：自动（把目标的产物抽回网络）",
+  "gui.godofthings.overloaded_interface.import.eject": "导入：弹出（接口充当目标机器的输出仓）",
+  "gui.godofthings.overloaded_interface.speed.normal": "IO 速度：普通（每 20 tick 一轮）",
+  "gui.godofthings.overloaded_interface.speed.fast": "IO 速度：快速（每 5 tick 一轮）",
+  "gui.godofthings.overloaded_interface.connections": "已连接 %d 台机器",
+  "gui.godofthings.overloaded_interface.eject_storage": "接口输出仓"
 }

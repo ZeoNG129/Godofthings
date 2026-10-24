@@ -1425,5 +1425,18 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
   "message.godofthings.aalink.auto_state": "AALink auto-link %s",
   "message.godofthings.aalink.auto_status": "AALink auto-link status: %s",
   "message.godofthings.aalink.on": "enabled",
-  "message.godofthings.aalink.off": "disabled"
+  "message.godofthings.aalink.off": "disabled",
+  "block.godofthings.overloaded_interface": "Overloaded Interface",
+  "manual.godofthings.overloaded_interface": "A 36-slot enhanced ME interface: it can push configured items into adjacent (or wirelessly connected) machines, and pull machine outputs back into the ME network. Setting import to Eject makes the interface act as the machine's output inventory, forwarding everything straight into the network.",
+  "gui.godofthings.overloaded_interface.mode.normal": "Interface mode: Normal (adjacent blocks only)",
+  "gui.godofthings.overloaded_interface.mode.wireless": "Interface mode: Wireless (connected machines only)",
+  "gui.godofthings.overloaded_interface.export.off": "Export: Off",
+  "gui.godofthings.overloaded_interface.export.auto": "Export: Auto (push configured stock to targets)",
+  "gui.godofthings.overloaded_interface.import.off": "Import: Off",
+  "gui.godofthings.overloaded_interface.import.auto": "Import: Auto (pull target outputs into the network)",
+  "gui.godofthings.overloaded_interface.import.eject": "Import: Eject (interface acts as the machine output inventory)",
+  "gui.godofthings.overloaded_interface.speed.normal": "IO speed: Normal (one pass per 20 ticks)",
+  "gui.godofthings.overloaded_interface.speed.fast": "IO speed: Fast (one pass per 5 ticks)",
+  "gui.godofthings.overloaded_interface.connections": "Connected to %d machines",
+  "gui.godofthings.overloaded_interface.eject_storage": "Interface output slot"
 }

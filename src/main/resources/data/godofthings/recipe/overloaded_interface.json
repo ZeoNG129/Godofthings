@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "QCQ",
+    "CIC",
+    "QCQ"
+  ],
+  "key": {
+    "Q": { "item": "ae2:calculation_processor" },
+    "C": { "item": "ae2:capacity_card" },
+    "I": { "item": "ae2:interface" }
+  },
+  "result": {
+    "count": 1,
+    "id": "godofthings:overloaded_interface"
+  }
+}
