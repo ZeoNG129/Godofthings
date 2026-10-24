@@ -102,6 +102,11 @@ public class ClientModEvents
         // 无用维度配置界面（潜行右键传送方块打开；照抄 useless_mod 的 DimensionConfigScreen）
         event.register(com.godofthings.beef.init.ModMenuType.DIMENSION_CONFIG_MENU.get(),
                 com.godofthings.beef.client.gui.DimensionConfigScreen::new);
+        // ME 放置工具（移植自 ME-Placement-Tool）：法杖配置界面 + 线缆工具界面
+        event.register(com.godofthings.mept.MeptMenus.WAND_MENU.get(),
+                com.godofthings.mept.client.MeptWandScreen::new);
+        event.register(com.godofthings.mept.MeptMenus.CABLE_TOOL_MENU.get(),
+                com.godofthings.mept.client.MeptCableToolScreen::new);
 
     }
 
@@ -118,6 +123,11 @@ public class ClientModEvents
                 new KeyMapping("key.godofthings.belt_cycle_right", InputConstants.UNKNOWN.getValue(), "key.godofthings.belt_category"));
         event.register(ClientEvents.OPEN_BELT_SLOT_KEYBIND =
                 new KeyMapping("key.godofthings.belt_slot", InputConstants.UNKNOWN.getValue(), "key.godofthings.belt_category"));
+        // ME 放置工具四键（分类「众神之物：ME 放置工具」；G/G/Ctrl/A 默认值照抄上游）
+        event.register(com.godofthings.mept.client.MeptKeyBindings.OPEN_RADIAL_MENU);
+        event.register(com.godofthings.mept.client.MeptKeyBindings.UNDO_MODIFIER);
+        event.register(com.godofthings.mept.client.MeptKeyBindings.OPEN_CABLE_TOOL_GUI);
+        event.register(com.godofthings.mept.client.MeptKeyBindings.MARK_COLOR_SHORTCUT);
     }
 
     /** 神之皮带：染色皮带用带谓词的模型覆盖（与 models/item/god_belt.json 里的 has_custom_color 对应）。 */
@@ -132,6 +142,14 @@ public class ClientModEvents
         {
             com.godofthings.superfusion.client.SuperFusionClientSetup.init();
         }
+        // ME 放置工具客户端接线（照抄上游 ClientModEvents.onClientSetupComplete）：
+        // 多方块预览渲染器 / 撤销键 / 轮盘键 / 工具信息 HUD / 部件与线缆预览
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(new com.godofthings.mept.client.MeptMultiblockPreviewRenderer());
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(new com.godofthings.mept.client.MeptUndoKeyHandler());
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(new com.godofthings.mept.client.MeptRadialMenuKeyHandler());
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(new com.godofthings.mept.client.MeptToolInfoHudRenderer());
+        com.godofthings.mept.client.MeptPartPreviewRenderer.install();
+        com.godofthings.mept.client.MeptCablePreviewRenderer.install();
     }
 
     /** 神之皮带：物品染色（只染 layer0，扣针保持原色）。 */

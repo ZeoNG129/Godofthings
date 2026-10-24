@@ -2249,3 +2249,27 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 - **自查**：`check-lang.ps1` checks: OK（1430 键）；`gradlew build` 成功并自动部署；
   `runGameTestServer` 不装 Mekanism 45 条全过；装 Mekanism 环境用临时探针（已删）在真实
   `basic_energy_cube` 上端到端验证「复制 → hasData → 源方块记录 → 粘贴」全程无异常（46 条全过）。
+## 7.10.0（2026-10-25）
+- **移植 ME 放置工具三件套**（上游 ME-Placement-Tool 2.1.5，作者 moakiee；按移植硬规则先读完全部
+  45 个上游源文件再逐行对照编写）：
+  - me_placement_tool（ME 放置工具）：从 ME 网络直接放置物品 / 流体；对空气右键开配置界面
+    （18 槽两页幽灵槽，支持 JEI 拖入），G 键轮盘选目标，潜行右键无线访问点绑定网络；
+  - multiblock_placement_tool（ME 多方块放置工具）：批量放置选中物品（1/8/64/256/1024），
+    三层轮盘（方向 / 数量 / 物品），Ctrl+左键撤销；
+  - me_cable_placement_tool（ME 线缆放置工具）：三模式（直线 / 平面填充 / 平面分支）批量铺线缆，
+    左键选点、G 键开专属配置界面；
+  - key_of_spectrum（光谱的钥匙）：放进线缆工具升级槽解锁全部 17 种线缆颜色（无钥匙只能福鲁伊克斯
+    透明色），副手持染料自动补染料（每 8 根耗 1）；
+  - prism_core（棱镜核心）：光谱钥匙的合成材料。
+  三件工具**均不消耗能源**（上游继承 AEBasePoweredItem，本地 [本地改动] 换成 AEBaseItem，
+  usePower/hasPower 恒真）；fumo 摆件方块不移植。
+- **按键分类调整**：「切换模式（高级内存卡）」改名「切换高级内存卡模式」并移到「众神之物：升级」；
+  「融合卡批量选择」同样移到「众神之物：升级」；新增分类「众神之物：ME 放置工具」收 MEPT 四键
+  （轮盘 / 撤销修饰 / 线缆界面 / 标记颜色，默认 G/G/Ctrl/A 照抄上游）。
+- 语言键 meplacementtool.* 全部改前缀 godofthings.mept.*（上游 zh 102 键全量搬运 + en 补 3 键），
+  数据组件前缀 mept_，网络包 mept_ 前缀 godofthings 命名空间，GUI 贴图放 	extures/gui/mept/——
+  与用户整合包里的上游本体 jar 完全隔离。
+- **自查**：check-lang.ps1 checks: OK（1534 键、111 物品）；gradlew build 成功并自动部署；
+  unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 MEPT 专项测试
+  （物品注册 / 状态读写往返 / 配置持久化 / 光谱钥匙槽校验 / 撤销历史单例 / 智能落点 / 直线计算）
+  共 52 条全过后恢复 45 条基线。

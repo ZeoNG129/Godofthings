@@ -82,7 +82,7 @@
     "block.godofthings.teleport_block_3":  "维度拓扑编织核 · γ",
     "block.godofthings.void_teleporter":  "幽冥虚无界碑",
     "chat.godofthings.armor.haul.bound":  "已绑定搬运容器：%s, %s, %s",
-    "command.godofthings.doctor.coexist":  "注意：检测到 %s —— 本模组的 %s 会被它的同名 Mixin 覆盖（优先级 500 < 1000），对它的修复不会生效",
+    "command.godofthings.doctor.coexist":  "注意：检测到 %s —— 本模组的 %s 会被它的同名 Mixin 覆盖（优先级 500 \u003c 1000），对它的修复不会生效",
     "command.godofthings.doctor.coexist_none":  "共存检查：没有会覆盖本模组 Mixin 的上游 mod",
     "command.godofthings.doctor.data_size":  "本模组存档数据：便签 %s 字节、传送点 %s 字节",
     "command.godofthings.doctor.header":  "=== God of Things 诊断 ===",
@@ -348,7 +348,7 @@
     "gui.godofthings.note.add":  "新增",
     "gui.godofthings.note.auto_name":  "自动更名",
     "gui.godofthings.note.auto_name_hint":  "按当日日期（10.02）",
-    "gui.godofthings.note.back":  "< 返回任务列表",
+    "gui.godofthings.note.back":  "\u003c 返回任务列表",
     "gui.godofthings.note.background":  "背景",
     "gui.godofthings.note.bg.custom":  "自定义",
     "gui.godofthings.note.bg.dark":  "半透明黑",
@@ -372,7 +372,7 @@
     "gui.godofthings.note.hud":  "悬浮窗：%s",
     "gui.godofthings.note.hud_hint":  "名称与悬浮窗设置跟着「整册」；改名会关掉自动更名",
     "gui.godofthings.note.hud_label":  "悬浮窗",
-    "gui.godofthings.note.hud_settings":  "悬浮窗设置 >",
+    "gui.godofthings.note.hud_settings":  "悬浮窗设置 \u003e",
     "gui.godofthings.note.hud_title":  "%s %s/%s",
     "gui.godofthings.note.input":  "输入新任务...",
     "gui.godofthings.note.input_edit":  "修改这条任务...",
@@ -480,159 +480,61 @@
     "key.category.godofthings.wand":  "众神之物",
     "key.godofthings.edit_note_hud":  "编辑便签悬浮窗",
     "key.godofthings.open_armor_skill":  "神之套装技能树",
-    "key.godofthings.open_backpack":  "打开须弥囊",
-    "key.godofthings.amc_mode_switch":  "切换模式（高级内存卡）",
+    "key.godofthings.open_backpack":  "打开须弥囊",
+    "key.godofthings.amc_mode_switch":  "切换高级内存卡模式",
     "key.godofthings.open_manual":  "打开众神全知启示录",
     "key.godofthings.open_note":  "打开神思夙愿天书",
     "key.godofthings.open_waypoint":  "打开传送点界面",
-    "manual.godofthings.creative_energy_cube":  "作用：无限能阶发生源 —— 无限 FE 能量源。六个面都以最大速率（∞ FE/t）向相邻机器输出。
-获取：创造标签。
-用法：右键打开 GUI 可给自己 / 物品充能。",
-    "manual.godofthings.creature_annihilation":  "作用：生灵止步界石 —— 放下后半径 512 格内禁止生物自然生成。
-获取：合成。
-用法：放在基地里即可，不需要界面。",
-    "manual.godofthings.god_absorber":  "作用：万象归引天核 —— 大范围吸收掉落物与经验。
-获取：合成。
-用法：右键开界面设置开关 / 范围（0-480）、查看存储经验、配置六个面；可作为 AE2 网格节点并网。",
-    "manual.godofthings.god_accelerator":  "作用：并行加速器 —— 放进神之系列机器的加速槽，提升并行数（每个 ×16，一组 64 个 = ×1024）。
-获取：合成 / 创造标签。
-用法：打开机器界面，把加速器放进专门的加速槽即可。影响矿机、资源机、掉落机等。",
-    "manual.godofthings.god_backpack":  "作用：须弥囊 —— **120 格**随身仓库，右键打开（比潜影盒大得多，内容跟着物品走、掉在地上也不丢）。
-获取：皮革 ×4 + 下界合金锭 ×2 + 潜影盒 ×1 + 万物原石 ×1 合成。
-界面：
-· **整理**：按当前排序方式重排（**按名称 / 按模组 / 按数量 / 按标签**，点右侧小按钮切换）。
-· **记忆**：点「记忆」进标记模式，再点格子 → 记住该格里的物品；记忆格**不参与整理**，往背包里存东西时**同类物品优先填进记忆格**；格子空了会显示半透明的「影子」提醒你它记着什么。
-· **忽略整理**：点「忽略整理」进标记模式，再点格子 → 该格**整理时原地不动**（放常用工具很方便）。
-· **搜索**：输入名字即时过滤，不匹配的格子显示为空；以 `@` 开头按模组名搜（如 `@minecraft`）。
-· **存入背包 / 取到身上**：一键把身上东西塞进背包 / 把背包东西取到身上。
-· **忽略耐久 / 忽略 NBT**：打开后，堆叠与「同类」判定放宽到只看物品本身（适合带耐久或带数据的工具）。
-· **不许套娃**：须弥囊不能放进须弥囊；打开界面时背包自己那一格是锁住的、拿不走。
-· **滚轮**翻页（9 列 × 6 行可见，共 120 格）。
-· **快捷键**：按 `B` 直接打开（放在物品栏或饰品栏里都行；键位可在「选项 → 按键控制 → 神之」改）。
-· **饰品栏**：装进**饰品栏（Curios）的「背部」槽**也能带着走，一样按 `B` 打开；**这个槽位由本模组自动开启**（登录后就会出现在饰品栏界面里，不需要手动跑指令）。",
-    "manual.godofthings.god_binder":  "作用：把机器绑定到「极光灵脉引渡枢」的无线充能网络。
-获取：合成。
-用法：右键机器完成绑定；放在副手时会自动绑定刚放下的机器。可放进**神之皮带**快捷切换（R 键呼出轮盘）：这五件神之工具在皮带的内部白名单里，默认就能放（v5.18.0 起不再依赖外部 ToolBelt 模组）。",
-    "manual.godofthings.god_black_box":  "作用：拾取过滤存储 —— 白名单 / 黑名单两种模式，塞进去的物品没有堆叠上限。
-获取：合成。
-用法：右键打开界面配置过滤名单；物品栏里滚轮可快捷开关。可放进**神之皮带**快捷切换（R 键呼出轮盘）：这五件神之工具在皮带的内部白名单里，默认就能放（v5.18.0 起不再依赖外部 ToolBelt 模组）。",
-    "manual.godofthings.god_boots":  "作用：神之靴子 —— 神之套装四件之一。
-获取：合成。
-用法：与其余三件一起穿戴才会激活套装功能。",
-    "manual.godofthings.god_change":  "作用：时间 / 天气调控。
-获取：合成。
-用法：右键打开界面，选择要切换到的时间与天气。可放进**神之皮带**快捷切换（R 键呼出轮盘）：这五件神之工具在皮带的内部白名单里，默认就能放（v5.18.0 起不再依赖外部 ToolBelt 模组）。",
-    "manual.godofthings.god_chestplate":  "作用：众神之铠 · 不朽 —— 神之套装四件之一。
-获取：合成。
-用法：与其余三件一起穿戴才会激活套装功能。",
-    "manual.godofthings.god_config":  "作用：机器配置模板 —— 把一台机器的设置抄下来，一键贴到同类的其它机器上。
-获取：纸 ×2 + 红石 + 万物原石 ×1 合成（创造标签里也有）。
-用法：**潜行 + 右键机器** 保存（六面 I/O 模式 + AE 并网开关 + 加速槽里的普朗克超频催化组件数量，只记数量不记物品）；**普通右键同类机器** 粘贴：六面模式与 AE 开关直接写回，加速按存下的数量从**你的物品栏里扣普朗克超频催化组件**补进去（创造模式不扣）。加速不够时其余照贴并提示「加速不足（需要 N，实际 M）」；机器类型不符 / 卡里没数据也会分别提示。支持的机器：炽神圣火熔炉 / 撼地穿霄掘机 / 点金圣灵秘柜 / 丰饶母神温床 / 创生摹刻圣坛 / 净木剥相祭台 / 万魂余响鉴录仪 / 灵胚孳生圣卵。",
-    "manual.godofthings.god_craft":  "作用：天工造化神机 —— 高级合成台，带配置菜单、8 个模板槽与「均分输入」。
-获取：合成。
-用法：右键开界面；模板可保存 / 套用常用配方。可作为 AE2 网格节点并网。",
-    "manual.godofthings.god_devourer":  "作用：永夜归虚深井 —— 虚空垃圾桶。
-获取：合成。
-用法：方块右键开界面；玩家物品栏界面里也有快捷按钮。**放进去立刻消失**（手动放入 / Shift / 漏斗 / 管道都一样），槽里永远是空的。",
-    "manual.godofthings.god_drop":  "作用：万魂余响鉴录仪 —— 掉落物收集 + 刷怪蛋生产机。不消耗刷怪蛋，按**原版战利品表**产出该生物被击杀时的全部掉落物（例如鸡 = 羽毛 + 生鸡肉，每种 64 个），会自动过滤武器 / 工具 / 盔甲，避免变成免费装备机。
-获取：合成。
-用法：**v5.7.0 起兼容所有模组的刷怪蛋**（不再只认原版）；把刷怪蛋放进输入槽（最多 9 种并行）；可用普朗克超频催化组件提升并行；可作为 AE2 网格节点并网。",
-    "manual.godofthings.god_enchant":  "作用：至高律法铭刻座台 —— 任意物品自选附魔与等级，无需条件、无需青金石，最高 255 级（突破原版上限）；选中附魔即默认 255 级。
-获取：合成。
-用法：放入物品 → 点选附魔 → 调等级 → 应用；「批量」把当前附魔以 255 级应用到背包所有可附物品（自动跳过不兼容）。",
-    "manual.godofthings.god_furnace":  "作用：炽神圣火熔炉 —— 超级熔炉，支持 JEI / EMI 配方查看。
-获取：合成（成就树的起点成就就是做它）。
-用法：右键开界面，放入原料即可；v5.15.5 起可作为 AE2 网格节点并网（线缆直连占一个频道，熔炼产物自动输出进网络，界面右上「AE」开关切换）。",
-    "manual.godofthings.god_helmet":  "作用：众神之冠 · 昭明 —— 神之套装四件之一。
-获取：合成。
-用法：穿齐四件后按 O 开功能开关界面、按 K 开技能树（详见「系统 · 神之套装与技能树」）。",
-    "manual.godofthings.god_invite":  "作用：神之免死敕 —— 让一个生物获得无限血量。
-获取：合成。
-用法：右键生物；受击反馈仍然保留（可切换开 / 关）。可放进**神之皮带**快捷切换（R 键呼出轮盘）：这五件神之工具在皮带的内部白名单里，默认就能放（v5.18.0 起不再依赖外部 ToolBelt 模组）。",
-    "manual.godofthings.god_leggings":  "作用：众神之裙 · 庇护 —— 神之套装四件之一。
-获取：合成。
-用法：与其余三件一起穿戴才会激活套装功能。",
-    "manual.godofthings.god_manual":  "作用：游戏内手册 —— 每个物品 / 方块都有条目，忘了哪个是干嘛的就翻这里。
-获取：书 ×1 + 金锭 ×4 + 万物原石 ×1 合成。
-用法：右键打开；或按 P 键；或 /godofthings manual。左侧选分类与条目，顶部可搜索。",
-    "manual.godofthings.god_measure":  "作用：量天裁度金尺 —— 卷尺测量。**右击方块**定起点，再右击另一处定终点：画出线框并显示 X / Y / Z 三轴尺寸（可再继续开下一个框）。**潜行右击**撤销上一个框；**切换手持物品 / 换维度 / 进出存档**自动清空。测量纯客户端，服务端零开销。
-获取：合成（灰羊毛 ×2 / 黄羊毛 ×2 / 铁锭 + 万物原石 ×1）。
-用法：线框颜色 / 数字颜色 / 数字大小 / 线宽可在 config/godofthings-client.toml 的 [measurement] 段调整。可放进**神之皮带**快捷切换（R 键呼出轮盘）：这五件神之工具在皮带的内部白名单里，默认就能放（v5.18.0 起不再依赖外部 ToolBelt 模组）。",
-    "manual.godofthings.god_miner":  "作用：撼地穿霄掘机 —— 范围挖掘机器，效率 / 时运 / 精准采集可调，六个面可配置输入输出（输入可抽入普朗克超频催化组件，输出会推出产物与液体）。本身也是一把镐。
-获取：合成。
-用法：右键开界面调参数与面配置；可作为 AE2 网格节点并网。",
-    "manual.godofthings.god_note":  "作用：神思夙愿天书 —— 任务清单，每条带方框勾选，**支持子任务**（主任务下挂子任务，像论文大标题 / 小标题）。
-获取：纸 ×3 + 墨囊 + 金锭 + 万物原石 ×1 合成。
-用法：右键 / N 键 打开。一册最多 8 本；任务可按住拖动排序（同级）；**行尾 + 号给这条加子任务，回车后可以连着加**；编辑文字时 Tab 降级为上一条的子任务、Shift+Tab 升级；**行首三角折叠 / 展开子任务**；删除任何一条都点两次 × 确认。悬浮窗用 M 键摆放。内容跟着玩家存在存档里。",
-    "manual.godofthings.god_slaughter":  "作用：诸神黄昏斩刑机 —— 范围击杀（开关 / 范围 0-480 / 抢夺 0-1600 / 秒杀）。
-获取：合成。
-用法：右键开界面调参数；掉落物直接进内部 27 格无限存储。可作为 AE2 网格节点并网。
-· **保护名单**：盔甲架 / 村民 / 流浪商人 / **已驯服的宠物（狼猫鹦鹉、以及马 / 驴 / 骡 / 羊驼）** / 起过名字的生物一律不杀（普通动物照杀）。",
-    "manual.godofthings.god_spawn_egg":  "作用：灵胚孳生圣卵 —— 刷怪蛋复制机。放入刷怪蛋就产出**同种**刷怪蛋，**兼容所有类型的刷怪蛋**（原版、NeoForge 系，以及自己实现物品但按原版约定写了实体数据的模组刷怪蛋）；复制时整份物品数据一起带走。
-获取：8 个万物原石 + 1 鸡蛋 合成。
-用法：右键开界面，把刷怪蛋放进 3×3 输入槽（最多 9 种并行，不消耗输入）；可用普朗克超频催化组件提升并行倍率；产物自动向下输出；可作为 AE2 网格节点并网。",
-    "manual.godofthings.god_transmitter":  "作用：极光灵脉引渡枢 —— 无线 FE 充能（给机器和玩家充能），跨维度连接。
-获取：合成。
-用法：右键开界面（四个标签页）；用「同心契」右键机器把机器绑定进来。",
-    "manual.godofthings.god_unbreakable":  "作用：给物品加上「不毁」—— 特殊合成配方，不是普通物品用法。
-获取：配方本身在 JEI / EMI 里可查（把物品与永固印一起合成）。
-用法：与目标物品合成，结果保留原物品并打上不毁属性。",
-    "manual.godofthings.space_time_eternity":  "作用：定晷封时神碑 —— 放下后锁定世界时间与天气。
-获取：合成。
-用法：放在基地里即可，不需要界面。",
-    "manual.godofthings.system.ae2":  "矿机 / 资源机 / 掉落机 / **怪蛋机** / 砍杀 / 合成台 / 吸收 / **熔炉**（v5.15.5 加入）/ **去皮机**（v5.15.9 加入）这 9 台会产资源的机器可以直接当 AE 网格节点：线缆连上即可（占一个频道），产物自动进网络。每台界面里都有「AE」开关，只控制是否把产物推进网络，不影响机器自己运转。
-注意：本模组**必须有 AE2 才能启动**（这几个机器的方块实体在类声明上直接实现了 AE2 的接口），mods.toml 里已如实声明为必需依赖。",
+    "manual.godofthings.creative_energy_cube":  "作用：无限能阶发生源 —— 无限 FE 能量源。六个面都以最大速率（∞ FE/t）向相邻机器输出。\r\n获取：创造标签。\r\n用法：右键打开 GUI 可给自己 / 物品充能。",
+    "manual.godofthings.creature_annihilation":  "作用：生灵止步界石 —— 放下后半径 512 格内禁止生物自然生成。\r\n获取：合成。\r\n用法：放在基地里即可，不需要界面。",
+    "manual.godofthings.god_absorber":  "作用：万象归引天核 —— 大范围吸收掉落物与经验。\r\n获取：合成。\r\n用法：右键开界面设置开关 / 范围（0-480）、查看存储经验、配置六个面；可作为 AE2 网格节点并网。",
+    "manual.godofthings.god_accelerator":  "作用：并行加速器 —— 放进神之系列机器的加速槽，提升并行数（每个 ×16，一组 64 个 = ×1024）。\r\n获取：合成 / 创造标签。\r\n用法：打开机器界面，把加速器放进专门的加速槽即可。影响矿机、资源机、掉落机等。",
+    "manual.godofthings.god_backpack":  "作用：须弥囊 —— **120 格**随身仓库，右键打开（比潜影盒大得多，内容跟着物品走、掉在地上也不丢）。\r\n获取：皮革 ×4 + 下界合金锭 ×2 + 潜影盒 ×1 + 万物原石 ×1 合成。\r\n界面：\r\n· **整理**：按当前排序方式重排（**按名称 / 按模组 / 按数量 / 按标签**，点右侧小按钮切换）。\r\n· **记忆**：点「记忆」进标记模式，再点格子 → 记住该格里的物品；记忆格**不参与整理**，往背包里存东西时**同类物品优先填进记忆格**；格子空了会显示半透明的「影子」提醒你它记着什么。\r\n· **忽略整理**：点「忽略整理」进标记模式，再点格子 → 该格**整理时原地不动**（放常用工具很方便）。\r\n· **搜索**：输入名字即时过滤，不匹配的格子显示为空；以 `@` 开头按模组名搜（如 `@minecraft`）。\r\n· **存入背包 / 取到身上**：一键把身上东西塞进背包 / 把背包东西取到身上。\r\n· **忽略耐久 / 忽略 NBT**：打开后，堆叠与「同类」判定放宽到只看物品本身（适合带耐久或带数据的工具）。\r\n· **不许套娃**：须弥囊不能放进须弥囊；打开界面时背包自己那一格是锁住的、拿不走。\r\n· **滚轮**翻页（9 列 × 6 行可见，共 120 格）。\r\n· **快捷键**：按 `B` 直接打开（放在物品栏或饰品栏里都行；键位可在「选项 → 按键控制 → 神之」改）。\r\n· **饰品栏**：装进**饰品栏（Curios）的「背部」槽**也能带着走，一样按 `B` 打开；**这个槽位由本模组自动开启**（登录后就会出现在饰品栏界面里，不需要手动跑指令）。",
+    "manual.godofthings.god_binder":  "作用：把机器绑定到「极光灵脉引渡枢」的无线充能网络。\r\n获取：合成。\r\n用法：右键机器完成绑定；放在副手时会自动绑定刚放下的机器。可放进**神之皮带**快捷切换（R 键呼出轮盘）：这五件神之工具在皮带的内部白名单里，默认就能放（v5.18.0 起不再依赖外部 ToolBelt 模组）。",
+    "manual.godofthings.god_black_box":  "作用：拾取过滤存储 —— 白名单 / 黑名单两种模式，塞进去的物品没有堆叠上限。\r\n获取：合成。\r\n用法：右键打开界面配置过滤名单；物品栏里滚轮可快捷开关。可放进**神之皮带**快捷切换（R 键呼出轮盘）：这五件神之工具在皮带的内部白名单里，默认就能放（v5.18.0 起不再依赖外部 ToolBelt 模组）。",
+    "manual.godofthings.god_boots":  "作用：神之靴子 —— 神之套装四件之一。\r\n获取：合成。\r\n用法：与其余三件一起穿戴才会激活套装功能。",
+    "manual.godofthings.god_change":  "作用：时间 / 天气调控。\r\n获取：合成。\r\n用法：右键打开界面，选择要切换到的时间与天气。可放进**神之皮带**快捷切换（R 键呼出轮盘）：这五件神之工具在皮带的内部白名单里，默认就能放（v5.18.0 起不再依赖外部 ToolBelt 模组）。",
+    "manual.godofthings.god_chestplate":  "作用：众神之铠 · 不朽 —— 神之套装四件之一。\r\n获取：合成。\r\n用法：与其余三件一起穿戴才会激活套装功能。",
+    "manual.godofthings.god_config":  "作用：机器配置模板 —— 把一台机器的设置抄下来，一键贴到同类的其它机器上。\r\n获取：纸 ×2 + 红石 + 万物原石 ×1 合成（创造标签里也有）。\r\n用法：**潜行 + 右键机器** 保存（六面 I/O 模式 + AE 并网开关 + 加速槽里的普朗克超频催化组件数量，只记数量不记物品）；**普通右键同类机器** 粘贴：六面模式与 AE 开关直接写回，加速按存下的数量从**你的物品栏里扣普朗克超频催化组件**补进去（创造模式不扣）。加速不够时其余照贴并提示「加速不足（需要 N，实际 M）」；机器类型不符 / 卡里没数据也会分别提示。支持的机器：炽神圣火熔炉 / 撼地穿霄掘机 / 点金圣灵秘柜 / 丰饶母神温床 / 创生摹刻圣坛 / 净木剥相祭台 / 万魂余响鉴录仪 / 灵胚孳生圣卵。",
+    "manual.godofthings.god_craft":  "作用：天工造化神机 —— 高级合成台，带配置菜单、8 个模板槽与「均分输入」。\r\n获取：合成。\r\n用法：右键开界面；模板可保存 / 套用常用配方。可作为 AE2 网格节点并网。",
+    "manual.godofthings.god_devourer":  "作用：永夜归虚深井 —— 虚空垃圾桶。\r\n获取：合成。\r\n用法：方块右键开界面；玩家物品栏界面里也有快捷按钮。**放进去立刻消失**（手动放入 / Shift / 漏斗 / 管道都一样），槽里永远是空的。",
+    "manual.godofthings.god_drop":  "作用：万魂余响鉴录仪 —— 掉落物收集 + 刷怪蛋生产机。不消耗刷怪蛋，按**原版战利品表**产出该生物被击杀时的全部掉落物（例如鸡 = 羽毛 + 生鸡肉，每种 64 个），会自动过滤武器 / 工具 / 盔甲，避免变成免费装备机。\r\n获取：合成。\r\n用法：**v5.7.0 起兼容所有模组的刷怪蛋**（不再只认原版）；把刷怪蛋放进输入槽（最多 9 种并行）；可用普朗克超频催化组件提升并行；可作为 AE2 网格节点并网。",
+    "manual.godofthings.god_enchant":  "作用：至高律法铭刻座台 —— 任意物品自选附魔与等级，无需条件、无需青金石，最高 255 级（突破原版上限）；选中附魔即默认 255 级。\r\n获取：合成。\r\n用法：放入物品 → 点选附魔 → 调等级 → 应用；「批量」把当前附魔以 255 级应用到背包所有可附物品（自动跳过不兼容）。",
+    "manual.godofthings.god_furnace":  "作用：炽神圣火熔炉 —— 超级熔炉，支持 JEI / EMI 配方查看。\r\n获取：合成（成就树的起点成就就是做它）。\r\n用法：右键开界面，放入原料即可；v5.15.5 起可作为 AE2 网格节点并网（线缆直连占一个频道，熔炼产物自动输出进网络，界面右上「AE」开关切换）。",
+    "manual.godofthings.god_helmet":  "作用：众神之冠 · 昭明 —— 神之套装四件之一。\r\n获取：合成。\r\n用法：穿齐四件后按 O 开功能开关界面、按 K 开技能树（详见「系统 · 神之套装与技能树」）。",
+    "manual.godofthings.god_invite":  "作用：神之免死敕 —— 让一个生物获得无限血量。\r\n获取：合成。\r\n用法：右键生物；受击反馈仍然保留（可切换开 / 关）。可放进**神之皮带**快捷切换（R 键呼出轮盘）：这五件神之工具在皮带的内部白名单里，默认就能放（v5.18.0 起不再依赖外部 ToolBelt 模组）。",
+    "manual.godofthings.god_leggings":  "作用：众神之裙 · 庇护 —— 神之套装四件之一。\r\n获取：合成。\r\n用法：与其余三件一起穿戴才会激活套装功能。",
+    "manual.godofthings.god_manual":  "作用：游戏内手册 —— 每个物品 / 方块都有条目，忘了哪个是干嘛的就翻这里。\r\n获取：书 ×1 + 金锭 ×4 + 万物原石 ×1 合成。\r\n用法：右键打开；或按 P 键；或 /godofthings manual。左侧选分类与条目，顶部可搜索。",
+    "manual.godofthings.god_measure":  "作用：量天裁度金尺 —— 卷尺测量。**右击方块**定起点，再右击另一处定终点：画出线框并显示 X / Y / Z 三轴尺寸（可再继续开下一个框）。**潜行右击**撤销上一个框；**切换手持物品 / 换维度 / 进出存档**自动清空。测量纯客户端，服务端零开销。\r\n获取：合成（灰羊毛 ×2 / 黄羊毛 ×2 / 铁锭 + 万物原石 ×1）。\r\n用法：线框颜色 / 数字颜色 / 数字大小 / 线宽可在 config/godofthings-client.toml 的 [measurement] 段调整。可放进**神之皮带**快捷切换（R 键呼出轮盘）：这五件神之工具在皮带的内部白名单里，默认就能放（v5.18.0 起不再依赖外部 ToolBelt 模组）。",
+    "manual.godofthings.god_miner":  "作用：撼地穿霄掘机 —— 范围挖掘机器，效率 / 时运 / 精准采集可调，六个面可配置输入输出（输入可抽入普朗克超频催化组件，输出会推出产物与液体）。本身也是一把镐。\r\n获取：合成。\r\n用法：右键开界面调参数与面配置；可作为 AE2 网格节点并网。",
+    "manual.godofthings.god_note":  "作用：神思夙愿天书 —— 任务清单，每条带方框勾选，**支持子任务**（主任务下挂子任务，像论文大标题 / 小标题）。\r\n获取：纸 ×3 + 墨囊 + 金锭 + 万物原石 ×1 合成。\r\n用法：右键 / N 键 打开。一册最多 8 本；任务可按住拖动排序（同级）；**行尾 + 号给这条加子任务，回车后可以连着加**；编辑文字时 Tab 降级为上一条的子任务、Shift+Tab 升级；**行首三角折叠 / 展开子任务**；删除任何一条都点两次 × 确认。悬浮窗用 M 键摆放。内容跟着玩家存在存档里。",
+    "manual.godofthings.god_slaughter":  "作用：诸神黄昏斩刑机 —— 范围击杀（开关 / 范围 0-480 / 抢夺 0-1600 / 秒杀）。\r\n获取：合成。\r\n用法：右键开界面调参数；掉落物直接进内部 27 格无限存储。可作为 AE2 网格节点并网。\r\n· **保护名单**：盔甲架 / 村民 / 流浪商人 / **已驯服的宠物（狼猫鹦鹉、以及马 / 驴 / 骡 / 羊驼）** / 起过名字的生物一律不杀（普通动物照杀）。",
+    "manual.godofthings.god_spawn_egg":  "作用：灵胚孳生圣卵 —— 刷怪蛋复制机。放入刷怪蛋就产出**同种**刷怪蛋，**兼容所有类型的刷怪蛋**（原版、NeoForge 系，以及自己实现物品但按原版约定写了实体数据的模组刷怪蛋）；复制时整份物品数据一起带走。\r\n获取：8 个万物原石 + 1 鸡蛋 合成。\r\n用法：右键开界面，把刷怪蛋放进 3×3 输入槽（最多 9 种并行，不消耗输入）；可用普朗克超频催化组件提升并行倍率；产物自动向下输出；可作为 AE2 网格节点并网。",
+    "manual.godofthings.god_transmitter":  "作用：极光灵脉引渡枢 —— 无线 FE 充能（给机器和玩家充能），跨维度连接。\r\n获取：合成。\r\n用法：右键开界面（四个标签页）；用「同心契」右键机器把机器绑定进来。",
+    "manual.godofthings.god_unbreakable":  "作用：给物品加上「不毁」—— 特殊合成配方，不是普通物品用法。\r\n获取：配方本身在 JEI / EMI 里可查（把物品与永固印一起合成）。\r\n用法：与目标物品合成，结果保留原物品并打上不毁属性。",
+    "manual.godofthings.space_time_eternity":  "作用：定晷封时神碑 —— 放下后锁定世界时间与天气。\r\n获取：合成。\r\n用法：放在基地里即可，不需要界面。",
+    "manual.godofthings.system.ae2":  "矿机 / 资源机 / 掉落机 / **怪蛋机** / 砍杀 / 合成台 / 吸收 / **熔炉**（v5.15.5 加入）/ **去皮机**（v5.15.9 加入）这 9 台会产资源的机器可以直接当 AE 网格节点：线缆连上即可（占一个频道），产物自动进网络。每台界面里都有「AE」开关，只控制是否把产物推进网络，不影响机器自己运转。\r\n注意：本模组**必须有 AE2 才能启动**（这几个机器的方块实体在类声明上直接实现了 AE2 的接口），mods.toml 里已如实声明为必需依赖。",
     "manual.godofthings.system.ae2.title":  "AE2 并网",
     "manual.godofthings.system.armor_and_skills":  "穿齐四件（头盔 / 胸甲 / 护腿 / 靴子）后按 K 打开（默认不绑定，到按键设置里自己设），共**三页**",
     "manual.godofthings.system.armor_and_skills.title":  "神之套装与技能树",
-    "manual.godofthings.system.compat":  "· 可选兼容：JEI / EMI（配方查看）、Jade、AE2 及扩展（AE2WTLib / ExtendedAE / AppliedFlux / AppMek）、Ad Astra、Occultism、Malum、神秘农业、Goety、铁魔法、新生魔艺、EnderIO、通用机械、资源蜜蜂、建筑手杖、GTCEu 等；没装的会自动跳过。
-· v5.9.0 起：**无线物流已整体删除**，原先只为它服务的「通用机械（MI）能量桥 / Mekanism 化学品桥 / FTB Teams 团队归属 / 魔源端点」兼容一并去掉。
-· 注意：无用维度 / 玩偶这两块是逐字照抄上游 mod 的，同时装了 useless_mod / ae2lt 时，部分 Mixin 会被对方覆盖 —— `/godofthings doctor` 会点名告诉你哪些被覆盖了。这是既定做法（上游更新本模组会继续移植）。",
+    "manual.godofthings.system.compat":  "· 可选兼容：JEI / EMI（配方查看）、Jade、AE2 及扩展（AE2WTLib / ExtendedAE / AppliedFlux / AppMek）、Ad Astra、Occultism、Malum、神秘农业、Goety、铁魔法、新生魔艺、EnderIO、通用机械、资源蜜蜂、建筑手杖、GTCEu 等；没装的会自动跳过。\r\n· v5.9.0 起：**无线物流已整体删除**，原先只为它服务的「通用机械（MI）能量桥 / Mekanism 化学品桥 / FTB Teams 团队归属 / 魔源端点」兼容一并去掉。\r\n· 注意：无用维度 / 玩偶这两块是逐字照抄上游 mod 的，同时装了 useless_mod / ae2lt 时，部分 Mixin 会被对方覆盖 —— `/godofthings doctor` 会点名告诉你哪些被覆盖了。这是既定做法（上游更新本模组会继续移植）。",
     "manual.godofthings.system.compat.title":  "兼容与共存",
-    "manual.godofthings.system.dimensions":  "· 虚空维度：用「虚空传送门方块」进出。
-· 无用维度（照抄 useless_mod）：奇数维度 / 偶数维度 / 无用维度，各自有对应的传送方块。
-· 传送方块放下后走进去即可前往；传送方块本身需要镐子挖（已加入 mineable/pickaxe 标签）。",
+    "manual.godofthings.system.dimensions":  "· 虚空维度：用「虚空传送门方块」进出。\r\n· 无用维度（照抄 useless_mod）：奇数维度 / 偶数维度 / 无用维度，各自有对应的传送方块。\r\n· 传送方块放下后走进去即可前往；传送方块本身需要镐子挖（已加入 mineable/pickaxe 标签）。",
     "manual.godofthings.system.dimensions.title":  "维度",
-    "manual.godofthings.system.faq":  "· 机器没反应？先看界面里的开关与范围，再看有没有放「普朗克超频催化组件」；六面输入输出没配好也会卡住。
-· 东西太多找不到？用本手册的搜索框（顶部），能搜物品名和说明文字。
-· 想知道哪些 mod 生效、有没有被上游覆盖、存档数据多大？跑 `/godofthings doctor`。
-· 想备份便签 / 传送点？`/godofthings export note`、`export points`（落在 <存档>/godofthings/exports/）。
-· 手册里某条写得不清楚或者发现少了东西？告诉模组作者，或看仓库 README 的「内容一览」表。",
+    "manual.godofthings.system.faq":  "· 机器没反应？先看界面里的开关与范围，再看有没有放「普朗克超频催化组件」；六面输入输出没配好也会卡住。\r\n· 东西太多找不到？用本手册的搜索框（顶部），能搜物品名和说明文字。\r\n· 想知道哪些 mod 生效、有没有被上游覆盖、存档数据多大？跑 `/godofthings doctor`。\r\n· 想备份便签 / 传送点？`/godofthings export note`、`export points`（落在 \u003c存档\u003e/godofthings/exports/）。\r\n· 手册里某条写得不清楚或者发现少了东西？告诉模组作者，或看仓库 README 的「内容一览」表。",
     "manual.godofthings.system.faq.title":  "常见问题",
-    "manual.godofthings.system.getting_started":  "1. 先做「炽神圣火熔炉」—— 成就树的起点，之后大部分材料都靠它烧。
-2. 做「撼地穿霄掘机」＋「普朗克超频催化组件」：矿机负责挖，加速器把并行数拉上去（每个 ×16）。
-3. 缺什么材料就做「神之资源机」（复制物品）或「万魂余响鉴录仪」（用刷怪蛋按原版战利品表产掉落物）。
-4. 想省事就做「神思夙愿天书」（N 键记事）、「众神全知启示录」（P 键，就是你现在看的这个）。
-5. 合成配方一律在 JEI / EMI 里查，本手册只讲「这东西干嘛用」。",
+    "manual.godofthings.system.getting_started":  "1. 先做「炽神圣火熔炉」—— 成就树的起点，之后大部分材料都靠它烧。\r\n2. 做「撼地穿霄掘机」＋「普朗克超频催化组件」：矿机负责挖，加速器把并行数拉上去（每个 ×16）。\r\n3. 缺什么材料就做「神之资源机」（复制物品）或「万魂余响鉴录仪」（用刷怪蛋按原版战利品表产掉落物）。\r\n4. 想省事就做「神思夙愿天书」（N 键记事）、「众神全知启示录」（P 键，就是你现在看的这个）。\r\n5. 合成配方一律在 JEI / EMI 里查，本手册只讲「这东西干嘛用」。",
     "manual.godofthings.system.getting_started.title":  "入门先做什么",
     "manual.godofthings.system.keys_and_commands":  "【按键】P 手册 / N 便签 / M 摆放便签悬浮窗 / U 传送点 / K 神之套装界面（套装功能页在界面里切）/ B 须弥囊。",
     "manual.godofthings.system.keys_and_commands.title":  "按键与指令速查",
-    "manual.godofthings.system.note":  "任务清单，每条带方框勾选，支持两级：主任务 + 子任务。两种打开方式：N 键 / 物品右键。
-· 一册最多 8 本，界面顶部可切换 / 新建 / 删除（删除要点两次）。
-· 任务可按住整行上下拖动排序（**同级之间**：主任务排主任务、同一个父任务的子任务排子任务）。
-· 子任务：点主任务行尾的 **+**，回车后可以**连着加**；编辑主任务文字时按 **Tab** 降级为上一条的子任务（Shift+Tab 升级）。
-· **行首三角折叠 / 展开子任务**（悬浮窗同样遵循折叠）；带子任务的主任务行尾显示 (n/m) 进度。
-· 删除任何一条都点两次 × 确认；删主任务会连子任务一起删。
-· 悬浮窗：开关与位置 / 大小 / 背景在「悬浮窗页」调，或按 M 直接在屏幕上拖着放（松手自动贴边）。
-· 标题可自定义；开「自动更名」后标题跟着当日日期走（如 10.02），跨天自动换。
-· 内容按玩家存在存档里；/godofthings export|import note 可备份（导入前会自动备份原内容）。",
+    "manual.godofthings.system.note":  "任务清单，每条带方框勾选，支持两级：主任务 + 子任务。两种打开方式：N 键 / 物品右键。\r\n· 一册最多 8 本，界面顶部可切换 / 新建 / 删除（删除要点两次）。\r\n· 任务可按住整行上下拖动排序（**同级之间**：主任务排主任务、同一个父任务的子任务排子任务）。\r\n· 子任务：点主任务行尾的 **+**，回车后可以**连着加**；编辑主任务文字时按 **Tab** 降级为上一条的子任务（Shift+Tab 升级）。\r\n· **行首三角折叠 / 展开子任务**（悬浮窗同样遵循折叠）；带子任务的主任务行尾显示 (n/m) 进度。\r\n· 删除任何一条都点两次 × 确认；删主任务会连子任务一起删。\r\n· 悬浮窗：开关与位置 / 大小 / 背景在「悬浮窗页」调，或按 M 直接在屏幕上拖着放（松手自动贴边）。\r\n· 标题可自定义；开「自动更名」后标题跟着当日日期走（如 10.02），跨天自动换。\r\n· 内容按玩家存在存档里；/godofthings export|import note 可备份（导入前会自动备份原内容）。",
     "manual.godofthings.system.note.title":  "神思夙愿天书",
-    "manual.godofthings.system.waypoints":  "· 按 **U** 打开图形界面：可编辑 / 删除（二次确认）/ 置顶，数据按玩家存在存档里。
-· v5.9.0 起 `/setpoint`、`/point`、`/delpoint` 三条指令已按用户要求删除 —— 传送点现在只走 U 键界面。
-· `/godofthings export|import points` 可备份到 `<存档>/godofthings/exports/`。",
+    "manual.godofthings.system.waypoints":  "· 按 **U** 打开图形界面：可编辑 / 删除（二次确认）/ 置顶，数据按玩家存在存档里。\r\n· v5.9.0 起 `/setpoint`、`/point`、`/delpoint` 三条指令已按用户要求删除 —— 传送点现在只走 U 键界面。\r\n· `/godofthings export|import points` 可备份到 `\u003c存档\u003e/godofthings/exports/`。",
     "manual.godofthings.system.waypoints.title":  "传送点",
-    "manual.godofthings.teleport_block":  "作用：维度拓扑编织核 · α —— 通往「奇数维度」的传送方块（照抄 useless_mod 的维度子系统）。
-获取：合成。
-用法：放下后走进去 / 右键传送（详见「系统 · 维度」）。",
-    "manual.godofthings.teleport_block_2":  "作用：维度拓扑编织核 · β —— 通往「偶数维度」。
-获取：合成。
-用法：放下后走进去 / 右键传送。",
-    "manual.godofthings.teleport_block_3":  "作用：无用维度传送方块 —— 通往「无用维度」。
-获取：合成。
-用法：放下后走进去 / 右键传送。",
-    "manual.godofthings.void_teleporter":  "作用：虚空传送门方块 —— 前往虚空维度（双向）。
-获取：合成。
-用法：放下后走进去 / 右键传送。",
+    "manual.godofthings.teleport_block":  "作用：维度拓扑编织核 · α —— 通往「奇数维度」的传送方块（照抄 useless_mod 的维度子系统）。\r\n获取：合成。\r\n用法：放下后走进去 / 右键传送（详见「系统 · 维度」）。",
+    "manual.godofthings.teleport_block_2":  "作用：维度拓扑编织核 · β —— 通往「偶数维度」。\r\n获取：合成。\r\n用法：放下后走进去 / 右键传送。",
+    "manual.godofthings.teleport_block_3":  "作用：无用维度传送方块 —— 通往「无用维度」。\r\n获取：合成。\r\n用法：放下后走进去 / 右键传送。",
+    "manual.godofthings.void_teleporter":  "作用：虚空传送门方块 —— 前往虚空维度（双向）。\r\n获取：合成。\r\n用法：放下后走进去 / 右键传送。",
     "menu.godofthings.dimension_config":  "无用维度配置",
     "message.godofthings.binder.bound":  "已绑定玩家：%s",
     "message.godofthings.binder.machine_bound":  "已绑定机器",
@@ -682,27 +584,19 @@
     "advancements.godofthings.god_duplicate_machine.description":  "做出一台创生摹刻圣坛",
     "block.godofthings.god_ore_machine":  "点金圣灵秘柜",
     "item.godofthings.god_ore_machine":  "点金圣灵秘柜",
-    "manual.godofthings.god_ore_machine":  "作用：点金圣灵秘柜 —— 只收矿物：原矿 / 锭 / 宝石与一切矿石块（含格雷科技等模组矿石），产出对应的锭 / 成品或按矿石掉落表复制，每轮 64 个。
-获取：合成（8 个万物原石 + 1 钻石块）。
-用法：把矿物放进输入槽；可用普朗克超频催化组件提升并行；可作为 AE2 网格节点并网。",
+    "manual.godofthings.god_ore_machine":  "作用：点金圣灵秘柜 —— 只收矿物：原矿 / 锭 / 宝石与一切矿石块（含格雷科技等模组矿石），产出对应的锭 / 成品或按矿石掉落表复制，每轮 64 个。\r\n获取：合成（8 个万物原石 + 1 钻石块）。\r\n用法：把矿物放进输入槽；可用普朗克超频催化组件提升并行；可作为 AE2 网格节点并网。",
     "block.godofthings.god_crop_machine":  "丰饶母神温床",
     "item.godofthings.god_crop_machine":  "丰饶母神温床",
-    "manual.godofthings.god_crop_machine":  "作用：丰饶母神温床 —— 只收作物与植物：种子 / 作物 / 树苗 / 海带 / 甘蔗 / 仙人掌 / 浆果 / 地狱疣及一切模组植物，按原版种植收获概率产出，每轮 64 个。**模组作物同样按「满熟掉落」计算**：把种子的作物方块拉到满熟再走它自己的掉落表，所以神秘农业（Mystical Agriculture）的自然种子产出的是**自然精华**，不会再吐种子。
-获取：合成（8 个万物原石 + 1 干草块）。
-用法：把作物或树苗放进输入槽；可用普朗克超频催化组件提升并行；可作为 AE2 网格节点并网。",
+    "manual.godofthings.god_crop_machine":  "作用：丰饶母神温床 —— 只收作物与植物：种子 / 作物 / 树苗 / 海带 / 甘蔗 / 仙人掌 / 浆果 / 地狱疣及一切模组植物，按原版种植收获概率产出，每轮 64 个。**模组作物同样按「满熟掉落」计算**：把种子的作物方块拉到满熟再走它自己的掉落表，所以神秘农业（Mystical Agriculture）的自然种子产出的是**自然精华**，不会再吐种子。\r\n获取：合成（8 个万物原石 + 1 干草块）。\r\n用法：把作物或树苗放进输入槽；可用普朗克超频催化组件提升并行；可作为 AE2 网格节点并网。",
     "block.godofthings.god_duplicate_machine":  "创生摹刻圣坛",
     "item.godofthings.god_duplicate_machine":  "创生摹刻圣坛",
     "item.godofthings.infinity_cell_name":  "ME无限%s元件",
-    "manual.godofthings.god_duplicate_machine":  "作用：创生摹刻圣坛 —— 收一切物品：原版 / 模组的任何物品都可复制，每轮 64 个（原快配方名单的方块与 AE2 天陨石每 tick 产出，其余每 20 tick）。
-获取：合成（8 个万物原石 + 1 石英块）。
-用法：把任何物品放进输入槽；可用普朗克超频催化组件提升并行；可作为 AE2 网格节点并网。产物是全新堆叠，不带输入上的附魔 / 耐久 / 容器内容等数据。",
+    "manual.godofthings.god_duplicate_machine":  "作用：创生摹刻圣坛 —— 收一切物品：原版 / 模组的任何物品都可复制，每轮 64 个（原快配方名单的方块与 AE2 天陨石每 tick 产出，其余每 20 tick）。\r\n获取：合成（8 个万物原石 + 1 石英块）。\r\n用法：把任何物品放进输入槽；可用普朗克超频催化组件提升并行；可作为 AE2 网格节点并网。产物是全新堆叠，不带输入上的附魔 / 耐久 / 容器内容等数据。",
     "advancements.godofthings.god_peeler.description":  "做出一台净木剥相祭台",
     "advancements.godofthings.god_peeler.title":  "褪去树皮",
     "block.godofthings.god_peeler":  "净木剥相祭台",
     "item.godofthings.god_peeler":  "净木剥相祭台",
-    "manual.godofthings.god_peeler":  "作用：净木剥相祭台 —— 自动去皮机：原木放进去，出来就是对应的去皮原木。原版全部原木 / 木头 / 菌柄 / 蕈柄 / 竹块都认识；模组原木只要按 stripped_ 惯例命名也会自动识别（已经是去皮原木的不再处理）。
-获取：合成（8 个万物原石 + 1 铁斧）。
-用法：原木放进 3×3 输入槽（9 格，与炽神圣火熔炉相同布局），去皮原木从对应输出槽取走。漏斗 / 管道按**面配置**工作：界面右上角齿轮打开面配置，六个面各自可设 无 / 输入 / 输出 / 输入和输出（默认全部无，先配置面漏斗才能进出）；输入面自动从相邻容器抽入原木，输出面自动把成品推给相邻容器。每 5 tick 每个输入槽去皮 1 个（9 格并行）；普朗克超频催化组件提升并行数量与槽位容量（每个 ×16，一组 64 个 = ×1024）。间隔可在 godofthings-machines.toml 的 [peeler] 段调；v5.15.9 起可作为 AE2 网格节点并网（线缆直连占一个频道，去皮产物自动输出进网络，界面右侧「AE」开关切换）。",
+    "manual.godofthings.god_peeler":  "作用：净木剥相祭台 —— 自动去皮机：原木放进去，出来就是对应的去皮原木。原版全部原木 / 木头 / 菌柄 / 蕈柄 / 竹块都认识；模组原木只要按 stripped_ 惯例命名也会自动识别（已经是去皮原木的不再处理）。\r\n获取：合成（8 个万物原石 + 1 铁斧）。\r\n用法：原木放进 3×3 输入槽（9 格，与炽神圣火熔炉相同布局），去皮原木从对应输出槽取走。漏斗 / 管道按**面配置**工作：界面右上角齿轮打开面配置，六个面各自可设 无 / 输入 / 输出 / 输入和输出（默认全部无，先配置面漏斗才能进出）；输入面自动从相邻容器抽入原木，输出面自动把成品推给相邻容器。每 5 tick 每个输入槽去皮 1 个（9 格并行）；普朗克超频催化组件提升并行数量与槽位容量（每个 ×16，一组 64 个 = ×1024）。间隔可在 godofthings-machines.toml 的 [peeler] 段调；v5.15.9 起可作为 AE2 网格节点并网（线缆直连占一个频道，去皮产物自动输出进网络，界面右侧「AE」开关切换）。",
     "item.godofthings.god_belt":  "巧匠神巡束带",
     "tooltip.godofthings.god_belt":  "已满级：%s 个工具槽位。右键打开界面，R 键呼出轮盘。",
     "manual.godofthings.god_belt":  "用法：右键打开腰带界面（16 格，排成 2 排 × 8 格；可放工具 / 武器 / 不可堆叠物品；免死敕 / 翻云令 / 量天裁度金尺 / 微型黑洞 / 同心契等神之工具默认就能放）；「打开腰带槽位界面」快捷键在「众神之物：腰带」分类下（装备腰带 + 2×2 合成 + 背包）；按 R 呼出轮盘，把任意一格与手持物品互换。腰带默认满级，不需要腰带包或升级。",
@@ -718,13 +612,9 @@
     "text.godofthings.belt.empty":  "空",
     "item.godofthings.god_recipe":  "万物原石",
     "tooltip.godofthings.god_recipe":  "一切神之造物的合成底料（老配方正逐步改成拿它当原料）",
-    "manual.godofthings.god_recipe":  "作用：万物原石 —— 一切神之造物的合成底料。神之套装的四件已经改用它当原料（**原版护甲摆放形状，材料位全部换成万物原石**：头盔 5 个 / 胸甲 8 个 / 护腿 7 个 / 靴子 4 个）；其余神之物品（同心契、全系列机器……）以后也会逐步改成「万物原石 + 若干材料」，迁移只动配方 json，物品本身不变。
-获取：有序合成 —— 铁锭 / 铜锭 / 金锭 / 钻石 / 下界合金锭 / 绿宝石 / 红石 / 青金石 / 煤炭 各一个摆满 3×3（上排 铁 铜 金，中排 钻石 下界合金 绿宝石，下排 红石 青金石 煤炭）。
-用法：本身没有交互，当材料用。",
+    "manual.godofthings.god_recipe":  "作用：万物原石 —— 一切神之造物的合成底料。神之套装的四件已经改用它当原料（**原版护甲摆放形状，材料位全部换成万物原石**：头盔 5 个 / 胸甲 8 个 / 护腿 7 个 / 靴子 4 个）；其余神之物品（同心契、全系列机器……）以后也会逐步改成「万物原石 + 若干材料」，迁移只动配方 json，物品本身不变。\r\n获取：有序合成 —— 铁锭 / 铜锭 / 金锭 / 钻石 / 下界合金锭 / 绿宝石 / 红石 / 青金石 / 煤炭 各一个摆满 3×3（上排 铁 铜 金，中排 钻石 下界合金 绿宝石，下排 红石 青金石 煤炭）。\r\n用法：本身没有交互，当材料用。",
     "item.godofthings.god_construction":  "筑界杖",
-    "manual.godofthings.god_construction":  "作用：筑界杖 —— 建筑棒的移植版：右键批量放方块、潜行右键切换模式、副手拿方块可替换、已链接 AE 网络时自动从网络取料。
-获取：合成（万物原石 ×1 + 下界合金锭 ×2）。
-用法：**右键方块 = 按当前模式执行**（建造 / 销毁 / 替换，潜行右键循环切换）。建造模式沿点击面在平面内铺开（每格背后必须是同种方块），上限 1024 格；右键空气时用副手方块在视线前方悬空放置（天使能力）。销毁模式最多挖 81 格同种连通方块且**不掉落**（箱子 / 机器这类带方块实体的方块**也能拆**，内容物一并销毁）。替换模式需**副手拿方块**，把连通区域整片换掉、旧方块掉出、每格消耗 1 个新方块。物品永不损耗（自带不毁）。**潜行 + 右键空气**打开设置界面：切换模式、**撤销上次操作（最多 10 步）**、开关**预览线框**与**相似方块匹配**（把同类方块如各种石砖当作一种来铺）。**副手拿方块时优先用副手的方块建造**（材料也优先从副手扣）；对着箱子 / 机器等**会开界面的方块默认打开界面**，**按住 Ctrl 右键**才强制施工。在 AE2 的无线接入点（WAP）里把本体放进链接槽即可绑定网络，缺料时自动从 ME 网络抽取。",
+    "manual.godofthings.god_construction":  "作用：筑界杖 —— 建筑棒的移植版：右键批量放方块、潜行右键切换模式、副手拿方块可替换、已链接 AE 网络时自动从网络取料。\r\n获取：合成（万物原石 ×1 + 下界合金锭 ×2）。\r\n用法：**右键方块 = 按当前模式执行**（建造 / 销毁 / 替换，潜行右键循环切换）。建造模式沿点击面在平面内铺开（每格背后必须是同种方块），上限 1024 格；右键空气时用副手方块在视线前方悬空放置（天使能力）。销毁模式最多挖 81 格同种连通方块且**不掉落**（箱子 / 机器这类带方块实体的方块**也能拆**，内容物一并销毁）。替换模式需**副手拿方块**，把连通区域整片换掉、旧方块掉出、每格消耗 1 个新方块。物品永不损耗（自带不毁）。**潜行 + 右键空气**打开设置界面：切换模式、**撤销上次操作（最多 10 步）**、开关**预览线框**与**相似方块匹配**（把同类方块如各种石砖当作一种来铺）。**副手拿方块时优先用副手的方块建造**（材料也优先从副手扣）；对着箱子 / 机器等**会开界面的方块默认打开界面**，**按住 Ctrl 右键**才强制施工。在 AE2 的无线接入点（WAP）里把本体放进链接槽即可绑定网络，缺料时自动从 ME 网络抽取。",
     "message.godofthings.god_construction.mode_build":  "筑界杖：建造",
     "message.godofthings.god_construction.mode_destroy":  "筑界杖：销毁",
     "message.godofthings.god_construction.mode_replace":  "筑界杖：替换",
@@ -742,26 +632,10 @@
     "message.godofthings.god_construction.undone":  "已撤销 %s 格",
     "message.godofthings.god_construction.undo_empty":  "没有可撤销的操作",
     "item.godofthings.heavenly_construction":  "开天权",
-    "manual.godofthings.heavenly_construction":  "作用：开天权 —— 筑界杖的天神版。与筑界杖完全同一套操作（**右键**按模式批量施工、**潜行右键**切模式、**潜行右键空气**开设置界面：撤销 10 步 / 预览线框 / 相似方块匹配），但把三项上限全部拉到 **int 上限**：单次**放置**方块数、单次**破坏**方块数、**悬空放置距离**；耐久同样**无限**（没有耐久条）。
-获取：合成（**筑界杖 ×1 + 万物原石 ×8** 围一圈）。
-用法：与筑界杖一致；因为一次可能命中几十万格，服务端按**每 tick 8192 格**分批执行，作业会跨 tick 继续，走到别处 / 换手 / 下线会取消剩余部分（已完成的部分照常计入撤销）。**副手拿方块时优先用副手的方块建造**（材料也优先从副手扣）；对着箱子 / 机器等**会开界面的方块默认打开界面**，**按住 Ctrl 右键**才强制施工。AE 取料同样支持：在 AE2 无线接入点链接槽里绑定网络即可。",
+    "manual.godofthings.heavenly_construction":  "作用：开天权 —— 筑界杖的天神版。与筑界杖完全同一套操作（**右键**按模式批量施工、**潜行右键**切模式、**潜行右键空气**开设置界面：撤销 10 步 / 预览线框 / 相似方块匹配），但把三项上限全部拉到 **int 上限**：单次**放置**方块数、单次**破坏**方块数、**悬空放置距离**；耐久同样**无限**（没有耐久条）。\r\n获取：合成（**筑界杖 ×1 + 万物原石 ×8** 围一圈）。\r\n用法：与筑界杖一致；因为一次可能命中几十万格，服务端按**每 tick 8192 格**分批执行，作业会跨 tick 继续，走到别处 / 换手 / 下线会取消剩余部分（已完成的部分照常计入撤销）。**副手拿方块时优先用副手的方块建造**（材料也优先从副手扣）；对着箱子 / 机器等**会开界面的方块默认打开界面**，**按住 Ctrl 右键**才强制施工。AE 取料同样支持：在 AE2 无线接入点链接槽里绑定网络即可。",
     "item.godofthings.natures_compass":  "寻境司",
-    "manual.godofthings.natures_compass":  "作用：寻境司 —— 生物群系定位器。整包移植自 [Nature's Compass](https://www.curseforge.com/minecraft/mc-mods/natures-compass)（作者 ChaosTheDude，CC BY-NC-SA 4.0）。
-获取：合成（树苗 ×4 + 原木 ×4 + 指南针 ×1，按原版罗盘形状摆放）；损坏后可用 线 ×4 + 青金石 ×1 修复。
-用法：
-· **右键**开界面，左栏是全世界所有生物群系（按名称 / 来源模组 / 标签 / 维度 / 降水量 / 温度 六种方式环形切换排序）。
-· 选中一个群系 → **开始搜索**：服务端按螺旋采样 + 连通性判定找最近的落点，界面实时显示搜索半径与已采样本数，可随时**搜索下一个**。
-· 找到后显示坐标 / 维度 / 距离 / 生物群系详情（温度、降水、地表组成、地基组成、高度变化等），**传送**按钮按配置项决定是否需要权限。
-· 搜索会消耗耐久，可在配置里关掉耐久消耗或把搜索范围拉满。
-· 配置：`config/godofthings-natures-compass.toml`（通用：最大半径 / 最大采样 / 耐久消耗 / 传送权限 / 黑名单等）与 `godofthings-natures-compass-client.toml`（客户端：HUD 位置 / 显示哪些信息）。",
-    "manual.godofthings.explorers_compass":  "作用：探古司 —— 结构定位器。整包移植自 [Explorer's Compass](https://github.com/MattCzyr/ExplorersCompass)（作者 ChaosTheDude，CC BY-NC-SA 4.0）。
-获取：合成（蜘蛛网 ×4 + 裂纹石砖 ×4 + 指南针 ×1）。
-用法：
-· **右键**开界面，左栏列出当前存档里**真实存在**的所有结构（村庄 / 要塞 / 海底神殿 / 林地府邸 / 远古城市 / 各类模组结构…），按名称 / 来源模组 / 分组 / 维度 环形切换排序。
-· 选中结构 → **开始搜索**：服务端按结构放置策略（随机散布 / 同心环 / 通用）分派对应搜索算法，界面实时显示搜索进度，可**搜索下一个**。
-· 找到后显示坐标 / 维度 / 距离 / 结构名，可直接**传送**或**清除结果**。
-· 只列出本存档实际会生成的结构（跟着世界种子与已装模组走），不会出现空跑。
-· 配置：`config/godofthings-explorers-compass.toml`（通用：搜索半径 / 传送权限等）与 `godofthings-explorers-compass-client.toml`（客户端：HUD 与界面外观）。",
+    "manual.godofthings.natures_compass":  "作用：寻境司 —— 生物群系定位器。整包移植自 [Nature\u0027s Compass](https://www.curseforge.com/minecraft/mc-mods/natures-compass)（作者 ChaosTheDude，CC BY-NC-SA 4.0）。\r\n获取：合成（树苗 ×4 + 原木 ×4 + 指南针 ×1，按原版罗盘形状摆放）；损坏后可用 线 ×4 + 青金石 ×1 修复。\r\n用法：\r\n· **右键**开界面，左栏是全世界所有生物群系（按名称 / 来源模组 / 标签 / 维度 / 降水量 / 温度 六种方式环形切换排序）。\r\n· 选中一个群系 → **开始搜索**：服务端按螺旋采样 + 连通性判定找最近的落点，界面实时显示搜索半径与已采样本数，可随时**搜索下一个**。\r\n· 找到后显示坐标 / 维度 / 距离 / 生物群系详情（温度、降水、地表组成、地基组成、高度变化等），**传送**按钮按配置项决定是否需要权限。\r\n· 搜索会消耗耐久，可在配置里关掉耐久消耗或把搜索范围拉满。\r\n· 配置：`config/godofthings-natures-compass.toml`（通用：最大半径 / 最大采样 / 耐久消耗 / 传送权限 / 黑名单等）与 `godofthings-natures-compass-client.toml`（客户端：HUD 位置 / 显示哪些信息）。",
+    "manual.godofthings.explorers_compass":  "作用：探古司 —— 结构定位器。整包移植自 [Explorer\u0027s Compass](https://github.com/MattCzyr/ExplorersCompass)（作者 ChaosTheDude，CC BY-NC-SA 4.0）。\r\n获取：合成（蜘蛛网 ×4 + 裂纹石砖 ×4 + 指南针 ×1）。\r\n用法：\r\n· **右键**开界面，左栏列出当前存档里**真实存在**的所有结构（村庄 / 要塞 / 海底神殿 / 林地府邸 / 远古城市 / 各类模组结构…），按名称 / 来源模组 / 分组 / 维度 环形切换排序。\r\n· 选中结构 → **开始搜索**：服务端按结构放置策略（随机散布 / 同心环 / 通用）分派对应搜索算法，界面实时显示搜索进度，可**搜索下一个**。\r\n· 找到后显示坐标 / 维度 / 距离 / 结构名，可直接**传送**或**清除结果**。\r\n· 只列出本存档实际会生成的结构（跟着世界种子与已装模组走），不会出现空跑。\r\n· 配置：`config/godofthings-explorers-compass.toml`（通用：搜索半径 / 传送权限等）与 `godofthings-explorers-compass-client.toml`（客户端：HUD 与界面外观）。",
     "godofthings.natures_compass.back":  "返回",
     "godofthings.natures_compass.info":  "信息",
     "godofthings.natures_compass.startSearch":  "开始搜索",
@@ -930,22 +804,12 @@
     "tooltip.godofthings.infinity_cell.uuid":  "§7UUID: §e%s",
     "tooltip.godofthings.infinity_cell.types":  "§7已存储类型: §a%s",
     "tooltip.godofthings.infinity_cell.total":  "§7已存储总量: §b%s",
-    "manual.godofthings.infinity_biginteger_cell":  "作用：「吞噬万籁的永寂」—— 终极 ME 存储元件（整包移植自 ExtendedAE+ 1.6.3，LGPL-3.0）。与前 4 个「固定资源」无限元件不同，这个是通用的：
-容量：实体是 BigInteger，理论上无限；AE2 界面只能显示 long，所以终端里单个物品最多显示 9.2E（9,223,372,036,854,775,808），但继续往里塞不会丢，超出部分仍精确记账。
-种类：不限制。物品 / 流体 / 任何接入 AE2 的附属资源（FE、化学品、魔源…）都能存，存后者需安装对应附属。
-性能：闲置耗电 512 AE/t；支持 4 个升级卡槽（反向卡 / 模糊卡 / 容量卡等）与配置槽（分区过滤）；不允许把带内容的同类元件塞进自己（防套娃）。
-数据存放：真实内容不在物品上，而在世界存档 world/data/infinity_biginteger_cells.dat 里，物品只带一个 UUID（所以元件被拆下 / 重放 / 丢到地上都不丢数据）。字段名与上游一致，两边存档可互读。
-恢复：万一元件意外丢失，存档里的数据还在；用 /godofthings infinity recover 可以把存档中每份数据对应的元件重新发给你。
-获取：合成（石英玻璃 ×4 + 万物原石 ×4 + 256k 存储组件 ×1 + 下界星 ×1 + 下界合金锭 ×2）。",
+    "manual.godofthings.infinity_biginteger_cell":  "作用：「吞噬万籁的永寂」—— 终极 ME 存储元件（整包移植自 ExtendedAE+ 1.6.3，LGPL-3.0）。与前 4 个「固定资源」无限元件不同，这个是通用的：\r\n容量：实体是 BigInteger，理论上无限；AE2 界面只能显示 long，所以终端里单个物品最多显示 9.2E（9,223,372,036,854,775,808），但继续往里塞不会丢，超出部分仍精确记账。\r\n种类：不限制。物品 / 流体 / 任何接入 AE2 的附属资源（FE、化学品、魔源…）都能存，存后者需安装对应附属。\r\n性能：闲置耗电 512 AE/t；支持 4 个升级卡槽（反向卡 / 模糊卡 / 容量卡等）与配置槽（分区过滤）；不允许把带内容的同类元件塞进自己（防套娃）。\r\n数据存放：真实内容不在物品上，而在世界存档 world/data/infinity_biginteger_cells.dat 里，物品只带一个 UUID（所以元件被拆下 / 重放 / 丢到地上都不丢数据）。字段名与上游一致，两边存档可互读。\r\n恢复：万一元件意外丢失，存档里的数据还在；用 /godofthings infinity recover 可以把存档中每份数据对应的元件重新发给你。\r\n获取：合成（石英玻璃 ×4 + 万物原石 ×4 + 256k 存储组件 ×1 + 下界星 ×1 + 下界合金锭 ×2）。",
     "message.godofthings.infinity.need_player":  "这条指令需要玩家执行（要把元件发到你身上）",
     "message.godofthings.infinity.no_data":  "存档里没有可恢复的「吞噬万籁的永寂」数据",
     "message.godofthings.infinity.recovered":  "已根据存档数据重新发放 %s 个元件",
     "item.godofthings.universal_cell":  "原初万象圣晶",
-    "manual.godofthings.universal_cell":  "作用：原初万象圣晶 —— 一个元件同时无限供应 5 种资源：水、熔岩、圆石、空白样板、福禄伊克斯色 ME 玻璃线缆（ae2:fluix_glass_cable）。
-容量：向 AE2 报告 9,223,372,036,854,775,807（9.2E），这是 AE2 KeyCounter 的 long 上限，也是界面上能显示的最大单位（AE2 单位表是 KMGTPE，最大只到 E）。多个元件叠加时靠 KeyCounter 钳制 + BigInteger 精确记账，不会溢出成负数、不会让物品从终端消失。
-行为：固定清单「凭空供应」，插入同类资源会被接受但不实际存储（幻影存储）；不消耗耐久、不写 NBT、拆下重放数据不变。闲置耗电 8 AE/t。
-获取：合成（石英玻璃 ×4 + 万物原石 ×4 + 256k 存储组件 ×1 + 水桶 ×1 + 熔岩桶 ×1）。
-说明：本元件取代了旧版 4 个单资源元件（无限水 / 熔岩 / 圆石 / 空白样板）。",
+    "manual.godofthings.universal_cell":  "作用：原初万象圣晶 —— 一个元件同时无限供应 5 种资源：水、熔岩、圆石、空白样板、福禄伊克斯色 ME 玻璃线缆（ae2:fluix_glass_cable）。\r\n容量：向 AE2 报告 9,223,372,036,854,775,807（9.2E），这是 AE2 KeyCounter 的 long 上限，也是界面上能显示的最大单位（AE2 单位表是 KMGTPE，最大只到 E）。多个元件叠加时靠 KeyCounter 钳制 + BigInteger 精确记账，不会溢出成负数、不会让物品从终端消失。\r\n行为：固定清单「凭空供应」，插入同类资源会被接受但不实际存储（幻影存储）；不消耗耐久、不写 NBT、拆下重放数据不变。闲置耗电 8 AE/t。\r\n获取：合成（石英玻璃 ×4 + 万物原石 ×4 + 256k 存储组件 ×1 + 水桶 ×1 + 熔岩桶 ×1）。\r\n说明：本元件取代了旧版 4 个单资源元件（无限水 / 熔岩 / 圆石 / 空白样板）。",
     "tooltip.godofthings.god_furnace.lore":  "§6§o\"熔铸天星之火，凡铁入内即成神髓。\"",
     "tooltip.godofthings.god_furnace.shift_1":  "§e[配方兼容] §f全面支持原版熔炼 (Smelting)、高炉 (Blasting) 与烟熏 (Smoking)。",
     "tooltip.godofthings.god_furnace.shift_2":  "§a[产能倍率] §f17 组并行处理，每槽满载加速单轮产能达 21.4 亿 (Integer 上限)。",
@@ -955,7 +819,7 @@
     "tooltip.godofthings.god_miner.shift_1":  "§e[挖掘范围] §f半径 1~1600 格自由调节；内置流体储罐无上限吞纳岩浆与水源。",
     "tooltip.godofthings.god_miner.shift_2":  "§a[恒速超频] §f满载 64 个加速组件时，钻探速度直接锁定为 1 tick/整列！",
     "tooltip.godofthings.god_miner.shift_3":  "§d[神之共鸣] §f界面内自由切换精准/时运III；联动神装战利品暴击与自动熔炼。",
-    "tooltip.godofthings.god_miner.shift_4":  "§b[AE2 & 存储] §f内置 4096 类超大缓冲并支持 AE2 直连，空间不足自动暂停。",
+    "tooltip.godofthings.god_miner.shift_4":  "§b[AE2 \u0026 存储] §f内置 4096 类超大缓冲并支持 AE2 直连，空间不足自动暂停。",
     "tooltip.godofthings.god_ore_machine.lore":  "§6§o\"神明的触碰，让顽石中析出无穷无尽的璀璨宝石。\"",
     "tooltip.godofthings.god_ore_machine.shift_1":  "§e[倍化机制] §f矿石方块按时运III掉落基准 ×64 批量产出，原矿直炼为成品锭。",
     "tooltip.godofthings.god_ore_machine.shift_2":  "§a[完美兼容] §f深度支持原版粗矿、宝石、格雷系模组矿物以及 AE2 赛特斯/福禄伊克斯水晶。",
@@ -1035,8 +899,8 @@
     "tooltip.godofthings.god_black_box.shift_3":  "§b[快捷操作] §f潜行滚轮手持切换开关；潜行右键容器转存；潜行右键吞噬方块一键清空。",
     "tooltip.godofthings.god_binder.lore":  "§6§o\"牵起两界灵脉之丝，纵万水千山，气机息息相通。\"",
     "tooltip.godofthings.god_binder.shift_1":  "§e[配对方法] §f右键 FE 机器即刻与同维度最近的极光灵脉引渡枢设备完成绑定。",
-    "tooltip.godofthings.god_binder.shift_2":  "§a[副手自动化] §f副手持有该工具时，主手放置任何 FE 机器将自动完成绑定！",
-        "tooltip.godofthings.god_binder.shift_3":  "§b[无线绑定] §f右键供应器/过载接口选中，再右键机器连接；已连接同一面时再次右键即断开（Ctrl 批量切换，潜行强制断开）",
+    "tooltip.godofthings.god_binder.shift_2":  "§a[副手自动化] §f副手持有该工具时，主手放置任何 FE 机器将自动完成绑定！",
+    "tooltip.godofthings.god_binder.shift_3":  "§b[无线绑定] §f右键供应器/过载接口选中，再右键机器连接；已连接同一面时再次右键即断开（Ctrl 批量切换，潜行强制断开）",
     "tooltip.godofthings.god_construction.lore":  "§6§o\"一杖指处，高台千丈拔地起，琼楼玉宇刹那成。\"",
     "tooltip.godofthings.god_construction.shift_1":  "§e[施工上限] §f单次最大延伸 1024 格；支持右键空气天使放置（视线前 2 格）。",
     "tooltip.godofthings.god_construction.shift_2":  "§a[操作模式] §f潜行右键循环切换模式；潜行右键空气打开菜单（支持 10 步撤销与方块匹配）。",
@@ -1378,9 +1242,9 @@
     "gui.godofthings.infprovider.filtered.off":  "输入过滤：关（回收一切）",
     "gui.godofthings.infprovider.advanced.input_filter":  "输入过滤",
     "message.godofthings.binder.machines_connected_many":  "已连接 %d 台机器的 %s 面",
-    "message.godofthings.binder.machines_disconnected_many":  "已断开 %d 台机器",
-        "message.godofthings.binder.batch_toggled":  "已切换 %d 处连接（%s 面）",
-        "message.godofthings.binder.machine_face_updated":  "已改绑 [%d, %d, %d] 至 %s 面",
+    "message.godofthings.binder.machines_disconnected_many":  "已断开 %d 台机器",
+    "message.godofthings.binder.batch_toggled":  "已切换 %d 处连接（%s 面）",
+    "message.godofthings.binder.machine_face_updated":  "已改绑 [%d, %d, %d] 至 %s 面",
     "message.godofthings.binder.provider_full_skipped":  "已跳过 %d 台（连接上限 %d）",
     "gui.godofthings.infprovider.apply":  "应用",
     "message.godofthings.binder.provider_selected":  "已选中供应器 [%d, %d, %d]，现在右键机器建立无线连接",
@@ -1391,7 +1255,8 @@
     "message.godofthings.binder.machine_connected":  "已连接 [%d, %d, %d] 的 %s 面",
     "message.godofthings.binder.machine_disconnected":  "已断开 [%d, %d, %d]",
     "message.godofthings.binder.not_connected":  "该机器未连接到选中供应器",
-    "message.godofthings.binder.provider_full":  "供应器连接已满（%d 台）",    "manual.godofthings._1slots_pattern_provider":  "ME 1槽样板供应器：只有一个样板槽的迷你供应器，可用切石机从 AE2 样板供应器一拆九。",
+    "message.godofthings.binder.provider_full":  "供应器连接已满（%d 台）",
+    "manual.godofthings._1slots_pattern_provider":  "ME 1槽样板供应器：只有一个样板槽的迷你供应器，可用切石机从 AE2 样板供应器一拆九。",
     "message.godofthings.binder.host_lost":  "选中的供应器已消失，已清除选中状态",
     "manual.godofthings._32slots_pattern_provider":  "ME 32槽样板供应器：32 个样板槽（8×4 一页），由 AE2 样板供应器加工程处理器升级而成。",
     "manual.godofthings._1024slots_pattern_provider":  "ME 1024槽样板供应器：翻页浏览 1024 个样板槽，用运算处理器与 16k 元件升级。",
@@ -1400,43 +1265,43 @@
     "manual.godofthings._32slots_pattern_provider_part":  "ME 32槽样板供应器（部件形态）：挂在 AE2 线缆侧面使用，功能与方块版一致。",
     "manual.godofthings._1024slots_pattern_provider_part":  "ME 1024槽样板供应器（部件形态）：挂在 AE2 线缆侧面使用，功能与方块版一致。",
     "manual.godofthings.infinity_pattern_provider_part":  "ME无限样板供应器（部件形态）：挂在 AE2 线缆侧面使用，功能与方块版一致。",
-  "block.godofthings.wireless_connector": "无线连接器",
-  "item.godofthings.wireless_link_tool": "无线连接工具",
-  "itemGroup.godofthings.god_of_things_items_tab": "众神之物：物品",
-  "manual.godofthings.wireless_connector": "无线网格桥接中枢。放进 ME 网络里（贴着线缆/控制器放），开启自动连接后，在任意距离、任意维度放置的 AE 设备都会被自动并入这个网络。用 /aalink on 开启自动连接。",
-  "manual.godofthings.wireless_link_tool": "手动把任意 AE 设备接入已绑定的无线连接器所在网络。蹲下右键无线连接器绑定，然后右键任意 AE 设备即可接入；蹲下对空气右键取消绑定。",
-  "message.godofthings.aalink.tool_bound": "无线连接工具已绑定：%s %s",
-  "message.godofthings.aalink.tool_unbound": "无线连接工具已取消绑定",
-  "message.godofthings.aalink.tool_need_sneak": "请蹲下右键无线连接器进行绑定",
-  "message.godofthings.aalink.tool_not_bound": "无线连接工具未绑定：请蹲下右键无线连接器进行绑定",
-  "message.godofthings.aalink.tool_hub_dim_missing": "找不到绑定的无线连接器所在维度",
-  "message.godofthings.aalink.tool_hub_missing": "绑定的无线连接器不存在或所在区块未加载",
-  "message.godofthings.aalink.tool_hub_not_ready": "无线连接器网络节点尚未就绪",
-  "message.godofthings.aalink.tool_not_ae_device": "该方块无法连接 AE 网络",
-  "message.godofthings.aalink.tool_already_linked": "该设备已在 AE 网络中",
-  "message.godofthings.aalink.tool_failed": "连接失败：%s",
-  "message.godofthings.aalink.tool_linked": "设备已接入 AE 网络",
-  "message.godofthings.aalink.auto_state": "AALink 自动连接已%s",
-  "message.godofthings.aalink.auto_status": "AALink 自动连接状态：%s",
-  "message.godofthings.aalink.on": "开启",
-  "message.godofthings.aalink.off": "关闭",
-  "block.godofthings.overloaded_interface": "过载接口",
-  "manual.godofthings.overloaded_interface": "36 槽的增强型 ME 接口：可以把配置里的物资主动推向相邻（或无线连接的）目标机器，也可以把目标机器的产物抽回 ME 网络。导入设为「弹出」时，接口直接充当机器的输出仓，塞进来的东西立刻回网。",
-  "gui.godofthings.overloaded_interface.mode.normal": "接口模式：普通（只与贴邻方块交互）",
-  "gui.godofthings.overloaded_interface.mode.wireless": "接口模式：无线（只与连接列表里的机器交互）",
-  "gui.godofthings.overloaded_interface.export.off": "导出：关闭",
-  "gui.godofthings.overloaded_interface.export.auto": "导出：自动（把配置里的物资推给目标）",
-  "gui.godofthings.overloaded_interface.import.off": "导入：关闭",
-  "gui.godofthings.overloaded_interface.import.auto": "导入：自动（把目标的产物抽回网络）",
-  "gui.godofthings.overloaded_interface.import.eject": "导入：弹出（接口充当目标机器的输出仓）",
-  "gui.godofthings.overloaded_interface.speed.normal": "IO 速度：普通（每 20 tick 一轮）",
-  "gui.godofthings.overloaded_interface.speed.fast": "IO 速度：快速（每 5 tick 一轮）",
-  "gui.godofthings.overloaded_interface.connections": "已连接 %d 台机器",
-  "gui.godofthings.overloaded_interface.eject_storage": "接口输出仓",
-  "gui.godofthings.overloaded_interface.page.next": "下一页（也可滚轮翻页）",
-  "gui.godofthings.overloaded_interface.page.prev": "上一页（也可滚轮翻页）",
-  "gui.godofthings.overloaded_interface.set_amount": "设置数量",
-  "gui.godofthings.overloaded_interface.set_amount.tooltip": "左键：设置该槽库存数量；Shift+左键：切换无限库存（∞）",
+    "block.godofthings.wireless_connector":  "无线连接器",
+    "item.godofthings.wireless_link_tool":  "无线连接工具",
+    "itemGroup.godofthings.god_of_things_items_tab":  "众神之物：物品",
+    "manual.godofthings.wireless_connector":  "无线网格桥接中枢。放进 ME 网络里（贴着线缆/控制器放），开启自动连接后，在任意距离、任意维度放置的 AE 设备都会被自动并入这个网络。用 /aalink on 开启自动连接。",
+    "manual.godofthings.wireless_link_tool":  "手动把任意 AE 设备接入已绑定的无线连接器所在网络。蹲下右键无线连接器绑定，然后右键任意 AE 设备即可接入；蹲下对空气右键取消绑定。",
+    "message.godofthings.aalink.tool_bound":  "无线连接工具已绑定：%s %s",
+    "message.godofthings.aalink.tool_unbound":  "无线连接工具已取消绑定",
+    "message.godofthings.aalink.tool_need_sneak":  "请蹲下右键无线连接器进行绑定",
+    "message.godofthings.aalink.tool_not_bound":  "无线连接工具未绑定：请蹲下右键无线连接器进行绑定",
+    "message.godofthings.aalink.tool_hub_dim_missing":  "找不到绑定的无线连接器所在维度",
+    "message.godofthings.aalink.tool_hub_missing":  "绑定的无线连接器不存在或所在区块未加载",
+    "message.godofthings.aalink.tool_hub_not_ready":  "无线连接器网络节点尚未就绪",
+    "message.godofthings.aalink.tool_not_ae_device":  "该方块无法连接 AE 网络",
+    "message.godofthings.aalink.tool_already_linked":  "该设备已在 AE 网络中",
+    "message.godofthings.aalink.tool_failed":  "连接失败：%s",
+    "message.godofthings.aalink.tool_linked":  "设备已接入 AE 网络",
+    "message.godofthings.aalink.auto_state":  "AALink 自动连接已%s",
+    "message.godofthings.aalink.auto_status":  "AALink 自动连接状态：%s",
+    "message.godofthings.aalink.on":  "开启",
+    "message.godofthings.aalink.off":  "关闭",
+    "block.godofthings.overloaded_interface":  "过载接口",
+    "manual.godofthings.overloaded_interface":  "36 槽的增强型 ME 接口：可以把配置里的物资主动推向相邻（或无线连接的）目标机器，也可以把目标机器的产物抽回 ME 网络。导入设为「弹出」时，接口直接充当机器的输出仓，塞进来的东西立刻回网。",
+    "gui.godofthings.overloaded_interface.mode.normal":  "接口模式：普通（只与贴邻方块交互）",
+    "gui.godofthings.overloaded_interface.mode.wireless":  "接口模式：无线（只与连接列表里的机器交互）",
+    "gui.godofthings.overloaded_interface.export.off":  "导出：关闭",
+    "gui.godofthings.overloaded_interface.export.auto":  "导出：自动（把配置里的物资推给目标）",
+    "gui.godofthings.overloaded_interface.import.off":  "导入：关闭",
+    "gui.godofthings.overloaded_interface.import.auto":  "导入：自动（把目标的产物抽回网络）",
+    "gui.godofthings.overloaded_interface.import.eject":  "导入：弹出（接口充当目标机器的输出仓）",
+    "gui.godofthings.overloaded_interface.speed.normal":  "IO 速度：普通（每 20 tick 一轮）",
+    "gui.godofthings.overloaded_interface.speed.fast":  "IO 速度：快速（每 5 tick 一轮）",
+    "gui.godofthings.overloaded_interface.connections":  "已连接 %d 台机器",
+    "gui.godofthings.overloaded_interface.eject_storage":  "接口输出仓",
+    "gui.godofthings.overloaded_interface.page.next":  "下一页（也可滚轮翻页）",
+    "gui.godofthings.overloaded_interface.page.prev":  "上一页（也可滚轮翻页）",
+    "gui.godofthings.overloaded_interface.set_amount":  "设置数量",
+    "gui.godofthings.overloaded_interface.set_amount.tooltip":  "左键：设置该槽库存数量；Shift+左键：切换无限库存（∞）",
     "gui.godofthings.advanced_memory_card.button.assign_freq":  "分配新频段",
     "gui.godofthings.advanced_memory_card.button.bind":  "绑定",
     "gui.godofthings.advanced_memory_card.button.cancel":  "取消",
@@ -1478,7 +1343,7 @@
     "gui.godofthings.advanced_memory_card.player.copy.first_pos_marked":  "第一个位置[%s]已标记",
     "gui.godofthings.advanced_memory_card.player.copy.second_pos_marked":  "第二个位置[%s]已标记，待复制区域大小:[%s,%s,%s]",
     "gui.godofthings.advanced_memory_card.player.copy.show":  "复制模式",
-    "gui.godofthings.advanced_memory_card.player.copy.too_large":  "范围过大(%s>%s)",
+    "gui.godofthings.advanced_memory_card.player.copy.too_large":  "范围过大(%s\u003e%s)",
     "gui.godofthings.advanced_memory_card.status.connected":  "已连接",
     "gui.godofthings.advanced_memory_card.status.current_selected":  "（当前选中）",
     "gui.godofthings.advanced_memory_card.status.input":  "（输入端）",
@@ -1550,7 +1415,8 @@
     "message.godofthings.super_fusion.type_mismatch":  "目标机器种类与记录不一致",
     "message.godofthings.super_fusion.paste_failed":  "没有可粘贴的目标机器",
     "message.godofthings.super_fusion.pasted":  "已粘贴到 %s 台机器",
-    "message.godofthings.super_fusion.pasted_creative":  "已粘贴到 %s 台机器（创造模式）",    "message.godofthings.super_fusion.no_tier":  "卡里记录的机器没有等级信息",
+    "message.godofthings.super_fusion.pasted_creative":  "已粘贴到 %s 台机器（创造模式）",
+    "message.godofthings.super_fusion.no_tier":  "卡里记录的机器没有等级信息",
     "message.godofthings.super_fusion.not_enough_upgrades":  "升级物品不足",
     "message.godofthings.super_fusion.sync_profile":  "已同步升级档案：%s 项，%s 台机器",
     "message.godofthings.super_fusion.clear_all":  "已卸下升级：%s 项，%s 台机器",
@@ -1562,5 +1428,109 @@
     "message.godofthings.super_fusion.selection_cleared":  "已清除框选角点",
     "manual.godofthings.super_fusion_card":  "【超级融合卡】移植自 Mekanism-Card 的全能机器改造工具，一张卡覆盖四种操作：\n· 等级安装：把机器一路升到卡里记录的等级（消耗对应安装器）；\n· 安装升级：按卡里记录的升级档案，把目标机器的升级数量补齐或削平（多退少补，退掉的进背包）；\n· 内存复制/粘贴：把一台机器的配置（升级 + 面设置等）复制下来，粘贴到同类机器；\n· 全量模式：先升到记录等级，再粘贴升级与配置，一步到位。\n【操作】右键机器执行当前模式；潜行右键机器复制配置；潜行右键空气清空卡内数据；左键空气打开设置界面；潜行左键空气轮换模式；中键机器一次装满升级；按住「融合卡批量选择」键（默认不绑定，在「众神之物」分类里自己设）左键点两个角点即可框选批量执行。\n【材料网络】把卡放进 ME 无线访问点并 Shift+右键即可绑定 AE 网络；潜行右键 QIO 仪表盘可绑定 QIO 频率。绑定后升级/安装器材料可直接从对应网络里扣。\n【软依赖】本物品只在装了通用机械（Mekanism）时才会注册出现；装 Mekanism Extras 或 EvolvedMekanism 时会自动支持它们注入的更高等级。",
     "message.godofthings.super_fusion.qio_no_frequency":  "该方块没有设置 QIO 频率",
-    "message.godofthings.super_fusion.qio_bound":  "已绑定 QIO 频率：%s"
+    "message.godofthings.super_fusion.qio_bound":  "已绑定 QIO 频率：%s",
+    "message.godofthings.mept.cannot_undo_memory_card":  "已应用配置，无法撤回",
+    "godofthings.mept.color.yellow":  "黄色",
+    "message.godofthings.mept.no_linked_grid":  "未链接到 ME 网络",
+    "godofthings.mept.color.black":  "黑色",
+    "item.godofthings.mept.prism_core":  "棱镜原体",
+    "godofthings.mept.hud.upgrade":  "升级: %s",
+    "godofthings.mept.color.light_gray":  "淡灰",
+    "godofthings.mept.cable.covered":  "包层线缆",
+    "message.godofthings.mept.point2_set":  "点2已设置: %s",
+    "key.godofthings.mept.undo":  "撤回按键",
+    "message.godofthings.mept.placed_count":  "已放置 %d 根线缆",
+    "godofthings.mept.color.purple":  "紫色",
+    "godofthings.mept.cable.glass.short":  "玻璃",
+    "godofthings.mept.color.transparent":  "福鲁伊克斯",
+    "message.godofthings.mept.missing_dye":  "缺少染料: %d × %s",
+    "gui.godofthings.mept.expand_colors":  "展开颜色菜单",
+    "godofthings.mept.color.lime":  "黄绿",
+    "gui.godofthings.mept.empty_slot":  "空槽位",
+    "gui.godofthings.mept.need_spectrum_key":  "需插入光谱的钥匙",
+    "message.godofthings.mept.no_configured_item":  "所选格无已配置物品",
+    "gui.godofthings.mept.upgrade_hint":  "  - %s",
+    "item.godofthings.mept.multiblock_placement_tool":  "ME 多方块放置工具",
+    "godofthings.mept.cable.glass":  "玻璃线缆",
+    "gui.godofthings.mept.cable_tool":  "线缆放置工具",
+    "message.godofthings.mept.missing_resources":  "内存卡配置所需资源不足: %s",
+    "godofthings.mept.hud.item":  "物品: %s",
+    "godofthings.mept.hud.color":  "颜色: %s",
+    "message.godofthings.mept.branch_point3_set":  "区域: %s",
+    "key.godofthings.mept.open_cable_tool_gui":  "打开线缆工具GUI",
+    "message.godofthings.mept.mek_config_loaded":  "配置已加载",
+    "godofthings.mept.color.gray":  "灰色",
+    "godofthings.mept.color.cyan":  "青色",
+    "godofthings.mept.color.blue":  "蓝色",
+    "message.godofthings.mept.point1_set":  "点1已设置: %s",
+    "tooltip.godofthings.mept.key_of_spectrum":  "§7——§b凝光为彩，§e触之即染",
+    "item.godofthings.mept.me_cable_placement_tool":  "ME 线缆放置工具",
+    "message.godofthings.mept.unsupported_target":  "不支持的目标物品",
+    "tooltip.godofthings.mept.prism_core.rainbow":  "光谱的钥匙",
+    "godofthings.mept.cable.dense_smart.short":  "致密",
+    "godofthings.mept.mode.plane_branching.short":  "分支",
+    "key.godofthings.mept.radial_menu":  "打开轮盘菜单",
+    "gui.godofthings.mept.color":  "颜色",
+    "godofthings.mept.direction.east_west.short":  "东西",
+    "tooltip.godofthings.mept.prism_core.prefix":  "§7——§b八方色彩，§e汇聚于此§7，等待最后的§d仪式§7，化为§c光§6谱§a的§b钥§d匙",
+    "gui.godofthings.mept.radial_menu":  "槽位选择",
+    "godofthings.mept.cable.dense_covered.short":  "致密包层",
+    "message.godofthings.mept.points_cleared":  "点位已清除",
+    "godofthings.mept.cable.dense_covered":  "致密包层线缆",
+    "godofthings.mept.cable.dense_smart":  "致密线缆",
+    "godofthings.mept.color.pink":  "粉色",
+    "godofthings.mept.color.green":  "绿色",
+    "key.godofthings.mept.mark_color":  "颜色标记快捷键",
+    "godofthings.mept.mode.line.short":  "直线",
+    "godofthings.mept.direction.north_south":  "横向(南北)",
+    "message.godofthings.mept.missing_cable":  "缺少线缆: %s",
+    "godofthings.mept.color.brown":  "棕色",
+    "godofthings.mept.color.red":  "红色",
+    "godofthings.mept.cable.covered.short":  "包层",
+    "godofthings.mept.direction.vertical.short":  "竖向",
+    "godofthings.mept.mode.plane_fill.short":  "填充",
+    "tooltip.godofthings.mept.supported_by":  "可用于:",
+    "godofthings.mept.hud.upgrade.no":  "无",
+    "godofthings.mept.cable.smart.short":  "智能",
+    "item.godofthings.mept.me_placement_tool":  "ME 放置工具",
+    "godofthings.mept.color.light_blue":  "淡蓝",
+    "godofthings.mept.hud.count":  "数量: %d",
+    "godofthings.mept.cable.smart":  "智能线缆",
+    "godofthings.mept.color.white":  "白色",
+    "message.godofthings.mept.mek_config_incompatible":  "配置卡与此方块不兼容",
+    "message.godofthings.mept.device_not_linked":  "未链接到 ME 网络",
+    "gui.godofthings.mept.mode":  "模式",
+    "message.godofthings.mept.network_missing":  "§c%s§r 网络中未找到",
+    "godofthings.mept.hud.direction":  "方向: %s",
+    "godofthings.mept.mode.plane_fill":  "填充",
+    "message.godofthings.mept.branch_point1_set":  "分支起点: %s",
+    "godofthings.mept.direction.east_west":  "横向(东西)",
+    "message.godofthings.mept.device_not_powered":  "设备电力不足",
+    "message.godofthings.mept.no_positions":  "无有效位置",
+    "godofthings.mept.hud.cable_type":  "线缆: %s",
+    "message.godofthings.mept.cannot_place":  "无法放置",
+    "godofthings.mept.direction.auto.short":  "平面",
+    "message.godofthings.mept.branch_point2_set":  "方向与间隔: %s",
+    "gui.godofthings.mept.mark_hint":  "按 [%s] 标记",
+    "godofthings.mept.color.magenta":  "品红",
+    "godofthings.mept.direction.auto":  "平面",
+    "gui.godofthings.mept.collapse_colors":  "收起颜色菜单",
+    "godofthings.mept.hud.mode":  "模式: %s",
+    "gui.godofthings.mept.compatible_upgrades":  "兼容的升级:",
+    "message.godofthings.mept.failed_extract":  "从网络抽取失败",
+    "item.godofthings.mept.key_of_spectrum":  "§c光§6谱§a的§b钥§d匙",
+    "godofthings.mept.hud.upgrade.yes":  "已安装",
+    "godofthings.mept.color.orange":  "橙色",
+    "godofthings.mept.mode.plane_branching":  "分支",
+    "godofthings.mept.hud.placement_count":  "放置数: %d",
+    "godofthings.mept.direction.vertical":  "竖向",
+    "godofthings.mept.direction.north_south.short":  "南北",
+    "gui.godofthings.mept.cable_type":  "线缆",
+    "godofthings.mept.mode.line":  "直线",
+    "key.categories.godofthings.mept":  "众神之物：ME 放置工具",
+    "manual.godofthings.me_placement_tool":  "ME 放置工具：从 ME 网络直接放置物品或流体的手持工具。对空气右键打开配置界面，G 键轮盘选择目标，潜行右键无线访问点绑定网络。不消耗能源。",
+    "manual.godofthings.multiblock_placement_tool":  "ME 多方块放置工具：按选中物品批量放置，可选 1、8、64、256、1024。轮盘三环分别选方向、数量、物品，Ctrl 加左键撤销。",
+    "manual.godofthings.me_cable_placement_tool":  "ME 线缆放置工具：三模式批量铺线缆，直线、平面填充、平面分支。左键选点，G 键打开配置界面。安装光谱的钥匙后才能解锁任意颜色。",
+    "manual.godofthings.key_of_spectrum":  "光谱的钥匙：放进线缆工具的升级槽解锁全部 17 种线缆颜色；副手持染料时放置会自动补染料。",
+    "manual.godofthings.prism_core":  "棱镜核心：光谱的钥匙的合成材料，由 16 色染色球围绕进阶卡合成。"
 }

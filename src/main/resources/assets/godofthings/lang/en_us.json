@@ -82,7 +82,7 @@
     "block.godofthings.teleport_block_3":  "Dimensional Weave Core · Gamma",
     "block.godofthings.void_teleporter":  "Nethervoid Boundary Stele",
     "chat.godofthings.armor.haul.bound":  "Haul container bound: %s, %s, %s",
-    "command.godofthings.doctor.coexist":  "Note: %s detected - our %s is overridden by its same-named Mixin (priority 500 < 1000), so fixes on it do nothing",
+    "command.godofthings.doctor.coexist":  "Note: %s detected - our %s is overridden by its same-named Mixin (priority 500 \u003c 1000), so fixes on it do nothing",
     "command.godofthings.doctor.coexist_none":  "Coexistence: no upstream mod overrides our mixins",
     "command.godofthings.doctor.data_size":  "Mod saved data: notes %s bytes, waypoints %s bytes",
     "command.godofthings.doctor.header":  "=== God of Things doctor ===",
@@ -347,8 +347,8 @@
     "gui.godofthings.mode.output":  "Output",
     "gui.godofthings.note.add":  "Add",
     "gui.godofthings.note.auto_name":  "Auto rename",
-    "gui.godofthings.note.auto_name_hint":  "Today's date (10.02)",
-    "gui.godofthings.note.back":  "< Back to tasks",
+    "gui.godofthings.note.auto_name_hint":  "Today\u0027s date (10.02)",
+    "gui.godofthings.note.back":  "\u003c Back to tasks",
     "gui.godofthings.note.background":  "Background",
     "gui.godofthings.note.bg.custom":  "Custom",
     "gui.godofthings.note.bg.dark":  "Dark",
@@ -372,7 +372,7 @@
     "gui.godofthings.note.hud":  "Overlay: %s",
     "gui.godofthings.note.hud_hint":  "Name/overlay settings are per shelf; renaming disables auto-rename",
     "gui.godofthings.note.hud_label":  "Overlay",
-    "gui.godofthings.note.hud_settings":  "Overlay settings >",
+    "gui.godofthings.note.hud_settings":  "Overlay settings \u003e",
     "gui.godofthings.note.hud_title":  "%s %s/%s",
     "gui.godofthings.note.input":  "New task...",
     "gui.godofthings.note.input_edit":  "Edit this task...",
@@ -481,163 +481,60 @@
     "key.godofthings.edit_note_hud":  "Edit note overlay",
     "key.godofthings.open_armor_skill":  "God Armor Skill Tree",
     "key.godofthings.open_backpack":  "Open Sumeru Pouch",
-    "key.godofthings.amc_mode_switch":  "Switch Mode (Advanced Memory Card)",
+    "key.godofthings.amc_mode_switch":  "Switch Advanced Memory Card Mode",
     "key.godofthings.open_manual":  "Open Omniscient Apocalypse of the Gods",
     "key.godofthings.open_note":  "Open Divine Aspiration Tome",
     "key.godofthings.open_waypoint":  "Open Waypoint Menu",
-    "manual.godofthings.creative_energy_cube":  "What: Infinite Tier Generator -- an infinite FE source; all six faces output at maximum rate (infinite FE/t).
-Obtain: creative tab.
-Use: right-click for a GUI that charges you or your items.",
-    "manual.godofthings.creature_annihilation":  "What: Living Ward Boundary Stone -- while placed, natural mob spawning is blocked within a 512-block radius.
-Obtain: crafting.
-Use: just place it in your base; no GUI.",
-    "manual.godofthings.god_absorber":  "What: Myriad Convergence Core -- absorbs item drops and XP over a large area.
-Obtain: crafting.
-Use: GUI for on/off, range (0-480), stored-XP panel and per-face config; can join an AE2 network.",
-    "manual.godofthings.god_accelerator":  "What: parallel accelerator -- goes into a God machine's accelerator slot; each one multiplies parallel jobs by 16 (a stack of 64 = x1024).
-Obtain: crafting / creative tab.
-Use: open the machine GUI and put it in the accelerator slot. Affects miner, resource, drop machines, etc.",
-    "manual.godofthings.god_backpack":  "What: Sumeru Pouch -- a **120-slot** portable storage; right-click to open (contents travel with the item, and are kept even if it is dropped).
-Obtain: 4 leather + 2 netherite ingots + 1 shulker box + 1 All-Things Origin Stone.
-GUI:
-· **Sort**: reorders by the current key (**By Name / By Mod / By Count / By Tags**; click the small button to cycle).
-· **Memory**: click Memory to enter marking mode, then click slots to remember their item; memory slots are **never sorted**, **receive matching items first** when storing, and show a faded ghost when empty.
-· **No Sort**: click No Sort, then click slots that should **stay put when sorting** (handy for tools).
-· **Search**: filters as you type; non-matching slots look empty; start with `@` to search by mod (e.g. `@minecraft`).
-· **Store All / Take All**: move everything between your inventory and the backpack.
-· **Ignore Durability / Ignore NBT**: relaxes stacking and matching to the item itself.
-· **No nesting**: a Sumeru Pouch cannot be put inside another one; while the GUI is open its own slot is locked.
-· **Mouse wheel** scrolls (9 columns x 6 visible rows, 120 slots in total).
-· **Keybind**: press `B` to open it (works whether it is in your inventory or equipped in an accessory slot; rebindable in Options - Controls).
-· **Accessories**: it can be equipped in the **Curios back slot** and still opened with `B`; **this slot is enabled automatically by this mod** (it appears in the Curios screen after you log in).",
-    "manual.godofthings.god_binder":  "What: binds a machine to the Aurora Leyline Ferry Hub's wireless charging network.
-Obtain: crafting.
-Use: right-click a machine to bind it; holding it in the off hand auto-binds machines you place. Can go into the **Master Artisan's Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt's internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
-    "manual.godofthings.god_black_box":  "What: pickup filter storage -- whitelist or blacklist mode, no stack limit inside.
-Obtain: crafting.
-Use: right-click for the filter GUI; scroll while holding it to toggle quickly. Can go into the **Master Artisan's Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt's internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
-    "manual.godofthings.god_boots":  "What: Treads of Gods · Soaring -- one of the four God Armor pieces.
-Obtain: crafting.
-Use: wear all four pieces to activate set features.",
-    "manual.godofthings.god_change":  "What: time / weather control.
-Obtain: crafting.
-Use: right-click to open the GUI and pick the time and weather to switch to. Can go into the **Master Artisan's Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt's internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
-    "manual.godofthings.god_chestplate":  "What: Aegis of Gods · Immortality -- one of the four God Armor pieces.
-Obtain: crafting.
-Use: wear all four pieces to activate set features.",
-    "manual.godofthings.god_config":  "What: a machine configuration template -- copy one machine's setup and paste it onto other machines of the same type.
-Obtain: 2 paper + 1 redstone + 1 All-Things Origin Stone (also in the creative tab).
-Use: **sneak + right-click a machine** to save (six-face I/O modes + the AE grid switch + the number of Planck Overclock Catalysts in its accelerator slot; only the count is stored, not the items). **Right-click another machine of the same type** to paste: the face modes and the AE switch are written back, and the saved number of accelerators is topped up by **taking Planck Overclock Catalysts from your inventory** (free in creative). If you don't have enough, everything else is still applied and you are told how many are missing; a wrong machine type or an empty card is reported separately. Supported: Blazing Sacred Furnace / Earthrending Skybore Rig / God Ore / God Crop / Genesis Engraving Altar / Purewood Unbark Altar / Myriad Souls Echo Register / Spirit Embryo Sacred Egg.",
-    "manual.godofthings.god_craft":  "What: Heavenly Artisan Engine -- an advanced crafting table with a config menu, 8 template slots and even-input distribution.
-Obtain: crafting.
-Use: right-click for the GUI; templates save/reapply your common recipes. Can join an AE2 network.",
-    "manual.godofthings.god_devourer":  "What: Endless Night Void Well -- a void trash can.
-Obtain: crafting.
-Use: right-click the block for its GUI; there is also a quick button in the player inventory. **Anything put in vanishes instantly** (manual click, Shift-click, hopper or pipe), so the slots always stay empty.",
-    "manual.godofthings.god_drop":  "What: Myriad Souls Echo Register -- item collector plus spawn-egg producer. Eggs are not consumed; it rolls the **vanilla loot table** and outputs every drop (e.g. chicken = feather + raw chicken, 64 of each), filtering out weapons/tools/armor so it is not a free-gear machine.
-Obtain: crafting.
-Use: **since v5.7.0 every mod's spawn egg works** (not just vanilla); put spawn eggs in the input slots (up to 9 in parallel); Planck Overclock Catalyst raises parallelism; can join an AE2 network.",
-    "manual.godofthings.god_enchant":  "What: Supreme Law Inscription Seat -- pick any enchantment at any level for any item, no conditions, no lapis, up to level 255 (beyond vanilla); selecting an enchantment defaults to 255.
-Obtain: crafting.
-Use: put an item -> pick an enchantment -> adjust level -> apply; \"Batch\" applies it at level 255 to every compatible item in your inventory (incompatible ones are skipped).",
-    "manual.godofthings.god_furnace":  "What: Blazing Sacred Furnace -- a super furnace with JEI / EMI recipe lookup.
-Obtain: crafting (this is the root advancement of the mod).
-Use: right-click for the GUI and insert your input; since v5.15.5 it can join an AE2 network as a grid node (cable connection, one channel, smelting output auto-pushes into the network, toggle with the AE button at the top right).",
-    "manual.godofthings.god_helmet":  "What: Crown of Gods · Illumination -- one of the four God Armor pieces.
-Obtain: crafting.
-Use: with the full set, press K for the armor screen (feature tab inside) (see System - God Armor & Skills).",
-    "manual.godofthings.god_invite":  "What: God Invite -- gives a mob infinite health.
-Obtain: crafting.
-Use: right-click a mob; hit feedback is preserved and can be toggled. Can go into the **Master Artisan's Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt's internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
-    "manual.godofthings.god_leggings":  "What: Skirt of Gods · Sanctuary -- one of the four God Armor pieces.
-Obtain: crafting.
-Use: wear all four pieces to activate set features.",
-    "manual.godofthings.god_manual":  "What: the in-game manual -- every item/block has an entry, look things up here.
-Obtain: 1 book + 4 gold ingots + 1 All-Things Origin Stone.
-Use: right-click it, press P, or run /godofthings manual. Pick a tab and entry on the left; search on top.",
-    "manual.godofthings.god_measure":  "What: Heaven-Measuring Golden Ruler -- a tape measure. **Right-click a block** to set the start, right-click again elsewhere to set the end: a wireframe box is drawn showing the X / Y / Z dimensions (keep clicking to start the next box). **Sneak-right-click** undoes the last box; **switching held item / dimension / relogging** clears them all. Measuring is client-side only, zero server cost.
-Obtain: crafting (2 gray wool / 2 yellow wool / iron ingot + 1 All-Things Origin Stone).
-Use: line color / text color / text size / line width can be tuned in the [measurement] section of config/godofthings-client.toml. Can go into the **Master Artisan's Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt's internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
-    "manual.godofthings.god_miner":  "What: Earthrending Skybore Rig -- area mining machine with adjustable efficiency/fortune/silk touch and six configurable faces (input pulls in accelerators, output pushes items and fluids). It also works as a pickaxe.
-Obtain: crafting.
-Use: right-click for parameters and face config; can join an AE2 network.",
-    "manual.godofthings.god_note":  "What: Divine Aspiration Tome -- a checklist with checkboxes that supports **sub-tasks** (a main task with sub-tasks, like a heading and subheadings).
-Obtain: 3 paper + 1 ink sac + 1 gold ingot + 1 All-Things Origin Stone.
-Use: right-click or press N. Up to 8 books per shelf; drag rows to reorder within the same level; the **+ at the end of a row adds a sub-task and Enter keeps the mode so you can add several**; while editing text, Tab demotes it under the previous task and Shift+Tab promotes it; the **triangle at the start of a row folds / unfolds its sub-tasks**; every delete asks twice. Press M to place the overlay. Content is stored per player in the world save.",
-    "manual.godofthings.god_slaughter":  "What: Twilight Requiem Executioner -- area killing (on/off, range 0-480, looting 0-1600, instant kill).
-Obtain: crafting.
-Use: GUI for the settings; drops go straight into its own 27-slot infinite storage. Can join an AE2 network.
-Protected: armor stands, villagers, wandering traders, tamed pets (wolves, cats, parrots, and horses / donkeys / mules / llamas) and renamed mobs are never killed.",
-    "manual.godofthings.god_spawn_egg":  "What: Spirit Embryo Sacred Egg -- a spawn-egg duplicator. Put a spawn egg in and it produces the **same** egg; **works with every kind of spawn egg** (vanilla, NeoForge, and modded eggs that follow the vanilla convention of storing the entity data in the item). The whole item stack is copied, data included.
-Obtain: 8 All-Things Origin Stones + 1 egg.
-Use: right-click for the GUI, put spawn eggs into the 3x3 input slots (up to 9 in parallel; input is not consumed); Planck Overclock Catalysts raise the parallel multiplier; output is pushed downward; can join an AE2 network.",
-    "manual.godofthings.god_transmitter":  "What: Aurora Leyline Ferry Hub -- wireless FE charging for machines and players, working across dimensions.
-Obtain: crafting.
-Use: right-click for the four-tab GUI; bind machines with the Concord Pact.",
-    "manual.godofthings.god_unbreakable":  "What: makes an item unbreakable -- this is a special crafting recipe, not a usable item.
-Obtain: look up the recipe in JEI / EMI (craft the item together with Eternal Seal).
-Use: combine with the target item; you get the same item with the unbreakable property.",
-    "manual.godofthings.space_time_eternity":  "What: Space Time Eternity -- while placed it locks world time and weather.
-Obtain: crafting.
-Use: just place it; no GUI.",
-    "manual.godofthings.system.ae2":  "Nine production machines (miner / resource / drop / **spawn egg** / slaughter / craft / absorber / **furnace** / **peeler**, added in v5.15.5 / v5.15.9) can act as AE grid nodes: just connect a cable (one channel) and their output goes into the network. Each GUI has an AE toggle that only controls pushing output into AE.
-Note: **AE2 is required** for this mod to start (those block entities implement AE2 interfaces directly); mods.toml declares it as required.",
+    "manual.godofthings.creative_energy_cube":  "What: Infinite Tier Generator -- an infinite FE source; all six faces output at maximum rate (infinite FE/t).\r\nObtain: creative tab.\r\nUse: right-click for a GUI that charges you or your items.",
+    "manual.godofthings.creature_annihilation":  "What: Living Ward Boundary Stone -- while placed, natural mob spawning is blocked within a 512-block radius.\r\nObtain: crafting.\r\nUse: just place it in your base; no GUI.",
+    "manual.godofthings.god_absorber":  "What: Myriad Convergence Core -- absorbs item drops and XP over a large area.\r\nObtain: crafting.\r\nUse: GUI for on/off, range (0-480), stored-XP panel and per-face config; can join an AE2 network.",
+    "manual.godofthings.god_accelerator":  "What: parallel accelerator -- goes into a God machine\u0027s accelerator slot; each one multiplies parallel jobs by 16 (a stack of 64 = x1024).\r\nObtain: crafting / creative tab.\r\nUse: open the machine GUI and put it in the accelerator slot. Affects miner, resource, drop machines, etc.",
+    "manual.godofthings.god_backpack":  "What: Sumeru Pouch -- a **120-slot** portable storage; right-click to open (contents travel with the item, and are kept even if it is dropped).\r\nObtain: 4 leather + 2 netherite ingots + 1 shulker box + 1 All-Things Origin Stone.\r\nGUI:\r\n· **Sort**: reorders by the current key (**By Name / By Mod / By Count / By Tags**; click the small button to cycle).\r\n· **Memory**: click Memory to enter marking mode, then click slots to remember their item; memory slots are **never sorted**, **receive matching items first** when storing, and show a faded ghost when empty.\r\n· **No Sort**: click No Sort, then click slots that should **stay put when sorting** (handy for tools).\r\n· **Search**: filters as you type; non-matching slots look empty; start with `@` to search by mod (e.g. `@minecraft`).\r\n· **Store All / Take All**: move everything between your inventory and the backpack.\r\n· **Ignore Durability / Ignore NBT**: relaxes stacking and matching to the item itself.\r\n· **No nesting**: a Sumeru Pouch cannot be put inside another one; while the GUI is open its own slot is locked.\r\n· **Mouse wheel** scrolls (9 columns x 6 visible rows, 120 slots in total).\r\n· **Keybind**: press `B` to open it (works whether it is in your inventory or equipped in an accessory slot; rebindable in Options - Controls).\r\n· **Accessories**: it can be equipped in the **Curios back slot** and still opened with `B`; **this slot is enabled automatically by this mod** (it appears in the Curios screen after you log in).",
+    "manual.godofthings.god_binder":  "What: binds a machine to the Aurora Leyline Ferry Hub\u0027s wireless charging network.\r\nObtain: crafting.\r\nUse: right-click a machine to bind it; holding it in the off hand auto-binds machines you place. Can go into the **Master Artisan\u0027s Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt\u0027s internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
+    "manual.godofthings.god_black_box":  "What: pickup filter storage -- whitelist or blacklist mode, no stack limit inside.\r\nObtain: crafting.\r\nUse: right-click for the filter GUI; scroll while holding it to toggle quickly. Can go into the **Master Artisan\u0027s Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt\u0027s internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
+    "manual.godofthings.god_boots":  "What: Treads of Gods · Soaring -- one of the four God Armor pieces.\r\nObtain: crafting.\r\nUse: wear all four pieces to activate set features.",
+    "manual.godofthings.god_change":  "What: time / weather control.\r\nObtain: crafting.\r\nUse: right-click to open the GUI and pick the time and weather to switch to. Can go into the **Master Artisan\u0027s Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt\u0027s internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
+    "manual.godofthings.god_chestplate":  "What: Aegis of Gods · Immortality -- one of the four God Armor pieces.\r\nObtain: crafting.\r\nUse: wear all four pieces to activate set features.",
+    "manual.godofthings.god_config":  "What: a machine configuration template -- copy one machine\u0027s setup and paste it onto other machines of the same type.\r\nObtain: 2 paper + 1 redstone + 1 All-Things Origin Stone (also in the creative tab).\r\nUse: **sneak + right-click a machine** to save (six-face I/O modes + the AE grid switch + the number of Planck Overclock Catalysts in its accelerator slot; only the count is stored, not the items). **Right-click another machine of the same type** to paste: the face modes and the AE switch are written back, and the saved number of accelerators is topped up by **taking Planck Overclock Catalysts from your inventory** (free in creative). If you don\u0027t have enough, everything else is still applied and you are told how many are missing; a wrong machine type or an empty card is reported separately. Supported: Blazing Sacred Furnace / Earthrending Skybore Rig / God Ore / God Crop / Genesis Engraving Altar / Purewood Unbark Altar / Myriad Souls Echo Register / Spirit Embryo Sacred Egg.",
+    "manual.godofthings.god_craft":  "What: Heavenly Artisan Engine -- an advanced crafting table with a config menu, 8 template slots and even-input distribution.\r\nObtain: crafting.\r\nUse: right-click for the GUI; templates save/reapply your common recipes. Can join an AE2 network.",
+    "manual.godofthings.god_devourer":  "What: Endless Night Void Well -- a void trash can.\r\nObtain: crafting.\r\nUse: right-click the block for its GUI; there is also a quick button in the player inventory. **Anything put in vanishes instantly** (manual click, Shift-click, hopper or pipe), so the slots always stay empty.",
+    "manual.godofthings.god_drop":  "What: Myriad Souls Echo Register -- item collector plus spawn-egg producer. Eggs are not consumed; it rolls the **vanilla loot table** and outputs every drop (e.g. chicken = feather + raw chicken, 64 of each), filtering out weapons/tools/armor so it is not a free-gear machine.\r\nObtain: crafting.\r\nUse: **since v5.7.0 every mod\u0027s spawn egg works** (not just vanilla); put spawn eggs in the input slots (up to 9 in parallel); Planck Overclock Catalyst raises parallelism; can join an AE2 network.",
+    "manual.godofthings.god_enchant":  "What: Supreme Law Inscription Seat -- pick any enchantment at any level for any item, no conditions, no lapis, up to level 255 (beyond vanilla); selecting an enchantment defaults to 255.\r\nObtain: crafting.\r\nUse: put an item -\u003e pick an enchantment -\u003e adjust level -\u003e apply; \"Batch\" applies it at level 255 to every compatible item in your inventory (incompatible ones are skipped).",
+    "manual.godofthings.god_furnace":  "What: Blazing Sacred Furnace -- a super furnace with JEI / EMI recipe lookup.\r\nObtain: crafting (this is the root advancement of the mod).\r\nUse: right-click for the GUI and insert your input; since v5.15.5 it can join an AE2 network as a grid node (cable connection, one channel, smelting output auto-pushes into the network, toggle with the AE button at the top right).",
+    "manual.godofthings.god_helmet":  "What: Crown of Gods · Illumination -- one of the four God Armor pieces.\r\nObtain: crafting.\r\nUse: with the full set, press K for the armor screen (feature tab inside) (see System - God Armor \u0026 Skills).",
+    "manual.godofthings.god_invite":  "What: God Invite -- gives a mob infinite health.\r\nObtain: crafting.\r\nUse: right-click a mob; hit feedback is preserved and can be toggled. Can go into the **Master Artisan\u0027s Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt\u0027s internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
+    "manual.godofthings.god_leggings":  "What: Skirt of Gods · Sanctuary -- one of the four God Armor pieces.\r\nObtain: crafting.\r\nUse: wear all four pieces to activate set features.",
+    "manual.godofthings.god_manual":  "What: the in-game manual -- every item/block has an entry, look things up here.\r\nObtain: 1 book + 4 gold ingots + 1 All-Things Origin Stone.\r\nUse: right-click it, press P, or run /godofthings manual. Pick a tab and entry on the left; search on top.",
+    "manual.godofthings.god_measure":  "What: Heaven-Measuring Golden Ruler -- a tape measure. **Right-click a block** to set the start, right-click again elsewhere to set the end: a wireframe box is drawn showing the X / Y / Z dimensions (keep clicking to start the next box). **Sneak-right-click** undoes the last box; **switching held item / dimension / relogging** clears them all. Measuring is client-side only, zero server cost.\r\nObtain: crafting (2 gray wool / 2 yellow wool / iron ingot + 1 All-Things Origin Stone).\r\nUse: line color / text color / text size / line width can be tuned in the [measurement] section of config/godofthings-client.toml. Can go into the **Master Artisan\u0027s Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt\u0027s internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
+    "manual.godofthings.god_miner":  "What: Earthrending Skybore Rig -- area mining machine with adjustable efficiency/fortune/silk touch and six configurable faces (input pulls in accelerators, output pushes items and fluids). It also works as a pickaxe.\r\nObtain: crafting.\r\nUse: right-click for parameters and face config; can join an AE2 network.",
+    "manual.godofthings.god_note":  "What: Divine Aspiration Tome -- a checklist with checkboxes that supports **sub-tasks** (a main task with sub-tasks, like a heading and subheadings).\r\nObtain: 3 paper + 1 ink sac + 1 gold ingot + 1 All-Things Origin Stone.\r\nUse: right-click or press N. Up to 8 books per shelf; drag rows to reorder within the same level; the **+ at the end of a row adds a sub-task and Enter keeps the mode so you can add several**; while editing text, Tab demotes it under the previous task and Shift+Tab promotes it; the **triangle at the start of a row folds / unfolds its sub-tasks**; every delete asks twice. Press M to place the overlay. Content is stored per player in the world save.",
+    "manual.godofthings.god_slaughter":  "What: Twilight Requiem Executioner -- area killing (on/off, range 0-480, looting 0-1600, instant kill).\r\nObtain: crafting.\r\nUse: GUI for the settings; drops go straight into its own 27-slot infinite storage. Can join an AE2 network.\r\nProtected: armor stands, villagers, wandering traders, tamed pets (wolves, cats, parrots, and horses / donkeys / mules / llamas) and renamed mobs are never killed.",
+    "manual.godofthings.god_spawn_egg":  "What: Spirit Embryo Sacred Egg -- a spawn-egg duplicator. Put a spawn egg in and it produces the **same** egg; **works with every kind of spawn egg** (vanilla, NeoForge, and modded eggs that follow the vanilla convention of storing the entity data in the item). The whole item stack is copied, data included.\r\nObtain: 8 All-Things Origin Stones + 1 egg.\r\nUse: right-click for the GUI, put spawn eggs into the 3x3 input slots (up to 9 in parallel; input is not consumed); Planck Overclock Catalysts raise the parallel multiplier; output is pushed downward; can join an AE2 network.",
+    "manual.godofthings.god_transmitter":  "What: Aurora Leyline Ferry Hub -- wireless FE charging for machines and players, working across dimensions.\r\nObtain: crafting.\r\nUse: right-click for the four-tab GUI; bind machines with the Concord Pact.",
+    "manual.godofthings.god_unbreakable":  "What: makes an item unbreakable -- this is a special crafting recipe, not a usable item.\r\nObtain: look up the recipe in JEI / EMI (craft the item together with Eternal Seal).\r\nUse: combine with the target item; you get the same item with the unbreakable property.",
+    "manual.godofthings.space_time_eternity":  "What: Space Time Eternity -- while placed it locks world time and weather.\r\nObtain: crafting.\r\nUse: just place it; no GUI.",
+    "manual.godofthings.system.ae2":  "Nine production machines (miner / resource / drop / **spawn egg** / slaughter / craft / absorber / **furnace** / **peeler**, added in v5.15.5 / v5.15.9) can act as AE grid nodes: just connect a cable (one channel) and their output goes into the network. Each GUI has an AE toggle that only controls pushing output into AE.\r\nNote: **AE2 is required** for this mod to start (those block entities implement AE2 interfaces directly); mods.toml declares it as required.",
     "manual.godofthings.system.ae2.title":  "AE2 integration",
-    "manual.godofthings.system.armor_and_skills":  "Wear all four pieces (helmet / chestplate / leggings / boots), then press K (unbound by default; set it in Controls) for a screen with **three pages** (it remembers the last one; switch with the tabs or `Tab`):
-· **God Boosts (7 toggles)**: Myriad Souls Echo Registers / God Mobs / God Blocks / God XP / Spirit Embryo Sacred Eggs / God Heads / God Smelting -- turning one on grants its max level; turning it off remembers the level.
-· **God Resonance (7 toggles, off by default)**: lets the matching God-series machine inherit the boost above; the machine benefits only while its owner is **online**, wears the **full set**, and the matching resonance toggle is on.
-· **God Armor (8 toggles)**: God Flight / Invincibility / Saturation / Fire Resistance / Breathing / Vision / See-Through / Gluttony.
-· **Always on (no toggle)**: Village Hero -- active whenever the full set is worn.
-· Rows show only on / off; hover for details. Each page has Turn-all-on / Turn-all-off; levels are saved per player.",
+    "manual.godofthings.system.armor_and_skills":  "Wear all four pieces (helmet / chestplate / leggings / boots), then press K (unbound by default; set it in Controls) for a screen with **three pages** (it remembers the last one; switch with the tabs or `Tab`):\r\n· **God Boosts (7 toggles)**: Myriad Souls Echo Registers / God Mobs / God Blocks / God XP / Spirit Embryo Sacred Eggs / God Heads / God Smelting -- turning one on grants its max level; turning it off remembers the level.\r\n· **God Resonance (7 toggles, off by default)**: lets the matching God-series machine inherit the boost above; the machine benefits only while its owner is **online**, wears the **full set**, and the matching resonance toggle is on.\r\n· **God Armor (8 toggles)**: God Flight / Invincibility / Saturation / Fire Resistance / Breathing / Vision / See-Through / Gluttony.\r\n· **Always on (no toggle)**: Village Hero -- active whenever the full set is worn.\r\n· Rows show only on / off; hover for details. Each page has Turn-all-on / Turn-all-off; levels are saved per player.",
     "manual.godofthings.system.armor_and_skills.title":  "God Armor and skill tree",
-    "manual.godofthings.system.compat":  "· Optional integrations: JEI / EMI, Jade, AE2 and its addons (AE2WTLib / ExtendedAE / AppliedFlux / AppMek), Ad Astra, Occultism, Malum, Mystical Agriculture, Goety, Iron's Spells, Ars Nouveau, EnderIO, Mekanism, Productive Bees, Construction Wand, GTCEu. Missing ones are skipped automatically.
-· Since v5.9.0 the **wireless logistics were removed entirely**, together with the integrations that only served it (Modern Industrialization energy bridge / Mekanism chemical bridge / FTB Teams ownership / Ars source endpoints).
-· Note: the dimensions and the plushie are verbatim ports; with useless_mod / ae2lt installed some of our mixins get overridden -- /godofthings doctor names them. This is intended (upstream updates keep being ported).",
+    "manual.godofthings.system.compat":  "· Optional integrations: JEI / EMI, Jade, AE2 and its addons (AE2WTLib / ExtendedAE / AppliedFlux / AppMek), Ad Astra, Occultism, Malum, Mystical Agriculture, Goety, Iron\u0027s Spells, Ars Nouveau, EnderIO, Mekanism, Productive Bees, Construction Wand, GTCEu. Missing ones are skipped automatically.\r\n· Since v5.9.0 the **wireless logistics were removed entirely**, together with the integrations that only served it (Modern Industrialization energy bridge / Mekanism chemical bridge / FTB Teams ownership / Ars source endpoints).\r\n· Note: the dimensions and the plushie are verbatim ports; with useless_mod / ae2lt installed some of our mixins get overridden -- /godofthings doctor names them. This is intended (upstream updates keep being ported).",
     "manual.godofthings.system.compat.title":  "Compatibility",
-    "manual.godofthings.system.dimensions":  "· Void Dimension: enter and leave with the Nethervoid Boundary Stele block.
-· Useless Dimensions (ported from useless_mod): odd / even / useless, each with its own teleport block.
-· Place a teleport block and walk in. The blocks need a pickaxe (they are in the mineable/pickaxe tag).",
+    "manual.godofthings.system.dimensions":  "· Void Dimension: enter and leave with the Nethervoid Boundary Stele block.\r\n· Useless Dimensions (ported from useless_mod): odd / even / useless, each with its own teleport block.\r\n· Place a teleport block and walk in. The blocks need a pickaxe (they are in the mineable/pickaxe tag).",
     "manual.godofthings.system.dimensions.title":  "Dimensions",
-    "manual.godofthings.system.faq":  "· Machine idle? Check its GUI toggles and range, whether accelerators are inserted, and the six-face I/O config.
-· Cannot find something? Use the search box on top of this manual; it searches names and body text.
-· Want to know which mods are active, whether our mixins are overridden, or how big the saved data is? Run /godofthings doctor.
-· Backups: /godofthings export note and export points (files in <world>/godofthings/exports/).
-· Something unclear or missing here? Tell the author, or check the README content table.",
+    "manual.godofthings.system.faq":  "· Machine idle? Check its GUI toggles and range, whether accelerators are inserted, and the six-face I/O config.\r\n· Cannot find something? Use the search box on top of this manual; it searches names and body text.\r\n· Want to know which mods are active, whether our mixins are overridden, or how big the saved data is? Run /godofthings doctor.\r\n· Backups: /godofthings export note and export points (files in \u003cworld\u003e/godofthings/exports/).\r\n· Something unclear or missing here? Tell the author, or check the README content table.",
     "manual.godofthings.system.faq.title":  "FAQ",
-    "manual.godofthings.system.getting_started":  "1. Craft the Blazing Sacred Furnace first -- it is the root advancement and most materials come from it.
-2. Add the Earthrending Skybore Rig plus Planck Overclock Catalysts: the miner digs, accelerators multiply parallel jobs (x16 each).
-3. Missing materials? Use the God Resource (duplication) or Myriad Souls Echo Register (spawn egg -> vanilla loot table) machine.
-4. For convenience: Divine Aspiration Tome (press N) and this manual (press P).
-5. All recipes are in JEI / EMI; this manual only explains what things do.",
+    "manual.godofthings.system.getting_started":  "1. Craft the Blazing Sacred Furnace first -- it is the root advancement and most materials come from it.\r\n2. Add the Earthrending Skybore Rig plus Planck Overclock Catalysts: the miner digs, accelerators multiply parallel jobs (x16 each).\r\n3. Missing materials? Use the God Resource (duplication) or Myriad Souls Echo Register (spawn egg -\u003e vanilla loot table) machine.\r\n4. For convenience: Divine Aspiration Tome (press N) and this manual (press P).\r\n5. All recipes are in JEI / EMI; this manual only explains what things do.",
     "manual.godofthings.system.getting_started.title":  "Getting started",
-    "manual.godofthings.system.keys_and_commands":  "[Keys] P manual / N note / M place note overlay / U waypoints / K armor screen (feature tab inside) / B backpack. [Commands] /godofthings doctor, export|import note|points, manual. All keys are rebindable in Options -> Controls -> God of Things.",
+    "manual.godofthings.system.keys_and_commands":  "[Keys] P manual / N note / M place note overlay / U waypoints / K armor screen (feature tab inside) / B backpack. [Commands] /godofthings doctor, export|import note|points, manual. All keys are rebindable in Options -\u003e Controls -\u003e God of Things.",
     "manual.godofthings.system.keys_and_commands.title":  "Keys and commands",
-    "manual.godofthings.system.note":  "A checklist with checkboxes, two levels deep: main tasks and sub-tasks. Two ways in: press N or right-click the item.
-· Up to 8 books per shelf; the bar on top switches / creates / deletes (delete needs two clicks).
-· Drag a row to reorder **within its level** (main tasks among main tasks, sub-tasks within their parent).
-· Sub-tasks: click the **+** at the end of a main-task row -- Enter keeps the mode so you can add several; press **Tab** while editing a task's text to demote it under the previous task (Shift+Tab promotes it back).
-· The **triangle at the start of a row folds / unfolds sub-tasks** (the overlay follows it too); a main task with sub-tasks shows an (n/m) progress hint.
-· Every delete asks twice; deleting a main task removes its sub-tasks as well.
-· Overlay: toggle and adjust on the overlay page, or press M to drag it on screen (it snaps to edges).
-· The title is customizable; with auto-rename on it follows the current date (e.g. 10.02).
-· Content is stored per player; back up with /godofthings export|import note (import auto-backs up first).",
+    "manual.godofthings.system.note":  "A checklist with checkboxes, two levels deep: main tasks and sub-tasks. Two ways in: press N or right-click the item.\r\n· Up to 8 books per shelf; the bar on top switches / creates / deletes (delete needs two clicks).\r\n· Drag a row to reorder **within its level** (main tasks among main tasks, sub-tasks within their parent).\r\n· Sub-tasks: click the **+** at the end of a main-task row -- Enter keeps the mode so you can add several; press **Tab** while editing a task\u0027s text to demote it under the previous task (Shift+Tab promotes it back).\r\n· The **triangle at the start of a row folds / unfolds sub-tasks** (the overlay follows it too); a main task with sub-tasks shows an (n/m) progress hint.\r\n· Every delete asks twice; deleting a main task removes its sub-tasks as well.\r\n· Overlay: toggle and adjust on the overlay page, or press M to drag it on screen (it snaps to edges).\r\n· The title is customizable; with auto-rename on it follows the current date (e.g. 10.02).\r\n· Content is stored per player; back up with /godofthings export|import note (import auto-backs up first).",
     "manual.godofthings.system.note.title":  "Divine Aspiration Tome",
-    "manual.godofthings.system.waypoints":  "· Press **U** for the GUI: edit / delete (two clicks) / pin to top; data is stored per player.
-· Since v5.9.0 the /setpoint, /point and /delpoint commands were removed by request -- waypoints are handled through the U-key screen only.
-· /godofthings export|import points backs them up under <world>/godofthings/exports/.",
+    "manual.godofthings.system.waypoints":  "· Press **U** for the GUI: edit / delete (two clicks) / pin to top; data is stored per player.\r\n· Since v5.9.0 the /setpoint, /point and /delpoint commands were removed by request -- waypoints are handled through the U-key screen only.\r\n· /godofthings export|import points backs them up under \u003cworld\u003e/godofthings/exports/.",
     "manual.godofthings.system.waypoints.title":  "Waypoints",
-    "manual.godofthings.teleport_block":  "What: Dimensional Weave Core · Alpha -- takes you to the Odd Dimension (ported from useless_mod).
-Obtain: crafting.
-Use: place it, then walk in / right-click to travel (see System - Dimensions).",
-    "manual.godofthings.teleport_block_2":  "What: Dimensional Weave Core · Beta -- takes you to the Even Dimension.
-Obtain: crafting.
-Use: place it, then walk in / right-click to travel.",
-    "manual.godofthings.teleport_block_3":  "What: Useless Dimension Teleport Block -- takes you to the Useless Dimension.
-Obtain: crafting.
-Use: place it, then walk in / right-click to travel.",
-    "manual.godofthings.void_teleporter":  "What: Nethervoid Boundary Stele -- travel to and from the Void Dimension.
-Obtain: crafting.
-Use: place it, then walk in / right-click to travel.",
+    "manual.godofthings.teleport_block":  "What: Dimensional Weave Core · Alpha -- takes you to the Odd Dimension (ported from useless_mod).\r\nObtain: crafting.\r\nUse: place it, then walk in / right-click to travel (see System - Dimensions).",
+    "manual.godofthings.teleport_block_2":  "What: Dimensional Weave Core · Beta -- takes you to the Even Dimension.\r\nObtain: crafting.\r\nUse: place it, then walk in / right-click to travel.",
+    "manual.godofthings.teleport_block_3":  "What: Useless Dimension Teleport Block -- takes you to the Useless Dimension.\r\nObtain: crafting.\r\nUse: place it, then walk in / right-click to travel.",
+    "manual.godofthings.void_teleporter":  "What: Nethervoid Boundary Stele -- travel to and from the Void Dimension.\r\nObtain: crafting.\r\nUse: place it, then walk in / right-click to travel.",
     "menu.godofthings.dimension_config":  "Useless Dimension Configuration",
     "message.godofthings.binder.bound":  "Bound to: %s",
     "message.godofthings.binder.machine_bound":  "Machine bound",
@@ -670,7 +567,7 @@ Use: place it, then walk in / right-click to travel.",
     "message.godofthings.tp_return":  "Returned to %s!",
     "message.godofthings.tp_void":  "Teleported to the Void dimension!",
     "text.godofthings.active":  "Active",
-    "tooltip.godofthings.god_accelerator":  "Place in a God machine's accelerator slot; each grants 16x parallelism, up to 64 (a full stack) = 1024x",
+    "tooltip.godofthings.god_accelerator":  "Place in a God machine\u0027s accelerator slot; each grants 16x parallelism, up to 64 (a full stack) = 1024x",
     "tooltip.godofthings.god_backpack.open":  "Press B to open (rebindable in Options - Controls); can also be equipped in the Curios back slot",
     "tooltip.godofthings.god_config":  "Sneak + right-click a machine to save its setup; right-click the same kind of machine to paste it back (accelerators are taken from your inventory)",
     "tooltip.godofthings.god_manual.1":  "Right-click to open the manual (or press P)",
@@ -682,38 +579,28 @@ Use: place it, then walk in / right-click to travel.",
     "advancements.godofthings.god_ore_machine.title":  "Ore Duplication",
     "advancements.godofthings.god_ore_machine.description":  "Build a Gilded Spirit Vault",
     "advancements.godofthings.god_crop_machine.title":  "Crop Duplication",
-    "advancements.godofthings.god_crop_machine.description":  "Build a Fertility Mother's Hotbed",
+    "advancements.godofthings.god_crop_machine.description":  "Build a Fertility Mother\u0027s Hotbed",
     "advancements.godofthings.god_duplicate_machine.title":  "Duplicate Everything",
     "advancements.godofthings.god_duplicate_machine.description":  "Build a Genesis Engraving Altar",
     "block.godofthings.god_ore_machine":  "Gilded Spirit Vault",
     "item.godofthings.god_ore_machine":  "Gilded Spirit Vault",
-    "manual.godofthings.god_ore_machine":  "Gilded Spirit Vault -- accepts ores only: raw ores / ingots / gems and every ore block (including modded ores like GTCEu). Produces ingots / drops per the ore loot table, 64 per cycle.
-Craft: 8 All-Things Origin Stones + 1 diamond block.
-Usage: put ores in the input slots; Planck Overclock Catalysts add parallelism; can join an AE2 network.",
-    "block.godofthings.god_crop_machine":  "Fertility Mother's Hotbed",
-    "item.godofthings.god_crop_machine":  "Fertility Mother's Hotbed",
-    "manual.godofthings.god_crop_machine":  "Fertility Mother's Hotbed -- accepts crops and plants only: seeds / crops / saplings / kelp / sugar cane / cactus / berries / nether wart and every modded plant. Produces per the harvest loot of a fully grown crop, 64 per cycle. **Modded crops use the same rule**: the seed's crop block is set to full maturity and its own drop logic runs, so Mystical Agriculture's nature seeds yield **nature essence** instead of more seeds.
-Craft: 8 All-Things Origin Stones + 1 hay block.
-Usage: put crops or saplings in the input slots; Planck Overclock Catalysts add parallelism; can join an AE2 network.",
+    "manual.godofthings.god_ore_machine":  "Gilded Spirit Vault -- accepts ores only: raw ores / ingots / gems and every ore block (including modded ores like GTCEu). Produces ingots / drops per the ore loot table, 64 per cycle.\r\nCraft: 8 All-Things Origin Stones + 1 diamond block.\r\nUsage: put ores in the input slots; Planck Overclock Catalysts add parallelism; can join an AE2 network.",
+    "block.godofthings.god_crop_machine":  "Fertility Mother\u0027s Hotbed",
+    "item.godofthings.god_crop_machine":  "Fertility Mother\u0027s Hotbed",
+    "manual.godofthings.god_crop_machine":  "Fertility Mother\u0027s Hotbed -- accepts crops and plants only: seeds / crops / saplings / kelp / sugar cane / cactus / berries / nether wart and every modded plant. Produces per the harvest loot of a fully grown crop, 64 per cycle. **Modded crops use the same rule**: the seed\u0027s crop block is set to full maturity and its own drop logic runs, so Mystical Agriculture\u0027s nature seeds yield **nature essence** instead of more seeds.\r\nCraft: 8 All-Things Origin Stones + 1 hay block.\r\nUsage: put crops or saplings in the input slots; Planck Overclock Catalysts add parallelism; can join an AE2 network.",
     "block.godofthings.god_duplicate_machine":  "Genesis Engraving Altar",
     "item.godofthings.god_duplicate_machine":  "Genesis Engraving Altar",
     "item.godofthings.infinity_cell_name":  "ME Infinity %s Cell",
-    "manual.godofthings.god_duplicate_machine":  "Genesis Engraving Altar -- accepts everything: any item from vanilla or any mod can be duplicated, 64 per cycle (fast-list blocks and AE2 sky stone every tick, everything else every 20 ticks).
-Craft: 8 All-Things Origin Stones + 1 quartz block.
-Usage: put any item in the input slots; Planck Overclock Catalysts add parallelism; can join an AE2 network. Outputs are fresh stacks and do not carry the input's enchantments / durability / container contents.",
+    "manual.godofthings.god_duplicate_machine":  "Genesis Engraving Altar -- accepts everything: any item from vanilla or any mod can be duplicated, 64 per cycle (fast-list blocks and AE2 sky stone every tick, everything else every 20 ticks).\r\nCraft: 8 All-Things Origin Stones + 1 quartz block.\r\nUsage: put any item in the input slots; Planck Overclock Catalysts add parallelism; can join an AE2 network. Outputs are fresh stacks and do not carry the input\u0027s enchantments / durability / container contents.",
     "advancements.godofthings.god_peeler.description":  "Build a Purewood Unbark Altar",
     "advancements.godofthings.god_peeler.title":  "Bark Be Gone",
     "block.godofthings.god_peeler":  "Purewood Unbark Altar",
     "item.godofthings.god_peeler":  "Purewood Unbark Altar",
-    "manual.godofthings.god_peeler":  "What: Purewood Unbark Altar -- an auto-stripping machine: logs in, matching stripped logs out. Every vanilla log / wood / stem / hyphae / bamboo block works; modded logs are recognized automatically when they follow the usual stripped_ naming convention (already-stripped logs are not accepted).
-Obtain: crafting (8 All-Things Origin Stones + 1 iron axe).
-Usage: put logs into the 3x3 input slots (9 slots, same layout as the Blazing Sacred Furnace) and take stripped logs from the matching output slots. Hoppers / pipes work per **face config**: the gear button at the top-right opens the face config, where each of the six faces can be None / Input / Output / Both (all default to None -- configure a face before hoppers can interact); input faces auto-pull logs from adjacent containers, output faces auto-push results to them. Every 5 ticks each input slot strips 1 log -- 9 slots in parallel; Planck Overclock Catalysts raise parallelism and slot capacity (x16 each, a full stack of 64 = x1024). Interval configurable in the [peeler] section of godofthings-machines.toml. Since v5.15.9 it can join an AE2 network as a grid node (cable connection, one channel; stripped logs auto-push into the network; toggle with the AE button on the right).",
-    "item.godofthings.god_belt":  "Master Artisan's Girdle",
+    "manual.godofthings.god_peeler":  "What: Purewood Unbark Altar -- an auto-stripping machine: logs in, matching stripped logs out. Every vanilla log / wood / stem / hyphae / bamboo block works; modded logs are recognized automatically when they follow the usual stripped_ naming convention (already-stripped logs are not accepted).\r\nObtain: crafting (8 All-Things Origin Stones + 1 iron axe).\r\nUsage: put logs into the 3x3 input slots (9 slots, same layout as the Blazing Sacred Furnace) and take stripped logs from the matching output slots. Hoppers / pipes work per **face config**: the gear button at the top-right opens the face config, where each of the six faces can be None / Input / Output / Both (all default to None -- configure a face before hoppers can interact); input faces auto-pull logs from adjacent containers, output faces auto-push results to them. Every 5 ticks each input slot strips 1 log -- 9 slots in parallel; Planck Overclock Catalysts raise parallelism and slot capacity (x16 each, a full stack of 64 = x1024). Interval configurable in the [peeler] section of godofthings-machines.toml. Since v5.15.9 it can join an AE2 network as a grid node (cable connection, one channel; stripped logs auto-push into the network; toggle with the AE button on the right).",
+    "item.godofthings.god_belt":  "Master Artisan\u0027s Girdle",
     "tooltip.godofthings.god_belt":  "Fully upgraded: %s tool slots. Right-click to open, R for the radial wheel.",
-    "manual.godofthings.god_belt":  "What: Master Artisan's Girdle -- a 9-slot tool belt that carries tools / weapons / items and swaps the held item with one click. Ported from the ToolBelt mod (BSD-3-Clause, by gigaherz).
-Obtain: crafting (4 leather + 3 string + 1 iron ingot + 1 All-Things Origin Stone).
-Use: right-click to open the belt screen (9 slots, tools / weapons / non-stackable items go in; god tools such as God Invite / Cloud-Turning Token / Heaven-Measuring Golden Ruler / Miniature Black Hole / God Binder are always accepted); press **V** to open the belt-slot screen (equip the belt + 2x2 crafting + inventory); press **R** to open the radial wheel and swap the held item with any belt slot (the unbound cycle keys move the selection). The belt is always at max level -- no pouch or upgrades needed.",
-    "container.godofthings.god_belt_slot":  "Master Artisan's Girdle Slot",
+    "manual.godofthings.god_belt":  "What: Master Artisan\u0027s Girdle -- a 9-slot tool belt that carries tools / weapons / items and swaps the held item with one click. Ported from the ToolBelt mod (BSD-3-Clause, by gigaherz).\r\nObtain: crafting (4 leather + 3 string + 1 iron ingot + 1 All-Things Origin Stone).\r\nUse: right-click to open the belt screen (9 slots, tools / weapons / non-stackable items go in; god tools such as God Invite / Cloud-Turning Token / Heaven-Measuring Golden Ruler / Miniature Black Hole / God Binder are always accepted); press **V** to open the belt-slot screen (equip the belt + 2x2 crafting + inventory); press **R** to open the radial wheel and swap the held item with any belt slot (the unbound cycle keys move the selection). The belt is always at max level -- no pouch or upgrades needed.",
+    "container.godofthings.god_belt_slot":  "Master Artisan\u0027s Girdle Slot",
     "key.godofthings.belt_category":  "God of Things: Belt",
     "key.godofthings.belt_open":  "Swap Tool (Belt Wheel)",
     "key.godofthings.belt_slot":  "Open Belt Slot Inventory",
@@ -725,13 +612,9 @@ Use: right-click to open the belt screen (9 slots, tools / weapons / non-stackab
     "text.godofthings.belt.empty":  "EMPTY",
     "item.godofthings.god_recipe":  "All-Things Origin Stone",
     "tooltip.godofthings.god_recipe":  "The base catalyst for every divine creation (older recipes are being migrated onto it)",
-    "manual.godofthings.god_recipe":  "What: All-Things Origin Stone -- the base catalyst for every divine creation. The four God Armor pieces already use it (vanilla armor shapes with every material slot replaced by All-Things Origin Stone: helmet 5 / chestplate 8 / leggings 7 / boots 4); other god items (God Binder, all machines, ...) will follow the same \"All-Things Origin Stone + a few materials\" pattern, and that migration only touches recipe json, never the items themselves.
-Obtain: shaped crafting -- one iron ingot / copper ingot / gold ingot / diamond / netherite ingot / emerald / redstone / lapis lazuli / coal filling a 3x3 (top row iron, copper, gold; middle diamond, netherite, emerald; bottom redstone, lapis, coal).
-Use: no interaction, just a crafting material.",
+    "manual.godofthings.god_recipe":  "What: All-Things Origin Stone -- the base catalyst for every divine creation. The four God Armor pieces already use it (vanilla armor shapes with every material slot replaced by All-Things Origin Stone: helmet 5 / chestplate 8 / leggings 7 / boots 4); other god items (God Binder, all machines, ...) will follow the same \"All-Things Origin Stone + a few materials\" pattern, and that migration only touches recipe json, never the items themselves.\r\nObtain: shaped crafting -- one iron ingot / copper ingot / gold ingot / diamond / netherite ingot / emerald / redstone / lapis lazuli / coal filling a 3x3 (top row iron, copper, gold; middle diamond, netherite, emerald; bottom redstone, lapis, coal).\r\nUse: no interaction, just a crafting material.",
     "item.godofthings.god_construction":  "Worldweaver Staff",
-    "manual.godofthings.god_construction":  "What: Worldweaver Staff -- a port of the construction stick: batch-places blocks, sneak-right-click cycles the mode, an off-hand block enables replacement, and it pulls materials from a linked AE network.
-Obtain: 1 All-Things Origin Stone + 2 netherite ingots.
-Use: **right-click a block runs the current mode** (build / destroy / replace; sneak-right-click cycles). Build spreads across the plane of the clicked face (the block behind every cell must match) up to 1024 blocks; right-clicking air places an off-hand block 2 blocks ahead (angel). Destroy breaks up to 81 connected blocks of the same kind with **no drops** (blocks with block entities -- chests, machines -- can be destroyed too, their contents are lost). Replace needs a block in the **off-hand**, swaps the whole connected area, pops the old blocks and consumes one new block per cell. The tool never wears out (unbreakable). **Sneak + right-click air** opens the settings screen: switch modes, **undo the last action (up to 10 steps)**, and toggle the **preview outline** and **similar-block matching** (treat block variants such as stone-brick types as one). A block in your **off-hand takes priority for building** (materials are taken from the off-hand first). Blocks that **open a GUI** by right-click (chests, machines) keep opening it -- **hold Ctrl while right-clicking** to force construction instead. Put it into a Wireless Access Point's link slot to bind an ME network; missing materials are extracted automatically.",
+    "manual.godofthings.god_construction":  "What: Worldweaver Staff -- a port of the construction stick: batch-places blocks, sneak-right-click cycles the mode, an off-hand block enables replacement, and it pulls materials from a linked AE network.\r\nObtain: 1 All-Things Origin Stone + 2 netherite ingots.\r\nUse: **right-click a block runs the current mode** (build / destroy / replace; sneak-right-click cycles). Build spreads across the plane of the clicked face (the block behind every cell must match) up to 1024 blocks; right-clicking air places an off-hand block 2 blocks ahead (angel). Destroy breaks up to 81 connected blocks of the same kind with **no drops** (blocks with block entities -- chests, machines -- can be destroyed too, their contents are lost). Replace needs a block in the **off-hand**, swaps the whole connected area, pops the old blocks and consumes one new block per cell. The tool never wears out (unbreakable). **Sneak + right-click air** opens the settings screen: switch modes, **undo the last action (up to 10 steps)**, and toggle the **preview outline** and **similar-block matching** (treat block variants such as stone-brick types as one). A block in your **off-hand takes priority for building** (materials are taken from the off-hand first). Blocks that **open a GUI** by right-click (chests, machines) keep opening it -- **hold Ctrl while right-clicking** to force construction instead. Put it into a Wireless Access Point\u0027s link slot to bind an ME network; missing materials are extracted automatically.",
     "message.godofthings.god_construction.mode_build":  "Worldweaver Staff: Build",
     "message.godofthings.god_construction.mode_destroy":  "Worldweaver Staff: Destroy",
     "message.godofthings.god_construction.mode_replace":  "Worldweaver Staff: Replace",
@@ -749,26 +632,10 @@ Use: **right-click a block runs the current mode** (build / destroy / replace; s
     "message.godofthings.god_construction.undone":  "Undid %s blocks",
     "message.godofthings.god_construction.undo_empty":  "Nothing to undo",
     "item.godofthings.heavenly_construction":  "Heaven-Opening Authority",
-    "manual.godofthings.heavenly_construction":  "What: Heaven-Opening Authority -- the god-tier version of Worldweaver Staff. Exactly the same controls (**right-click** runs the current mode, **sneak-right-click** cycles it, **sneak-right-click air** opens the settings screen with the 10-step undo, preview outline and similar-block matching), but all three limits are pushed to the **int maximum**: blocks placed per action, blocks destroyed per action, and the angel (mid-air) placement distance. Durability is unlimited as well (no durability bar).
-Obtain: crafting (**1 Worldweaver Staff + 8 All-Things Origin Stones** in a ring).
-Use: same as Worldweaver Staff. Because one action can hit hundreds of thousands of blocks, the server runs it in batches of **8192 blocks per tick** and continues across ticks; walking away / swapping hands / logging out cancels the remainder (what was already done still goes into the undo history). A block in your **off-hand takes priority for building** (materials come from the off-hand first). Blocks that **open a GUI** by right-click keep opening it -- **hold Ctrl while right-clicking** to force construction. AE extraction works too: link the wand in a Wireless Access Point's link slot.",
-    "item.godofthings.natures_compass":  "Nature's Compass",
-    "manual.godofthings.natures_compass":  "What: Nature's Compass -- a biome locator. Full port of [Nature's Compass](https://www.curseforge.com/minecraft/mc-mods/natures-compass) by ChaosTheDude (CC BY-NC-SA 4.0).
-Obtain: crafting (4 Saplings + 4 Logs + 1 Compass, in the vanilla compass shape); repair a damaged one with 4 String + 1 Lapis Lazuli.
-Use:
-- **Right-click** opens the screen. The left list holds every biome in the world, sortable six ways in a cycle (name / source mod / tags / dimension / rainfall / temperature).
-- Pick a biome, then **Start Search**: the server spiral-samples the world and checks biome connectivity to find the nearest match. The screen live-reports search radius and samples taken; **Search for Next** keeps going.
-- Once found it shows coordinates / dimension / distance / biome details (temperature, precipitation, top block, filler block, height variation, ...). The **Teleport** button follows the config settings for permission.
-- Searching costs durability; you can disable durability loss or raise the search radius in the config.
-- Config: `config/godofthings-natures-compass.toml` (common: max radius / max samples / durability / teleport permission / blacklist) and `godofthings-natures-compass-client.toml` (client: HUD position and what it shows).",
-    "manual.godofthings.explorers_compass":  "What: Explorer's Compass -- a structure locator. Full port of [Explorer's Compass](https://github.com/MattCzyr/ExplorersCompass) by ChaosTheDude (CC BY-NC-SA 4.0).
-Obtain: crafting (4 Cobwebs + 4 Cracked Stone Bricks + 1 Compass).
-Use:
-- **Right-click** opens the screen. The left list holds every structure that actually generates in this save (villages, strongholds, ocean monuments, woodland mansions, ancient cities, modded structures, ...), sortable four ways in a cycle (name / source mod / group / dimension).
-- Pick a structure, then **Start Search**: the server dispatches the matching algorithm for that structure's placement type (random spread / concentric rings / generic) and the screen live-reports progress. **Search for Next** keeps going.
-- Once found it shows coordinates / dimension / distance / structure name; you can **Teleport** straight there or **clear** the result.
-- Only structures that really exist in this save are listed (following the world seed and installed mods), so a search never comes back empty for a structure the world does not have.
-- Config: `config/godofthings-explorers-compass.toml` (common: search radius / teleport permission) and `godofthings-explorers-compass-client.toml` (client: HUD and screen appearance).",
+    "manual.godofthings.heavenly_construction":  "What: Heaven-Opening Authority -- the god-tier version of Worldweaver Staff. Exactly the same controls (**right-click** runs the current mode, **sneak-right-click** cycles it, **sneak-right-click air** opens the settings screen with the 10-step undo, preview outline and similar-block matching), but all three limits are pushed to the **int maximum**: blocks placed per action, blocks destroyed per action, and the angel (mid-air) placement distance. Durability is unlimited as well (no durability bar).\r\nObtain: crafting (**1 Worldweaver Staff + 8 All-Things Origin Stones** in a ring).\r\nUse: same as Worldweaver Staff. Because one action can hit hundreds of thousands of blocks, the server runs it in batches of **8192 blocks per tick** and continues across ticks; walking away / swapping hands / logging out cancels the remainder (what was already done still goes into the undo history). A block in your **off-hand takes priority for building** (materials come from the off-hand first). Blocks that **open a GUI** by right-click keep opening it -- **hold Ctrl while right-clicking** to force construction. AE extraction works too: link the wand in a Wireless Access Point\u0027s link slot.",
+    "item.godofthings.natures_compass":  "Nature\u0027s Compass",
+    "manual.godofthings.natures_compass":  "What: Nature\u0027s Compass -- a biome locator. Full port of [Nature\u0027s Compass](https://www.curseforge.com/minecraft/mc-mods/natures-compass) by ChaosTheDude (CC BY-NC-SA 4.0).\r\nObtain: crafting (4 Saplings + 4 Logs + 1 Compass, in the vanilla compass shape); repair a damaged one with 4 String + 1 Lapis Lazuli.\r\nUse:\r\n- **Right-click** opens the screen. The left list holds every biome in the world, sortable six ways in a cycle (name / source mod / tags / dimension / rainfall / temperature).\r\n- Pick a biome, then **Start Search**: the server spiral-samples the world and checks biome connectivity to find the nearest match. The screen live-reports search radius and samples taken; **Search for Next** keeps going.\r\n- Once found it shows coordinates / dimension / distance / biome details (temperature, precipitation, top block, filler block, height variation, ...). The **Teleport** button follows the config settings for permission.\r\n- Searching costs durability; you can disable durability loss or raise the search radius in the config.\r\n- Config: `config/godofthings-natures-compass.toml` (common: max radius / max samples / durability / teleport permission / blacklist) and `godofthings-natures-compass-client.toml` (client: HUD position and what it shows).",
+    "manual.godofthings.explorers_compass":  "What: Explorer\u0027s Compass -- a structure locator. Full port of [Explorer\u0027s Compass](https://github.com/MattCzyr/ExplorersCompass) by ChaosTheDude (CC BY-NC-SA 4.0).\r\nObtain: crafting (4 Cobwebs + 4 Cracked Stone Bricks + 1 Compass).\r\nUse:\r\n- **Right-click** opens the screen. The left list holds every structure that actually generates in this save (villages, strongholds, ocean monuments, woodland mansions, ancient cities, modded structures, ...), sortable four ways in a cycle (name / source mod / group / dimension).\r\n- Pick a structure, then **Start Search**: the server dispatches the matching algorithm for that structure\u0027s placement type (random spread / concentric rings / generic) and the screen live-reports progress. **Search for Next** keeps going.\r\n- Once found it shows coordinates / dimension / distance / structure name; you can **Teleport** straight there or **clear** the result.\r\n- Only structures that really exist in this save are listed (following the world seed and installed mods), so a search never comes back empty for a structure the world does not have.\r\n- Config: `config/godofthings-explorers-compass.toml` (common: search radius / teleport permission) and `godofthings-explorers-compass-client.toml` (client: HUD and screen appearance).",
     "godofthings.natures_compass.back":  "Back",
     "godofthings.natures_compass.info":  "Info",
     "godofthings.natures_compass.startSearch":  "Start Search",
@@ -811,7 +678,7 @@ Use:
     "godofthings.natures_compass.topBlock":  "Top Block",
     "godofthings.natures_compass.snow":  "Snow",
     "godofthings.natures_compass.rain":  "Rain",
-    "item.godofthings.explorers_compass":  "Explorer's Compass",
+    "item.godofthings.explorers_compass":  "Explorer\u0027s Compass",
     "godofthings.explorers_compass.selectStructure":  "Select Structure",
     "godofthings.explorers_compass.search":  "Search",
     "godofthings.explorers_compass.searchForGroup":  "Search for Group",
@@ -937,34 +804,23 @@ Use:
     "tooltip.godofthings.infinity_cell.uuid":  "§7UUID: §e%s",
     "tooltip.godofthings.infinity_cell.types":  "§7Stored Types: §a%s",
     "tooltip.godofthings.infinity_cell.total":  "§7Stored Total: §b%s",
-    "manual.godofthings.infinity_biginteger_cell":  "What: \"Devouring Silence of Eternity of Ten Thousand Voices\" -- the ultimate ME storage cell (full port of ExtendedAE+ 1.6.3, LGPL-3.0). Unlike the four fixed-resource infinity cells, this one is generic:
-Capacity: backed by BigInteger, effectively unlimited. AE2 screens can only show a long, so a single item tops out at 9.2E (9,223,372,036,854,775,808) in the terminal -- but you can keep inserting past that and nothing is lost; the excess is still accounted for exactly.
-Types: unlimited. Items / fluids / any AE2-integrated resource (FE, chemicals, source, ...) can be stored; the latter need their respective addon installed.
-Specs: 512 AE/t idle drain; 4 upgrade slots (inverter / fuzzy / capacity ...) plus a config slot for partition filtering; refuses to store a non-empty cell of its own kind (no recursion).
-Where the data lives: not on the item -- in the world save at world/data/infinity_biginteger_cells.dat, with the item carrying only a UUID (so removing / replacing / dropping the cell never loses data). Field names match upstream, so saves are interchangeable.
-Recovery: if the cell is ever lost, the data is still in the save; /godofthings infinity recover hands you a cell for every dataset stored there.
-Obtain: crafting (4 Quartz Glass + 4 All-Things Origin Stones + 1 256k Cell Component + 1 Nether Star + 2 Netherite Ingots).",
+    "manual.godofthings.infinity_biginteger_cell":  "What: \"Devouring Silence of Eternity of Ten Thousand Voices\" -- the ultimate ME storage cell (full port of ExtendedAE+ 1.6.3, LGPL-3.0). Unlike the four fixed-resource infinity cells, this one is generic:\r\nCapacity: backed by BigInteger, effectively unlimited. AE2 screens can only show a long, so a single item tops out at 9.2E (9,223,372,036,854,775,808) in the terminal -- but you can keep inserting past that and nothing is lost; the excess is still accounted for exactly.\r\nTypes: unlimited. Items / fluids / any AE2-integrated resource (FE, chemicals, source, ...) can be stored; the latter need their respective addon installed.\r\nSpecs: 512 AE/t idle drain; 4 upgrade slots (inverter / fuzzy / capacity ...) plus a config slot for partition filtering; refuses to store a non-empty cell of its own kind (no recursion).\r\nWhere the data lives: not on the item -- in the world save at world/data/infinity_biginteger_cells.dat, with the item carrying only a UUID (so removing / replacing / dropping the cell never loses data). Field names match upstream, so saves are interchangeable.\r\nRecovery: if the cell is ever lost, the data is still in the save; /godofthings infinity recover hands you a cell for every dataset stored there.\r\nObtain: crafting (4 Quartz Glass + 4 All-Things Origin Stones + 1 256k Cell Component + 1 Nether Star + 2 Netherite Ingots).",
     "message.godofthings.infinity.need_player":  "This command must be run by a player (it hands the cells to you)",
     "message.godofthings.infinity.no_data":  "No recoverable \"Devouring Silence of Eternity\" data in this save",
     "message.godofthings.infinity.recovered":  "Re-issued %s cell(s) from the save data",
     "item.godofthings.universal_cell":  "§bU§3n§bi§3v§be§3r§bs§3a§bl §3C§be§3l§bl",
-    "manual.godofthings.universal_cell":  "What: Primordial Myriad Crystal -- one cell infinitely supplies 5 resources at once: Water, Lava, Cobblestone, Blank Pattern, and Fluix ME Glass Cable (ae2:fluix_glass_cable).
-Capacity: reports 9,223,372,036,854,775,807 (9.2E) to AE2 -- the long ceiling of AE2 KeyCounter and the largest unit AE2 can display (its unit table is KMGTPE, E is the max). With multiple cells the KeyCounter clamp plus exact BigInteger accounting keep it from overflowing negative or hiding stacks from the terminal.
-Behaviour: phantom storage from a fixed list -- inserting matching resources is accepted but not stored; no durability, no NBT, identical after removal and reinsertion. Idle drain 8 AE/t.
-Obtain: crafting (4 Quartz Glass + 4 All-Things Origin Stones + 1 256k Cell Component + 1 Water Bucket + 1 Lava Bucket).
-Note: this cell replaces the old four single-resource cells (water / lava / cobblestone / blank pattern).",
+    "manual.godofthings.universal_cell":  "What: Primordial Myriad Crystal -- one cell infinitely supplies 5 resources at once: Water, Lava, Cobblestone, Blank Pattern, and Fluix ME Glass Cable (ae2:fluix_glass_cable).\r\nCapacity: reports 9,223,372,036,854,775,807 (9.2E) to AE2 -- the long ceiling of AE2 KeyCounter and the largest unit AE2 can display (its unit table is KMGTPE, E is the max). With multiple cells the KeyCounter clamp plus exact BigInteger accounting keep it from overflowing negative or hiding stacks from the terminal.\r\nBehaviour: phantom storage from a fixed list -- inserting matching resources is accepted but not stored; no durability, no NBT, identical after removal and reinsertion. Idle drain 8 AE/t.\r\nObtain: crafting (4 Quartz Glass + 4 All-Things Origin Stones + 1 256k Cell Component + 1 Water Bucket + 1 Lava Bucket).\r\nNote: this cell replaces the old four single-resource cells (water / lava / cobblestone / blank pattern).",
     "tooltip.godofthings.shift_hint":  "§8Hold §7Shift §8for details",
     "tooltip.godofthings.god_miner.lore":  "§6§o\"The divine spear pierces thirty thousand li; mountains crumble into the vault.\"",
     "tooltip.godofthings.god_miner.shift_1":  "§e[Range] §fRadius 1-1600 freely adjustable; unlimited internal fluid tank swallows lava and water.",
     "tooltip.godofthings.god_miner.shift_2":  "§a[Overclock] §fWith 64 accelerators the drill locks to 1 tick per full column.",
     "tooltip.godofthings.god_miner.shift_3":  "§d[Resonance] §fSwitch Silk Touch / Fortune III in the GUI; ties into armor loot crits and auto-smelt.",
-    "tooltip.godofthings.god_miner.shift_4":  "§b[AE2 & Storage] §f4096-type buffer with AE2 link; pauses automatically when full.",
+    "tooltip.godofthings.god_miner.shift_4":  "§b[AE2 \u0026 Storage] §f4096-type buffer with AE2 link; pauses automatically when full.",
     "tooltip.godofthings.god_binder.lore":  "§6§o\"Draw the leyline thread between two worlds; across mountains and rivers, the qi connects.\"",
     "tooltip.godofthings.god_binder.shift_1":  "§e[Pairing] §fRight-click an FE machine to bind it to the nearest Aurora Leyline Ferry Hub in the same dimension.",
     "tooltip.godofthings.god_binder.shift_2":  "§a[Off-hand Automation] §fHolding this in the off-hand auto-binds any FE machine you place with the main hand.",
-
     "tooltip.godofthings.god_binder.shift_3":  "§b[Wireless Link] §fRight-click a provider/interface to select it, then right-click machines to link. Right-clicking an already-linked face toggles it off (Ctrl for batch toggle, sneak to force-disconnect).",
-    "tooltip.godofthings.god_accelerator.lore":  "§6§o\"Steal the torrent of time's long river; let a thousand years of cycles converge in an instant.\"",
+    "tooltip.godofthings.god_accelerator.lore":  "§6§o\"Steal the torrent of time\u0027s long river; let a thousand years of cycles converge in an instant.\"",
     "tooltip.godofthings.god_accelerator.shift_1":  "§e[Exponential] §fOne gives x16, a stack of 64 gives x1024.",
     "tooltip.godofthings.god_accelerator.shift_2":  "§a[Break Limits] §fFill 64 into a resource machine to max a single round at 2.14 billion (Integer.MAX_VALUE)!",
     "tooltip.godofthings.god_accelerator.shift_3":  "§b[Miner Specialization] §fFill 64 into the miner to cut mining time to a constant 1 tick per full column!",
@@ -990,7 +846,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "tooltip.godofthings.creative_energy_cube.lore":  "§6§o\"The first light of the source world, an eternal genesis core that never goes out.\"",
     "tooltip.godofthings.creative_energy_cube.shift_1":  "§e[Output] §fAll six faces push Integer.MAX_VALUE FE per tick to adjacent consumers.",
     "tooltip.godofthings.creative_energy_cube.shift_2":  "§a[Portable Charging] §fOne dedicated instant-charge slot fills any battery or powered gear immediately.",
-    "tooltip.godofthings.god_ore_machine.lore":  "§6§o\"The god's touch draws endless brilliance from dead stone.\"",
+    "tooltip.godofthings.god_ore_machine.lore":  "§6§o\"The god\u0027s touch draws endless brilliance from dead stone.\"",
     "tooltip.godofthings.god_ore_machine.shift_1":  "§e[Mechanism] §fOre blocks yield Fortune III drops x64 in batch; raw ore is smelted straight into ingots.",
     "tooltip.godofthings.god_ore_machine.shift_2":  "§a[Compatibility] §fSupports vanilla raw ore, gems, GregTech-family ores and AE2 certus/fluix crystals.",
     "tooltip.godofthings.god_ore_machine.shift_3":  "§b[AE2 Grid] §fProducts feed the ME network; all six faces output by default, short rounds skip to avoid spam.",
@@ -999,7 +855,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "tooltip.godofthings.god_enchant.shift_1":  "§e[Free Enchant] §fPick any enchantment on the left panel; defaults to 255 and can be tuned.",
     "tooltip.godofthings.god_enchant.shift_2":  "§a[Batch] §fOne click applies the current enchantment to every compatible, conflict-free item in your inventory.",
     "tooltip.godofthings.god_enchant.shift_3":  "§c[Conflicts] §fTwo-way conflict detection; incompatible enchantments are skipped, duplicates upgrade in place.",
-    "tooltip.godofthings.god_config.lore":  "§6§o\"By heaven's mandate, imprint the divine rule; a thousand machines obey one law.\"",
+    "tooltip.godofthings.god_config.lore":  "§6§o\"By heaven\u0027s mandate, imprint the divine rule; a thousand machines obey one law.\"",
     "tooltip.godofthings.god_config.shift_1":  "§e[Copy] §fSneak-right-click a machine to save its six-face modes, AE toggle and accelerator count.",
     "tooltip.godofthings.god_config.shift_2":  "§a[Stamp] §fRight-click the same machine type to overwrite its config, auto-drawing accelerators from your inventory.",
     "tooltip.godofthings.universal_cell.lore":  "§6§o\"From the void the myriad sources emerge, laying the eternal cornerstone of the great thousand worlds.\"",
@@ -1008,11 +864,11 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "tooltip.godofthings.god_measure.lore":  "§6§o\"The gods measure the earth with their stride and rule three thousand realms with a golden ruler.\"",
     "tooltip.godofthings.god_measure.shift_1":  "§e[Surveying] §fRight-click to set the start, right-click again to set the end and draw the outline; sneak-right-click undoes the last selection.",
     "tooltip.godofthings.god_duplicate_machine.lore":  "§6§o\"Formless heaven and earth: one becomes ten thousand; the true name supplies all.\"",
-    "tooltip.godofthings.god_duplicate_machine.shift_1":  "§e[Output] §fCopies are clean stacks without the original's enchantments, durability or contents.",
+    "tooltip.godofthings.god_duplicate_machine.shift_1":  "§e[Output] §fCopies are clean stacks without the original\u0027s enchantments, durability or contents.",
     "tooltip.godofthings.god_duplicate_machine.shift_2":  "§a[Fast List] §fSand, dirt, concrete and meteorite and other building blocks duplicate at 1 tick per round.",
     "tooltip.godofthings.god_duplicate_machine.shift_3":  "§b[Grid] §f64 base per round; 2.14 billion with full acceleration; AE2 link supported.",
     "tooltip.godofthings.god_recipe.lore":  "§6§o\"Condensing the primal power of the nine celestial sources, the origin stone for forging all divine creations.\"",
-    "tooltip.godofthings.explorers_compass.lore":  "§6§o\"Ruins and dungeons where ancient civilizations sleep cannot escape the gods' true sight.\"",
+    "tooltip.godofthings.explorers_compass.lore":  "§6§o\"Ruins and dungeons where ancient civilizations sleep cannot escape the gods\u0027 true sight.\"",
     "tooltip.godofthings.teleport_block_2.lore":  "§6§o\"Law transits; reach the second realm the gods carved out.\"",
     "tooltip.godofthings.god_craft.lore":  "§6§o\"Outmatching creation: within the nine-grid, all things come together naturally.\"",
     "tooltip.godofthings.god_craft.shift_1":  "§e[Auto Balance] §fExternal input uses low-water-priority even distribution, eliminating starvation stalls.",
@@ -1025,7 +881,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "tooltip.godofthings.god_crop_machine.shift_2":  "§a[Mod Support] §fWorks with Mystical Agriculture and similar special seeds; templates never consumed.",
     "tooltip.godofthings.god_crop_machine.shift_3":  "§b[AE2 Grid] §fSupports resonance bonuses and AE2 push; a fully accelerated slot maxes out.",
     "tooltip.godofthings.god_transmitter.lore":  "§6§o\"Where the divine light passes, a thousand worlds apart is as if face to face.\"",
-    "tooltip.godofthings.god_transmitter.shift_1":  "§e[Multi-target] §fBind machines with the binder wand, or rapidly charge every chargeable item in a player's inventory.",
+    "tooltip.godofthings.god_transmitter.shift_1":  "§e[Multi-target] §fBind machines with the binder wand, or rapidly charge every chargeable item in a player\u0027s inventory.",
     "tooltip.godofthings.god_transmitter.shift_2":  "§a[Cross-dim] §fIndependent cross-dimensional toggle; rates up to nearly ten million per tick or unlimited.",
     "tooltip.godofthings.god_transmitter.shift_3":  "§b[Probing] §fWalks all six faces to find the best receiving side; compatible with Mekanism and similar.",
     "tooltip.godofthings.void_teleporter.lore":  "§6§o\"Through the seam of reality, step into the pure white void where the gods rest.\"",
@@ -1042,7 +898,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "tooltip.godofthings.infinity_biginteger_cell.lore":  "§d§o\"When all the stars fall silent, every last bit of matter and sound in the universe sleeps here forever.\"",
     "tooltip.godofthings.infinity_biginteger_cell.shift_1":  "§e[Absolute Infinity] §fBacked by BigInteger accounting; stores countless item types, ignoring any quantity limit.",
     "tooltip.godofthings.infinity_biginteger_cell.shift_2":  "§a[Save Bound] §fReal data is written to an independent world save; if lost, recover it safely with a command.",
-    "tooltip.godofthings.heavenly_construction.lore":  "§6§o\"Split earth and open heaven, reshape the cosmos! All laws reconstruct at the staff's swing.\"",
+    "tooltip.godofthings.heavenly_construction.lore":  "§6§o\"Split earth and open heaven, reshape the cosmos! All laws reconstruct at the staff\u0027s swing.\"",
     "tooltip.godofthings.heavenly_construction.shift_1":  "§e[Broken Limits] §fBuild, destroy, replace and angel distance all maxed to the integer limit.",
     "tooltip.godofthings.heavenly_construction.shift_2":  "§a[Anti-lag] §fHuge jobs are spread smoothly at 8192 blocks per tick; the server never stalls.",
     "tooltip.godofthings.god_belt.lore":  "§6§o\"To do the work well, first sharpen the tools; a hundred craftsman skills rest at the waist.\"",
@@ -1050,7 +906,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "tooltip.godofthings.god_belt.shift_2":  "§a[Portable Workshop] §fThe open-belt-slot-screen key (God of Things: Belt category) opens the carry UI (2x2 crafting and armor slot access); freely dyeable.",
     "tooltip.godofthings.natures_compass.lore":  "§6§o\"As the needle turns, the pulse of mountains, rainforests and deep seas lies fully in view.\"",
     "tooltip.godofthings.god_slaughter.lore":  "§6§o\"Where judgment falls, the unsanctioned turn to ash; only the essence remains.\"",
-    "tooltip.godofthings.god_slaughter.shift_1":  "§e[Range & Execute] §fSpherical radius 0-480 adjustable; the execute toggle deals Float.MAX true damage.",
+    "tooltip.godofthings.god_slaughter.shift_1":  "§e[Range \u0026 Execute] §fSpherical radius 0-480 adjustable; the execute toggle deals Float.MAX true damage.",
     "tooltip.godofthings.god_slaughter.shift_2":  "§a[Absolute Protection] §fHardcoded: tamed pets, villagers, wandering traders and every named mob.",
     "tooltip.godofthings.god_slaughter.shift_3":  "§b[Zero Lag] §fDrops are intercepted into 4096 internal slots without spawning entities; AE2 extraction supported.",
     "tooltip.godofthings.god_absorber.lore":  "§6§o\"The vault of heaven draws down; all wealth and creation under the stars gather here.\"",
@@ -1088,21 +944,21 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "gui.godofthings.two_i.status.action":  "Action: %s",
     "gui.godofthings.two_i.status.action.curious":  "Curious",
     "msg.godofthings.two_i.reclaimed":  "紬紬 returned to your inventory",
-    "gui.godofthings.two_i.dialogue.low":  "紬紬 draws their tail close: No teasing for now. I'm still upset. What did you want to say?",
+    "gui.godofthings.two_i.dialogue.low":  "紬紬 draws their tail close: No teasing for now. I\u0027m still upset. What did you want to say?",
     "gui.godofthings.two_i.bond":  "Bond: %s / 100",
     "msg.godofthings.two_i.starfield_show_started":  "紬紬: Okay, look up! ...Well? I spent ages choosing those colors.",
     "gui.godofthings.two_i.interaction":  "Spend a little time with 紬紬",
     "gui.godofthings.two_i.gift":  "Give gift",
     "msg.godofthings.two_i.starfield_active":  "Your starfield visit is still in progress",
-    "gui.godofthings.two_i.dialogue":  "Oh, you're here. Good timing—sit with me?",
-    "dimension.godofthings.two_i_starfield":  "紬紬's Starlight Courtyard",
+    "gui.godofthings.two_i.dialogue":  "Oh, you\u0027re here. Good timing—sit with me?",
+    "dimension.godofthings.two_i_starfield":  "紬紬\u0027s Starlight Courtyard",
     "gui.godofthings.two_i.status.action.shiver":  "Shivering",
     "tooltip.godofthings.two_i_doll.headwear":  "Place in the helmet slot: let 紬紬 sit on your head and join your adventures.",
     "msg.godofthings.two_i.gift.disliked":  "紬紬 shrank away from that gift; bond -%s (now %s / %s)",
     "msg.godofthings.two_i.gift_no_bond":  "紬紬: I accepted it, but this gift will not increase our bond.",
     "useless_stretcher.configuration.doll_leaf_drop.enable.tooltip":  "Once per player per world, with roll and claim records independent from the staff.",
     "msg.godofthings.two_i.cockroach_panic":  "紬紬 is panicking! An Ender Dragon has been summoned and time is going wild!",
-    "msg.godofthings.two_i.time_stop_prank":  "紬紬's prank briefly stopped time",
+    "msg.godofthings.two_i.time_stop_prank":  "紬紬\u0027s prank briefly stopped time",
     "msg.godofthings.two_i.starfield_disabled":  "Starfield courtyard invitations are disabled by the server.",
     "msg.godofthings.two_i.companionship":  "紬紬: Just keeping you company is nice, too. Bond +1",
     "gui.godofthings.two_i.status.action.dust":  "Dusting off",
@@ -1111,10 +967,10 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "useless_stretcher.configuration.two_i":  "紬紬 Doll",
     "msg.godofthings.two_i.patted":  "紬紬 happily nuzzles your hand",
     "gui.godofthings.two_i.revisit":  "Visit the stars again",
-    "msg.godofthings.two_i.gift_repeated":  "紬紬: I accepted it, but I've received this several times already, so it won't increase our bond this time.",
+    "msg.godofthings.two_i.gift_repeated":  "紬紬: I accepted it, but I\u0027ve received this several times already, so it won\u0027t increase our bond this time.",
     "gui.godofthings.two_i.status.single":  "alone",
     "msg.godofthings.two_i.starfield_enter_gate":  "紬紬: Come on, through that arch! No peeking at the sky yet. Use the doll recall key whenever you want to head back.",
-    "tooltip.godofthings.two_i_doll.flavor":  "紬紬, a mischievous little leopard and the author's mascot",
+    "tooltip.godofthings.two_i_doll.flavor":  "紬紬, a mischievous little leopard and the author\u0027s mascot",
     "gui.godofthings.two_i.reclaim_hint":  "Return 紬紬 as an item",
     "gui.godofthings.two_i.status.environment.clear":  "Clear",
     "entity.godofthings.two_i_doll":  "紬紬",
@@ -1124,7 +980,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "gui.godofthings.two_i.status.environment.thunder":  "Thunder",
     "gui.godofthings.two_i.status.action.gift":  "Receiving gift",
     "msg.godofthings.two_i.owner_unbound":  "Unbound",
-    "msg.godofthings.two_i.owner_only":  "Only this 紬紬's owner can interact.",
+    "msg.godofthings.two_i.owner_only":  "Only this 紬紬\u0027s owner can interact.",
     "msg.godofthings.two_i.no_starfield":  "The starfield is currently unavailable",
     "useless_stretcher.configuration.doll_leaf_drop":  "紬紬 Doll: Leaf Drop",
     "gui.godofthings.two_i.status.action.shy":  "Shy",
@@ -1147,11 +1003,11 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "msg.godofthings.two_i.gift_full":  "紬紬: I know you mean it. Keep this one for yourself. We can just spend some time together.",
     "gui.godofthings.two_i.status.environment.cold":  "Snowy",
     "msg.godofthings.two_i.no_gift":  "Hold a gift in your main hand",
-    "msg.godofthings.two_i.panic_time_stop":  "紬紬's panic stops time again!",
+    "msg.godofthings.two_i.panic_time_stop":  "紬紬\u0027s panic stops time again!",
     "msg.godofthings.two_i.return_unavailable":  "The origin dimension is unavailable; your return point is saved",
-    "msg.godofthings.two_i.patted_familiar":  "紬紬's ears settle under your hand. After a moment, they look up: All right, all right, you're messing up my fur.",
-    "gui.godofthings.two_i.dialogue.uneasy":  "紬紬's ears twitch: You can sit here. I haven't forgotten what happened, though.",
-    "msg.godofthings.two_i.starfield_companion_return_blocked":  "紬紬's return was blocked. The original doll is preserved and will retry when travel is allowed; no duplicate is created.",
+    "msg.godofthings.two_i.patted_familiar":  "紬紬\u0027s ears settle under your hand. After a moment, they look up: All right, all right, you\u0027re messing up my fur.",
+    "gui.godofthings.two_i.dialogue.uneasy":  "紬紬\u0027s ears twitch: You can sit here. I haven\u0027t forgotten what happened, though.",
+    "msg.godofthings.two_i.starfield_companion_return_blocked":  "紬紬\u0027s return was blocked. The original doll is preserved and will retry when travel is allowed; no duplicate is created.",
     "msg.godofthings.two_i.invitation_used":  "The Starlight Courtyard is still open to you; first-visit gifts are not repeated.",
     "item.godofthings.two_i_doll":  "紬紬 Doll",
     "msg.godofthings.two_i.returned_spawn":  "Your original location was unavailable or unsafe, so you were returned to a safe Overworld spot.",
@@ -1164,7 +1020,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "msg.godofthings.two_i.staff_prank.magnet":  "紬紬 pulled nearby drops close, then bounced them away",
     "help.godofthings.two_i.relationship":  "Each game day: one pat +1 and one ordinary gift +1, including unlisted items, with a 60-second cooldown. Gifts during cooldown or after the daily allowance are accepted without bond; the bubble explains why. Precious gifts give +5 with no cooldown or daily limit. Positive gifts at full bond are not consumed. Small talk: up to +2; stories: +3; companionship: +1 per five minutes, up to +2. Disliked gifts and unkind choices can still lose points.",
     "msg.godofthings.two_i.gift.liked":  "紬紬 happily accepted the gift; bond +%s (now %s / %s)",
-    "gui.godofthings.two_i.dialogue.close":  "紬紬 looks up and grins: There you are! I've got so much to tell you.",
+    "gui.godofthings.two_i.dialogue.close":  "紬紬 looks up and grins: There you are! I\u0027ve got so much to tell you.",
     "gui.godofthings.two_i.pat":  "Pat 紬紬",
     "gui.godofthings.two_i.invite":  "Accept invitation",
     "gui.godofthings.two_i.status.environment":  "Environment: %s",
@@ -1187,7 +1043,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "msg.godofthings.two_i.returned":  "Returned to where you entered the starfield",
     "msg.godofthings.two_i.starfield_subtitle":  "A little night sky, kept just for you.",
     "gui.godofthings.two_i.item_dialogue":  "Open this little interaction panel, or send 紬紬 out to explore with you.",
-    "msg.godofthings.two_i.starfield_companion_blocked":  "紬紬's dimension transfer was blocked. The original doll stays behind, or is returned to you as an item if it cannot be restored there.",
+    "msg.godofthings.two_i.starfield_companion_blocked":  "紬紬\u0027s dimension transfer was blocked. The original doll stays behind, or is returned to you as an item if it cannot be restored there.",
     "msg.godofthings.two_i.arrival_blocked":  "The courtyard landing is blocked. 紬紬 will not remove your builds; please clear a safe spot first.",
     "key.godofthings.two_i_remote_reclaim":  "Remote-reclaim 紬紬",
     "subtitles.godofthings.two_i_pat":  "紬紬 makes a cute sound",
@@ -1387,7 +1243,6 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "gui.godofthings.infprovider.advanced.input_filter":  "Input Filter",
     "message.godofthings.binder.machines_connected_many":  "Linked %d machines face %s",
     "message.godofthings.binder.machines_disconnected_many":  "Unlinked %d machines",
-
     "message.godofthings.binder.batch_toggled":  "Toggled %d link(s) (face %s)",
     "message.godofthings.binder.machine_face_updated":  "Re-linked [%d, %d, %d] to face %s",
     "message.godofthings.binder.provider_full_skipped":  "Skipped %d (limit %d)",
@@ -1400,7 +1255,8 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "message.godofthings.binder.machine_connected":  "Linked [%d, %d, %d] face %s",
     "message.godofthings.binder.machine_disconnected":  "Unlinked [%d, %d, %d]",
     "message.godofthings.binder.not_connected":  "Machine is not linked to the selected provider",
-    "message.godofthings.binder.provider_full":  "Provider is full (%d machines)",    "manual.godofthings._1slots_pattern_provider":  "ME 1 Slots Pattern Provider: a mini provider with a single pattern slot, stonecut from an AE2 Pattern Provider into nine.",
+    "message.godofthings.binder.provider_full":  "Provider is full (%d machines)",
+    "manual.godofthings._1slots_pattern_provider":  "ME 1 Slots Pattern Provider: a mini provider with a single pattern slot, stonecut from an AE2 Pattern Provider into nine.",
     "message.godofthings.binder.host_lost":  "Selected provider is gone, selection cleared",
     "manual.godofthings._32slots_pattern_provider":  "ME 32 Slots Pattern Provider: 32 pattern slots (8x4 per page), upgraded from an AE2 Pattern Provider with an Engineering Processor.",
     "manual.godofthings._1024slots_pattern_provider":  "ME 1024 Slots Pattern Provider: browse 1024 pattern slots across pages, upgraded with a Calculation Processor and a 16k storage component.",
@@ -1409,43 +1265,43 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "manual.godofthings._32slots_pattern_provider_part":  "ME 32 Slots Pattern Provider (part form): mount it on the side of an AE2 cable; works exactly like the block form.",
     "manual.godofthings._1024slots_pattern_provider_part":  "ME 1024 Slots Pattern Provider (part form): mount it on the side of an AE2 cable; works exactly like the block form.",
     "manual.godofthings.infinity_pattern_provider_part":  "ME Infinity Pattern Provider (part form): mount it on the side of an AE2 cable; works exactly like the block form.",
-  "block.godofthings.wireless_connector": "Wireless Connector",
-  "item.godofthings.wireless_link_tool": "Wireless Link Tool",
-  "itemGroup.godofthings.god_of_things_items_tab": "God of Things: Items",
-  "manual.godofthings.wireless_connector": "A wireless grid bridge hub. Place it inside an ME network (next to cables or a controller). Once auto-link is enabled, any AE device placed anywhere, in any dimension, is automatically joined to that network. Enable auto-link with /aalink on.",
-  "manual.godofthings.wireless_link_tool": "Manually join any AE device to the network of a bound wireless connector. Sneak-right-click the connector to bind it, then right-click any AE device to link it; sneak-right-click the air to clear the binding.",
-  "message.godofthings.aalink.tool_bound": "Wireless link tool bound to: %s %s",
-  "message.godofthings.aalink.tool_unbound": "Wireless link tool unbound",
-  "message.godofthings.aalink.tool_need_sneak": "Sneak-right-click the wireless connector to bind it",
-  "message.godofthings.aalink.tool_not_bound": "Wireless link tool is not bound: sneak-right-click a wireless connector first",
-  "message.godofthings.aalink.tool_hub_dim_missing": "The bound wireless connector's dimension was not found",
-  "message.godofthings.aalink.tool_hub_missing": "The bound wireless connector is missing or its chunk is not loaded",
-  "message.godofthings.aalink.tool_hub_not_ready": "The wireless connector's grid node is not ready yet",
-  "message.godofthings.aalink.tool_not_ae_device": "That block cannot connect to an AE network",
-  "message.godofthings.aalink.tool_already_linked": "That device is already in an AE network",
-  "message.godofthings.aalink.tool_failed": "Link failed: %s",
-  "message.godofthings.aalink.tool_linked": "Device joined the AE network",
-  "message.godofthings.aalink.auto_state": "AALink auto-link %s",
-  "message.godofthings.aalink.auto_status": "AALink auto-link status: %s",
-  "message.godofthings.aalink.on": "enabled",
-  "message.godofthings.aalink.off": "disabled",
-  "block.godofthings.overloaded_interface": "Overloaded Interface",
-  "manual.godofthings.overloaded_interface": "A 36-slot enhanced ME interface: it can push configured items into adjacent (or wirelessly connected) machines, and pull machine outputs back into the ME network. Setting import to Eject makes the interface act as the machine's output inventory, forwarding everything straight into the network.",
-  "gui.godofthings.overloaded_interface.mode.normal": "Interface mode: Normal (adjacent blocks only)",
-  "gui.godofthings.overloaded_interface.mode.wireless": "Interface mode: Wireless (connected machines only)",
-  "gui.godofthings.overloaded_interface.export.off": "Export: Off",
-  "gui.godofthings.overloaded_interface.export.auto": "Export: Auto (push configured stock to targets)",
-  "gui.godofthings.overloaded_interface.import.off": "Import: Off",
-  "gui.godofthings.overloaded_interface.import.auto": "Import: Auto (pull target outputs into the network)",
-  "gui.godofthings.overloaded_interface.import.eject": "Import: Eject (interface acts as the machine output inventory)",
-  "gui.godofthings.overloaded_interface.speed.normal": "IO speed: Normal (one pass per 20 ticks)",
-  "gui.godofthings.overloaded_interface.speed.fast": "IO speed: Fast (one pass per 5 ticks)",
-  "gui.godofthings.overloaded_interface.connections": "Connected to %d machines",
-  "gui.godofthings.overloaded_interface.eject_storage": "Interface output slot",
-  "gui.godofthings.overloaded_interface.page.next": "Next page (scroll wheel works too)",
-  "gui.godofthings.overloaded_interface.page.prev": "Previous page (scroll wheel works too)",
-  "gui.godofthings.overloaded_interface.set_amount": "Set amount",
-  "gui.godofthings.overloaded_interface.set_amount.tooltip": "Left-click: set stock amount; Shift+left-click: toggle unlimited (∞)",
+    "block.godofthings.wireless_connector":  "Wireless Connector",
+    "item.godofthings.wireless_link_tool":  "Wireless Link Tool",
+    "itemGroup.godofthings.god_of_things_items_tab":  "God of Things: Items",
+    "manual.godofthings.wireless_connector":  "A wireless grid bridge hub. Place it inside an ME network (next to cables or a controller). Once auto-link is enabled, any AE device placed anywhere, in any dimension, is automatically joined to that network. Enable auto-link with /aalink on.",
+    "manual.godofthings.wireless_link_tool":  "Manually join any AE device to the network of a bound wireless connector. Sneak-right-click the connector to bind it, then right-click any AE device to link it; sneak-right-click the air to clear the binding.",
+    "message.godofthings.aalink.tool_bound":  "Wireless link tool bound to: %s %s",
+    "message.godofthings.aalink.tool_unbound":  "Wireless link tool unbound",
+    "message.godofthings.aalink.tool_need_sneak":  "Sneak-right-click the wireless connector to bind it",
+    "message.godofthings.aalink.tool_not_bound":  "Wireless link tool is not bound: sneak-right-click a wireless connector first",
+    "message.godofthings.aalink.tool_hub_dim_missing":  "The bound wireless connector\u0027s dimension was not found",
+    "message.godofthings.aalink.tool_hub_missing":  "The bound wireless connector is missing or its chunk is not loaded",
+    "message.godofthings.aalink.tool_hub_not_ready":  "The wireless connector\u0027s grid node is not ready yet",
+    "message.godofthings.aalink.tool_not_ae_device":  "That block cannot connect to an AE network",
+    "message.godofthings.aalink.tool_already_linked":  "That device is already in an AE network",
+    "message.godofthings.aalink.tool_failed":  "Link failed: %s",
+    "message.godofthings.aalink.tool_linked":  "Device joined the AE network",
+    "message.godofthings.aalink.auto_state":  "AALink auto-link %s",
+    "message.godofthings.aalink.auto_status":  "AALink auto-link status: %s",
+    "message.godofthings.aalink.on":  "enabled",
+    "message.godofthings.aalink.off":  "disabled",
+    "block.godofthings.overloaded_interface":  "Overloaded Interface",
+    "manual.godofthings.overloaded_interface":  "A 36-slot enhanced ME interface: it can push configured items into adjacent (or wirelessly connected) machines, and pull machine outputs back into the ME network. Setting import to Eject makes the interface act as the machine\u0027s output inventory, forwarding everything straight into the network.",
+    "gui.godofthings.overloaded_interface.mode.normal":  "Interface mode: Normal (adjacent blocks only)",
+    "gui.godofthings.overloaded_interface.mode.wireless":  "Interface mode: Wireless (connected machines only)",
+    "gui.godofthings.overloaded_interface.export.off":  "Export: Off",
+    "gui.godofthings.overloaded_interface.export.auto":  "Export: Auto (push configured stock to targets)",
+    "gui.godofthings.overloaded_interface.import.off":  "Import: Off",
+    "gui.godofthings.overloaded_interface.import.auto":  "Import: Auto (pull target outputs into the network)",
+    "gui.godofthings.overloaded_interface.import.eject":  "Import: Eject (interface acts as the machine output inventory)",
+    "gui.godofthings.overloaded_interface.speed.normal":  "IO speed: Normal (one pass per 20 ticks)",
+    "gui.godofthings.overloaded_interface.speed.fast":  "IO speed: Fast (one pass per 5 ticks)",
+    "gui.godofthings.overloaded_interface.connections":  "Connected to %d machines",
+    "gui.godofthings.overloaded_interface.eject_storage":  "Interface output slot",
+    "gui.godofthings.overloaded_interface.page.next":  "Next page (scroll wheel works too)",
+    "gui.godofthings.overloaded_interface.page.prev":  "Previous page (scroll wheel works too)",
+    "gui.godofthings.overloaded_interface.set_amount":  "Set amount",
+    "gui.godofthings.overloaded_interface.set_amount.tooltip":  "Left-click: set stock amount; Shift+left-click: toggle unlimited (∞)",
     "gui.godofthings.advanced_memory_card.button.assign_freq":  "Assign New Frequency",
     "gui.godofthings.advanced_memory_card.button.bind":  "Bind",
     "gui.godofthings.advanced_memory_card.button.cancel":  "Cancel",
@@ -1559,7 +1415,8 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "message.godofthings.super_fusion.type_mismatch":  "Target machine kind differs from the recorded one",
     "message.godofthings.super_fusion.paste_failed":  "No valid target machines to paste onto",
     "message.godofthings.super_fusion.pasted":  "Pasted onto %s machines",
-    "message.godofthings.super_fusion.pasted_creative":  "Pasted onto %s machines (creative mode)",    "message.godofthings.super_fusion.no_tier":  "The recorded machine carries no tier information",
+    "message.godofthings.super_fusion.pasted_creative":  "Pasted onto %s machines (creative mode)",
+    "message.godofthings.super_fusion.no_tier":  "The recorded machine carries no tier information",
     "message.godofthings.super_fusion.not_enough_upgrades":  "Not enough upgrade items",
     "message.godofthings.super_fusion.sync_profile":  "Upgrade profile synced: %s entries, %s machines",
     "message.godofthings.super_fusion.clear_all":  "Upgrades removed: %s entries, %s machines",
@@ -1569,7 +1426,111 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "message.godofthings.super_fusion.selection_too_large":  "Selection too large (max 64 per side, 32768 total)",
     "message.godofthings.super_fusion.selection_first":  "First corner recorded: %s",
     "message.godofthings.super_fusion.selection_cleared":  "Selection corner cleared",
-    "manual.godofthings.super_fusion_card":  "[Super Fusion Card] An all-in-one machine refit tool ported from Mekanism-Card. One card covers four operations:\n- Tier install: raises a machine all the way to the tier recorded on the card (consumes the matching installers);\n- Install upgrades: syncs the recorded upgrade profile onto the target machine, filling or trimming counts (surplus returns to your inventory);\n- Memory copy / paste: copies a machine's config (upgrades, side settings and so on) and pastes it onto machines of the same kind;\n- Full mode: raises the tier first, then pastes upgrades and config in one go.\n[Controls] Right-click a machine to run the current mode; sneak-right-click a machine to copy its config; sneak-right-click air to clear the card; left-click air to open the settings screen; sneak-left-click air to cycle modes; middle-click a machine to fill every upgrade at once; hold the Super Fusion Card batch selection key (unbound by default, set it under the God of Things category) and left-click two corners to run the current mode over that box.\n[Material networks] Put the card into an ME wireless access point and shift-right-click to bind it to the AE network; sneak-right-click a QIO dashboard to bind a QIO frequency. Once bound, upgrade and installer materials can be pulled straight from those networks.\n[Soft dependency] This item is only registered when Mekanism is installed; with Mekanism Extras or EvolvedMekanism present it automatically supports the higher tiers those mods inject.",
+    "manual.godofthings.super_fusion_card":  "[Super Fusion Card] An all-in-one machine refit tool ported from Mekanism-Card. One card covers four operations:\n- Tier install: raises a machine all the way to the tier recorded on the card (consumes the matching installers);\n- Install upgrades: syncs the recorded upgrade profile onto the target machine, filling or trimming counts (surplus returns to your inventory);\n- Memory copy / paste: copies a machine\u0027s config (upgrades, side settings and so on) and pastes it onto machines of the same kind;\n- Full mode: raises the tier first, then pastes upgrades and config in one go.\n[Controls] Right-click a machine to run the current mode; sneak-right-click a machine to copy its config; sneak-right-click air to clear the card; left-click air to open the settings screen; sneak-left-click air to cycle modes; middle-click a machine to fill every upgrade at once; hold the Super Fusion Card batch selection key (unbound by default, set it under the God of Things category) and left-click two corners to run the current mode over that box.\n[Material networks] Put the card into an ME wireless access point and shift-right-click to bind it to the AE network; sneak-right-click a QIO dashboard to bind a QIO frequency. Once bound, upgrade and installer materials can be pulled straight from those networks.\n[Soft dependency] This item is only registered when Mekanism is installed; with Mekanism Extras or EvolvedMekanism present it automatically supports the higher tiers those mods inject.",
     "message.godofthings.super_fusion.qio_no_frequency":  "That block has no QIO frequency set",
-    "message.godofthings.super_fusion.qio_bound":  "Bound to QIO frequency: %s"
+    "message.godofthings.super_fusion.qio_bound":  "Bound to QIO frequency: %s",
+    "item.godofthings.mept.multiblock_placement_tool":  "ME Multiblock Placement Tool",
+    "godofthings.mept.color.yellow":  "Yellow",
+    "godofthings.mept.color.black":  "Black",
+    "item.godofthings.mept.prism_core":  "Prism Core",
+    "godofthings.mept.hud.upgrade":  "Upgrade: %s",
+    "godofthings.mept.color.light_gray":  "Light Gray",
+    "godofthings.mept.cable.covered":  "Covered Cable",
+    "message.godofthings.mept.point2_set":  "Point 2 set: %s",
+    "key.godofthings.mept.undo":  "Undo Modifier",
+    "godofthings.mept.color.purple":  "Purple",
+    "godofthings.mept.cable.glass.short":  "Glass",
+    "godofthings.mept.color.transparent":  "Fluix (Transparent)",
+    "message.godofthings.mept.missing_dye":  "Missing %d dye: %s",
+    "godofthings.mept.direction.north_south":  "Lateral (N-S)",
+    "gui.godofthings.mept.expand_colors":  "Expand Color Menu",
+    "godofthings.mept.color.lime":  "Lime",
+    "gui.godofthings.mept.empty_slot":  "Empty Slot",
+    "gui.godofthings.mept.need_spectrum_key":  "Requires Key of Spectrum",
+    "message.godofthings.mept.no_configured_item":  "No item configured in selected slot",
+    "gui.godofthings.mept.upgrade_hint":  "  - %s",
+    "godofthings.mept.cable.glass":  "Glass Cable",
+    "gui.godofthings.mept.cable_tool":  "Cable Placement Tool",
+    "message.godofthings.mept.missing_resources":  "Missing resources: %s",
+    "godofthings.mept.hud.item":  "Item: %s",
+    "godofthings.mept.hud.color":  "Color: %s",
+    "message.godofthings.mept.branch_point3_set":  "Branch Point 3 set: %s",
+    "key.godofthings.mept.open_cable_tool_gui":  "Open Cable Tool GUI",
+    "message.godofthings.mept.mek_config_loaded":  "Mekanism configuration applied",
+    "godofthings.mept.color.gray":  "Gray",
+    "godofthings.mept.color.cyan":  "Cyan",
+    "godofthings.mept.color.blue":  "Blue",
+    "message.godofthings.mept.point1_set":  "Point 1 set: %s",
+    "tooltip.godofthings.mept.key_of_spectrum":  "§7—§bCondense light into color, §edye upon touch",
+    "item.godofthings.mept.me_cable_placement_tool":  "ME Cable Placement Tool",
+    "message.godofthings.mept.unsupported_target":  "Unsupported target type",
+    "tooltip.godofthings.mept.prism_core.rainbow":  "Key of Spectrum",
+    "godofthings.mept.cable.dense_smart.short":  "D.Smt",
+    "godofthings.mept.mode.plane_branching.short":  "Brch",
+    "key.godofthings.mept.radial_menu":  "Open Radial Menu",
+    "gui.godofthings.mept.color":  "Color",
+    "godofthings.mept.direction.east_west.short":  "E-W",
+    "tooltip.godofthings.mept.prism_core.prefix":  "§7—§bEight hues converge§7, one final §drite§7 to become the §cK§6e§ey §ao§bf §dS§cp§6e§ec§at§br§du§cm",
+    "gui.godofthings.mept.radial_menu":  "Slot Selection",
+    "godofthings.mept.cable.dense_covered.short":  "D.Cvr",
+    "message.godofthings.mept.points_cleared":  "Points cleared",
+    "godofthings.mept.cable.dense_covered":  "Dense Covered Cable",
+    "godofthings.mept.cable.dense_smart":  "Dense Smart Cable",
+    "godofthings.mept.color.pink":  "Pink",
+    "godofthings.mept.color.green":  "Green",
+    "key.godofthings.mept.mark_color":  "Mark Color Shortcut",
+    "godofthings.mept.mode.line.short":  "Line",
+    "godofthings.mept.hud.cable_type":  "Cable: %s",
+    "message.godofthings.mept.missing_cable":  "Missing cable: %s",
+    "godofthings.mept.color.brown":  "Brown",
+    "godofthings.mept.cable.covered.short":  "Covered",
+    "godofthings.mept.direction.vertical.short":  "Vert",
+    "godofthings.mept.mode.plane_fill.short":  "Fill",
+    "tooltip.godofthings.mept.supported_by":  "Supported by:",
+    "godofthings.mept.hud.upgrade.no":  "None",
+    "godofthings.mept.cable.smart.short":  "Smart",
+    "item.godofthings.mept.me_placement_tool":  "ME Placement Tool",
+    "godofthings.mept.color.light_blue":  "Light Blue",
+    "godofthings.mept.hud.count":  "Count: %d",
+    "godofthings.mept.cable.smart":  "Smart Cable",
+    "godofthings.mept.color.white":  "White",
+    "message.godofthings.mept.mek_config_incompatible":  "Mekanism config card is not compatible with this block",
+    "message.godofthings.mept.device_not_linked":  "Device is not linked to a network",
+    "gui.godofthings.mept.mode":  "Mode",
+    "message.godofthings.mept.network_missing":  "§c%s§r not found in network",
+    "godofthings.mept.hud.direction":  "Direction: %s",
+    "godofthings.mept.mode.plane_fill":  "Plane Fill Mode",
+    "message.godofthings.mept.branch_point1_set":  "Branch Point 1 set: %s",
+    "godofthings.mept.direction.east_west":  "Lateral (E-W)",
+    "godofthings.mept.color.red":  "Red",
+    "message.godofthings.mept.no_positions":  "No valid positions",
+    "message.godofthings.mept.placed_count":  "Placed %d cables",
+    "message.godofthings.mept.cannot_place":  "Cannot place here",
+    "godofthings.mept.direction.auto.short":  "Plane",
+    "message.godofthings.mept.branch_point2_set":  "Branch Point 2 set: %s",
+    "gui.godofthings.mept.mark_hint":  "Press [%s] to mark",
+    "godofthings.mept.color.magenta":  "Magenta",
+    "godofthings.mept.direction.auto":  "Plane",
+    "gui.godofthings.mept.collapse_colors":  "Collapse Color Menu",
+    "godofthings.mept.hud.mode":  "Mode: %s",
+    "gui.godofthings.mept.compatible_upgrades":  "Compatible Upgrades:",
+    "message.godofthings.mept.device_not_powered":  "Device has no power",
+    "item.godofthings.mept.key_of_spectrum":  "§cK§6e§ey §ao§bf §dS§cp§6e§ec§at§br§du§cm",
+    "godofthings.mept.hud.upgrade.yes":  "Installed",
+    "godofthings.mept.color.orange":  "Orange",
+    "godofthings.mept.mode.plane_branching":  "Branching Mode",
+    "godofthings.mept.hud.placement_count":  "Place: %d",
+    "godofthings.mept.direction.vertical":  "Vertical",
+    "godofthings.mept.direction.north_south.short":  "N-S",
+    "gui.godofthings.mept.cable_type":  "Cable",
+    "godofthings.mept.mode.line":  "Line Mode",
+    "key.categories.godofthings.mept":  "God of Things: ME Placement Tools",
+    "manual.godofthings.me_placement_tool":  "ME Placement Tool: place items or fluids directly from your ME network. Right-click air to open config, G for radial selection, sneak-right-click a wireless access point to bind. No power cost.",
+    "manual.godofthings.multiblock_placement_tool":  "ME Multiblock Placement Tool: batch-place the selected item (1/8/64/256/1024). Radial rings: direction, count, item. Ctrl + left-click to undo.",
+    "manual.godofthings.me_cable_placement_tool":  "ME Cable Placement Tool: lay cables in bulk with three modes: line, plane fill, plane branching. Left-click to set points, G for the config GUI. Requires the Key of Spectrum to unlock arbitrary colors.",
+    "manual.godofthings.key_of_spectrum":  "Key of Spectrum: place it in the cable tool upgrade slot to unlock all 17 cable colors; holding dye in the offhand auto-consumes it while placing.",
+    "manual.godofthings.prism_core":  "Prism Core: crafting material for the Key of Spectrum, made from 16 paint balls around an advanced card.",
+    "message.godofthings.mept.cannot_undo_memory_card":  "Cannot undo: memory card operations are not undoable",
+    "message.godofthings.mept.no_linked_grid":  "No linked ME network",
+    "message.godofthings.mept.failed_extract":  "Failed to extract from ME network"
 }

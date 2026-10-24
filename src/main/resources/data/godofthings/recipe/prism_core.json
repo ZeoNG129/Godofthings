@@ -1,0 +1,42 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "key": {
+        "A": {
+            "item": "ae2:advanced_card"
+        },
+        "W": {
+            "item": "ae2:white_paint_ball"
+        },
+        "O": {
+            "item": "ae2:orange_paint_ball"
+        },
+        "M": {
+            "item": "ae2:magenta_paint_ball"
+        },
+        "B": {
+            "item": "ae2:light_blue_paint_ball"
+        },
+        "G": {
+            "item": "ae2:gray_paint_ball"
+        },
+        "Y": {
+            "item": "ae2:yellow_paint_ball"
+        },
+        "L": {
+            "item": "ae2:lime_paint_ball"
+        },
+        "P": {
+            "item": "ae2:pink_paint_ball"
+        }
+    },
+    "pattern": [
+        "WOM",
+        "BAG",
+        "YLP"
+    ],
+    "result": {
+        "count": 1,
+        "id": "godofthings:prism_core"
+    }
+}

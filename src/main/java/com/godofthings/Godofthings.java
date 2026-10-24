@@ -919,6 +919,12 @@ public class Godofthings
                         {
                             output.accept(com.godofthings.superfusion.SuperFusionRegistry.itemOrNull());
                         }
+                        // ---- ME 放置工具三件套 + 光谱钥匙 + 棱镜核心（移植自 ME-Placement-Tool，不耗能源版）----
+                        output.accept(com.godofthings.mept.MeptItems.ME_PLACEMENT_TOOL.get());
+                        output.accept(com.godofthings.mept.MeptItems.MULTIBLOCK_PLACEMENT_TOOL.get());
+                        output.accept(com.godofthings.mept.MeptItems.ME_CABLE_PLACEMENT_TOOL.get());
+                        output.accept(com.godofthings.mept.MeptItems.KEY_OF_SPECTRUM.get());
+                        output.accept(com.godofthings.mept.MeptItems.PRISM_CORE.get());
                     })
                     .build());
 
@@ -1034,6 +1040,16 @@ public class Godofthings
         modEventBus.addListener(com.godofthings.advancedmemorycard.network.NetworkHandler::register);
         // 客户端配置（界面颜色/布局）+ 服务端配置（复制体积上限、高亮聊天开关）
         com.godofthings.advancedmemorycard.config.ModConfigs.register(modContainer);
+        // ME 放置工具（移植自 ME-Placement-Tool 2.1.5：三件套不耗能源 + 光谱钥匙 + 棱镜核心）=====
+        // AE2 是本模组硬依赖，无需条件判断；fumo 摆件方块不移植
+        com.godofthings.mept.MeptItems.register(modEventBus);
+        com.godofthings.mept.MeptDataComponents.DATA_COMPONENTS.register(modEventBus);
+        com.godofthings.mept.MeptMenus.register(modEventBus);
+        // 网络载荷注册（RegisterPayloadHandlersEvent）
+        modEventBus.addListener(com.godofthings.mept.network.MeptNetwork::registerPayloads);
+        // 左键清空线缆选点 / 切手重置 / 玩家退出释放撤销历史（游戏总线事件）
+        NeoForge.EVENT_BUS.register(com.godofthings.mept.MeptEvents.class);
+        // 上游 Config 的放置数量上限等参数（本地沿用 MeptConfig 读取）
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
@@ -1056,6 +1072,8 @@ public class Godofthings
         // 超级融合卡：同样注册成 AE2 可绑定物（放进 ME 无线访问点 Shift+右键绑定；
         // 必须在 enqueueWork 里做——构造阶段物品还没入表，取 DeferredHolder 会 NPE）
         event.enqueueWork(com.godofthings.superfusion.SuperFusionRegistry::registerAeLinkable);
+        // ME 放置工具：三件套都注册成 AE2 可绑定物（同上，enqueueWork 里才安全）
+        event.enqueueWork(com.godofthings.mept.MeptItems::registerAeLinkables);
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上
         // 默认解析为 false，也就是「只有 OP / 单人开作弊能传送」）

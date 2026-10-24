@@ -54,7 +54,12 @@ $prefixAllow = @(
     'manual.godofthings.',
     # GodTooltipHandler builds tooltip.godofthings.<id>.lore / .desc / .shift_N at runtime.
     # Every concrete key under it is verified by the lang key-set equality check.
-    'tooltip.godofthings.'
+    'tooltip.godofthings.',
+    # ME placement tools (ported from ME-Placement-Tool): cable/color/mode names are
+    # looked up as godofthings.mept.<group>.<name> at runtime; concrete keys are in lang.
+    'godofthings.mept.cable.',
+    'godofthings.mept.color.',
+    'godofthings.mept.mode.'
 )
 
 $itemModelAllow = @()
@@ -195,7 +200,8 @@ if ($missingModel.Count -gt 0) {
 
 $missingName = New-Object System.Collections.Generic.SortedSet[string]
 foreach ($id in ($blocks + $items)) {
-    if (-not ($keys.ContainsKey("item.godofthings.$id") -or $keys.ContainsKey("block.godofthings.$id"))) {
+    # mept items use the item.godofthings.mept.<id> prefix (ported namespace)
+    if (-not ($keys.ContainsKey("item.godofthings.$id") -or $keys.ContainsKey("block.godofthings.$id") -or $keys.ContainsKey("item.godofthings.mept.$id"))) {
         [void]$missingName.Add($id)
     }
 }

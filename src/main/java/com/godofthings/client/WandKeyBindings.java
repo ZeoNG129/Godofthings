@@ -72,27 +72,27 @@ public class WandKeyBindings
             CATEGORY
     ));
 
-    /** 高级内存卡切换模式（默认不绑定；上游原本是 V 键独立分类，已并入本分类） */
+    /** 高级内存卡切换模式（默认不绑定；v7.10.0 改名「切换高级内存卡模式」并移到「众神之物：升级」分类） */
     public static final Lazy<KeyMapping> AMC_MODE_SWITCH_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.amc_mode_switch",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
             InputConstants.UNKNOWN.getValue(),
-            CATEGORY
+            "key.categories.godofthings.omni"
     ));
 
     /**
      * 超级融合卡批量选择（默认不绑定）。
      * <p>
      * 按住它左键点两个角点，就对长方体范围内的机器批量执行融合卡当前模式。
-     * 上游是独立模组的左 Ctrl 键，这里按主人要求并入「众神之物」且默认不绑定。
+     * v7.10.0 移到「众神之物：升级」分类。
      */
     public static final Lazy<KeyMapping> SUPER_FUSION_BATCH_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.super_fusion_batch",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
             InputConstants.UNKNOWN.getValue(),
-            CATEGORY
+            "key.categories.godofthings.omni"
     ));
 
     private WandKeyBindings() {}
