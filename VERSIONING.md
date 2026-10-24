@@ -2191,3 +2191,27 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   双重段键到单段，逐一核对代码字面量与 TranslateHelper 运行时拼接的全部键均命中。
 - **自查**：`check-lang.ps1` checks: OK（1366 键）；`gradlew build` 成功并自动部署；
   `runGameTestServer` 45 条全过。
+
+## 7.8.3 → 7.9.0
+
+- **新增：超级融合卡**（`super_fusion_card`，移植自 Mekanism-Card 的 `mekanism_card:super_fusion_card`）。
+  一张卡覆盖上游四件物品的全部功能，用「融合模式」切换：
+  - **等级安装**：把机器一路升到卡里记录的等级，消耗对应安装器 + 每次 1000 FE；
+  - **安装升级**：按卡里记录的升级档案把目标机器升级数量补齐/削平（多退少补，卸下的退回背包）；
+  - **内存复制/粘贴**：复制机器配置（升级 + 面设置等）粘贴到同类机器；
+  - **全量模式**：先升等级再粘贴升级与配置。
+- **完整移植的配套机制**（都在新包 `com.godofthings.superfusion` 下，独立成文件）：
+  - 卡内储能 200000 FE，同时注册 Mekanism `STRICT_ENERGY` 与 NeoForge `EnergyStorage` 两种能力；
+  - 材料来源聚合：玩家背包 → 绑定的 ME 网络（AE2 无线访问点）→ 绑定的 QIO 频率，缺料有明确提示；
+  - 额外等级联动：Mekanism Extras（absolute/supreme/cosmic/infinite）与 EvolvedMekanism
+    （overclocked/quantum/dense/multiversal/creative）全部反射接入，没装就自动只升到原版终极；
+  - FTB Ultimine 连锁兼容（反射，没装则退化为单点）；
+  - 框选批量：左键两个角点，体积上限 64³ / 32768 格 / 128 格距离，带红色线框预览；
+  - 中键一次装满升级；潜行右键复制、潜行右键空气清空、左键空气打开设置界面、潜行左键空气轮换模式。
+- **快捷键**：新增「融合卡批量选择」，**默认不绑定**，归入「众神之物」分类。
+- **软依赖**：只有装了通用机械（Mekanism）时才注册该物品与数据组件/网络包/能力；
+  没装则整包不被触达，创造栏、JEI、手册里都不会出现，也不会因缺类而崩。
+- **配方本地化**：改为本模组自己的材料（`god_recipe` × 4 + 比较器 + 红石块 × 2 + 钻石块 + 末影珍珠）。
+- **自查**：`check-lang.ps1` checks: OK（1432 键，物品 106）；`gradlew build` 成功并自动部署；
+  `runGameTestServer` 45 条全过；另用临时探针（已删）在装载 Mekanism 的环境下验证过
+  物品注册与数据组件读写往返。

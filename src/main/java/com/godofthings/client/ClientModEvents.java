@@ -127,6 +127,11 @@ public class ClientModEvents
         event.enqueueWork(() -> ItemProperties.register(Godofthings.GOD_BELT.get(), BeltRegistration.location("has_custom_color"),
                 (ItemStack pStack, @Nullable ClientLevel pLevel, @Nullable LivingEntity pEntity, int pSeed) ->
                         pStack.has(DataComponents.DYED_COLOR) ? 1 : 0));
+        // 超级融合卡：客户端事件接线（软依赖 Mekanism，没装就不碰这些类）
+        if (net.neoforged.fml.ModList.get().isLoaded("mekanism"))
+        {
+            com.godofthings.superfusion.client.SuperFusionClientSetup.init();
+        }
     }
 
     /** 神之皮带：物品染色（只染 layer0，扣针保持原色）。 */

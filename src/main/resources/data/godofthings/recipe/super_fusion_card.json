@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XYX",
+    "ZCZ",
+    "XWX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "Y": { "item": "minecraft:comparator" },
+    "Z": { "item": "minecraft:redstone_block" },
+    "C": { "item": "minecraft:diamond_block" },
+    "W": { "item": "minecraft:ender_pearl" }
+  },
+  "result": {
+    "id": "godofthings:super_fusion_card",
+    "count": 1
+  }
+}

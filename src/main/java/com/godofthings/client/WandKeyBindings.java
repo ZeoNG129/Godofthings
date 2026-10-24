@@ -81,6 +81,20 @@ public class WandKeyBindings
             CATEGORY
     ));
 
+    /**
+     * 超级融合卡批量选择（默认不绑定）。
+     * <p>
+     * 按住它左键点两个角点，就对长方体范围内的机器批量执行融合卡当前模式。
+     * 上游是独立模组的左 Ctrl 键，这里按主人要求并入「众神之物」且默认不绑定。
+     */
+    public static final Lazy<KeyMapping> SUPER_FUSION_BATCH_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.super_fusion_batch",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            InputConstants.UNKNOWN.getValue(),
+            CATEGORY
+    ));
+
     private WandKeyBindings() {}
 
     public static void register(RegisterKeyMappingsEvent event)
@@ -92,5 +106,6 @@ public class WandKeyBindings
         event.register(OPEN_MANUAL_KEY.get());
         event.register(OPEN_BACKPACK_KEY.get());
         event.register(AMC_MODE_SWITCH_KEY.get());
+        event.register(SUPER_FUSION_BATCH_KEY.get());
     }
 }

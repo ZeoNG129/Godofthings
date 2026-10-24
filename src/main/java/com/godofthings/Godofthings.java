@@ -914,6 +914,11 @@ public class Godofthings
                         // ---- 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件 ----
                         // 这一个物品同时是摆件的物品形态（TwoIDollItem extends BlockItem）
                         output.accept(com.godofthings.doll.init.DollRegistry.TWO_I_DOLL_ITEM.get());
+                        // ---- 超级融合卡（移植自 Mekanism-Card，软依赖：只在装了通用机械时出现）----
+                        if (com.godofthings.superfusion.SuperFusionRegistry.isEnabled())
+                        {
+                            output.accept(com.godofthings.superfusion.SuperFusionRegistry.itemOrNull());
+                        }
                     })
                     .build());
 
@@ -950,6 +955,17 @@ public class Godofthings
                 "godofthings-explorers-compass-client.toml");
 
         modEventBus.addListener(this::commonSetup);
+
+        // ===== 超级融合卡（移植自 Mekanism-Card，软依赖 Mekanism）=====
+        // 只在装了通用机械时才注册物品与数据组件；没装则整个 superfusion 包不会被触达，
+        // 创造栏 / JEI / 手册里都不会出现这一件，也不会因为缺少 Mekanism 类而崩。
+        if (com.godofthings.superfusion.SuperFusionEvents.isMekanismLoaded())
+        {
+            com.godofthings.superfusion.SuperFusionRegistry.init();
+            com.godofthings.superfusion.SuperFusionRegistry.registerDataComponents(modEventBus);
+            // 注意：网络载荷与能量能力由 SuperFusionEvents 自身的 @EventBusSubscriber 自动注册，
+            // 这里**不能**再 addListener 一次，否则会抛「payload 已注册」让模组加载失败。
+        }
 
         // ===== 照抄 useless_mod 的 beef 子系统接线（牛排工具框架已整套删除，只剩仍活着的部分）=====
         // 注：数据组件注册（beef.core.component.UComponents）已随玩家保护层与 AE 连接子系统一并删除，
