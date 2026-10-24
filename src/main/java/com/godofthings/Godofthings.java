@@ -909,6 +909,8 @@ public class Godofthings
                         // ---- ME 无限元件 ----
                         output.accept(UNIVERSAL_CELL.get());
                         output.accept(INFINITY_BIGINTEGER_CELL.get());
+                        // ---- 高级内存卡（移植自 Advanced Memory Card：AE2 内存卡增强版）----
+                        output.accept(com.godofthings.advancedmemorycard.item.AmcItems.ADVANCED_MEMORY_CARD.get());
                         // ---- 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件 ----
                         // 这一个物品同时是摆件的物品形态（TwoIDollItem extends BlockItem）
                         output.accept(com.godofthings.doll.init.DollRegistry.TWO_I_DOLL_ITEM.get());
@@ -1010,6 +1012,12 @@ public class Godofthings
         // 指令开关并入 /godofthings link on|off，不再注册独立的 /aalink
         // ===== 过载接口（移植自 AE2LT）：36 槽 / 无线 / 导出导入 / 弹出 / IO 速度 =====
         com.godofthings.overloadedinterface.OverloadedInterfaceRegistry.register(modEventBus);
+        // ===== 高级内存卡（移植自 Advanced Memory Card：批量复制粘贴配置 + P2P 通道管理）=====
+        com.godofthings.advancedmemorycard.item.AmcItems.register(modEventBus);
+        com.godofthings.advancedmemorycard.menu.AmcMenus.register(modEventBus);
+        modEventBus.addListener(com.godofthings.advancedmemorycard.network.NetworkHandler::register);
+        // 客户端配置（界面颜色/布局）+ 服务端配置（复制体积上限、高亮聊天开关）
+        com.godofthings.advancedmemorycard.config.ModConfigs.register(modContainer);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
@@ -1036,6 +1044,8 @@ public class Godofthings
         // 探险者指南针：读「结构 → 自定义模型数据」映射表（config/godofthings/config.json，
         // 不存在就自动生成一份默认的；配置项 customResource 关着时这张表也不会被用到）
         event.enqueueWork(() -> com.godofthings.compass.explorers.config.BetterUI.loadConfig(MODID));
+        // 高级内存卡：注册复制/配置两种卡模式（上游在独立 mod 的 commonSetup 里做）
+        com.godofthings.advancedmemorycard.item.custom.CardMode.initializeModes();
         LOGGER.info("Godofthings loaded");
     }
 

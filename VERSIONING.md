@@ -2135,3 +2135,28 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - tooltip 新增 `shift_3` 行说明无线绑定的切换交互。
 - **自查**：`check-lang.ps1` checks: OK（1303 键 zh/en 对齐）；`gradlew build` 成功并自动部署；
   `runGameTestServer` 45 条全过。
+
+## 7.7.2 → 7.8.0
+
+- **新增「高级内存卡」**（整包移植自 suntide_20210418 的 Advanced Memory Card 1.0.2.1，
+  新包 `advancedmemorycard/`，44 个 Java 文件全部并入并本地化）：
+  - **复制模式**：潜行右键机器偷一份配置 → 右键两个角选定长方体区域（红/白/绿线框实时预览，
+    体积超上限变红）→ 对空气右键批量粘贴（含 AE2 部件宿主全方向）；复制体积上限走服务端配置
+    （默认 2048，`maxCopyVolume`）；
+  - **配置模式**：右键任意 P2P 隧道打开通道管理界面——左侧 P2P 类型→频段→设备三级树（搜索、
+    展开/折叠记忆、频道余量警告色），右侧详情面板（名称/频段/类型/维度/坐标/方向/连接状态/频道用量）
+    与操作按钮：改名 / 绑定 / 待绑定 / 高亮（本机+同频段线框高亮+转头+聊天栏可点击传送）/
+    定位 / 分配新频段 / 初始化 P2P / 一键自动配输入输出（按外部网络有无 ME 控制器自动定向）；
+  - **V 键**切换复制/配置模式（键位可在按键设置改），空手右键打开复制模式坐标编辑界面
+    （六轴数字框直接改起止坐标）；
+  - **配方**：AE2 内存卡 + 逻辑 / 运算 / 工程处理器 三处理器无序合成（与上游一致）；
+  - **配置文件**：`godofthings-client.toml` 段携带界面颜色 / 布局 / 高亮行为全套客户端项，
+    服务端段带复制体积上限与高亮聊天开关（沿用上游默认值）；
+  - **移植适配**：上游 `@Mod` 引导类 / 创造栏 / datagen 全部删除，注册并入 `AmcItems` / `AmcMenus`
+    并由 `Godofthings` 构造器统一接线；上游 `NetworkHandler` 的总线错配（游戏总线监听 mod 总线事件）
+    改为构造器挂载；screen json / GUI 贴图落在 `assets/ae2/` 下并加 `godofthings_amc_` 前缀
+    （防与 AE2LT 本体 jar 同名资源冲突）；语言键 62 条全部迁移到 `godofthings` 命名空间
+    （`gui.godofthings.advanced_memory_card.*`），物品名中文化为「高级内存卡」。
+- **文档**：README 内容一览补高级内存卡行、物品计数 104→105；手册自动收录（`manual.godofthings.advanced_memory_card`）。
+- **自查**：`check-lang.ps1` checks: OK（1366 键 zh/en 对齐、105 物品全覆盖）；
+  `gradlew build` 成功并自动部署两个测试目录；`runGameTestServer` 45 条全过。

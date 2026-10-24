@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "KeyCounterMixin",
-    "PatternProviderLogicAccessor"
+    "PatternProviderLogicAccessor",
+    "advancedmemorycard.P2PTunnelPartMixin"
   ],
   "client": [
     "GuiHeartsCompressMixin",
