@@ -17,6 +17,7 @@
 - 所以：**改完代码 → `gradlew build` → 直接开这两个实例的游戏测试**，无需手动拷贝
 
 ## 构建环境注意
+- **代理软件统一用 `D:\AAA\NBVPN`（主程序 `牛逼.exe`，mihomo 内核 VPN 客户端）**，需要代理时先启动它，不要再改用 Clash Verge；启动后探测实际端口（常见 7890/7897）
 - 用户级 `C:\Users\zuoh1\.gradle\gradle.properties` 配置了代理 127.0.0.1:7890；**代理没开时构建会 Connection refused**
 - 处理方案（按优先级）：
   1. 先试 `gradlew build --offline`（依赖缓存通常已完整）
