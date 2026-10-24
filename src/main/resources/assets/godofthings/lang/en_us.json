@@ -1408,7 +1408,6 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "manual.godofthings.infinity_pattern_provider_part":  "ME Infinity Pattern Provider (part form): mount it on the side of an AE2 cable; works exactly like the block form.",
   "block.godofthings.wireless_connector": "Wireless Connector",
   "item.godofthings.wireless_link_tool": "Wireless Link Tool",
-  "itemGroup.godofthings.god_of_things_machines_tab": "God of Things: Machines",
   "itemGroup.godofthings.god_of_things_items_tab": "God of Things: Items",
   "manual.godofthings.wireless_connector": "A wireless grid bridge hub. Place it inside an ME network (next to cables or a controller). Once auto-link is enabled, any AE device placed anywhere, in any dimension, is automatically joined to that network. Enable auto-link with /aalink on.",
   "manual.godofthings.wireless_link_tool": "Manually join any AE device to the network of a bound wireless connector. Sneak-right-click the connector to bind it, then right-click any AE device to link it; sneak-right-click the air to clear the binding.",

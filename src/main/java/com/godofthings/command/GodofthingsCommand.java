@@ -99,7 +99,14 @@ public class GodofthingsCommand
                         .executes(GodofthingsCommand::openManual))
                 .then(Commands.literal("infinity")
                         .then(Commands.literal("recover")
-                                .executes(GodofthingsCommand::recoverInfinityCells))));
+                                .executes(GodofthingsCommand::recoverInfinityCells)))
+                // 无线网格桥接自动连接开关（移植自 AALink；原 /aalink 已并入本指令）
+                .then(Commands.literal("aalink")
+                        .requires(source -> source.hasPermission(2))
+                        .then(Commands.literal("on").executes(ctx ->
+                                com.godofthings.aalink.AaLinkCommands.setEnabled(ctx.getSource(), true)))
+                        .then(Commands.literal("off").executes(ctx ->
+                                com.godofthings.aalink.AaLinkCommands.setEnabled(ctx.getSource(), false)))));
     }
 
     private static String arg(CommandContext<CommandSourceStack> ctx, String key)

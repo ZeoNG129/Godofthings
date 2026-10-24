@@ -1408,7 +1408,6 @@
     "manual.godofthings.infinity_pattern_provider_part":  "ME无限样板供应器（部件形态）：挂在 AE2 线缆侧面使用，功能与方块版一致。",
   "block.godofthings.wireless_connector": "无线连接器",
   "item.godofthings.wireless_link_tool": "无线连接工具",
-  "itemGroup.godofthings.god_of_things_machines_tab": "众神之物：机器",
   "itemGroup.godofthings.god_of_things_items_tab": "众神之物：物品",
   "manual.godofthings.wireless_connector": "无线网格桥接中枢。放进 ME 网络里（贴着线缆/控制器放），开启自动连接后，在任意距离、任意维度放置的 AE 设备都会被自动并入这个网络。用 /aalink on 开启自动连接。",
   "manual.godofthings.wireless_link_tool": "手动把任意 AE 设备接入已绑定的无线连接器所在网络。蹲下右键无线连接器绑定，然后右键任意 AE 设备即可接入；蹲下对空气右键取消绑定。",

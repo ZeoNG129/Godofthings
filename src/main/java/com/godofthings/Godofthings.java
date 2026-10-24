@@ -810,34 +810,17 @@ public class Godofthings
             RECIPE_SERIALIZERS.register("god_unbreakable", GodUnbreakableRecipe.Serializer::new);
 
     // ---- 创造标签 ----
+    /**
+     * 创造标签：众神之物（机器与方块合并页）。
+     * 工作机器 + 无限样板供应器 + 创造/特殊方块 + 无线连接器都在这里；
+     * 纯物品（装备、工具、卡片、书页、容器、升级件、ME 元件、玩偶）在
+     * {@link #GOD_OF_THINGS_ITEMS_TAB}，众神建材的 66 个方块在
+     * {@code BuildingRegistry.GOD_BUILDING_TAB}。
+     */
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> GOD_OF_THINGS_TAB =
             CREATIVE_MODE_TABS.register("god_of_things_tab", () -> CreativeModeTab.builder()
                     .icon(() -> GOD_FURNACE_ITEM.get().getDefaultInstance())
                     .title(Component.translatable("itemGroup.godofthings.god_of_things_tab"))
-                    .displayItems((parameters, output) ->
-                    {
-                        // ---- 方块：创造 / 特殊方块（机器与物品各有独立标签页）----
-                        output.accept(VOID_TELEPORTER_ITEM.get());
-                        output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
-                        output.accept(SPACE_TIME_ETERNITY_ITEM.get());
-                        output.accept(CREATURE_ANNIHILATION_ITEM.get());
-                        // 无用维度传送方块（奇数 / 偶数 / 三维度）
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
-                        // 无线连接器（移植自 AALink：把任意位置的 AE 设备无线并入中枢网络）
-                        output.accept(com.godofthings.aalink.AaLinkRegistry.WIRELESS_CONNECTOR_ITEM.get());
-                    })
-                    .build());
-
-    /**
-     * 创造标签：众神之物·机器（工作机器 + 无限样板供应器 + 无线连接器）。
-     * 众神建材的 66 个方块仍在「众神之物：方块」标签里，物品类在「众神之物：物品」。
-     */
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> GOD_OF_THINGS_MACHINES_TAB =
-            CREATIVE_MODE_TABS.register("god_of_things_machines_tab", () -> CreativeModeTab.builder()
-                    .icon(() -> GOD_CRAFT_ITEM.get().getDefaultInstance())
-                    .title(Component.translatable("itemGroup.godofthings.god_of_things_machines_tab"))
                     .displayItems((parameters, output) ->
                     {
                         // ---- 工作机器 ----
@@ -864,6 +847,17 @@ public class Godofthings
                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_PART_ITEM.get());
                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_PART_ITEM.get());
                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_PART_ITEM.get());
+                        // ---- 创造 / 特殊方块 ----
+                        output.accept(VOID_TELEPORTER_ITEM.get());
+                        output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
+                        output.accept(SPACE_TIME_ETERNITY_ITEM.get());
+                        output.accept(CREATURE_ANNIHILATION_ITEM.get());
+                        // 无用维度传送方块（奇数 / 偶数 / 三维度）
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
+                        // 无线连接器（移植自 AALink：把任意位置的 AE 设备无线并入中枢网络）
+                        output.accept(com.godofthings.aalink.AaLinkRegistry.WIRELESS_CONNECTOR_ITEM.get());
                     })
                     .build());
 
@@ -1009,8 +1003,7 @@ public class Godofthings
         com.godofthings.aalink.AaLinkRegistry.register(modEventBus);
         // 方块放置 / 区块加载 / 服务端 tick 时把任意位置的 AE 设备接入中枢网络
         NeoForge.EVENT_BUS.register(com.godofthings.aalink.AaLinkBridge.class);
-        // /aalink on|off|toggle|status
-        com.godofthings.aalink.AaLinkCommands.register();
+        // 指令开关并入 /godofthings aalink on|off，不再注册独立的 /aalink
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)

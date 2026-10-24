@@ -1,25 +1,16 @@
 package com.godofthings.aalink;
 
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
-
 /**
- * AALink 指令（移植自 AALink 的 AALinkCommands）：远程控制自动连接开关。
+ * 无线网格桥接的自动连接开关（移植自 AALink 的 AALinkCommands）。
  *
- * <p>用法：</p>
- * <ul>
- *   <li>{@code /godofthings aalink on}     开启自动连接</li>
- *   <li>{@code /godofthings aalink off}    关闭自动连接（已建立的连接保持不断开）</li>
- *   <li>{@code /godofthings aalink toggle} 切换开关</li>
- *   <li>{@code /godofthings aalink status} 查看当前开关状态</li>
- * </ul>
+ * <p>指令入口已并入本模组自己的根指令，不再注册独立的 {@code /aalink}：
+ * {@code /godofthings aalink on} 开启、{@code /godofthings aalink off} 关闭。</p>
  *
- * <p>挂在模组自己的 {@code /godofthings} 根指令下，避免与其他模组抢 {@code /aalink}
- * 这个短名。事件订阅由 {@link com.godofthings.Godofthings} 构造器注册。</p>
+ * <p>只保留 on / off 两个子命令；原上游的 toggle / status 由 on/off 的回显覆盖，
+ * 避免短名指令与其他模组冲突。</p>
  */
 public final class AaLinkCommands
 {
@@ -27,41 +18,8 @@ public final class AaLinkCommands
     {
     }
 
-    /** 由 Godofthings 构造器调用，挂到游戏事件总线（RegisterCommandsEvent）。 */
-    public static void register()
-    {
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(AaLinkCommands.class);
-    }
-
-    @SubscribeEvent
-    public static void onRegisterCommands(RegisterCommandsEvent event)
-    {
-        event.getDispatcher().register(Commands.literal("aalink")
-                .requires(source -> source.hasPermission(2)) // 管理员权限
-                .then(Commands.literal("on").executes(ctx -> setEnabled(ctx.getSource(), true)))
-                .then(Commands.literal("off").executes(ctx -> setEnabled(ctx.getSource(), false)))
-                .then(Commands.literal("toggle").executes(ctx ->
-                {
-                    AaLinkBridge.toggleEnabled();
-                    ctx.getSource().sendSuccess(() -> Component.translatable(
-                            "message.godofthings.aalink.auto_state",
-                            Component.translatable(AaLinkBridge.isEnabled()
-                                    ? "message.godofthings.aalink.on"
-                                    : "message.godofthings.aalink.off")), true);
-                    return 1;
-                }))
-                .then(Commands.literal("status").executes(ctx ->
-                {
-                    ctx.getSource().sendSuccess(() -> Component.translatable(
-                            "message.godofthings.aalink.auto_status",
-                            Component.translatable(AaLinkBridge.isEnabled()
-                                    ? "message.godofthings.aalink.on"
-                                    : "message.godofthings.aalink.off")), false);
-                    return 1;
-                })));
-    }
-
-    private static int setEnabled(CommandSourceStack source, boolean value)
+    /** 由 {@link com.godofthings.command.GodofthingsCommand} 的 aalink 子指令调用。 */
+    public static int setEnabled(CommandSourceStack source, boolean value)
     {
         AaLinkBridge.setEnabled(value);
         source.sendSuccess(() -> Component.translatable("message.godofthings.aalink.auto_state",
