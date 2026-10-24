@@ -32,15 +32,21 @@ $tag = 'libs-1.21.1'
 $baseUrl = "https://github.com/$owner/$repoName/releases/download/$tag"
 
 # local name as build.gradle expects it  ->  asset name on the release.
-# Only EMI differs: GitHub replaces '+' in an asset name with '.'.
-# v5.12.1: trimmed to the 4 jars actually imported by the code (JEI x2 / EMI / AE2).
-# The 15 former "wandering staff" integration jars (Draconic, Mekanism, occultism, ...)
-# were removed together with the dead compileOnly entries in build.gradle.
+# Only EMI differs: GitHub replaces '+' in an asset name with '.'. The other
+# '+'-containing names (curios, pneumaticcraft) download fine as-is.
+# v7.8.0: back to 9 jars -- the doll curios integration and the omni-upgrade
+# adapters (Mekanism / Industrial Foregoing + titanium / PneumaticCraft) compile
+# against these; the first CI failure they caused was build #135 (2026-10-23).
 $files = @(
     @{ local = 'ae2-1.21.1-neoforge.jar'; remote = '' },
     @{ local = 'emi-1.1.24+1.21.1+neoforge.jar'; remote = 'emi-1.1.24.1.21.1.neoforge.jar' },
     @{ local = 'jei-1.21.1-common-api-19.51.0.417.jar'; remote = '' },
-    @{ local = 'jei-1.21.1-neoforge-api-19.51.0.417.jar'; remote = '' }
+    @{ local = 'jei-1.21.1-neoforge-api-19.51.0.417.jar'; remote = '' },
+    @{ local = 'curios-neoforge-9.5.1+1.21.1.jar'; remote = '' },
+    @{ local = 'Mekanism-1.21.1-10.7.19.85.jar'; remote = '' },
+    @{ local = 'industrialforegoing-1.21-3.6.39.jar'; remote = '' },
+    @{ local = 'titanium-1.21-4.0.51.jar'; remote = '' },
+    @{ local = 'pneumaticcraft-repressurized-8.2.23+mc1.21.1.jar'; remote = '' }
 )
 
 if ($IncludeTestMods) {
