@@ -97,7 +97,11 @@ public class GodBinderItem extends Item
         }
 
         boolean clickingBlockEntity = level.getBlockEntity(pos) != null;
-        boolean hasSelection = getProviderSelection(stack) != null;
+        boolean hasSelection = getProviderSelection(stack) != null
+                || getOverloadedInterfaceSelection(stack) != null;
+        boolean clickingOwnHost = level.getBlockEntity(pos) instanceof InfEnhancedBlockEntity
+                || level.getBlockEntity(pos)
+                        instanceof com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity;
 
         // 潜行右键「非机器方块」= 取消选中的供应器；客户端也要拦下来发包，
         // 否则这里会 PASS 给原版、服务端永远收不到取消请求
@@ -113,7 +117,7 @@ public class GodBinderItem extends Item
         }
 
         // 目标是自家供应器：选中 / 取消选中（客户端发包，服务端处理，选中状态在物品上需要服务端写）
-        if (level.getBlockEntity(pos) instanceof InfEnhancedBlockEntity)
+        if (clickingOwnHost)
         {
             if (level.isClientSide())
             {

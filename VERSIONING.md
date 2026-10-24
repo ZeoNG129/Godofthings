@@ -2097,6 +2097,7 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 - 7.5.3 -> **7.6.0（过载接口重做：真分页（每页 18 槽 × 2 页，滚轮/按钮翻页）；齿轮按钮 Shift+左键切无限库存（∞ 标记）；IO 提速（快速=每 tick，传输上限放开））**。2026-10-25
 - 7.6.0 -> **7.6.1（修复：过载接口菜单缺 loadSettingsFromHost 覆写致 UnsupportedSettingException——槽位不显示、物品放不进、翻页失效的根源）**。2026-10-25
 - 7.6.1 -> **7.6.2（过载接口界面照抄上游修正：四行槽位布局 + ex_interface 背景 + 去掉多余标签；客户端翻页即时切槽；无限槽导出量 = Long.MAX_VALUE；Shift+齿轮生效）**。2026-10-25
+- 7.6.2 -> **7.7.0（过载接口核心机制移植：ProxiedStorageInv 存储槽代理 ME 网络显示数量 + 终端式点击取放；升级卡白名单注册（合成/模糊/appflux 感应卡）；同心契客户端支持选中过载接口）**。2026-10-25
   - **图标隐形**：图标改用 AE2 的 `Blitter.texture(rl, 16, 16)` 绘制（照抄上游 TextureToggleButton），
     非激活半透明、y 偏移 1+yOffset、zOffset=3 盖在按钮底图上；之前的 GuiGraphics.blit 方式对
     16×16 独立贴图不生效。

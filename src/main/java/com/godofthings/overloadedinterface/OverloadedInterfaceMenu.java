@@ -387,6 +387,204 @@ public class OverloadedInterfaceMenu extends UpgradeableMenu<InterfaceLogicHost>
         return this.connectionCount;
     }
 
+    // ==================== 存储槽 ME 终端式交互（照抄上游 clicked）====================
+
+    @Override
+    public void clicked(int slotId, int button, net.minecraft.world.inventory.ClickType clickType,
+            net.minecraft.world.entity.player.Player player)
+    {
+        if (slotId >= 0 && slotId < this.slots.size()
+                && this.slots.get(slotId) instanceof AppEngSlot slot
+                && java.util.Arrays.asList(OverloadedSlotSemantics.STORAGE_PATTERN)
+                        .contains(this.getSlotSemantic(slot)))
+        {
+            if (!this.isClientSide())
+            {
+                this.handleStorageInteraction(slot, button, clickType, player);
+            }
+            return;
+        }
+        super.clicked(slotId, button, clickType, player);
+    }
+
+    private OverloadedInterfaceLogic.ProxiedStorageInv getProxy()
+    {
+        return this.host.getInterfaceLogic() instanceof OverloadedInterfaceLogic logic
+                ? logic.getProxiedStorage()
+                : null;
+    }
+
+    private void handleStorageInteraction(net.minecraft.world.inventory.Slot slot, int button,
+            net.minecraft.world.inventory.ClickType clickType,
+            net.minecraft.world.entity.player.Player player)
+    {
+        var proxy = this.getProxy();
+        if (proxy == null)
+        {
+            return;
+        }
+        int idx = slot.getContainerSlot();
+        switch (clickType)
+        {
+            case PICKUP -> this.handlePickup(proxy, idx, button);
+            case QUICK_MOVE -> this.handleQuickMove(proxy, idx, player);
+            case THROW -> this.handleThrow(proxy, idx, button, player);
+            case SWAP -> this.handleSwap(proxy, idx, button, player);
+            case CLONE -> this.handleClone(proxy, idx, player);
+            default ->
+            {
+            }
+        }
+    }
+
+    private void handlePickup(OverloadedInterfaceLogic.ProxiedStorageInv proxy, int idx, int button)
+    {
+        var carried = this.getCarried();
+        if (carried.isEmpty())
+        {
+            var key = proxy.getKey(idx);
+            if (!(key instanceof appeng.api.stacks.AEItemKey itemKey))
+            {
+                return;
+            }
+            long maxExtract = Math.min(proxy.capForSlot(idx), itemKey.getMaxStackSize());
+            if (button == 1)
+            {
+                maxExtract = Math.max(1, (maxExtract + 1) / 2);
+            }
+            long extracted = proxy.proxyExtract(key, maxExtract, appeng.api.config.Actionable.MODULATE);
+            if (extracted > 0)
+            {
+                this.setCarried(itemKey.toStack((int) Math.min(extracted, Integer.MAX_VALUE)));
+            }
+        }
+        else
+        {
+            var itemKey = appeng.api.stacks.AEItemKey.of(carried);
+            if (itemKey == null)
+            {
+                return;
+            }
+            int toInsert = (button == 1) ? 1 : carried.getCount();
+            long inserted = proxy.proxyInsert(itemKey, toInsert, appeng.api.config.Actionable.MODULATE);
+            if (inserted > 0)
+            {
+                carried.shrink((int) inserted);
+                if (carried.isEmpty())
+                {
+                    this.setCarried(net.minecraft.world.item.ItemStack.EMPTY);
+                }
+            }
+        }
+    }
+
+    private void handleQuickMove(OverloadedInterfaceLogic.ProxiedStorageInv proxy, int idx,
+            net.minecraft.world.entity.player.Player player)
+    {
+        var key = proxy.getKey(idx);
+        if (!(key instanceof appeng.api.stacks.AEItemKey itemKey))
+        {
+            return;
+        }
+        long maxExtract = Math.min(proxy.capForSlot(idx), itemKey.getMaxStackSize());
+        long extracted = proxy.proxyExtract(key, maxExtract, appeng.api.config.Actionable.MODULATE);
+        if (extracted > 0)
+        {
+            var stack = itemKey.toStack((int) Math.min(extracted, Integer.MAX_VALUE));
+            if (!player.getInventory().add(stack))
+            {
+                player.drop(stack, false);
+            }
+        }
+    }
+
+    private void handleThrow(OverloadedInterfaceLogic.ProxiedStorageInv proxy, int idx, int button,
+            net.minecraft.world.entity.player.Player player)
+    {
+        var key = proxy.getKey(idx);
+        if (!(key instanceof appeng.api.stacks.AEItemKey itemKey))
+        {
+            return;
+        }
+        long maxExtract = (button == 1)
+                ? Math.min(proxy.capForSlot(idx), itemKey.getMaxStackSize())
+                : 1;
+        long extracted = proxy.proxyExtract(key, maxExtract, appeng.api.config.Actionable.MODULATE);
+        if (extracted > 0)
+        {
+            player.drop(itemKey.toStack((int) Math.min(extracted, Integer.MAX_VALUE)), true);
+        }
+    }
+
+    private void handleSwap(OverloadedInterfaceLogic.ProxiedStorageInv proxy, int idx, int button,
+            net.minecraft.world.entity.player.Player player)
+    {
+        if (button < 0 || button > 8)
+        {
+            return;
+        }
+        var hotbarStack = player.getInventory().getItem(button);
+        var key = proxy.getKey(idx);
+        appeng.api.stacks.AEItemKey hbKey = hotbarStack.isEmpty() ? null
+                : appeng.api.stacks.AEItemKey.of(hotbarStack);
+        // 先模拟两侧再实际交换（照抄上游）
+        long simInserted = hbKey != null
+                ? proxy.proxyInsert(hbKey, hotbarStack.getCount(), appeng.api.config.Actionable.SIMULATE)
+                : 0;
+        long simExtracted = key instanceof appeng.api.stacks.AEItemKey itemKey
+                ? proxy.proxyExtract(key,
+                        Math.min(proxy.capForSlot(idx), itemKey.getMaxStackSize()),
+                        appeng.api.config.Actionable.SIMULATE)
+                : 0;
+        if (simInserted <= 0 && simExtracted <= 0)
+        {
+            return;
+        }
+        var extractedStack = net.minecraft.world.item.ItemStack.EMPTY;
+        if (simExtracted > 0 && key instanceof appeng.api.stacks.AEItemKey itemKey)
+        {
+            long extracted = proxy.proxyExtract(key, simExtracted,
+                    appeng.api.config.Actionable.MODULATE);
+            if (extracted > 0)
+            {
+                extractedStack = itemKey.toStack((int) Math.min(extracted, Integer.MAX_VALUE));
+            }
+        }
+        if (simInserted > 0 && hbKey != null)
+        {
+            long inserted = proxy.proxyInsert(hbKey, hotbarStack.getCount(),
+                    appeng.api.config.Actionable.MODULATE);
+            if (inserted > 0)
+            {
+                hotbarStack.shrink((int) inserted);
+            }
+        }
+        if (!extractedStack.isEmpty())
+        {
+            if (hotbarStack.isEmpty())
+            {
+                player.getInventory().setItem(button, extractedStack);
+            }
+            else if (!player.getInventory().add(extractedStack))
+            {
+                player.drop(extractedStack, false);
+            }
+        }
+    }
+
+    private void handleClone(OverloadedInterfaceLogic.ProxiedStorageInv proxy, int idx,
+            net.minecraft.world.entity.player.Player player)
+    {
+        if (!player.isCreative())
+        {
+            return;
+        }
+        var key = proxy.getKey(idx);
+        if (key instanceof appeng.api.stacks.AEItemKey itemKey)
+        {
+            this.setCarried(itemKey.toStack(itemKey.getMaxStackSize()));
+        }
+    }
     public boolean isSlotUnlimited(int slot)
     {
         return slot >= 0 && slot < 64 && ((this.unlimitedBits >> slot) & 1L) != 0L;
