@@ -76,6 +76,15 @@ public class AaLinkSavedData extends SavedData
         }
     }
 
+    /** 无线连接器卡手动断开时移除记录（v7.11.0）。 */
+    public void unlink(BlockPos pos)
+    {
+        if (this.linked.remove(pos))
+        {
+            this.setDirty();
+        }
+    }
+
     /** 返回本维度已桥接设备位置的只读副本（供中枢节点重建后批量重连）。 */
     public Set<BlockPos> getLinkedPositions()
     {

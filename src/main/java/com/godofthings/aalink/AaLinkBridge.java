@@ -321,6 +321,23 @@ public final class AaLinkBridge
         return null;
     }
 
+    /**
+     * 断开设备节点上所有由本模组建立的逻辑连接（无线连接器卡「再点一次断开」用）。
+     * 只断「连接到中枢节点」的连接；设备与相邻线缆的物理连接不受影响。
+     */
+    public static void disconnect(IGridNode deviceNode)
+    {
+        var connections = new java.util.ArrayList<>(deviceNode.getConnections());
+        for (var connection : connections)
+        {
+            var other = connection.a() == deviceNode ? connection.b() : connection.a();
+            if (HUBS.contains(other))
+            {
+                connection.destroy();
+            }
+        }
+    }
+
     private static IGridNode pickHubNode(ServerLevel level)
     {
         synchronized (HUBS)

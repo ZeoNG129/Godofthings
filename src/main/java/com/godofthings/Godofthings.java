@@ -1029,6 +1029,10 @@ public class Godofthings
         com.godofthings.aalink.AaLinkRegistry.register(modEventBus);
         // 方块放置 / 区块加载 / 服务端 tick 时把任意位置的 AE 设备接入中枢网络
         NeoForge.EVENT_BUS.register(com.godofthings.aalink.AaLinkBridge.class);
+        // 无线连接器卡（v7.11.0 替换旧无线连接工具，功能移植自 AE2LT 过载频率卡）：
+        // 三个网络包 + 放置方块后的自动连接
+        modEventBus.addListener(com.godofthings.aalink.ConnectorCardNetwork::registerPayloads);
+        NeoForge.EVENT_BUS.register(com.godofthings.aalink.ConnectorCardAutoConnectHandler.class);
         // 指令开关并入 /godofthings link on|off，不再注册独立的 /aalink
         // ===== 过载接口（移植自 AE2LT）：36 槽 / 无线 / 导出导入 / 弹出 / IO 速度 =====
         com.godofthings.overloadedinterface.OverloadedInterfaceRegistry.register(modEventBus);
@@ -1072,6 +1076,13 @@ public class Godofthings
         event.enqueueWork(com.godofthings.superfusion.SuperFusionRegistry::registerAeLinkable);
         // ME 放置工具：三件套都注册成 AE2 可绑定物（同上，enqueueWork 里才安全）
         event.enqueueWork(com.godofthings.mept.MeptItems::registerAeLinkables);
+        // 无线连接器卡：注册成 AE2 无线终端的升级卡（可插进终端升级槽随身携带；
+        // 与其他无线终端兼容——任何 IUpgradeableItem 终端都能装）
+        event.enqueueWork(() -> {
+            appeng.api.upgrades.Upgrades.add(
+                    com.godofthings.aalink.AaLinkRegistry.WIRELESS_LINK_TOOL.get(),
+                    AEItems.WIRELESS_TERMINAL.get(), 1);
+        });
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上
         // 默认解析为 false，也就是「只有 OP / 单人开作弊能传送」）

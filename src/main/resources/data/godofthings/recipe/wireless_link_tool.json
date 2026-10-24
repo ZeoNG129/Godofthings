@@ -2,14 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    " W ",
-    "IEI",
-    " I "
+    "WEW",
+    "ECE",
+    "WPW"
   ],
   "key": {
     "W": { "item": "ae2:wireless_receiver" },
-    "I": { "item": "minecraft:iron_ingot" },
-    "E": { "item": "minecraft:ender_pearl" }
+    "E": { "item": "minecraft:ender_pearl" },
+    "C": { "item": "ae2:advanced_card" },
+    "P": { "item": "ae2:engineering_processor" }
   },
   "result": {
     "count": 1,
