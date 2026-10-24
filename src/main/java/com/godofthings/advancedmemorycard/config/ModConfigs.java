@@ -36,13 +36,17 @@ public class ModConfigs {
         serverConfig = serverPair.getKey();
         serverSpec = serverPair.getValue();
 
-        // 向 NeoForge 注册客户端配置（仅在物理客户端注册）
+        // 向 NeoForge 注册客户端配置（仅在物理客户端注册）。
+        // 默认文件名会是 godofthings-client.toml，与主模组已注册的同名配置冲突
+        // （ConfigTracker 检测到重复直接抛异常让加载失败），必须用独立文件名
         if (FMLEnvironment.dist.isClient()) {
-            container.registerConfig(ModConfig.Type.CLIENT, clientSpec);
+            container.registerConfig(ModConfig.Type.CLIENT, clientSpec,
+                    "godofthings-amc-client.toml");
         }
 
-        // 向 NeoForge 注册服务端配置
-        container.registerConfig(ModConfig.Type.SERVER, serverSpec);
+        // 向 NeoForge 注册服务端配置（同理用独立文件名）
+        container.registerConfig(ModConfig.Type.SERVER, serverSpec,
+                "godofthings-amc-server.toml");
     }
 
     public static ClientConfig getClientConfig() {

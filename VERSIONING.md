@@ -2160,3 +2160,12 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 - **文档**：README 内容一览补高级内存卡行、物品计数 104→105；手册自动收录（`manual.godofthings.advanced_memory_card`）。
 - **自查**：`check-lang.ps1` checks: OK（1366 键 zh/en 对齐、105 物品全覆盖）；
   `gradlew build` 成功并自动部署两个测试目录；`runGameTestServer` 45 条全过。
+
+## 7.8.0 → 7.8.1
+
+- **修复 7.8.0 启动闪退**：高级内存卡的配置注册沿用了上游的默认文件名，CLIENT 配置生成
+  `godofthings-client.toml` 与主模组已注册的同名配置撞车，`ConfigTracker` 检测到重复直接抛
+  `RuntimeException` 让整个模组加载失败（错误报告 21:31:37）。改为独立文件名：
+  `godofthings-amc-client.toml` / `godofthings-amc-server.toml`（SERVER 同理，主类也占着
+  默认的 `godofthings-server.toml`，只是先前还没走到那一步就先在 CLIENT 崩了）。
+- **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功并自动部署；`runGameTestServer` 45 条全过。
