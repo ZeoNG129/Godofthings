@@ -1,4 +1,4 @@
-﻿{
+{
     "gui.godofthings.grid.face":  "F",
     "gui.godofthings.grid.face.tooltip":  "Side configuration (six faces)",
     "gui.godofthings.grid.ae.on":  "AE network: ON (outputs pushed)",
@@ -1405,5 +1405,26 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "manual.godofthings._1slots_pattern_provider_part":  "ME 1 Slots Pattern Provider (part form): mount it on the side of an AE2 cable; works exactly like the block form.",
     "manual.godofthings._32slots_pattern_provider_part":  "ME 32 Slots Pattern Provider (part form): mount it on the side of an AE2 cable; works exactly like the block form.",
     "manual.godofthings._1024slots_pattern_provider_part":  "ME 1024 Slots Pattern Provider (part form): mount it on the side of an AE2 cable; works exactly like the block form.",
-    "manual.godofthings.infinity_pattern_provider_part":  "ME Infinity Pattern Provider (part form): mount it on the side of an AE2 cable; works exactly like the block form."
+    "manual.godofthings.infinity_pattern_provider_part":  "ME Infinity Pattern Provider (part form): mount it on the side of an AE2 cable; works exactly like the block form.",
+  "block.godofthings.wireless_connector": "Wireless Connector",
+  "item.godofthings.wireless_link_tool": "Wireless Link Tool",
+  "itemGroup.godofthings.god_of_things_machines_tab": "God of Things: Machines",
+  "itemGroup.godofthings.god_of_things_items_tab": "God of Things: Items",
+  "manual.godofthings.wireless_connector": "A wireless grid bridge hub. Place it inside an ME network (next to cables or a controller). Once auto-link is enabled, any AE device placed anywhere, in any dimension, is automatically joined to that network. Enable auto-link with /aalink on.",
+  "manual.godofthings.wireless_link_tool": "Manually join any AE device to the network of a bound wireless connector. Sneak-right-click the connector to bind it, then right-click any AE device to link it; sneak-right-click the air to clear the binding.",
+  "message.godofthings.aalink.tool_bound": "Wireless link tool bound to: %s %s",
+  "message.godofthings.aalink.tool_unbound": "Wireless link tool unbound",
+  "message.godofthings.aalink.tool_need_sneak": "Sneak-right-click the wireless connector to bind it",
+  "message.godofthings.aalink.tool_not_bound": "Wireless link tool is not bound: sneak-right-click a wireless connector first",
+  "message.godofthings.aalink.tool_hub_dim_missing": "The bound wireless connector's dimension was not found",
+  "message.godofthings.aalink.tool_hub_missing": "The bound wireless connector is missing or its chunk is not loaded",
+  "message.godofthings.aalink.tool_hub_not_ready": "The wireless connector's grid node is not ready yet",
+  "message.godofthings.aalink.tool_not_ae_device": "That block cannot connect to an AE network",
+  "message.godofthings.aalink.tool_already_linked": "That device is already in an AE network",
+  "message.godofthings.aalink.tool_failed": "Link failed: %s",
+  "message.godofthings.aalink.tool_linked": "Device joined the AE network",
+  "message.godofthings.aalink.auto_state": "AALink auto-link %s",
+  "message.godofthings.aalink.auto_status": "AALink auto-link status: %s",
+  "message.godofthings.aalink.on": "enabled",
+  "message.godofthings.aalink.off": "disabled"
 }

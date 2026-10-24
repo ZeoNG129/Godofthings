@@ -816,7 +816,31 @@ public class Godofthings
                     .title(Component.translatable("itemGroup.godofthings.god_of_things_tab"))
                     .displayItems((parameters, output) ->
                     {
-                        // ---- 方块：机器 ----
+                        // ---- 方块：创造 / 特殊方块（机器与物品各有独立标签页）----
+                        output.accept(VOID_TELEPORTER_ITEM.get());
+                        output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
+                        output.accept(SPACE_TIME_ETERNITY_ITEM.get());
+                        output.accept(CREATURE_ANNIHILATION_ITEM.get());
+                        // 无用维度传送方块（奇数 / 偶数 / 三维度）
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
+                        // 无线连接器（移植自 AALink：把任意位置的 AE 设备无线并入中枢网络）
+                        output.accept(com.godofthings.aalink.AaLinkRegistry.WIRELESS_CONNECTOR_ITEM.get());
+                    })
+                    .build());
+
+    /**
+     * 创造标签：众神之物·机器（工作机器 + 无限样板供应器 + 无线连接器）。
+     * 众神建材的 66 个方块仍在「众神之物：方块」标签里，物品类在「众神之物：物品」。
+     */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> GOD_OF_THINGS_MACHINES_TAB =
+            CREATIVE_MODE_TABS.register("god_of_things_machines_tab", () -> CreativeModeTab.builder()
+                    .icon(() -> GOD_CRAFT_ITEM.get().getDefaultInstance())
+                    .title(Component.translatable("itemGroup.godofthings.god_of_things_machines_tab"))
+                    .displayItems((parameters, output) ->
+                    {
+                        // ---- 工作机器 ----
                         output.accept(GOD_FURNACE_ITEM.get());
                         output.accept(GOD_MINER_ITEM.get());
                         output.accept(GOD_ORE_MACHINE_ITEM.get());
@@ -831,34 +855,34 @@ public class Godofthings
                         output.accept(GOD_SLAUGHTER_ITEM.get());
                         output.accept(GOD_ABSORBER_ITEM.get());
                         output.accept(GOD_DEVOURER_ITEM.get());
-                        // ---- 方块：创造 / 特殊方块 ----
-                        output.accept(VOID_TELEPORTER_ITEM.get());
-                        output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
-                        output.accept(SPACE_TIME_ETERNITY_ITEM.get());
-                        output.accept(CREATURE_ANNIHILATION_ITEM.get());
-                        // 无用维度传送方块（奇数 / 偶数 / 三维度）
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
-                         // 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件
-                         // 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）
-                         // 这一个物品同时是摆件的物品形态（TwoIDollItem extends BlockItem）
-                         output.accept(com.godofthings.doll.init.DollRegistry.TWO_I_DOLL_ITEM.get());
-                         // 无限样板供应器（方块 + part 两种形态 ×4 档）
-                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1_ITEM.get());
-                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_ITEM.get());
-                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_ITEM.get());
-                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_ITEM.get());
-                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1_PART_ITEM.get());
-                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_PART_ITEM.get());
-                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_PART_ITEM.get());
-                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_PART_ITEM.get());
-                        // ---- 物品：神之套装（四件套放一起）----
+                        // ---- 无限样板供应器（方块 + part 两种形态 ×4 档）----
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1_ITEM.get());
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_ITEM.get());
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_ITEM.get());
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_ITEM.get());
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1_PART_ITEM.get());
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_PART_ITEM.get());
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_PART_ITEM.get());
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_PART_ITEM.get());
+                    })
+                    .build());
+
+    /**
+     * 创造标签：众神之物·物品（装备、工具、卡片、书页、容器、升级件、ME 元件、
+     * 玩偶摆件、AALink 连接工具）。
+     */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> GOD_OF_THINGS_ITEMS_TAB =
+            CREATIVE_MODE_TABS.register("god_of_things_items_tab", () -> CreativeModeTab.builder()
+                    .icon(() -> GOD_HELMET.get().getDefaultInstance())
+                    .title(Component.translatable("itemGroup.godofthings.god_of_things_items_tab"))
+                    .displayItems((parameters, output) ->
+                    {
+                        // ---- 神之套装（四件套放一起）----
                         output.accept(GOD_HELMET.get());
                         output.accept(GOD_CHESTPLATE.get());
                         output.accept(GOD_LEGGINGS.get());
                         output.accept(GOD_BOOTS.get());
-                        // ---- 物品：手持神之工具（外形相近，按用途排）----
+                        // ---- 手持神之工具（外形相近，按用途排）----
                         output.accept(GOD_INVITE.get());
                         output.accept(GOD_CHANGE.get());
                         output.accept(GOD_MEASURE.get());
@@ -870,21 +894,26 @@ public class Godofthings
                         output.accept(NATURES_COMPASS.get());
                         // 探险者指南针（移植自 Explorer's Compass，结构搜索 / 指路 / 传送）
                         output.accept(EXPLORERS_COMPASS.get());
-                        // ---- 物品：卡片 / 石板类 ----
+                        // 无线连接工具（移植自 AALink）
+                        output.accept(com.godofthings.aalink.AaLinkRegistry.WIRELESS_LINK_TOOL.get());
+                        // ---- 卡片 / 石板类 ----
                         output.accept(GOD_RECIPE.get());
                         output.accept(GOD_CONFIG.get());
-                        // ---- 物品：书页类 ----
+                        // ---- 书页类 ----
                         output.accept(GOD_MANUAL.get());
                         output.accept(GOD_NOTE.get());
-                        // ---- 物品：随身容器 ----
+                        // ---- 随身容器 ----
                         output.accept(GOD_BACKPACK_ITEM.get());
                         output.accept(GOD_BELT.get());
-                        // ---- 物品：升级件 ----
+                        // ---- 升级件 ----
                         output.accept(GOD_ACCELERATOR.get());
                         output.accept(GOD_UNBREAKABLE.get());
-                        // ---- 物品：ME 无限元件 ----
+                        // ---- ME 无限元件 ----
                         output.accept(UNIVERSAL_CELL.get());
                         output.accept(INFINITY_BIGINTEGER_CELL.get());
+                        // ---- 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件 ----
+                        // 这一个物品同时是摆件的物品形态（TwoIDollItem extends BlockItem）
+                        output.accept(com.godofthings.doll.init.DollRegistry.TWO_I_DOLL_ITEM.get());
                     })
                     .build());
 
@@ -976,6 +1005,12 @@ public class Godofthings
          // 皮带自己的配置文件（服务器白黑名单 / 客户端轮盘显示选项），与上面两份文件名区分开
         modContainer.registerConfig(ModConfig.Type.SERVER, ConfigData.SERVER_SPEC, "godofthings-belt-server.toml");
         modContainer.registerConfig(ModConfig.Type.CLIENT, ConfigData.CLIENT_SPEC, "godofthings-belt-client.toml");
+        // ===== 无线网格桥接（移植自 AALink）：无线连接器方块 + 连接工具 + 全局桥接事件 =====
+        com.godofthings.aalink.AaLinkRegistry.register(modEventBus);
+        // 方块放置 / 区块加载 / 服务端 tick 时把任意位置的 AE 设备接入中枢网络
+        NeoForge.EVENT_BUS.register(com.godofthings.aalink.AaLinkBridge.class);
+        // /aalink on|off|toggle|status
+        com.godofthings.aalink.AaLinkCommands.register();
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)

@@ -1,4 +1,4 @@
-﻿{
+{
     "gui.godofthings.grid.face":  "面",
     "gui.godofthings.grid.face.tooltip":  "六面输入输出配置",
     "gui.godofthings.grid.ae.on":  "AE 并网：开（产物自动进网络）",
@@ -1405,5 +1405,26 @@
     "manual.godofthings._1slots_pattern_provider_part":  "ME 1槽样板供应器（部件形态）：挂在 AE2 线缆侧面使用，功能与方块版一致。",
     "manual.godofthings._32slots_pattern_provider_part":  "ME 32槽样板供应器（部件形态）：挂在 AE2 线缆侧面使用，功能与方块版一致。",
     "manual.godofthings._1024slots_pattern_provider_part":  "ME 1024槽样板供应器（部件形态）：挂在 AE2 线缆侧面使用，功能与方块版一致。",
-    "manual.godofthings.infinity_pattern_provider_part":  "ME无限样板供应器（部件形态）：挂在 AE2 线缆侧面使用，功能与方块版一致。"
+    "manual.godofthings.infinity_pattern_provider_part":  "ME无限样板供应器（部件形态）：挂在 AE2 线缆侧面使用，功能与方块版一致。",
+  "block.godofthings.wireless_connector": "无线连接器",
+  "item.godofthings.wireless_link_tool": "无线连接工具",
+  "itemGroup.godofthings.god_of_things_machines_tab": "众神之物：机器",
+  "itemGroup.godofthings.god_of_things_items_tab": "众神之物：物品",
+  "manual.godofthings.wireless_connector": "无线网格桥接中枢。放进 ME 网络里（贴着线缆/控制器放），开启自动连接后，在任意距离、任意维度放置的 AE 设备都会被自动并入这个网络。用 /aalink on 开启自动连接。",
+  "manual.godofthings.wireless_link_tool": "手动把任意 AE 设备接入已绑定的无线连接器所在网络。蹲下右键无线连接器绑定，然后右键任意 AE 设备即可接入；蹲下对空气右键取消绑定。",
+  "message.godofthings.aalink.tool_bound": "无线连接工具已绑定：%s %s",
+  "message.godofthings.aalink.tool_unbound": "无线连接工具已取消绑定",
+  "message.godofthings.aalink.tool_need_sneak": "请蹲下右键无线连接器进行绑定",
+  "message.godofthings.aalink.tool_not_bound": "无线连接工具未绑定：请蹲下右键无线连接器进行绑定",
+  "message.godofthings.aalink.tool_hub_dim_missing": "找不到绑定的无线连接器所在维度",
+  "message.godofthings.aalink.tool_hub_missing": "绑定的无线连接器不存在或所在区块未加载",
+  "message.godofthings.aalink.tool_hub_not_ready": "无线连接器网络节点尚未就绪",
+  "message.godofthings.aalink.tool_not_ae_device": "该方块无法连接 AE 网络",
+  "message.godofthings.aalink.tool_already_linked": "该设备已在 AE 网络中",
+  "message.godofthings.aalink.tool_failed": "连接失败：%s",
+  "message.godofthings.aalink.tool_linked": "设备已接入 AE 网络",
+  "message.godofthings.aalink.auto_state": "AALink 自动连接已%s",
+  "message.godofthings.aalink.auto_status": "AALink 自动连接状态：%s",
+  "message.godofthings.aalink.on": "开启",
+  "message.godofthings.aalink.off": "关闭"
 }
