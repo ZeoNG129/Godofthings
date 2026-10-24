@@ -35,7 +35,7 @@ public class OverloadedInterfaceScreen extends UpgradeableScreen<OverloadedInter
     private static final int SLOT_SPACING = 18;
     /** 齿轮按钮两行的 y 坐标（在配置槽行上方紧贴）。 */
     private static final int AMT_ROW1_Y = 35;
-    private static final int AMT_ROW2_Y = 55;
+    private static final int AMT_ROW2_Y = 95;
     private static final int AMT_START_X = 8;
     private static final int PAGE_INDICATOR_Y = 18;
 

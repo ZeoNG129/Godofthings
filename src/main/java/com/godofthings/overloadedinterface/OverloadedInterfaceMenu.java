@@ -194,11 +194,14 @@ public class OverloadedInterfaceMenu extends UpgradeableMenu<InterfaceLogicHost>
 
     public void clientNextPage()
     {
+        // 客户端先本地切页（槽位 active 状态立刻更新），再让服务端同步权威状态
+        this.nextPage();
         this.sendClientAction("nextPage");
     }
 
     public void clientPrevPage()
     {
+        this.prevPage();
         this.sendClientAction("prevPage");
     }
 
@@ -332,11 +335,23 @@ public class OverloadedInterfaceMenu extends UpgradeableMenu<InterfaceLogicHost>
             return;
         }
         var blockEntity = this.be();
-        if (blockEntity == null || slot == null)
+        if (blockEntity == null || slot == null
+                || slot < 0 || slot >= OverloadedInterfaceBlockEntity.SLOT_COUNT)
         {
             return;
         }
-        blockEntity.setSlotUnlimited(slot, !blockEntity.isSlotUnlimited(slot));
+        boolean nowUnlimited = !blockEntity.isSlotUnlimited(slot);
+        blockEntity.setSlotUnlimited(slot, nowUnlimited);
+        // 照抄上游：切到无限时把配置槽数量归 1，导出循环据此视为不限量补货
+        if (nowUnlimited)
+        {
+            var config = this.host.getInterfaceLogic().getConfig();
+            var key = config.getKey(slot);
+            if (key != null)
+            {
+                config.setStack(slot, new appeng.api.stacks.GenericStack(key, 1));
+            }
+        }
         this.syncFromHost();
     }
 

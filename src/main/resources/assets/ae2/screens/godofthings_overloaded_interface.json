@@ -2,27 +2,23 @@
   "$schema": "schema.json",
   "includes": ["common/common.json", "common/player_inventory.json", "common/toolbox.json"],
   "background": {
-    "texture": "guis/interface.png",
-    "srcRect": [0, 0, 176, 207]
+    "texture": "guis/ex_interface.png",
+    "srcRect": [0, 0, 176, 253]
   },
   "slots": {
     "GOT_OL_1": { "left": 8, "top": 53, "grid": "HORIZONTAL" },
     "GOT_OL_2": { "left": 8, "top": 71, "grid": "HORIZONTAL" },
+    "GOT_OL_3": { "left": 8, "top": 113, "grid": "HORIZONTAL" },
+    "GOT_OL_4": { "left": 8, "top": 131, "grid": "HORIZONTAL" },
     "GOT_OL_5": { "left": 8, "top": 53, "grid": "HORIZONTAL" },
-    "GOT_OL_6": { "left": 8, "top": 71, "grid": "HORIZONTAL" }
+    "GOT_OL_6": { "left": 8, "top": 71, "grid": "HORIZONTAL" },
+    "GOT_OL_7": { "left": 8, "top": 113, "grid": "HORIZONTAL" },
+    "GOT_OL_8": { "left": 8, "top": 131, "grid": "HORIZONTAL" }
   },
   "text": {
     "dialog_title": {
       "text": { "translate": "block.godofthings.overloaded_interface" },
       "position": { "left": 8, "top": 6 }
-    },
-    "interface_config": {
-      "text": { "translate": "gui.ae2.Config" },
-      "position": { "left": 8, "top": 43 }
-    },
-    "interface_stored_items": {
-      "text": { "translate": "gui.ae2.StoredItems" },
-      "position": { "left": 8, "top": 61 }
     }
   },
   "widgets": {

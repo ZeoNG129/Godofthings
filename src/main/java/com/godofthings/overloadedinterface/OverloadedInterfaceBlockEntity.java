@@ -470,13 +470,13 @@ public class OverloadedInterfaceBlockEntity extends InterfaceBlockEntity
             {
                 continue;
             }
-            // 目标里已有多少
+            // 照抄上游：无限槽目标量 = Long.MAX_VALUE（持续补货），
+            // 普通槽 = 配置量 - 目标已有量
+            long maxAmount = this.unlimitedSlots[slot] ? Long.MAX_VALUE : configured;
             var existing = new KeyCounter();
             target.storage().getAvailableStacks(existing);
             long present = existing.get(key);
-            long wanted = this.unlimitedSlots[slot]
-                    ? Math.min(budget, configured)
-                    : Math.max(0, configured - present);
+            long wanted = Math.max(0L, maxAmount - present);
             if (wanted <= 0)
             {
                 continue;
