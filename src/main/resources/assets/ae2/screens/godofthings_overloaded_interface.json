@@ -26,7 +26,6 @@
     }
   },
   "widgets": {
-    "openPriority": { "left": 152, "top": -5, "width": 20, "height": 20 },
-    "upgrades": { "right": 2, "top": -20 }
+    "openPriority": { "left": 152, "top": -5, "width": 20, "height": 20 }
   }
 }

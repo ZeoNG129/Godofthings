@@ -111,7 +111,18 @@ public class OverloadedInterfaceMenu extends UpgradeableMenu<InterfaceLogicHost>
         return this.host instanceof OverloadedInterfaceBlockEntity blockEntity ? blockEntity : null;
     }
 
-    // ==================== 同步 ====================
+
+    /**
+     * 只同步模糊模式（照抄 InterfaceMenu.loadSettingsFromHost）。
+     * 父类 UpgradeableMenu 会额外拉 REDSTONE_CONTROLLED 等设置，
+     * 而 InterfaceLogic 的 ConfigManager 没注册它们，直接抛
+     * {@code UnsupportedSettingException}，界面打不开、物品也放不进槽。
+     */
+    @Override
+    protected void loadSettingsFromHost(appeng.api.util.IConfigManager manager)
+    {
+        this.setFuzzyMode(manager.getSetting(appeng.api.config.Settings.FUZZY_MODE));
+    }
 
     @Override
     public void broadcastChanges()
@@ -173,18 +184,12 @@ public class OverloadedInterfaceMenu extends UpgradeableMenu<InterfaceLogicHost>
 
     private void nextPage()
     {
-        if (this.isServerSide())
-        {
-            this.showPage(this.currentPage + 1 >= this.totalPages ? 0 : this.currentPage + 1);
-        }
+        this.showPage(this.currentPage + 1 >= this.totalPages ? 0 : this.currentPage + 1);
     }
 
     private void prevPage()
     {
-        if (this.isServerSide())
-        {
-            this.showPage(this.currentPage - 1 < 0 ? this.totalPages - 1 : this.currentPage - 1);
-        }
+        this.showPage(this.currentPage - 1 < 0 ? this.totalPages - 1 : this.currentPage - 1);
     }
 
     public void clientNextPage()
