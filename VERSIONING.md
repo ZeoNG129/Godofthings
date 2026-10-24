@@ -2169,3 +2169,13 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   `godofthings-amc-client.toml` / `godofthings-amc-server.toml`（SERVER 同理，主类也占着
   默认的 `godofthings-server.toml`，只是先前还没走到那一步就先在 CLIENT 崩了）。
 - **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功并自动部署；`runGameTestServer` 45 条全过。
+
+## 7.8.1 → 7.8.2
+
+- **修复高级内存卡界面显示原始键名**（实测截图反馈：P2P 配置界面满屏英文键名）：上游语言键自带
+  双重段 `advanced_memory_card.advanced_memory_card.*`（其 BASE_KEY 叠加产物），并入时把 BASE_KEY
+  改成 `godofthings` 后代码生成单段键 `gui.godofthings.advanced_memory_card.*`，而语言文件里
+  59 个键还保留着双重段——两边对不上，游戏找不到键就原样显示键名。语言文件 zh/en 各收敛 59 个
+  双重段键到单段，逐一核对代码字面量与 TranslateHelper 运行时拼接的全部键均命中。
+- **自查**：`check-lang.ps1` checks: OK（1366 键）；`gradlew build` 成功并自动部署；
+  `runGameTestServer` 45 条全过。
