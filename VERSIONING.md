@@ -2235,3 +2235,17 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 - 顺带补上 **QIO 频率绑定**：潜行右键 QIO 仪表盘把卡绑到该频率（照抄上游 `handleQIOBinding`）。
 - **自查**：`check-lang.ps1` checks: OK（1429 键）；`gradlew build` 成功并自动部署；
   `runGameTestServer` 在「不装 / 装 Mekanism」两种环境下 45 条全过。
+## 7.9.1 → 7.9.2
+
+- **修复：超级融合卡「内存复制/粘贴」无效**（用户反馈）。
+  对照上游 `MemoryCard.pasteToMachines` 完整源码重写，三处关键偏差全部修正：
+  1. **漏调 `configurationDataSet()`**——上游粘贴配置是 `setConfigurationData` + `configurationDataSet()`
+     两步，后者才让机器真正应用并保存配置；此前只调了前者，服务端内存改了但机器不生效，这就是粘贴无效的主因；
+  2. **扣料顺序反了**——上游先 `addUpgrades` 记账、全部装完再统一扣料；此前逐台「先扣再装」，
+     一旦中途失败就会出现「扣了料没装上」；
+  3. **等级前缀剥离只做一层**——上游 `normalizeMachineFamily` 循环剥前缀（第三方等级可能叠多层），
+     此前只剥一次导致跨等级粘贴被误判为「机器种类不匹配」。
+  另按上游口径补 `pasted` / `pasted_creative` 两条成功提示（区分创造模式），删已不用的 `paste_success`。
+- **自查**：`check-lang.ps1` checks: OK（1430 键）；`gradlew build` 成功并自动部署；
+  `runGameTestServer` 不装 Mekanism 45 条全过；装 Mekanism 环境用临时探针（已删）在真实
+  `basic_energy_cube` 上端到端验证「复制 → hasData → 源方块记录 → 粘贴」全程无异常（46 条全过）。

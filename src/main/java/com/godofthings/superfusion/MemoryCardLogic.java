@@ -166,14 +166,24 @@ public final class MemoryCardLogic
 
     private static String stripTierPrefix(String path)
     {
-        for (String prefix : TIER_PREFIXES)
+        // 照抄上游 normalizeMachineFamily：循环剥前缀（第三方等级可能叠多层，如 creative_ultimate_）
+        String normalized = path.toLowerCase(java.util.Locale.ROOT);
+        boolean changed;
+        do
         {
-            if (path.startsWith(prefix))
+            changed = false;
+            for (String prefix : TIER_PREFIXES)
             {
-                return path.substring(prefix.length());
+                if (normalized.startsWith(prefix))
+                {
+                    normalized = normalized.substring(prefix.length());
+                    changed = true;
+                    break;
+                }
             }
         }
-        return path;
+        while (changed);
+        return normalized;
     }
 
     private static final String[] TIER_PREFIXES = {
@@ -408,73 +418,63 @@ public final class MemoryCardLogic
         boolean creative = player.getAbilities().instabuild;
         NetworkItemSource itemSource = NetworkItemSource.create(level, player, stack);
 
-        // 非创造模式先整体校验材料，避免装到一半停手
-        if (!creative)
+        // 非创造模式先整体校验材料是否够（不够就整批不做，避免装一半），照抄上游 getNeededUpgrades 口径
+        if (!creative && machineData.contains(SerializationConstants.UPGRADES))
         {
-            Map<Upgrade, Integer> needed = new EnumMap<>(Upgrade.class);
-            for (BlockPos pos : connectedMachines)
+            Map<Upgrade, Integer> needed = getNeededUpgrades(level, connectedMachines, perMachineUpgrade);
+            if (!needed.isEmpty() && !hasEnoughUpgrades(itemSource, needed))
             {
-                TileComponentUpgrade comp = getUpgradeComponent(level, pos);
-                if (comp == null)
-                {
-                    continue;
-                }
-                for (Map.Entry<Upgrade, Integer> entry : perMachineUpgrade.entrySet())
-                {
-                    if (!comp.supports(entry.getKey()))
-                    {
-                        continue;
-                    }
-                    int missing = Math.max(0, entry.getValue() - comp.getUpgrades(entry.getKey()));
-                    if (missing > 0)
-                    {
-                        needed.merge(entry.getKey(), missing, Integer::sum);
-                    }
-                }
-            }
-            for (Map.Entry<Upgrade, Integer> entry : needed.entrySet())
-            {
-                if (!itemSource.hasUpgrade(entry.getKey(), entry.getValue()))
-                {
-                    player.displayClientMessage(Component.translatable(
-                                    "message.godofthings.super_fusion.not_enough_upgrades")
-                            .withStyle(ChatFormatting.RED), true);
-                    return;
-                }
+                player.displayClientMessage(Component.translatable(
+                                "message.godofthings.super_fusion.not_enough_upgrades")
+                        .withStyle(ChatFormatting.RED), true);
+                return;
             }
         }
 
+        // 照抄上游：先 addUpgrades 记账，全部装完再统一扣料（顺序反了会出现「扣了料没装上」）
+        Map<Upgrade, Integer> consumedUpgrades = new EnumMap<>(Upgrade.class);
         int affected = 0;
         for (BlockPos pos : connectedMachines)
         {
-            TileComponentUpgrade comp = getUpgradeComponent(level, pos);
-            if (comp == null)
+            if (!(level.getBlockEntity(pos) instanceof TileEntityMekanism machine))
             {
                 continue;
             }
             boolean changed = false;
-            for (Map.Entry<Upgrade, Integer> entry : perMachineUpgrade.entrySet())
+            TileComponentUpgrade comp = machine.getComponent();
+            if (machineData.contains(SerializationConstants.UPGRADES) && comp != null)
             {
-                Upgrade upgrade = entry.getKey();
-                if (!comp.supports(upgrade))
+                for (Map.Entry<Upgrade, Integer> entry : perMachineUpgrade.entrySet())
                 {
-                    continue;
-                }
-                int target = entry.getValue();
-                int current = comp.getUpgrades(upgrade);
-                if (current < target && itemSource.consumeUpgrade(upgrade, target - current))
-                {
-                    changed |= comp.addUpgrades(upgrade, target - current) > 0;
+                    Upgrade upgrade = entry.getKey();
+                    if (!comp.supports(upgrade))
+                    {
+                        continue;
+                    }
+                    int current = comp.getUpgrades(upgrade);
+                    int toAdd = Math.min(entry.getValue() - current, upgrade.getMax() - current);
+                    if (toAdd > 0)
+                    {
+                        int added = comp.addUpgrades(upgrade, toAdd);
+                        if (added > 0)
+                        {
+                            changed = true;
+                            if (!creative)
+                            {
+                                consumedUpgrades.merge(upgrade, added, Integer::sum);
+                            }
+                        }
+                    }
                 }
             }
-            if (includeConfiguration && level.getBlockEntity(pos) instanceof IConfigCardAccess configAccess)
+            if (includeConfiguration && machineData.contains(KEY_CONFIG_DATA)
+                    && machine instanceof IConfigCardAccess configAccess)
             {
-                CompoundTag configData = machineData.getCompound(KEY_CONFIG_DATA);
-                if (!configData.isEmpty())
-                {
-                    configAccess.setConfigurationData(level.registryAccess(), player, configData);
-                    changed = true;
-                }
+                // 照抄上游两步：set 只写入，configurationDataSet 才让机器真正应用并保存配置
+                configAccess.setConfigurationData(level.registryAccess(), player,
+                        machineData.getCompound(KEY_CONFIG_DATA));
+                configAccess.configurationDataSet();
+                changed = true;
             }
             if (changed)
             {
@@ -482,9 +482,20 @@ public final class MemoryCardLogic
             }
         }
 
+        if (!creative && !consumedUpgrades.isEmpty())
+        {
+            for (Map.Entry<Upgrade, Integer> entry : consumedUpgrades.entrySet())
+            {
+                itemSource.consumeUpgrade(entry.getKey(), entry.getValue());
+            }
+        }
+
         if (affected > 0)
         {
-            player.displayClientMessage(Component.translatable("message.godofthings.super_fusion.paste_success", affected)
+            player.displayClientMessage(Component.translatable(
+                            creative ? "message.godofthings.super_fusion.pasted_creative"
+                                     : "message.godofthings.super_fusion.pasted",
+                    affected)
                     .withStyle(ChatFormatting.GREEN), true);
         }
         else
@@ -494,10 +505,50 @@ public final class MemoryCardLogic
         }
     }
 
-    @Nullable
-    private static TileComponentUpgrade getUpgradeComponent(Level level, BlockPos pos)
+    /** 各机器按档案还差多少升级（照抄上游 getNeededUpgrades，含上限裁剪） */
+    private static Map<Upgrade, Integer> getNeededUpgrades(Level level, List<BlockPos> connectedMachines,
+                                                           Map<Upgrade, Integer> perMachineUpgrade)
     {
-        return level.getBlockEntity(pos) instanceof TileEntityMekanism mekTile ? mekTile.getComponent() : null;
+        Map<Upgrade, Integer> needed = new EnumMap<>(Upgrade.class);
+        for (BlockPos machinePos : connectedMachines)
+        {
+            if (!(level.getBlockEntity(machinePos) instanceof TileEntityMekanism machine))
+            {
+                continue;
+            }
+            TileComponentUpgrade comp = machine.getComponent();
+            if (comp == null)
+            {
+                continue;
+            }
+            for (Map.Entry<Upgrade, Integer> entry : perMachineUpgrade.entrySet())
+            {
+                Upgrade upgrade = entry.getKey();
+                if (!comp.supports(upgrade))
+                {
+                    continue;
+                }
+                int current = comp.getUpgrades(upgrade);
+                int toAdd = Math.min(entry.getValue() - current, upgrade.getMax() - current);
+                if (toAdd > 0)
+                {
+                    needed.merge(upgrade, toAdd, Integer::sum);
+                }
+            }
+        }
+        return needed;
+    }
+
+    private static boolean hasEnoughUpgrades(NetworkItemSource itemSource, Map<Upgrade, Integer> required)
+    {
+        for (Map.Entry<Upgrade, Integer> entry : required.entrySet())
+        {
+            if (!itemSource.hasUpgrade(entry.getKey(), entry.getValue()))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** 融合卡实现了 QIO 频率绑定（潜行右键 QIO 仪表盘），这里给出频率类型 */
