@@ -33,7 +33,7 @@ public final class OverloadedInterfaceScreens
     {
         InitScreens.register(event, OverloadedInterfaceMenu.TYPE,
                 OverloadedInterfaceScreens::create,
-                "/screens/interface.json");
+                "/screens/overloaded_interface.json");
     }
 
     /** 具名工厂，避免 InitScreens.register 的重载 lambda 泛型推断歧义。 */
