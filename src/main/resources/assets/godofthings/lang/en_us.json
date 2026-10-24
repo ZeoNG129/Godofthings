@@ -477,11 +477,11 @@
     "item.godofthings.god_unbreakable":  "Eternal Seal",
     "item.godofthings.void_teleporter":  "Nethervoid Boundary Stele",
     "itemGroup.godofthings.god_of_things_tab":  "God of Things",
-    "key.category.godofthings.wand":  "God Tool",
+    "key.category.godofthings.wand":  "God of Things",
     "key.godofthings.edit_note_hud":  "Edit note overlay",
-    "key.godofthings.open_armor_config":  "God Armor Features",
     "key.godofthings.open_armor_skill":  "God Armor Skill Tree",
     "key.godofthings.open_backpack":  "Open Sumeru Pouch",
+    "key.godofthings.amc_mode_switch":  "Switch Mode (Advanced Memory Card)",
     "key.godofthings.open_manual":  "Open Omniscient Apocalypse of the Gods",
     "key.godofthings.open_note":  "Open Divine Aspiration Tome",
     "key.godofthings.open_waypoint":  "Open Waypoint Menu",
@@ -545,7 +545,7 @@ Obtain: crafting (this is the root advancement of the mod).
 Use: right-click for the GUI and insert your input; since v5.15.5 it can join an AE2 network as a grid node (cable connection, one channel, smelting output auto-pushes into the network, toggle with the AE button at the top right).",
     "manual.godofthings.god_helmet":  "What: Crown of Gods · Illumination -- one of the four God Armor pieces.
 Obtain: crafting.
-Use: with the full set, press O for feature toggles and K for the skill tree (see System - God Armor & Skills).",
+Use: with the full set, press K for the armor screen (feature tab inside) (see System - God Armor & Skills).",
     "manual.godofthings.god_invite":  "What: God Invite -- gives a mob infinite health.
 Obtain: crafting.
 Use: right-click a mob; hit feedback is preserved and can be toggled. Can go into the **Master Artisan's Girdle** for quick swapping (press R for the radial wheel): these five god tools are on the belt's internal whitelist, so they are accepted by default (since v5.18.0 the belt is built in -- no external ToolBelt mod needed).",
@@ -583,7 +583,7 @@ Use: just place it; no GUI.",
     "manual.godofthings.system.ae2":  "Nine production machines (miner / resource / drop / **spawn egg** / slaughter / craft / absorber / **furnace** / **peeler**, added in v5.15.5 / v5.15.9) can act as AE grid nodes: just connect a cable (one channel) and their output goes into the network. Each GUI has an AE toggle that only controls pushing output into AE.
 Note: **AE2 is required** for this mod to start (those block entities implement AE2 interfaces directly); mods.toml declares it as required.",
     "manual.godofthings.system.ae2.title":  "AE2 integration",
-    "manual.godofthings.system.armor_and_skills":  "Wear all four pieces (helmet / chestplate / leggings / boots), then press **K** or **O** for a screen with **three pages** (it remembers the last one; switch with the tabs or `Tab`):
+    "manual.godofthings.system.armor_and_skills":  "Wear all four pieces (helmet / chestplate / leggings / boots), then press K (unbound by default; set it in Controls) for a screen with **three pages** (it remembers the last one; switch with the tabs or `Tab`):
 · **God Boosts (7 toggles)**: Myriad Souls Echo Registers / God Mobs / God Blocks / God XP / Spirit Embryo Sacred Eggs / God Heads / God Smelting -- turning one on grants its max level; turning it off remembers the level.
 · **God Resonance (7 toggles, off by default)**: lets the matching God-series machine inherit the boost above; the machine benefits only while its owner is **online**, wears the **full set**, and the matching resonance toggle is on.
 · **God Armor (8 toggles)**: God Flight / Invincibility / Saturation / Fire Resistance / Breathing / Vision / See-Through / Gluttony.
@@ -610,9 +610,7 @@ Note: **AE2 is required** for this mod to start (those block entities implement 
 4. For convenience: Divine Aspiration Tome (press N) and this manual (press P).
 5. All recipes are in JEI / EMI; this manual only explains what things do.",
     "manual.godofthings.system.getting_started.title":  "Getting started",
-    "manual.godofthings.system.keys_and_commands":  "[Keys] P manual / N note / M place the note overlay / U waypoints / O armor features / K god boosts.
-[Commands] /godofthings doctor, export|import note|points, manual.
-Every key can be rebound in Options - Controls - God of Things. (The old tool/staff keys and the /godnote, /setpoint, /point, /delpoint commands were removed by request.)",
+    "manual.godofthings.system.keys_and_commands":  "[Keys] P manual / N note / M place note overlay / U waypoints / K armor screen (feature tab inside) / B backpack. [Commands] /godofthings doctor, export|import note|points, manual. All keys are rebindable in Options -> Controls -> God of Things.",
     "manual.godofthings.system.keys_and_commands.title":  "Keys and commands",
     "manual.godofthings.system.note":  "A checklist with checkboxes, two levels deep: main tasks and sub-tasks. Two ways in: press N or right-click the item.
 · Up to 8 books per shelf; the bar on top switches / creates / deletes (delete needs two clicks).
@@ -716,7 +714,7 @@ Usage: put logs into the 3x3 input slots (9 slots, same layout as the Blazing Sa
 Obtain: crafting (4 leather + 3 string + 1 iron ingot + 1 All-Things Origin Stone).
 Use: right-click to open the belt screen (9 slots, tools / weapons / non-stackable items go in; god tools such as God Invite / Cloud-Turning Token / Heaven-Measuring Golden Ruler / Miniature Black Hole / God Binder are always accepted); press **V** to open the belt-slot screen (equip the belt + 2x2 crafting + inventory); press **R** to open the radial wheel and swap the held item with any belt slot (the unbound cycle keys move the selection). The belt is always at max level -- no pouch or upgrades needed.",
     "container.godofthings.god_belt_slot":  "Master Artisan's Girdle Slot",
-    "key.godofthings.belt_category":  "Master Artisan's Girdle",
+    "key.godofthings.belt_category":  "God of Things: Belt",
     "key.godofthings.belt_open":  "Swap Tool (Belt Wheel)",
     "key.godofthings.belt_slot":  "Open Belt Slot Inventory",
     "key.godofthings.belt_cycle_left":  "Cycle Tool Left",
@@ -963,7 +961,8 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "tooltip.godofthings.god_miner.shift_4":  "§b[AE2 & Storage] §f4096-type buffer with AE2 link; pauses automatically when full.",
     "tooltip.godofthings.god_binder.lore":  "§6§o\"Draw the leyline thread between two worlds; across mountains and rivers, the qi connects.\"",
     "tooltip.godofthings.god_binder.shift_1":  "§e[Pairing] §fRight-click an FE machine to bind it to the nearest Aurora Leyline Ferry Hub in the same dimension.",
-    "tooltip.godofthings.god_binder.shift_2":  "§a[Off-hand Automation] §fHolding this in the off-hand auto-binds any FE machine you place with the main hand.",
+    "tooltip.godofthings.god_binder.shift_2":  "§a[Off-hand Automation] §fHolding this in the off-hand auto-binds any FE machine you place with the main hand.",
+
     "tooltip.godofthings.god_binder.shift_3":  "§b[Wireless Link] §fRight-click a provider/interface to select it, then right-click machines to link. Right-clicking an already-linked face toggles it off (Ctrl for batch toggle, sneak to force-disconnect).",
     "tooltip.godofthings.god_accelerator.lore":  "§6§o\"Steal the torrent of time's long river; let a thousand years of cycles converge in an instant.\"",
     "tooltip.godofthings.god_accelerator.shift_1":  "§e[Exponential] §fOne gives x16, a stack of 64 gives x1024.",
@@ -1048,7 +1047,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "tooltip.godofthings.heavenly_construction.shift_2":  "§a[Anti-lag] §fHuge jobs are spread smoothly at 8192 blocks per tick; the server never stalls.",
     "tooltip.godofthings.god_belt.lore":  "§6§o\"To do the work well, first sharpen the tools; a hundred craftsman skills rest at the waist.\"",
     "tooltip.godofthings.god_belt.shift_1":  "§e[Wheel] §fPress R for the radial wheel and swap the main-hand tool with a belt slot instantly.",
-    "tooltip.godofthings.god_belt.shift_2":  "§a[Portable Workshop] §fPress V for the carry UI (2x2 crafting and armor slot access); freely dyeable.",
+    "tooltip.godofthings.god_belt.shift_2":  "§a[Portable Workshop] §fThe open-belt-slot-screen key (God of Things: Belt category) opens the carry UI (2x2 crafting and armor slot access); freely dyeable.",
     "tooltip.godofthings.natures_compass.lore":  "§6§o\"As the needle turns, the pulse of mountains, rainforests and deep seas lies fully in view.\"",
     "tooltip.godofthings.god_slaughter.lore":  "§6§o\"Where judgment falls, the unsanctioned turn to ash; only the essence remains.\"",
     "tooltip.godofthings.god_slaughter.shift_1":  "§e[Range & Execute] §fSpherical radius 0-480 adjustable; the execute toggle deals Float.MAX true damage.",
@@ -1332,7 +1331,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "manual.godofthings.pink_pigmee_framed_building_panel":  "Pink God Framed Panel: a bordered decorative panel that keeps its outline no matter how it is tiled. Craft from plain panels plus a matching dye.",
     "manual.godofthings.pink_pigmee_building_slab":  "Pink God Plain Panel Slab: the slab form of the plain panel; three panels make six slabs, and tiling still merges borders.",
     "manual.godofthings.pink_pigmee_framed_building_slab":  "Pink God Framed Panel Slab: the slab form of the framed panel; three panels make six slabs.",
-    "key.categories.godofthings.omni":  "Omni Upgrades (God of Things)",
+    "key.categories.godofthings.omni":  "God of Things: Upgrades",
     "key.godofthings.omni.toggle_enabled":  "Toggle Omni Upgrades",
     "key.godofthings.omni.toggle_sequential_fill":  "Toggle Sequential Fill Mode",
     "key.godofthings.omni.toggle_diagonal_detection":  "Toggle Diagonal Detection Mode",
@@ -1387,7 +1386,8 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "gui.godofthings.infprovider.filtered.off":  "Filter: OFF (accept all)",
     "gui.godofthings.infprovider.advanced.input_filter":  "Input Filter",
     "message.godofthings.binder.machines_connected_many":  "Linked %d machines face %s",
-    "message.godofthings.binder.machines_disconnected_many":  "Unlinked %d machines",
+    "message.godofthings.binder.machines_disconnected_many":  "Unlinked %d machines",
+
     "message.godofthings.binder.batch_toggled":  "Toggled %d link(s) (face %s)",
     "message.godofthings.binder.machine_face_updated":  "Re-linked [%d, %d, %d] to face %s",
     "message.godofthings.binder.provider_full_skipped":  "Skipped %d (limit %d)",
@@ -1500,13 +1500,11 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "gui.godofthings.advanced_memory_card.tooltip.copy.ready":  "Ready to paste",
     "gui.godofthings.advanced_memory_card.tooltip.copy.second_pos":  "Second position:%s\n",
     "item.godofthings.advanced_memory_card":  "Advanced Memory Card",
-    "key.advancedmemorycard.switch":  "Switch Mode",
-    "key.categories.advanced_memory_card":  "Advanced Memory Card",
     "screen.godofthings.advanced_memory_card.player.config.info":  "Select a P2P node to view details",
     "screen.godofthings.advanced_memory_card.player.config.search_placeholder":  "Search...",
     "screen.godofthings.advanced_memory_card.player.config.title":  "P2P Config Mode",
     "screen.godofthings.advanced_memory_card.player.copy.clear_tooltip":  "Clear positions",
     "screen.godofthings.advanced_memory_card.player.copy.end_pos":  "End Pos",
     "screen.godofthings.advanced_memory_card.player.copy.start_pos":  "Start Pos",
-    "manual.godofthings.advanced_memory_card":  "Advanced Memory Card: an enhanced AE2 memory card. Copy Mode: sneak-right-click a machine to copy its settings, right-click two corners to select a box area, right-click air to paste (V to switch modes). Config Mode: right-click a P2P tunnel to open the channel manager (frequency grouping / rename / bind / highlight / teleport / init / auto IO)."
+    "manual.godofthings.advanced_memory_card":  "Advanced Memory Card: an enhanced AE2 memory card. Copy Mode: sneak-right-click a machine to copy its settings, right-click two corners to select a box area, right-click air to paste (the Switch Mode key lives under the God of Things category and is unbound by default). Config Mode: right-click a P2P tunnel to open the channel manager (frequency grouping / rename / bind / highlight / teleport / init / auto IO)."
 }

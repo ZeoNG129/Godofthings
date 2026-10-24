@@ -477,11 +477,11 @@
     "item.godofthings.god_unbreakable":  "永固印",
     "item.godofthings.void_teleporter":  "幽冥虚无界碑",
     "itemGroup.godofthings.god_of_things_tab":  "众神之物",
-    "key.category.godofthings.wand":  "神之工具",
+    "key.category.godofthings.wand":  "众神之物",
     "key.godofthings.edit_note_hud":  "编辑便签悬浮窗",
-    "key.godofthings.open_armor_config":  "神之套装功能开关",
     "key.godofthings.open_armor_skill":  "神之套装技能树",
-    "key.godofthings.open_backpack":  "打开须弥囊",
+    "key.godofthings.open_backpack":  "打开须弥囊",
+    "key.godofthings.amc_mode_switch":  "切换模式（高级内存卡）",
     "key.godofthings.open_manual":  "打开众神全知启示录",
     "key.godofthings.open_note":  "打开神思夙愿天书",
     "key.godofthings.open_waypoint":  "打开传送点界面",
@@ -583,12 +583,7 @@
     "manual.godofthings.system.ae2":  "矿机 / 资源机 / 掉落机 / **怪蛋机** / 砍杀 / 合成台 / 吸收 / **熔炉**（v5.15.5 加入）/ **去皮机**（v5.15.9 加入）这 9 台会产资源的机器可以直接当 AE 网格节点：线缆连上即可（占一个频道），产物自动进网络。每台界面里都有「AE」开关，只控制是否把产物推进网络，不影响机器自己运转。
 注意：本模组**必须有 AE2 才能启动**（这几个机器的方块实体在类声明上直接实现了 AE2 的接口），mods.toml 里已如实声明为必需依赖。",
     "manual.godofthings.system.ae2.title":  "AE2 并网",
-    "manual.godofthings.system.armor_and_skills":  "穿齐四件（头盔 / 胸甲 / 护腿 / 靴子）后按 **K** 或 **O** 打开，共**三页**（会记住上次那一页，页签或 `Tab` 切换）：
-· **神之增幅（7 个开关）**：万魂余响鉴录仪 / 神之生物 / 神之方块 / 神之经验 / 灵胚孳生圣卵 / 神之头颅 / 神之熔炼 —— 打开即给到该节点的最大等级，关掉后等级仍记得、再开回到满级。
-· **神之共鸣（7 个开关，默认关）**：让对应的神之系列机器继承上面同名的那个增幅；机器要吃到加成，需要主人**在线**且**穿齐全套**，并且把对应共鸣开关打开。
-· **神之套装（8 个开关）**：神之飞行 / 神之无敌 / 神之饱和 / 神之抗火 / 神之呼吸 / 神之视觉 / 神之透视 / 神之贪吃。
-· **常驻效果（不占开关）**：万民敬仰 —— 穿齐套装即生效。
-· 行尾只显示开 / 关，鼠标悬停看说明；每页都有「全部开启 / 全部关闭」；技能等级随玩家保存、死亡不掉。",
+    "manual.godofthings.system.armor_and_skills":  "穿齐四件（头盔 / 胸甲 / 护腿 / 靴子）后按 K 打开（默认不绑定，到按键设置里自己设），共**三页**",
     "manual.godofthings.system.armor_and_skills.title":  "神之套装与技能树",
     "manual.godofthings.system.compat":  "· 可选兼容：JEI / EMI（配方查看）、Jade、AE2 及扩展（AE2WTLib / ExtendedAE / AppliedFlux / AppMek）、Ad Astra、Occultism、Malum、神秘农业、Goety、铁魔法、新生魔艺、EnderIO、通用机械、资源蜜蜂、建筑手杖、GTCEu 等；没装的会自动跳过。
 · v5.9.0 起：**无线物流已整体删除**，原先只为它服务的「通用机械（MI）能量桥 / Mekanism 化学品桥 / FTB Teams 团队归属 / 魔源端点」兼容一并去掉。
@@ -610,9 +605,7 @@
 4. 想省事就做「神思夙愿天书」（N 键记事）、「众神全知启示录」（P 键，就是你现在看的这个）。
 5. 合成配方一律在 JEI / EMI 里查，本手册只讲「这东西干嘛用」。",
     "manual.godofthings.system.getting_started.title":  "入门先做什么",
-    "manual.godofthings.system.keys_and_commands":  "【按键】P 手册 / N 便签 / M 摆放便签悬浮窗 / U 传送点 / O 神之套装功能 / K 神之增幅。
-【指令】/godofthings doctor（诊断）、export|import note|points（备份便签与传送点）、manual（打开本手册）。
-所有按键都能在「选项 → 按键控制 → 神之」里改。（原神之工具与权杖那套按键，以及 `/godnote`、`/setpoint`·`/point`·`/delpoint` 指令都已按用户要求删除）",
+    "manual.godofthings.system.keys_and_commands":  "【按键】P 手册 / N 便签 / M 摆放便签悬浮窗 / U 传送点 / K 神之套装界面（套装功能页在界面里切）/ B 须弥囊。",
     "manual.godofthings.system.keys_and_commands.title":  "按键与指令速查",
     "manual.godofthings.system.note":  "任务清单，每条带方框勾选，支持两级：主任务 + 子任务。两种打开方式：N 键 / 物品右键。
 · 一册最多 8 本，界面顶部可切换 / 新建 / 删除（删除要点两次）。
@@ -712,11 +705,9 @@
 用法：原木放进 3×3 输入槽（9 格，与炽神圣火熔炉相同布局），去皮原木从对应输出槽取走。漏斗 / 管道按**面配置**工作：界面右上角齿轮打开面配置，六个面各自可设 无 / 输入 / 输出 / 输入和输出（默认全部无，先配置面漏斗才能进出）；输入面自动从相邻容器抽入原木，输出面自动把成品推给相邻容器。每 5 tick 每个输入槽去皮 1 个（9 格并行）；普朗克超频催化组件提升并行数量与槽位容量（每个 ×16，一组 64 个 = ×1024）。间隔可在 godofthings-machines.toml 的 [peeler] 段调；v5.15.9 起可作为 AE2 网格节点并网（线缆直连占一个频道，去皮产物自动输出进网络，界面右侧「AE」开关切换）。",
     "item.godofthings.god_belt":  "巧匠神巡束带",
     "tooltip.godofthings.god_belt":  "已满级：%s 个工具槽位。右键打开界面，R 键呼出轮盘。",
-    "manual.godofthings.god_belt":  "作用：巧匠神巡束带 —— 16 格工具腰带，随身携带工具 / 武器 / 物品，一键与手持物品互换。移植自 ToolBelt（BSD-3-Clause，作者 gigaherz）。
-获取：合成（皮革 ×4 + 线 ×3 + 铁锭 + 万物原石 ×1）。
-用法：右键打开腰带界面（16 格，排成 2 排 × 8 格；可放工具 / 武器 / 不可堆叠物品；免死敕 / 翻云令 / 量天裁度金尺 / 微型黑洞 / 同心契等神之工具默认就能放）；按 **V** 打开腰带槽位界面（装备腰带 + 2×2 合成 + 背包）；按 **R** 呼出轮盘，把任意一格与手持物品互换。腰带默认满级，不需要腰带包或升级。",
+    "manual.godofthings.god_belt":  "用法：右键打开腰带界面（16 格，排成 2 排 × 8 格；可放工具 / 武器 / 不可堆叠物品；免死敕 / 翻云令 / 量天裁度金尺 / 微型黑洞 / 同心契等神之工具默认就能放）；「打开腰带槽位界面」快捷键在「众神之物：腰带」分类下（装备腰带 + 2×2 合成 + 背包）；按 R 呼出轮盘，把任意一格与手持物品互换。腰带默认满级，不需要腰带包或升级。",
     "container.godofthings.god_belt_slot":  "巧匠神巡束带槽位",
-    "key.godofthings.belt_category":  "巧匠神巡束带",
+    "key.godofthings.belt_category":  "众神之物：腰带",
     "key.godofthings.belt_open":  "切换工具（腰带轮盘）",
     "key.godofthings.belt_slot":  "打开腰带槽位界面",
     "key.godofthings.belt_cycle_left":  "向左切换工具",
@@ -1332,7 +1323,7 @@
     "manual.godofthings.pink_pigmee_framed_building_panel":  "粉红色众神框板：带边框的装饰板，无论怎么拼接都保留描边，用素板加同色染料合成。",
     "manual.godofthings.pink_pigmee_building_slab":  "粉红色众神素板台阶：素板的台阶形态，三个素板合成 6 个，拼接时同样自动隐藏边框。",
     "manual.godofthings.pink_pigmee_framed_building_slab":  "粉红色众神框板台阶：框板的台阶形态，三个框板合成 6 个。",
-    "key.categories.godofthings.omni":  "全能升级（众神之物）",
+    "key.categories.godofthings.omni":  "众神之物：升级",
     "key.godofthings.omni.toggle_enabled":  "切换全能升级总开关",
     "key.godofthings.omni.toggle_sequential_fill":  "切换顺序填满模式",
     "key.godofthings.omni.toggle_diagonal_detection":  "切换对角检测模式",
@@ -1500,13 +1491,11 @@
     "gui.godofthings.advanced_memory_card.tooltip.copy.ready":  "准备粘贴",
     "gui.godofthings.advanced_memory_card.tooltip.copy.second_pos":  "第二个位置：%s\n",
     "item.godofthings.advanced_memory_card":  "高级内存卡",
-    "key.advancedmemorycard.switch":  "切换模式",
-    "key.categories.advanced_memory_card":  "高级内存卡",
     "screen.godofthings.advanced_memory_card.player.config.info":  "选择一个 P2P 节点查看详情",
     "screen.godofthings.advanced_memory_card.player.config.search_placeholder":  "搜索...",
     "screen.godofthings.advanced_memory_card.player.config.title":  "P2P 配置模式",
     "screen.godofthings.advanced_memory_card.player.copy.clear_tooltip":  "清除坐标",
     "screen.godofthings.advanced_memory_card.player.copy.end_pos":  "结束坐标",
     "screen.godofthings.advanced_memory_card.player.copy.start_pos":  "开始坐标",
-    "manual.godofthings.advanced_memory_card":  "作用：高级内存卡：AE2 内存卡增强版。复制模式：潜行右键机器偷配置，再右键两个角选长方体区域，对空气右键粘贴（V 键切模式）；配置模式：右键 P2P 打开通道管理界面（频段分组/改名/绑定/高亮/传送/初始化/自动配输入输出）。"
+    "manual.godofthings.advanced_memory_card":  "作用：高级内存卡：AE2 内存卡增强版。复制模式：潜行右键机器偷配置，再右键两个角选长方体区域，对空气右键粘贴（「切换模式」快捷键在「众神之物」分类下，默认不绑定）；配置模式：右键 P2P 打开通道管理界面（频段分组/改名/绑定/高亮/传送/初始化/自动配输入输出）。"
 }

@@ -11,11 +11,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /**
- * 神之套装配置界面快捷键（技能树与套装功能已合并为同一个界面，用标签页切换）：
- * <ul>
- *   <li><b>K</b>：打开配置界面，停在「基础属性」页</li>
- *   <li><b>O</b>：打开同一个界面，直接停在「套装功能」页（原 O 键的 12 项开关）</li>
- * </ul>
+ * 神之套装界面快捷键（技能树与套装功能已合并为同一个界面，用标签页切换）：
+ * K 键打开配置界面（三页标签自选）。原 O 键「套装功能开关」独立入口已按用户要求删除，
+ * 套装功能页仍在界面里，用 K 打开后切标签即可。
  * 打开前先向服务端拉一次权威值（技能表 + 功能位图），避免界面显示的是过期镜像。
  * 不要求穿齐全套也能打开（可以先配置，穿上后生效）。
  */
@@ -34,13 +32,7 @@ public final class ArmorKeyHandler
             return;
         }
         // consumeClick 检测按下沿：每按一次触发一次
-        // O 键 → 「神之套装」页（8 个功能开关）
-        while (WandKeyBindings.OPEN_ARMOR_CONFIG_KEY.get().consumeClick())
-        {
-            requestAll();
-            mc.setScreen(new GodArmorSkillScreen(GodArmorSkillScreen.TAB_FEATURE));
-        }
-        // K 键 → 「神之增幅」页（7 个开关式节点）
+        // K 键 → 神之套装界面（默认「神之增幅」页，其余两页界面里切）
         while (WandKeyBindings.OPEN_ARMOR_SKILL_KEY.get().consumeClick())
         {
             requestAll();

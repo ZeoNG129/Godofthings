@@ -27,16 +27,7 @@ public class WandKeyBindings
             CATEGORY
     ));
 
-    /** 神之套装功能开关界面（默认不绑定） */
-    public static final Lazy<KeyMapping> OPEN_ARMOR_CONFIG_KEY = Lazy.of(() -> new KeyMapping(
-            "key.godofthings.open_armor_config",
-            KeyConflictContext.IN_GAME,
-            InputConstants.Type.KEYSYM,
-            InputConstants.UNKNOWN.getValue(),
-            CATEGORY
-    ));
-
-    /** 神之套装技能树界面（默认不绑定） */
+    /** 神之套装技能树界面（默认不绑定）：原 O 键「套装功能开关」已按用户要求删除，只剩这一个入口 */
     public static final Lazy<KeyMapping> OPEN_ARMOR_SKILL_KEY = Lazy.of(() -> new KeyMapping(
             "key.godofthings.open_armor_skill",
             KeyConflictContext.IN_GAME,
@@ -81,16 +72,25 @@ public class WandKeyBindings
             CATEGORY
     ));
 
+    /** 高级内存卡切换模式（默认不绑定；上游原本是 V 键独立分类，已并入本分类） */
+    public static final Lazy<KeyMapping> AMC_MODE_SWITCH_KEY = Lazy.of(() -> new KeyMapping(
+            "key.godofthings.amc_mode_switch",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            InputConstants.UNKNOWN.getValue(),
+            CATEGORY
+    ));
+
     private WandKeyBindings() {}
 
     public static void register(RegisterKeyMappingsEvent event)
     {
         event.register(OPEN_WAYPOINT_KEY.get());
-        event.register(OPEN_ARMOR_CONFIG_KEY.get());
         event.register(OPEN_ARMOR_SKILL_KEY.get());
         event.register(OPEN_NOTE_KEY.get());
         event.register(EDIT_NOTE_HUD_KEY.get());
         event.register(OPEN_MANUAL_KEY.get());
         event.register(OPEN_BACKPACK_KEY.get());
+        event.register(AMC_MODE_SWITCH_KEY.get());
     }
 }
