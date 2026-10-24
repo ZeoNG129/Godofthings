@@ -102,9 +102,10 @@ public class InfProviderLogic extends PatternProviderLogic {
     }
 
     private boolean wirelessPushPattern(IPatternDetails pattern, KeyCounter[] inputs) {
+        // 照抄上游守卫顺序：无线路径不检查 sendList（那是贴邻模式的溢出队列，
+        // 无线溢出会卡死在 sendDirection==null 的IllegalStateException 前置判断里）
         var accessor = (PatternProviderLogicAccessor) this;
-        if (!accessor.getSendList().isEmpty()
-                || !accessor.getMainNode().isActive()
+        if (!accessor.getMainNode().isActive()
                 || this.getCraftingLockedReason() != LockCraftingMode.NONE) {
             return false;
         }
@@ -155,7 +156,9 @@ public class InfProviderLogic extends PatternProviderLogic {
         if (planned == null || planned.isEmpty()) {
             return false;
         }
-        // 先模拟全部可入，再实际投放；一次失败整单让出，不产生半截批次
+        // 先模拟全部可入再实际投放（上游 ICraftingMachine 路径同为全有或全无语义）；
+        // 无线路径绝不产生 sendList 残留——原版 sendList 只会往贴邻方向送，
+        // 无线模式下没有那个方向，残留即永久卡死整台供应器
         for (var stack : planned) {
             if (dispatch.insert(stack.what(), stack.amount(), Actionable.SIMULATE) < stack.amount()) {
                 this.rememberBatch(conn, pattern, Math.max(1, copies / 2));
@@ -163,11 +166,7 @@ public class InfProviderLogic extends PatternProviderLogic {
             }
         }
         for (var stack : planned) {
-            long inserted = dispatch.insert(stack.what(), stack.amount(), Actionable.MODULATE);
-            if (inserted < stack.amount()) {
-                ((PatternProviderLogicAccessor) this)
-                        .invokeAddToSendList(stack.what(), stack.amount() - inserted);
-            }
+            dispatch.insert(stack.what(), stack.amount(), Actionable.MODULATE);
         }
         this.rememberBatch(conn, pattern, copies);
         return true;

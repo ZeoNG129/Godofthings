@@ -2084,3 +2084,17 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     现按原版 PatternProviderTarget 的两级解析回退到 AE2 外部存储策略（Forge 物品/流体能力桥），
     普通容器的产物也能被 AUTO 回收扫回网络。
   - **自查**：`check-lang.ps1` checks: OK（zh/en 各 +7 键）；`gradlew build` 成功；`runGameTestServer` 45 条全过。
+
+- 7.3.1 -> **7.3.2（修复：按钮图标 / 无线派发卡死 / Ctrl 预览三件，全部照抄上游实现）**。2026-10-24
+  - **图标隐形**：图标改用 AE2 的 `Blitter.texture(rl, 16, 16)` 绘制（照抄上游 TextureToggleButton），
+    非激活半透明、y 偏移 1+yOffset、zOffset=3 盖在按钮底图上；之前的 GuiGraphics.blit 方式对
+    16×16 独立贴图不生效。
+  - **无线派发卡死**：上一版无线路径查了 sendList 非空即拒绝，而无线溢出写入 sendList 后
+    原版只会往贴邻方向送（无线模式没有那个方向）→ 残留永久卡死。照抄上游守卫：无线路径
+    不查 sendList；投放改为「模拟全量可入才落账」的全有或全无语义，绝不产生 sendList 残留。
+  - **Ctrl 预览与连线**：新增 `InfConnectorRenderer`（照抄上游 WirelessConnectorRenderer，
+    只保留供应器宿主）：手持同心契时 64 格内无线供应器显示透视内芯（蓝=未选中 / 黄=选中）、
+    已连接面蓝色高亮 + 供应器中心到目标面中心的蓝色连线；选中供应器后准星指向机器时，
+    按 Ctrl 即实时预览将要批量连接的连通同种机器群（黄色面 + 黄线）；4 tick 重扫节流 + 换维度清缓存。
+  - **高级设置文案**：并行数说明 / 提示文案缩短到一行放得下（176px 界面宽度）。
+  - **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功；`runGameTestServer` 45 条全过。

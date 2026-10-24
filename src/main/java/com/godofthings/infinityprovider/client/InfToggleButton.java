@@ -97,7 +97,8 @@ public class InfToggleButton extends Button implements ITooltip {
         if (!this.visible) {
             return;
         }
-        // 与 AE2 工具栏按钮一致：先画 18×20 按钮底（含 hover 态），再叠 16×16 状态贴图
+        // 照抄上游 TextureToggleButton：先画 18×20 按钮底（hover/focus 三态），
+        // 图标用 Blitter（16×16 参考尺寸），非激活半透明，zOffset=3 盖在底图上
         var yOffset = this.isHovered() ? 1 : 0;
         var background = this.isHovered() ? appeng.client.gui.Icon.TOOLBAR_BUTTON_BACKGROUND_HOVER
                 : this.isFocused() ? appeng.client.gui.Icon.TOOLBAR_BUTTON_BACKGROUND_FOCUS
@@ -106,8 +107,17 @@ public class InfToggleButton extends Button implements ITooltip {
                 .dest(this.getX() - 1, this.getY() + yOffset, 18, 20)
                 .zOffset(2)
                 .blit(guiGraphics);
-        guiGraphics.blit(this.textures.get(this.stateIndex),
-                this.getX(), this.getY() + 2, 0.0F, 0.0F, 16, 16, 16, 16);
+
+        if (this.textures.isEmpty()) {
+            return;
+        }
+        int idx = Math.min(this.stateIndex, this.textures.size() - 1);
+        var blitter = appeng.client.gui.style.Blitter.texture(this.textures.get(idx), 16, 16)
+                .src(0, 0, 16, 16);
+        if (!this.active) {
+            blitter.opacity(0.5f);
+        }
+        blitter.dest(this.getX(), this.getY() + 1 + yOffset).zOffset(3).blit(guiGraphics);
     }
 
     @Override
