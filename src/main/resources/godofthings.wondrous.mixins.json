@@ -1,0 +1,23 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.godofthings.wondrous.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BeeTimerAccessor",
+    "BlockEntityChangedMixin",
+    "BrushableBlockEntityMixin",
+    "EntityNoPhysicsAccessor",
+    "MinecartContainerLootMemoryMixin",
+    "RandomizableContainerLootMemoryMixin",
+    "ServerLevelTimeStopMixin",
+    "StaffPhaseMovementMixin",
+    "StaffPhasePacketMovementMixin",
+    "StaffRadiationEntityMixin",
+    "StaffRadiationShieldingMixin",
+    "TurtleTimerAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

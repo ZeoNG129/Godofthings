@@ -128,6 +128,22 @@ public class ClientModEvents
         event.register(com.godofthings.mept.client.MeptKeyBindings.UNDO_MODIFIER);
         event.register(com.godofthings.mept.client.MeptKeyBindings.OPEN_CABLE_TOOL_GUI);
         event.register(com.godofthings.mept.client.MeptKeyBindings.MARK_COLOR_SHORTCUT);
+        // 荒辰移晷之杖三键（X 配置 / P 时停 / B 回收紬紬，分类并入「众神之物：工具」）
+        event.register(com.godofthings.wondrous.client.StretcherKeyBindings.WONDROUS_STAFF_MODE);
+        event.register(com.godofthings.wondrous.client.StretcherKeyBindings.WONDROUS_STAFF_TIME_STOP);
+        event.register(com.godofthings.wondrous.client.StretcherKeyBindings.TWO_I_REMOTE_RECLAIM);
+    }
+
+    /** 荒辰移晷之杖：杖加速标记 / 时间流逝时钟 / 树叶奖励三个实体的渲染器（照抄上游 ClientSetup）。 */
+    @SubscribeEvent
+    public static void onWondrousRenderers(EntityRenderersEvent.RegisterRenderers event)
+    {
+        event.registerEntityRenderer(com.godofthings.wondrous.init.WondrousEntities.WONDROUS_STAFF_ACCELERATION.get(),
+                com.godofthings.wondrous.client.render.WondrousStaffAccelerationRenderer::new);
+        event.registerEntityRenderer(com.godofthings.wondrous.init.WondrousEntities.STAFF_LEAF_REWARD.get(),
+                com.godofthings.wondrous.client.render.StaffLeafRewardRenderer::new);
+        event.registerEntityRenderer(com.godofthings.wondrous.init.WondrousEntities.TIME_FLOW.get(),
+                com.godofthings.wondrous.client.render.TimeFlowRenderer::new);
     }
 
     /** 神之皮带：染色皮带用带谓词的模型覆盖（与 models/item/god_belt.json 里的 has_custom_color 对应）。 */

@@ -97,3 +97,9 @@ config="${mod_id}.doll.mixins.json"
 # 之前误挂在主配置的 "advancedmemorycard.P2PTunnelPartMixin"（路径不存在，静默不生效），v7.11.4 修复。
 [[mixins]]
 config="${mod_id}.amc.mixins.json"
+
+# 荒辰移晷之杖（v7.12.0 移植自 useless_stretcher）的 Mixin：方块实体变更探针、
+# 战利品表记忆、时停（ServerLevel）、相位穿墙（Player/网络包）、蜜蜂/海龟计时器
+# accessor、刷子、辐射 @Pseudo（Mekanism 不在时自动跳过）。
+[[mixins]]
+config="${mod_id}.wondrous.mixins.json"

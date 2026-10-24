@@ -59,7 +59,23 @@ $prefixAllow = @(
     # looked up as godofthings.mept.<group>.<name> at runtime; concrete keys are in lang.
     'godofthings.mept.cable.',
     'godofthings.mept.color.',
-    'godofthings.mept.mode.'
+    'godofthings.mept.mode.',
+    # Wondrous staff (ported from useless_stretcher, v7.12.0): runtime-concatenated
+    # prefixes. Every concrete key under them is shipped in zh_cn/en_us (the key-set
+    # equality rule covers them); only the variable tails are whitelisted here:
+    #   staff_tabs.<tab> / entity_acceleration.<row> / reclaimer.<label>
+    #   staff_apotheosis.stat.<n> / staff_apotheosis.tier.<id>
+    #   window.<pref> / range.entity_timer_<n>
+    'gui.godofthings.staff_tabs.',
+    'gui.godofthings.entity_acceleration.',
+    'gui.godofthings.reclaimer.',
+    'gui.godofthings.staff_apotheosis.stat.',
+    'gui.godofthings.staff_apotheosis.tier.',
+    'gui.godofthings.window.',
+    'gui.godofthings.range.entity_timer_',
+    # ButtonHelp builds help.godofthings.<button-id> at runtime; all 15 concrete
+    # ids used by the staff screens are shipped in both lang files.
+    'help.godofthings.'
 )
 
 $itemModelAllow = @()

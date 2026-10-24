@@ -2332,3 +2332,33 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   `com.godofthings.advancedmemorycard.mixin` 包，之前误挂在主 mixin 配置的
   `advancedmemorycard.P2PTunnelPartMixin` 路径下（不存在，自移植以来从未生效）；
   新增独立 `godofthings.amc.mixins.json` 并在 mods.toml 注册。
+## 7.11.4 → 7.12.0
+
+- **新增：荒辰移晷之杖**（`wondrous_staff`，完整移植自 useless_stretcher 模组的 Wondrous Staff，
+  新包 `com.godofthings.wondrous`，约 90 个文件逐行对照上游转换/手写）：
+  - **机器加速**：Shift+右键机器施加加速（走 AE `IGridTickable` 直驱 AE 机器），最长 30 秒；
+    **Shift+滚轮**换挡（关 / x2~x1024，Shift+滚轮并拦截原版快捷栏滚动）；
+    **永久 / 永久无节流**模式（X 界面切换），显示进度条与剩余时长；
+  - **生物计时器加速**：Shift+右键生物只推进成长 / 繁殖冷却 / 下蛋 / 剪毛等计时器（不跑 AI），
+    与原版蜜蜂 / 海龟计时器 mixin 联动；
+  - **时间加速**：仰望太阳 / 月亮 Shift+右键推进天体，云层流速客户端同步；
+  - **范围加速场**：X 界面开「范围放置」后右键地面放置 3D 加速区域（最高 1024 倍），
+    黑 / 白名单标记机器与休眠名单，放置历史可改参数 / 改名 / 回收（杖上的个人回收界面）；
+  - **批量召唤**：搜索并选择任意注册实体（上限 32 只）一键召唤与收回；
+  - **时停**：P 键冻结全场 12 秒（ServerLevel mixin 跳过实体 tick，持杖者豁免）；
+  - **相位穿墙**：X 界面开启（Player / 网络包双 mixin，交互开关独立）；
+  - **战利品刷新**：Shift+右键战利品箱按原 loot 表重刷（含 lootr 兼容）；
+  - **Mekanism 辐射防护**：装 Mekanism 时可给杖开辐射免疫（@Pseudo mixin，未装自动跳过）；
+  - **树叶奖励**：伐木小概率掉「杖」与「紬紬玩偶」（隐藏挑战进度 + 护送实体）；
+    召唤 / 战利品刷新默认开启（用户需求，上游默认关，配置里标 [本地改动]）；
+  - **Apotheosis 兼容**：装 Apothic Enchanting 时可将虚拟书架加成绑定到附魔台（未装隐藏页签）。
+- **按键**：X（杖配置界面）/ P（时停）/ B（远程收回紬紬，复用玩偶既有网络载荷），
+  三键全部并入「众神之物：工具」分类（`key.category.godofthings.wand`），默认键位沿用上游 X/P/B；
+  手册 P 键冲突已由「手册默认不绑定」规避。
+- **配方本地化**：万物原石 ×1 + 下界之星 ×1 无序合成（上游是造化杖 + 工具标签）。
+- **有意不移植**：无线物流（流体收集器 + 界面 + FLUIDS 页签）、独立传送键、
+  TwoI 对话 / 胶囊 / 星空维度 / 无尽万物乱真表（Myriad）、基 mod 挖掘调度器 mixin
+  （本工程无 MiningDispatcher）、Apotheosis 3 个 @Pseudo mixin（界面已带反射兜底）。
+- **自查**：`check-lang.ps1` checks: OK（1816 键，物品 110 / 实体 4 / 成就 33 / 前缀 25）；
+  `gradlew build` 成功并自动部署；`runGameTestServer` 临时探针 5 条（组件编解码往返 /
+  模式归一化 / 召唤白名单 / 时停语义 / 配置默认值）+ 45 条基线全过，探针已删后复跑 45 条全过。

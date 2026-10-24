@@ -1052,6 +1052,23 @@ public class Godofthings
         // 左键清空线缆选点 / 切手重置 / 玩家退出释放撤销历史（游戏总线事件）
         NeoForge.EVENT_BUS.register(com.godofthings.mept.MeptEvents.class);
         // 上游 Config 的放置数量上限等参数（本地沿用 MeptConfig 读取）
+
+        // ===== 荒辰移晷之杖（v7.12.0 移植自 useless_stretcher）=====
+        // 数据组件 / 物品 / 实体三类注册；配置文件独立成 godofthings-wondrous-server/client.toml
+        com.godofthings.wondrous.init.StaffComponents.register(modEventBus);
+        com.godofthings.wondrous.init.WondrousItems.register(modEventBus);
+        com.godofthings.wondrous.init.WondrousEntities.register(modEventBus);
+        // 配置文件独立成 godofthings-wondrous-server/client.toml（内部 registerConfig）
+        com.godofthings.wondrous.config.WondrousConfig.register(modContainer);
+        // 网络载荷（照抄上游 Network::register；内含 ApotheosisNetwork 段）
+        modEventBus.addListener(com.godofthings.wondrous.network.WondrousNetwork::register);
+        // 服务端 tick / 特性开关 / 相位交互 / 时停交互 / 树叶奖励 / 辐射防护（游戏总线事件类）
+        NeoForge.EVENT_BUS.register(com.godofthings.wondrous.event.StaffServerTickHandler.class);
+        NeoForge.EVENT_BUS.register(com.godofthings.wondrous.event.WondrousStaffFeatureEvents.class);
+        NeoForge.EVENT_BUS.register(com.godofthings.wondrous.event.StaffPhaseInteractionEvents.class);
+        NeoForge.EVENT_BUS.register(com.godofthings.wondrous.event.TimeStopInteractionEvents.class);
+        NeoForge.EVENT_BUS.register(com.godofthings.wondrous.event.WondrousStaffLeafDropHandler.class);
+        NeoForge.EVENT_BUS.register(com.godofthings.wondrous.compat.StaffRadiationProtection.class);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
