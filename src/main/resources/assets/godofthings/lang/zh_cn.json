@@ -1269,7 +1269,7 @@
     "item.godofthings.wireless_link_tool":  "无线连接器",
     "itemGroup.godofthings.god_of_things_items_tab":  "众神之物：物品",
     "manual.godofthings.wireless_connector":  "无线网格桥接中枢。放进 ME 网络里（贴着线缆/控制器放），开启自动连接后，在任意距离、任意维度放置的 AE 设备都会被自动并入这个网络。用 /aalink on 开启自动连接。",
-    "manual.godofthings.wireless_link_tool":  "无线连接器：手持卡片把任意位置的 AE 设备接入指定网络（功能移植自 AE2LT 的过载频率卡）。潜行右键无线连接器绑定；右键 AE 设备接入其网络、再点一次断开；Shift+滚轮切换自动连接（放置的设备自动接入）或用按键切换；快捷键连接注视目标。可插进 AE2 各无线终端的升级槽随身携带。",
+    "manual.godofthings.wireless_link_tool":  "无线连接器：手持卡片把任意位置的 AE 设备接入指定网络（功能移植自 AE2LT 的过载频率卡）。潜行右键无线连接器绑定；右键 AE 设备接入其网络、再点一次断开；Shift+滚轮切换自动连接（放置的设备自动接入）或用按键切换；快捷键连接注视目标。可插进 AE2 各无线终端的升级槽，也可戴在 Curios 的「无线连接器」饰品槽里。",
     "message.godofthings.aalink.auto_status":  "AALink 自动连接状态：%s",
     "block.godofthings.overloaded_interface":  "过载接口",
     "manual.godofthings.overloaded_interface":  "36 槽的增强型 ME 接口：可以把配置里的物资主动推向相邻（或无线连接的）目标机器，也可以把目标机器的产物抽回 ME 网络。导入设为「弹出」时，接口直接充当机器的输出仓，塞进来的东西立刻回网。",
@@ -1537,5 +1537,6 @@
     "tooltip.godofthings.aalink.card_bind_hint":  "潜行右键无线连接器绑定",
     "tooltip.godofthings.aalink.card_controls":  "操作：",
     "tooltip.godofthings.aalink.card_link_shortcut":  "%s 连接注视的目标",
-    "tooltip.godofthings.aalink.card_scroll_toggle":  "Shift + 滚轮：切换自动连接"
+    "tooltip.godofthings.aalink.card_scroll_toggle":  "Shift + 滚轮：切换自动连接",
+    "curios.identifier.wireless_connector":  "无线连接器"
 }

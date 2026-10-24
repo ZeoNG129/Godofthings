@@ -1269,7 +1269,7 @@
     "item.godofthings.wireless_link_tool":  "Wireless Connector",
     "itemGroup.godofthings.god_of_things_items_tab":  "God of Things: Items",
     "manual.godofthings.wireless_connector":  "A wireless grid bridge hub. Place it inside an ME network (next to cables or a controller). Once auto-link is enabled, any AE device placed anywhere, in any dimension, is automatically joined to that network. Enable auto-link with /aalink on.",
-    "manual.godofthings.wireless_link_tool":  "Wireless Connector: link AE devices anywhere into a chosen network (ported from AE2LT\u0027s Overloaded Frequency Card). Sneak-right-click a wireless connector to bind; right-click an AE device to link it (again to unlink); Shift+scroll (or a keybind) toggles auto-connect so newly placed devices link automatically; a shortcut key links the looked-at target. Fits into AE2 wireless terminal upgrade slots.",
+    "manual.godofthings.wireless_link_tool":  "Wireless Connector: link AE devices anywhere into a chosen network (ported from AE2LT\u0027s Overloaded Frequency Card). Sneak-right-click a wireless connector to bind; right-click an AE device to link it (again to unlink); Shift+scroll (or a keybind) toggles auto-connect so newly placed devices link automatically; a shortcut key links the looked-at target. Fits into AE2 wireless terminal upgrade slots, and can be worn in the Curios \u0027Wireless Connector\u0027 slot.",
     "message.godofthings.aalink.auto_status":  "AALink auto-link status: %s",
     "block.godofthings.overloaded_interface":  "Overloaded Interface",
     "manual.godofthings.overloaded_interface":  "A 36-slot enhanced ME interface: it can push configured items into adjacent (or wirelessly connected) machines, and pull machine outputs back into the ME network. Setting import to Eject makes the interface act as the machine\u0027s output inventory, forwarding everything straight into the network.",
@@ -1537,5 +1537,6 @@
     "tooltip.godofthings.aalink.card_bind_hint":  "Sneak-right-click a wireless connector to bind",
     "tooltip.godofthings.aalink.card_controls":  "Controls:",
     "tooltip.godofthings.aalink.card_link_shortcut":  "%s to link the looked-at target",
-    "tooltip.godofthings.aalink.card_scroll_toggle":  "Shift + Scroll: toggle auto-connect"
+    "tooltip.godofthings.aalink.card_scroll_toggle":  "Shift + Scroll: toggle auto-connect",
+    "curios.identifier.wireless_connector":  "Wireless Connector"
 }

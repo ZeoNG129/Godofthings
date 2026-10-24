@@ -1,0 +1,6 @@
+{
+  "order": 60,
+  "size": 1,
+  "icon": "godofthings:slot/empty_wireless_connector",
+  "validators": ["curios:tag"]
+}

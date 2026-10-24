@@ -2301,3 +2301,12 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   全局自动桥接的开关已由卡的自动连接替代。
 - **修复卡无法放进其他无线终端**：升级卡注册从仅 AE2 无线终端扩展到全系列——
   无线终端 / 无线合成终端 / 无线样板编码终端 / 染色 applicator 均可插入。
+## 7.11.2（2026-10-25）
+- **修复卡无法放进任何无线终端的根因**：AE2 升级槽用 `Upgrades.isUpgradeCardItem`
+  （instanceof `UpgradeCardItem`）过滤可放入物品，之前卡继承普通 `Item`，注册多少次都进不了槽。
+  已改为照抄上游**继承 AE2 的 `UpgradeCardItem`**；同时原版终端注册改用四参
+  `Upgrades.add(card, item, 1, 无线终端组)`（组正确显示在升级卡 tooltip），ae2wtlib
+  （AE2 无线终端）存在时反射调它的 `UpgradeHelper.addUpgradeToAllTerminals` 覆盖其全部终端与通用终端。
+- **新增 Curios 饰品槽「无线连接器」**（照抄上游过载频率卡槽的做法，纯数据包 + tag 校验）：
+  `curios/slots/wireless_connector.json`（1 格、专用图标）+ 槽位挂到玩家 + 物品 tag；
+  卡的自动选卡链补上 Curios 槽（优先级：主手 > 副手 > Curios > 快捷栏 > 背包，与上游一致）。

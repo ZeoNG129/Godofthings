@@ -1076,13 +1076,17 @@ public class Godofthings
         event.enqueueWork(com.godofthings.superfusion.SuperFusionRegistry::registerAeLinkable);
         // ME 放置工具：三件套都注册成 AE2 可绑定物（同上，enqueueWork 里才安全）
         event.enqueueWork(com.godofthings.mept.MeptItems::registerAeLinkables);
-        // 无线连接器卡：注册成 AE2 全系列可升级手持设备的升级卡（原版共有：
-        // 无线终端 / 无线合成终端 / 染色器；样板编码终端等属 ae2wtlib，走 IUpgradeableItem 同样可装）
+        // 无线连接器卡 → AE2 升级卡注册：
+        // 原版终端走四参 Upgrades.add（group 指定无线终端组，升级槽 UI 按组过滤显示）；
+        // AE2 无线终端（ae2wtlib）的终端走它自己的 UpgradeHelper.addUpgradeToAllTerminals
+        // （该 API 藏在 jarjar 嵌套 jar 里且是可选依赖，只能反射调用）。
         event.enqueueWork(() -> {
             var card = com.godofthings.aalink.AaLinkRegistry.WIRELESS_LINK_TOOL.get();
-            appeng.api.upgrades.Upgrades.add(card, AEItems.WIRELESS_TERMINAL.get(), 1);
-            appeng.api.upgrades.Upgrades.add(card, AEItems.WIRELESS_CRAFTING_TERMINAL.get(), 1);
-            appeng.api.upgrades.Upgrades.add(card, AEItems.COLOR_APPLICATOR.get(), 1);
+            String wtGroup = appeng.core.localization.GuiText.WirelessTerminals.getTranslationKey();
+            appeng.api.upgrades.Upgrades.add(card, AEItems.WIRELESS_TERMINAL.get(), 1, wtGroup);
+            appeng.api.upgrades.Upgrades.add(card, AEItems.WIRELESS_CRAFTING_TERMINAL.get(), 1, wtGroup);
+            appeng.api.upgrades.Upgrades.add(card, AEItems.COLOR_APPLICATOR.get(), 1, wtGroup);
+            com.godofthings.aalink.ConnectorCardTerminalCompat.registerAe2wtlibUpgrades(card);
         });
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上

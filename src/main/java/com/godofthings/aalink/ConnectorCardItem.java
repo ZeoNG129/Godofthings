@@ -35,12 +35,11 @@ import net.neoforged.neoforge.network.PacketDistributor;
  *   <li>自动连接开启时，放置的方块 / 部件会自动接入（见 {@link ConnectorCardAutoConnectHandler}）</li>
  * </ul>
  *
- * <p>[本地改动] 上游继承 AE2 的 UpgradeCardItem（为了能插进 ae2wtlib 无线终端的升级槽）。
- * 本模组环境没有 ae2wtlib，终端兼容走 AE2 原生 {@code IUpgradeableItem} 机制：
- * 在 {@link AaLinkRegistry} 的 commonSetup 里用 {@code Upgrades.addCard} 把本卡
- * 注册成 AE2 原版无线终端的升级卡，即可插进无线终端并随终端生效。</p>
+ * <p>继承 AE2 的 {@code UpgradeCardItem}（与上游一致）：AE2 的升级槽用
+ * {@code Upgrades.isUpgradeCardItem}（instanceof 判定）过滤可放入物品，
+ * 不继承它就永远进不了任何升级槽——这是 v7.11.1 之前卡放不进终端的根因。</p>
  */
-public class ConnectorCardItem extends Item
+public class ConnectorCardItem extends appeng.items.materials.UpgradeCardItem
 {
     private static final String TAG_AUTO_CONNECT = "AutoConnect";
     private static final String TAG_BOUND_CONNECTOR_DIM = "BoundConnectorDim";
@@ -241,6 +240,15 @@ public class ConnectorCardItem extends Item
         if (isCandidate(offhand, playerUuid, requireAutoConnect))
         {
             return CardSelection.selected(offhand);
+        }
+
+        // Curios 饰品槽里的卡（照抄上游 CuriosFrequencyCardFinder 的优先级位置）；
+        // Curios 是可选依赖，没装时 findFirstInCurios 返回空
+        var curiosCard = com.godofthings.backpack.CuriosCompat.findFirstInCurios(
+                player, stack -> isCandidate(stack, playerUuid, requireAutoConnect));
+        if (!curiosCard.isEmpty())
+        {
+            return CardSelection.selected(curiosCard);
         }
 
         var inventory = player.getInventory();
