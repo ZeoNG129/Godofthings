@@ -2093,6 +2093,7 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 - 7.4.1 -> **7.5.0（新增小物品级功能：移植 AE2LT 过载接口——36 槽 / 无线模式 / 导出导入三态 / 弹出输出仓 / IO 速度；指令 /aalink 改为 /godofthings link on|off）**。2026-10-25
 - 7.5.0 -> **7.5.1（修复：过载接口放置时 NPE 闪退——AE2 方块实体必须在 commonSetup 里 setBlockEntity）**。2026-10-25
 - 7.5.1 -> **7.5.2（修复：右键过载接口踢出界面——AE2 InterfaceScreen 按配置槽数要求 amtButton 部件，36 槽需 36 个；自建屏幕 json 补齐）**。2026-10-25
+- 7.5.2 -> **7.5.3（修复：屏幕 json 与 AE2LT 本体同名资源冲突——AE2LT 的 overloaded_interface.json 把我们的覆盖了；改名 godofthings_overloaded_interface.json）**。2026-10-25
   - **图标隐形**：图标改用 AE2 的 `Blitter.texture(rl, 16, 16)` 绘制（照抄上游 TextureToggleButton），
     非激活半透明、y 偏移 1+yOffset、zOffset=3 盖在按钮底图上；之前的 GuiGraphics.blit 方式对
     16×16 独立贴图不生效。
