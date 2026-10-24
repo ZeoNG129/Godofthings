@@ -967,6 +967,9 @@ public class Godofthings
         // ===== 全能升级（移植自 Omni Upgrades：批量安装插件 / 等级安装器 + 高亮预览）=====
         // 适配器内部用 ModList.isLoaded 守护；网络通道 + 客户端/服务端双配置
         modEventBus.addListener(com.godofthings.omni.OmniNetwork::onRegisterPayloads);
+        // 同心契绑定供应器 / 机器的 C2S 包（Ctrl 批量状态随包走）
+        modEventBus.addListener(
+                com.godofthings.infinityprovider.BinderUsePayload::onRegisterPayloads);
         modContainer.registerConfig(ModConfig.Type.CLIENT,
                 com.godofthings.omni.OmniConfig.SPEC, "godofthings-omni-client.toml");
         // 全能升级没有服务端配置（上游 ServerConfig 的升级上限规则只服务蜂巢模组，随环境裁剪）

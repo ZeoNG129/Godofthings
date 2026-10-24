@@ -42,6 +42,8 @@ public final class InfProviderMenu {
         public int wirelessSpeedMode;
         @GuiSync(22010)
         public int adaptiveBatchEnabled;
+        @GuiSync(22013)
+        public int filteredImport;
         @GuiSync(22011)
         public int machineParallelism = 1;
         @GuiSync(22012)
@@ -55,6 +57,7 @@ public final class InfProviderMenu {
             this.registerClientAction("infToggleDispatch", this::infToggleDispatch);
             this.registerClientAction("infToggleSpeed", this::infToggleSpeed);
             this.registerClientAction("infToggleAdaptive", this::infToggleAdaptive);
+            this.registerClientAction("infToggleFiltered", this::infToggleFiltered);
             this.registerClientAction("infSetParallelism", Integer.class, this::infSetParallelism);
         }
 
@@ -72,6 +75,7 @@ public final class InfProviderMenu {
                 this.wirelessDispatchMode = settings.getWirelessDispatchMode().ordinal();
                 this.wirelessSpeedMode = settings.getWirelessSpeedMode().ordinal();
                 this.adaptiveBatchEnabled = settings.isAdaptiveBatchEnabled() ? 1 : 0;
+                this.filteredImport = settings.isFilteredImport() ? 1 : 0;
                 this.machineParallelism = settings.getMachineParallelism();
                 this.connectionCount = host.infConnections().size();
             }
@@ -130,6 +134,14 @@ public final class InfProviderMenu {
             host.infSettings().setAdaptiveBatchEnabled(!host.infSettings().isAdaptiveBatchEnabled());
         }
 
+        private void infToggleFiltered() {
+            var host = this.enhancedHost();
+            if (host == null || !this.isServerSide()) {
+                return;
+            }
+            host.infSettings().setFilteredImport(!host.infSettings().isFilteredImport());
+        }
+
         private void infSetParallelism(int value) {
             var host = this.enhancedHost();
             if (host == null || !this.isServerSide()) {
@@ -160,6 +172,10 @@ public final class InfProviderMenu {
             this.sendClientAction("infToggleAdaptive");
         }
 
+        public void clientToggleFiltered() {
+            this.sendClientAction("infToggleFiltered");
+        }
+
         public void clientSetParallelism(int value) {
             this.sendClientAction("infSetParallelism", Math.max(1, value));
         }
@@ -184,6 +200,10 @@ public final class InfProviderMenu {
 
         public boolean isAdaptiveBatch() {
             return this.adaptiveBatchEnabled != 0;
+        }
+
+        public boolean isFilteredImport() {
+            return this.filteredImport != 0;
         }
 
         public int getMachineParallelism() {

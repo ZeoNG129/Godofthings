@@ -222,16 +222,39 @@ public class InfProviderLogic extends PatternProviderLogic {
         PatternProviderTarget target = null;
         MEStorage storage = null;
         if (be != null && !be.isRemoved()) {
-            // ME 存储能力优先（与原版 PatternProviderTarget 解析顺序一致）
+            // ME 存储能力优先；没有时回退外部存储策略（物品/流体 Forge 能力桥，
+            // 与原版 PatternProviderTarget.get 的两级解析一致——普通熔炉等靠这条通道）
             storage = targetLevel.getCapability(
                     AECapabilities.ME_STORAGE, conn.pos(), be.getBlockState(), be,
                     conn.machineSide());
+            if (storage == null) {
+                storage = wrapExternalStorage(targetLevel, conn);
+            }
             target = PatternProviderTarget.get(targetLevel, conn.pos(), be, conn.machineSide(),
                     this.actionSource);
         }
         cached = new CachedTarget(target, storage, gameTick);
         this.targetCaches.put(conn, cached);
         return cached;
+    }
+
+    /** 用 AE2 的外部存储策略把目标机器的物品 / 流体能力桥接成 ME 存储。 */
+    @Nullable
+    private static MEStorage wrapExternalStorage(ServerLevel level, InfWirelessConnection conn) {
+        var strategies = appeng.parts.automation.StackWorldBehaviors
+                .createExternalStorageStrategies(level, conn.pos(), conn.machineSide());
+        var externalStorages = new java.util.IdentityHashMap<appeng.api.stacks.AEKeyType, MEStorage>(2);
+        for (var entry : strategies.entrySet()) {
+            var wrapper = entry.getValue().createWrapper(false, () -> {
+            });
+            if (wrapper != null) {
+                externalStorages.put(entry.getKey(), wrapper);
+            }
+        }
+        if (externalStorages.isEmpty()) {
+            return null;
+        }
+        return new appeng.me.storage.CompositeStorage(externalStorages);
     }
 
     private List<InfWirelessConnection> validConnections(ServerLevel level) {
@@ -245,6 +268,35 @@ public class InfProviderLogic extends PatternProviderLogic {
         return result;
     }
 
+    /**
+     * 清理失效连接（目标方块实体已消失且区块已加载才判定失效；未加载的保留）。
+     * 每 100 tick 跑一轮，从回收扫描顺带驱动。
+     */
+    private long nextPruneTick;
+
+    private void pruneInvalidConnections(ServerLevel level) {
+        long gameTick = level.getGameTime();
+        if (gameTick < this.nextPruneTick) {
+            return;
+        }
+        this.nextPruneTick = gameTick + 100;
+        var connections = this.enhancedHost.infConnections();
+        if (connections.isEmpty()) {
+            return;
+        }
+        boolean removed = connections.removeIf(conn -> {
+            var targetLevel = level.getServer().getLevel(conn.dimension());
+            // 维度不在或区块未加载：无法判定，保留
+            if (targetLevel == null || !targetLevel.isLoaded(conn.pos())) {
+                return false;
+            }
+            return targetLevel.getBlockEntity(conn.pos()) == null;
+        });
+        if (removed) {
+            this.enhancedHost.infConnectionsChanged();
+        }
+    }
+
     /** 宿主设置 / 连接变更后调用：清空缓存，下一拍重建。 */
     public void infInvalidateCaches() {
         this.targetCaches.clear();
@@ -253,12 +305,16 @@ public class InfProviderLogic extends PatternProviderLogic {
 
     // ==================== 回收（AUTO）====================
 
-    /** 周期性从连接机器抽取与当前样板产物匹配的输出，送进返回栏自动回网。 */
+    /** 周期性清理失效连接 + AUTO 模式下从连接机器抽取匹配产物回网。 */
     public void tickReturnSweep() {
-        if (this.settings().getReturnMode() != InfProviderSettings.ReturnMode.AUTO
-                || this.settings().getProviderMode() != InfProviderSettings.ProviderMode.WIRELESS
-                || !(this.hostLevel() instanceof ServerLevel level)
+        if (!(this.hostLevel() instanceof ServerLevel level)
                 || !((PatternProviderLogicAccessor) this).getMainNode().isActive()) {
+            return;
+        }
+        // 连接清理与回收模式无关，始终驱动
+        this.pruneInvalidConnections(level);
+        if (this.settings().getReturnMode() != InfProviderSettings.ReturnMode.AUTO
+                || this.settings().getProviderMode() != InfProviderSettings.ProviderMode.WIRELESS) {
             return;
         }
         long gameTick = level.getGameTime();
@@ -271,8 +327,11 @@ public class InfProviderLogic extends PatternProviderLogic {
         if (connections.isEmpty()) {
             return;
         }
-        var allowedOutputs = this.currentPatternOutputs();
-        if (allowedOutputs.isEmpty()) {
+        // 输入过滤关 = 不限制回收种类（空集合语义为「全收」）；开 = 只收样板产物
+        var allowedOutputs = this.settings().isFilteredImport()
+                ? this.currentPatternOutputs()
+                : null;
+        if (allowedOutputs != null && allowedOutputs.isEmpty()) {
             return;
         }
         int polled = Math.min(connections.size(), MAX_RETURN_POLLS_PER_TICK);
@@ -303,15 +362,15 @@ public class InfProviderLogic extends PatternProviderLogic {
         return outputs;
     }
 
-    /** 从机器存储抽取匹配产物入返回栏；塞不下的原路留在机器里，绝不凭空消失。 */
-    private void extractOutputs(MEStorage storage, Set<AEKey> allowedOutputs,
+    /** 从机器存储抽取匹配产物入返回栏；塞不下的原路留在机器里，绝不凭空消失。null = 不过滤全收。 */
+    private void extractOutputs(MEStorage storage, @Nullable Set<AEKey> allowedOutputs,
             PatternProviderReturnInventory returnInv) {
         var counter = new KeyCounter();
         storage.getAvailableStacks(counter);
         for (var entry : counter) {
             var key = entry.getKey();
             long amount = entry.getLongValue();
-            if (amount <= 0 || !allowedOutputs.contains(key)) {
+            if (amount <= 0 || (allowedOutputs != null && !allowedOutputs.contains(key))) {
                 continue;
             }
             long accepted = returnInv.insert(key, amount, Actionable.SIMULATE, this.actionSource);

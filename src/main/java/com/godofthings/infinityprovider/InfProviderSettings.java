@@ -1,9 +1,12 @@
 package com.godofthings.infinityprovider;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+
 /**
  * 增强供应器的设置容器（移植自 AE2LT 扩展过载样板供应器）。
  * 供 BE / Part 两个宿主共用：NBT 持久化 + 网络同步的字段都收敛在这里，
- * 宿主只负责在变更时调用 {@link #markDirty} 触发存盘与重算。
+ * 宿主只负责在变更时经 {@link DirtyListener} 触发存盘与缓存失效。
  */
 public final class InfProviderSettings {
 
@@ -36,6 +39,8 @@ public final class InfProviderSettings {
     private WirelessDispatchMode wirelessDispatchMode = WirelessDispatchMode.EVEN_DISTRIBUTION;
     private WirelessSpeedMode wirelessSpeedMode = WirelessSpeedMode.NORMAL;
     private boolean adaptiveBatchEnabled = false;
+    /** 输入过滤：开启后被动回流只收当前样板的产物，关闭收一切。 */
+    private boolean filteredImport = false;
     private int machineParallelism = 1;
 
     private final DirtyListener listener;
@@ -110,6 +115,18 @@ public final class InfProviderSettings {
         this.markDirty();
     }
 
+    public boolean isFilteredImport() {
+        return this.filteredImport;
+    }
+
+    public void setFilteredImport(boolean enabled) {
+        if (this.filteredImport == enabled) {
+            return;
+        }
+        this.filteredImport = enabled;
+        this.markDirty();
+    }
+
     public int getMachineParallelism() {
         return this.machineParallelism;
     }
@@ -130,18 +147,20 @@ public final class InfProviderSettings {
     private static final String TAG_WIRELESS_DISPATCH = "InfDispatch";
     private static final String TAG_WIRELESS_SPEED = "InfSpeed";
     private static final String TAG_ADAPTIVE_BATCH = "InfAdaptive";
+    private static final String TAG_FILTERED_IMPORT = "InfFiltered";
     private static final String TAG_MACHINE_PARALLELISM = "InfParallel";
 
-    public void writeToTag(net.minecraft.nbt.CompoundTag tag) {
+    public void writeToTag(CompoundTag tag) {
         tag.putString(TAG_PROVIDER_MODE, this.providerMode.name());
         tag.putString(TAG_RETURN_MODE, this.returnMode.name());
         tag.putString(TAG_WIRELESS_DISPATCH, this.wirelessDispatchMode.name());
         tag.putString(TAG_WIRELESS_SPEED, this.wirelessSpeedMode.name());
         tag.putBoolean(TAG_ADAPTIVE_BATCH, this.adaptiveBatchEnabled);
+        tag.putBoolean(TAG_FILTERED_IMPORT, this.filteredImport);
         tag.putInt(TAG_MACHINE_PARALLELISM, this.machineParallelism);
     }
 
-    public void readFromTag(net.minecraft.nbt.CompoundTag tag) {
+    public void readFromTag(CompoundTag tag) {
         this.providerMode = readEnum(tag, TAG_PROVIDER_MODE, ProviderMode.class, ProviderMode.NORMAL);
         this.returnMode = readEnum(tag, TAG_RETURN_MODE, ReturnMode.class, ReturnMode.OFF);
         this.wirelessDispatchMode = readEnum(tag, TAG_WIRELESS_DISPATCH, WirelessDispatchMode.class,
@@ -149,10 +168,11 @@ public final class InfProviderSettings {
         this.wirelessSpeedMode = readEnum(tag, TAG_WIRELESS_SPEED, WirelessSpeedMode.class,
                 WirelessSpeedMode.NORMAL);
         this.adaptiveBatchEnabled = tag.getBoolean(TAG_ADAPTIVE_BATCH);
+        this.filteredImport = tag.getBoolean(TAG_FILTERED_IMPORT);
         this.machineParallelism = Math.max(1, tag.getInt(TAG_MACHINE_PARALLELISM));
     }
 
-    private static <E extends Enum<E>> E readEnum(net.minecraft.nbt.CompoundTag tag, String key,
+    private static <E extends Enum<E>> E readEnum(CompoundTag tag, String key,
             Class<E> type, E fallback) {
         if (!tag.contains(key)) {
             return fallback;
@@ -166,35 +186,39 @@ public final class InfProviderSettings {
 
     // ---- 网络流（BE 客户端同步用，字段顺序与 writeToStream/readFromStream 一致）----
 
-    public void writeToStream(net.minecraft.network.RegistryFriendlyByteBuf data) {
+    public void writeToStream(RegistryFriendlyByteBuf data) {
         data.writeByte(this.providerMode.ordinal());
         data.writeByte(this.returnMode.ordinal());
         data.writeByte(this.wirelessDispatchMode.ordinal());
         data.writeByte(this.wirelessSpeedMode.ordinal());
         data.writeBoolean(this.adaptiveBatchEnabled);
+        data.writeBoolean(this.filteredImport);
         data.writeVarInt(this.machineParallelism);
     }
 
     /** @return 设置是否有变化（供 readFromStream 汇报渲染刷新）。 */
-    public boolean readFromStream(net.minecraft.network.RegistryFriendlyByteBuf data) {
+    public boolean readFromStream(RegistryFriendlyByteBuf data) {
         var newMode = safeEnum(ProviderMode.values(), data.readByte(), ProviderMode.NORMAL);
         var newReturn = safeEnum(ReturnMode.values(), data.readByte(), ReturnMode.OFF);
         var newDispatch = safeEnum(WirelessDispatchMode.values(), data.readByte(),
                 WirelessDispatchMode.EVEN_DISTRIBUTION);
         var newSpeed = safeEnum(WirelessSpeedMode.values(), data.readByte(), WirelessSpeedMode.NORMAL);
         boolean newAdaptive = data.readBoolean();
+        boolean newFiltered = data.readBoolean();
         int newParallelism = Math.max(1, data.readVarInt());
         boolean changed = newMode != this.providerMode
                 || newReturn != this.returnMode
                 || newDispatch != this.wirelessDispatchMode
                 || newSpeed != this.wirelessSpeedMode
                 || newAdaptive != this.adaptiveBatchEnabled
+                || newFiltered != this.filteredImport
                 || newParallelism != this.machineParallelism;
         this.providerMode = newMode;
         this.returnMode = newReturn;
         this.wirelessDispatchMode = newDispatch;
         this.wirelessSpeedMode = newSpeed;
         this.adaptiveBatchEnabled = newAdaptive;
+        this.filteredImport = newFiltered;
         this.machineParallelism = newParallelism;
         return changed;
     }

@@ -2070,3 +2070,17 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **实现**：`PatternProviderLogicAccessor` mixin 暴露 AE2 私有成员；`InfEnhancedBlockEntity` 基类（NBT + 客户端流同步）；
     `InfProviderLogic`（派发/回收/EJECT 存储）；菜单 GuiSync 高位段（22000+）+ client action；同心契三用绑定。
   - **自查**：`check-lang.ps1` checks: OK（zh/en 各 +33 键）；`gradlew build` 成功；`runGameTestServer` 45 条全过。
+
+- 7.3.0 -> **7.3.1（修复：增强供应器五项实测问题）**。2026-10-24
+  - **按钮隐形**：工具栏按钮缺 AE2 的 18×20 按钮底图（hover/focus 三态）——上游 TextureToggleButton 先画底再叠 16×16 状态贴图，
+    我们只画了贴图；现补齐底图渲染，主界面与高级设置按钮均可见且有悬停反馈。
+  - **连接数不更新**：打掉机器后连接残留——服务端 tick 现在每 100 tick 清理一轮失效连接
+    （目标方块实体消失且区块已加载才判定失效，未加载保留），菜单连接数随之刷新。
+  - **Ctrl 批量选择**：同心契按住 Ctrl 右键机器 → BFS 扩展到六向连通的同种机器群一键全绑
+    （潜行+Ctrl 批量断开）；服务端读不到按键，新增 BinderUsePayload C2S 包把 Ctrl 状态随包发送（与上游网络包同思路）。
+  - **高级设置对齐原版**：补上「输入过滤」开关（开 = 回收只收当前样板产物，关 = 全收），
+    子屏现在与 AE2LT 原版一致有三开关 + 机器并行数。
+  - **回收不工作**：普通机器（熔炉等）不暴露 ME 存储能力，原实现抽不到——
+    现按原版 PatternProviderTarget 的两级解析回退到 AE2 外部存储策略（Forge 物品/流体能力桥），
+    普通容器的产物也能被 AUTO 回收扫回网络。
+  - **自查**：`check-lang.ps1` checks: OK（zh/en 各 +7 键）；`gradlew build` 成功；`runGameTestServer` 45 条全过。

@@ -27,9 +27,11 @@ public class InfProviderAdvancedScreen<M extends InfProviderMenu.EnhancedActions
     private static final int LABEL_X = 38;
     private static final int STRATEGY_Y = 33;
     private static final int SPEED_Y = 57;
+    private static final int FILTER_Y = 81;
 
     private final InfToggleButton wirelessStrategyButton;
     private final InfToggleButton wirelessSpeedButton;
+    private final InfToggleButton filteredImportButton;
     private final AETextField machineParallelism;
     private final Button applyParallelism;
     private int lastSyncedParallelism;
@@ -58,6 +60,15 @@ public class InfProviderAdvancedScreen<M extends InfProviderMenu.EnhancedActions
         this.wirelessSpeedButton.setTooltipOff(
                 List.of(Component.translatable("gui.godofthings.infprovider.speed.normal")));
         this.widgets.add("wirelessSpeed", this.wirelessSpeedButton);
+
+        this.filteredImportButton = new InfToggleButton(
+                InfToggleButton.ButtonType.FILTERED_IMPORT,
+                btn -> menu.clientToggleFiltered());
+        this.filteredImportButton.setTooltipOn(
+                List.of(Component.translatable("gui.godofthings.infprovider.filtered.on")));
+        this.filteredImportButton.setTooltipOff(
+                List.of(Component.translatable("gui.godofthings.infprovider.filtered.off")));
+        this.widgets.add("filteredImport", this.filteredImportButton);
 
         this.machineParallelism = this.widgets.addTextField("machineParallelism");
         this.machineParallelism.setMaxLength(10);
@@ -121,6 +132,9 @@ public class InfProviderAdvancedScreen<M extends InfProviderMenu.EnhancedActions
         this.wirelessSpeedButton.setVisibility(true);
         this.wirelessSpeedButton.active = wirelessActive;
 
+        this.filteredImportButton.setState(this.menu.isFilteredImport());
+        this.filteredImportButton.setVisibility(true);
+
         if (this.lastSyncedParallelism != this.menu.getMachineParallelism()) {
             if (!this.machineParallelism.isFocused()
                     || this.draftedParallelism() == this.lastSyncedParallelism) {
@@ -145,6 +159,9 @@ public class InfProviderAdvancedScreen<M extends InfProviderMenu.EnhancedActions
         guiGraphics.drawString(this.font,
                 Component.translatable("gui.godofthings.infprovider.advanced.probe"),
                 LABEL_X, SPEED_Y, wirelessColor, false);
+        guiGraphics.drawString(this.font,
+                Component.translatable("gui.godofthings.infprovider.advanced.input_filter"),
+                LABEL_X, FILTER_Y, 0x404040, false);
         guiGraphics.drawString(this.font,
                 Component.translatable("gui.godofthings.infprovider.advanced.machine_parallelism"),
                 14, 105, wirelessColor, false);

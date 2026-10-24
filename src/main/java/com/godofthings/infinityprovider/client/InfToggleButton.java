@@ -32,7 +32,9 @@ public class InfToggleButton extends Button implements ITooltip {
         /** 无线派发策略：索引对齐 WirelessDispatchMode。 */
         WIRELESS_STRATEGY("single_target", "even_distribution"),
         /** 无线速度：索引对齐 WirelessSpeedMode。 */
-        SPEED("speed_normal", "speed_fast");
+        SPEED("speed_normal", "speed_fast"),
+        /** 输入过滤：被动回流只收样板产物。 */
+        FILTERED_IMPORT("filtered_import_off", "filtered_import_on");
 
         final List<ResourceLocation> textures;
 
@@ -92,10 +94,20 @@ public class InfToggleButton extends Button implements ITooltip {
 
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        if (this.visible) {
-            guiGraphics.blit(this.textures.get(this.stateIndex),
-                    this.getX(), this.getY(), 0.0F, 0.0F, 16, 16, 16, 16);
+        if (!this.visible) {
+            return;
         }
+        // 与 AE2 工具栏按钮一致：先画 18×20 按钮底（含 hover 态），再叠 16×16 状态贴图
+        var yOffset = this.isHovered() ? 1 : 0;
+        var background = this.isHovered() ? appeng.client.gui.Icon.TOOLBAR_BUTTON_BACKGROUND_HOVER
+                : this.isFocused() ? appeng.client.gui.Icon.TOOLBAR_BUTTON_BACKGROUND_FOCUS
+                        : appeng.client.gui.Icon.TOOLBAR_BUTTON_BACKGROUND;
+        background.getBlitter()
+                .dest(this.getX() - 1, this.getY() + yOffset, 18, 20)
+                .zOffset(2)
+                .blit(guiGraphics);
+        guiGraphics.blit(this.textures.get(this.stateIndex),
+                this.getX(), this.getY() + 2, 0.0F, 0.0F, 16, 16, 16, 16);
     }
 
     @Override
