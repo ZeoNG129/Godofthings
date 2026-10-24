@@ -1517,15 +1517,11 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "tooltip.godofthings.super_fusion.mode.full":  "Full mode",
     "tooltip.godofthings.super_fusion.stored":  "Recorded machine: %s",
     "tooltip.godofthings.super_fusion.no_stored":  "No machine copied yet (sneak-right-click a machine to copy)",
-    "tooltip.godofthings.super_fusion.energy_hint":  "Uses card energy: 1000 FE per install",
     "tooltip.godofthings.super_fusion.extra_tier_support":  "Extra tier support enabled (Mekanism Extras / EvolvedMekanism)",
     "gui.godofthings.super_fusion.title":  "Super Fusion Card",
-    "gui.godofthings.super_fusion.status_ready":  "Ready",
-    "gui.godofthings.super_fusion.status_no_energy":  "No energy",
     "gui.godofthings.super_fusion.fusion_mode_short":  "Fusion",
     "gui.godofthings.super_fusion.module_mode_short":  "Module",
     "gui.godofthings.super_fusion.target_mode_short":  "Target",
-    "gui.godofthings.super_fusion.energy_short":  "Energy",
     "gui.godofthings.super_fusion.mode_compact.tier":  "Tier install",
     "gui.godofthings.super_fusion.mode_compact.module":  "Install upgrades",
     "gui.godofthings.super_fusion.mode_compact.memory":  "Memory copy",
@@ -1549,7 +1545,6 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "message.godofthings.super_fusion.machine_in_use":  "The machine is in use and cannot be upgraded",
     "message.godofthings.super_fusion.not_tier_upgradable":  "That block does not support tier upgrades",
     "message.godofthings.super_fusion.cannot_upgrade":  "Cannot upgrade that machine",
-    "message.godofthings.super_fusion.no_energy":  "Not enough card energy (1000 FE per install)",
     "message.godofthings.super_fusion.success":  "Upgrade succeeded, %s tiers gained",
     "message.godofthings.super_fusion.tier_unsupported":  "Missing the installer for that tier",
     "message.godofthings.super_fusion.tier_failed":  "Upgrade failed",
@@ -1574,5 +1569,7 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "message.godofthings.super_fusion.selection_too_large":  "Selection too large (max 64 per side, 32768 total)",
     "message.godofthings.super_fusion.selection_first":  "First corner recorded: %s",
     "message.godofthings.super_fusion.selection_cleared":  "Selection corner cleared",
-    "manual.godofthings.super_fusion_card":  "[Super Fusion Card] An all-in-one machine refit tool ported from Mekanism-Card. One card covers four operations:\n- Tier install: raises a machine all the way to the tier recorded on the card (consumes the matching installers plus 1000 FE each time);\n- Install upgrades: syncs the recorded upgrade profile onto the target machine, filling or trimming counts (surplus returns to your inventory);\n- Memory copy / paste: copies a machine's config (upgrades, side settings and so on) and pastes it onto machines of the same kind;\n- Full mode: raises the tier first, then pastes upgrades and config in one go.\n[Controls] Right-click a machine to run the current mode; sneak-right-click a machine to copy its config; sneak-right-click air to clear the card; left-click air to open the settings screen; sneak-left-click air to cycle modes; middle-click a machine to fill every upgrade at once; hold the Super Fusion Card batch selection key (unbound by default, set it under the God of Things category) and left-click two corners to run the current mode over that box.\n[Power] The card stores 200000 FE and can be charged in a Mekanism energy cube or any other charger.\n[Soft dependency] This item is only registered when Mekanism is installed; with Mekanism Extras or EvolvedMekanism present it automatically supports the higher tiers those mods inject."
+    "manual.godofthings.super_fusion_card":  "[Super Fusion Card] An all-in-one machine refit tool ported from Mekanism-Card. One card covers four operations:\n- Tier install: raises a machine all the way to the tier recorded on the card (consumes the matching installers);\n- Install upgrades: syncs the recorded upgrade profile onto the target machine, filling or trimming counts (surplus returns to your inventory);\n- Memory copy / paste: copies a machine's config (upgrades, side settings and so on) and pastes it onto machines of the same kind;\n- Full mode: raises the tier first, then pastes upgrades and config in one go.\n[Controls] Right-click a machine to run the current mode; sneak-right-click a machine to copy its config; sneak-right-click air to clear the card; left-click air to open the settings screen; sneak-left-click air to cycle modes; middle-click a machine to fill every upgrade at once; hold the Super Fusion Card batch selection key (unbound by default, set it under the God of Things category) and left-click two corners to run the current mode over that box.\n[Material networks] Put the card into an ME wireless access point and shift-right-click to bind it to the AE network; sneak-right-click a QIO dashboard to bind a QIO frequency. Once bound, upgrade and installer materials can be pulled straight from those networks.\n[Soft dependency] This item is only registered when Mekanism is installed; with Mekanism Extras or EvolvedMekanism present it automatically supports the higher tiers those mods inject.",
+    "message.godofthings.super_fusion.qio_no_frequency":  "That block has no QIO frequency set",
+    "message.godofthings.super_fusion.qio_bound":  "Bound to QIO frequency: %s"
 }

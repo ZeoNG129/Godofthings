@@ -2215,3 +2215,23 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 - **自查**：`check-lang.ps1` checks: OK（1432 键，物品 106）；`gradlew build` 成功并自动部署；
   `runGameTestServer` 45 条全过；另用临时探针（已删）在装载 Mekanism 的环境下验证过
   物品注册与数据组件读写往返。
+## 7.9.0 → 7.9.1
+
+- **升级分类按键改为默认不绑定**：「众神之物：升级」下的三个键（全能升级开关 / 顺序填充开关 /
+  对角检测开关，原默认 Shift+O / Shift+N / Shift+M）全部改为不绑定，到按键控制里自己设。
+- **超级融合卡删除电量需求**（用户反馈：右键机器会打开机器 GUI、升级功能无法使用）：
+  - **根因**：此前右键入口写在物品的 `useOn` 里，而 Mekanism 机器的 `useWithoutItem`
+    优先级更高，右键永远轮不到融合卡。照抄上游 `ModEvents.onRightClickBlock` 改为
+    `PlayerInteractEvent.RightClickBlock` 事件拦截：手持融合卡右键机器时取消原版交互
+    （机器 GUI 不再打开），转交融合卡当前模式执行；
+  - 电量需求连同能量组件、双能量能力注册、物品能量条、界面能量条与状态灯、
+    相关语言键与手册文案一并删除，升级只消耗安装器本身；
+  - `SuperFusionItem` 的 `useOn` 已删（留注释说明原因，防止再犯）。
+- **超级融合卡补上 AE2 网络绑定**（用户反馈：无法像原版一样绑定 AE 网络）：
+  照抄上游 `UltimateInstallerLinkableHandler`，把卡注册成 AE2 `GridLinkables` 可绑定物——
+  放进 ME 无线访问点 Shift+右键即可绑定，之后材料直接从 ME 网络里扣。
+  注册时机踩过一次坑：构造阶段调 `DeferredHolder.get()` 会 NPE（物品未入表），
+  已改到 `commonSetup` 的 `enqueueWork` 里做。
+- 顺带补上 **QIO 频率绑定**：潜行右键 QIO 仪表盘把卡绑到该频率（照抄上游 `handleQIOBinding`）。
+- **自查**：`check-lang.ps1` checks: OK（1429 键）；`gradlew build` 成功并自动部署；
+  `runGameTestServer` 在「不装 / 装 Mekanism」两种环境下 45 条全过。

@@ -963,7 +963,7 @@ public class Godofthings
         {
             com.godofthings.superfusion.SuperFusionRegistry.init();
             com.godofthings.superfusion.SuperFusionRegistry.registerDataComponents(modEventBus);
-            // 注意：网络载荷与能量能力由 SuperFusionEvents 自身的 @EventBusSubscriber 自动注册，
+            // 注意：网络载荷由 SuperFusionEvents 自身的 @EventBusSubscriber 自动注册，
             // 这里**不能**再 addListener 一次，否则会抛「payload 已注册」让模组加载失败。
         }
 
@@ -1053,6 +1053,9 @@ public class Godofthings
         });
         // 神之建筑：让 AE2 认「这个物品能绑到无线访问点」（绑上后材料可以从 ME 网络里取）
         event.enqueueWork(com.godofthings.construction.ConstructionAeLink::register);
+        // 超级融合卡：同样注册成 AE2 可绑定物（放进 ME 无线访问点 Shift+右键绑定；
+        // 必须在 enqueueWork 里做——构造阶段物品还没入表，取 DeferredHolder 会 NPE）
+        event.enqueueWork(com.godofthings.superfusion.SuperFusionRegistry::registerAeLinkable);
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上
         // 默认解析为 false，也就是「只有 OP / 单人开作弊能传送」）

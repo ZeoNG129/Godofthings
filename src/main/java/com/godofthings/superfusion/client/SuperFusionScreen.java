@@ -1,7 +1,6 @@
 package com.godofthings.superfusion.client;
 
 import com.godofthings.superfusion.ModuleConfigLogic;
-import com.godofthings.superfusion.SuperFusionCapabilities;
 import com.godofthings.superfusion.SuperFusionComponents;
 import com.godofthings.superfusion.SuperFusionItem;
 import com.godofthings.superfusion.network.FusionActionPayload;
@@ -148,21 +147,6 @@ public class SuperFusionScreen extends Screen
         graphics.renderItem(stack, x + PADDING, y + 6);
         graphics.drawString(font, title, x + 29, y + 10, COLOR_TEXT, false);
 
-        int energy = stack.getOrDefault(SuperFusionComponents.ENERGY.get(), 0);
-        long maxEnergy = SuperFusionCapabilities.maxEnergy();
-        boolean hasEnergy = energy > 0;
-        Component status = Component.translatable(hasEnergy
-                ? "gui.godofthings.super_fusion.status_ready"
-                : "gui.godofthings.super_fusion.status_no_energy");
-        int statusColor = hasEnergy ? COLOR_GREEN : COLOR_ORANGE;
-        int statusX = x + PANEL_WIDTH - PADDING - font.width(status);
-        graphics.fill(x + PANEL_WIDTH - PADDING - 4, y + 12,
-                x + PANEL_WIDTH - PADDING, y + 16, statusColor);
-        if (x + 29 + font.width(title) + 8 < statusX)
-        {
-            graphics.drawString(font, status, statusX - 7, y + 10, statusColor, false);
-        }
-
         drawRecessedPanel(graphics, x + PADDING, y + 31, PANEL_WIDTH - PADDING * 2, 54);
         SuperFusionItem.FusionMode fusionMode = SuperFusionItem.getMode(stack);
         ModuleConfigLogic.Mode moduleMode = ModuleConfigLogic.getCurrentMode(stack);
@@ -181,17 +165,6 @@ public class SuperFusionScreen extends Screen
                 x + 13, y + 54, COLOR_TEXT, false);
         graphics.drawString(font, Component.translatable("gui.godofthings.super_fusion.target_mode_short"),
                 x + 13, y + 71, COLOR_TEXT, false);
-
-        Component energyLabel = Component.translatable("gui.godofthings.super_fusion.energy_short");
-        Component energyValue = Component.literal(energy + " / " + maxEnergy + " FE");
-        graphics.drawString(font, energyLabel, x + PADDING, y + 90, COLOR_TEXT, false);
-        graphics.drawString(font, energyValue,
-                x + PANEL_WIDTH - PADDING - font.width(energyValue), y + 90, COLOR_DIM, false);
-        drawRecessedPanel(graphics, x + PADDING, y + 101, PANEL_WIDTH - PADDING * 2, 7);
-        int barWidth = PANEL_WIDTH - PADDING * 2 - 4;
-        int filledWidth = (int) Math.round(barWidth * Math.min(1.0, (double) energy / maxEnergy));
-        graphics.fill(x + PADDING + 2, y + 103,
-                x + PADDING + 2 + filledWidth, y + 106, hasEnergy ? COLOR_CYAN : COLOR_DIM);
 
         super.render(graphics, mouseX, mouseY, partialTick);
     }

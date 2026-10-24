@@ -1,14 +1,11 @@
 package com.godofthings.superfusion;
 
 import com.godofthings.superfusion.util.NetworkItemSource;
-import mekanism.api.Action;
-import mekanism.api.energy.IStrictEnergyHandler;
 import mekanism.api.tier.BaseTier;
 import mekanism.common.block.BlockBounding;
 import mekanism.common.block.attribute.Attribute;
 import mekanism.common.block.attribute.AttributeHasBounding;
 import mekanism.common.block.attribute.AttributeUpgradeable;
-import mekanism.common.capabilities.Capabilities;
 import mekanism.common.registries.MekanismBlocks;
 import mekanism.common.registries.MekanismItems;
 import mekanism.common.tile.base.TileEntityMekanism;
@@ -48,9 +45,6 @@ import java.util.Set;
  */
 public final class TierInstallLogic
 {
-    /** 单次升级扣电（FE） */
-    public static final int ENERGY_PER_UPGRADE = 1_000;
-
     private TierInstallLogic()
     {
     }
@@ -126,15 +120,6 @@ public final class TierInstallLogic
             return false;
         }
 
-        boolean creative = player.isCreative();
-        IStrictEnergyHandler energyHandler = Capabilities.STRICT_ENERGY.getCapability(cardStack);
-        if (!creative && (energyHandler == null || energyHandler.getEnergy(0) < ENERGY_PER_UPGRADE))
-        {
-            player.displayClientMessage(Component.translatable("message.godofthings.super_fusion.no_energy")
-                    .withStyle(ChatFormatting.RED), true);
-            return false;
-        }
-
         int steps = performStrictUpgradeToUltimate(world, pos, state);
         if (steps <= 0)
         {
@@ -143,10 +128,6 @@ public final class TierInstallLogic
             return false;
         }
 
-        if (!creative)
-        {
-            energyHandler.extractEnergy(0, ENERGY_PER_UPGRADE, Action.EXECUTE);
-        }
         player.displayClientMessage(Component.translatable("message.godofthings.super_fusion.success", steps)
                 .withStyle(ChatFormatting.GREEN), true);
         return true;
@@ -245,16 +226,8 @@ public final class TierInstallLogic
                     .withStyle(ChatFormatting.RED), true);
             return false;
         }
-        boolean creative = player.isCreative();
-        IStrictEnergyHandler energyHandler = Capabilities.STRICT_ENERGY.getCapability(handStack);
-        if (!creative && (energyHandler == null || energyHandler.getEnergy(0) < ENERGY_PER_UPGRADE))
-        {
-            player.displayClientMessage(Component.translatable("message.godofthings.super_fusion.no_energy")
-                    .withStyle(ChatFormatting.RED), true);
-            return false;
-        }
         NetworkItemSource itemSource = NetworkItemSource.create(world, player, handStack);
-        if (!creative && !hasRequiredInstallers(requiredInstallers, itemSource))
+        if (!player.isCreative() && !hasRequiredInstallers(requiredInstallers, itemSource))
         {
             showMissingInstallersMessage(player, requiredInstallers, itemSource);
             return false;
@@ -278,10 +251,9 @@ public final class TierInstallLogic
                     .withStyle(ChatFormatting.RED), true);
             return false;
         }
-        if (!creative)
+        if (!player.isCreative())
         {
             consumeInstallers(itemSource, requiredInstallers);
-            energyHandler.extractEnergy(0, ENERGY_PER_UPGRADE, Action.EXECUTE);
         }
         return true;
     }

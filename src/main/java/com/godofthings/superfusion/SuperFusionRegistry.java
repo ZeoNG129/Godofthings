@@ -34,7 +34,42 @@ public final class SuperFusionRegistry
         initialized = true;
         superFusionItem = com.godofthings.Godofthings.ITEMS.registerItem(
                 "super_fusion_card", props -> new SuperFusionItem());
-        // 数据组件注册表也在这里挂到 mod 总线（同样只在 Mekanism 在场时才注册）
+        // AE2 无线访问点绑定：注册成 GridLinkable 后，把卡放进 ME 无线访问点 Shift+右键即可绑定，
+        // 之后装升级/装安装器的材料可以直接从 ME 网络里扣（照抄上游 UltimateInstallerLinkableHandler）。
+        // 必须等 RegisterEvent（物品已入表）才能调 superFusionItem.get()，构造阶段取会 NPE，
+        // 所以真正的注册在 commonSetup 的 enqueueWork 里做（见 Godofthings.commonSetup）。
+    }
+
+    /** 在物品注册完成后（RegisterEvent）调用：把卡注册成 AE2 可绑定物 */
+    public static void registerAeLinkable()
+    {
+        if (!initialized || !net.neoforged.fml.ModList.get().isLoaded("ae2"))
+        {
+            return;
+        }
+        appeng.api.features.GridLinkables.register(superFusionItem.get(), new SuperFusionAeLinkableHandler());
+    }
+
+    /** 融合卡的 AE2 网络绑定处理器（照抄上游 {@code UltimateInstallerLinkableHandler}） */
+    private static final class SuperFusionAeLinkableHandler implements appeng.api.features.IGridLinkableHandler
+    {
+        @Override
+        public boolean canLink(net.minecraft.world.item.ItemStack stack)
+        {
+            return stack.getItem() == superFusionItem.get();
+        }
+
+        @Override
+        public void link(net.minecraft.world.item.ItemStack itemStack, net.minecraft.core.GlobalPos pos)
+        {
+            itemStack.set(appeng.api.ids.AEComponents.WIRELESS_LINK_TARGET, pos);
+        }
+
+        @Override
+        public void unlink(net.minecraft.world.item.ItemStack itemStack)
+        {
+            itemStack.remove(appeng.api.ids.AEComponents.WIRELESS_LINK_TARGET);
+        }
     }
 
     /** 注册数据组件用的总线挂载（在 init 之后由 Godofthings 调用） */

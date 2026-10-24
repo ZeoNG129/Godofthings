@@ -7,14 +7,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +24,7 @@ import java.util.List;
  * <p>
  * 一张卡把上游四个物品的能力合在一起，用「融合模式」切换：
  * <ul>
- *   <li>{@link FusionMode#TIER_INSTALL}：等级安装 —— 把机器一路升到卡里记录的等级（消耗安装器 + 1000 FE）；</li>
+ *   <li>{@link FusionMode#TIER_INSTALL}：等级安装 —— 把机器一路升到卡里记录的等级（消耗对应安装器）；</li>
  *   <li>{@link FusionMode#MODULE_UPGRADE}：安装升级 —— 按卡里的档案把升级数量同步到机器；</li>
  *   <li>{@link FusionMode#MEMORY_COPY}：内存复制/粘贴 —— 复制机器配置，粘贴到同类机器；</li>
  *   <li>{@link FusionMode#FULL_PASTE}：全量模式 —— 先升等级，再粘贴升级与配置。</li>
@@ -127,41 +124,8 @@ public class SuperFusionItem extends Item
     }
 
     // ===================== 右键机器 =====================
-
-    @Override
-    public InteractionResult useOn(UseOnContext context)
-    {
-        Player player = context.getPlayer();
-        Level level = context.getLevel();
-        if (player == null)
-        {
-            return InteractionResult.PASS;
-        }
-        ItemStack stack = context.getItemInHand();
-        BlockPos pos = context.getClickedPos();
-        Direction face = context.getClickedFace();
-
-        if (level.isClientSide())
-        {
-            return InteractionResult.SUCCESS;
-        }
-
-        // 潜行右键：复制配置（不管点的是机器还是空气，上游都按复制处理）
-        if (player.isShiftKeyDown())
-        {
-            MemoryCardLogic.handleCopy(level, pos, player, stack);
-            return InteractionResult.CONSUME;
-        }
-
-        switch (getMode(stack))
-        {
-            case TIER_INSTALL -> handleTierOperation(level, pos, face, player, stack);
-            case MODULE_UPGRADE -> handleModuleOperation(level, pos, face, player, stack);
-            case MEMORY_COPY -> MemoryCardLogic.handlePaste(level, pos, player, stack);
-            case FULL_PASTE -> MemoryCardLogic.handleFullPaste(level, pos, player, stack);
-        }
-        return InteractionResult.CONSUME;
-    }
+    // 注意：不重写 useOn —— Mekanism 机器的 useWithoutItem 优先级更高，物品的 useOn 永远轮不到。
+    // 右键入口统一走 SuperFusionEvents.onRightClickBlock（照抄上游 ModEvents 的事件拦截方案）。
 
     /** 等级安装模式：单个或连锁批量 */
     public static void handleTierOperation(Level level, BlockPos pos, Direction face, Player player, ItemStack stack)
@@ -256,34 +220,12 @@ public class SuperFusionItem extends Item
             tooltip.add(Component.translatable("tooltip.godofthings.super_fusion.no_stored")
                     .withStyle(ChatFormatting.DARK_GRAY));
         }
-        tooltip.add(Component.translatable("tooltip.godofthings.super_fusion.energy_hint")
-                .withStyle(ChatFormatting.DARK_AQUA));
         if (ExtraTierIntegration.isAnyLoaded())
         {
             tooltip.add(Component.translatable("tooltip.godofthings.super_fusion.extra_tier_support")
                     .withStyle(ChatFormatting.DARK_AQUA));
         }
         super.appendHoverText(stack, context, tooltip, flag);
-    }
-
-    /** 显示能量条（只在电量不满时显示） */
-    @Override
-    public boolean isBarVisible(ItemStack stack)
-    {
-        return stack.getOrDefault(SuperFusionComponents.ENERGY.get(), 0) > 0;
-    }
-
-    @Override
-    public int getBarWidth(ItemStack stack)
-    {
-        int energy = stack.getOrDefault(SuperFusionComponents.ENERGY.get(), 0);
-        return Math.round(13.0F * Math.min(1.0F, energy / (float) SuperFusionCapabilities.maxEnergy()));
-    }
-
-    @Override
-    public int getBarColor(ItemStack stack)
-    {
-        return 0x00C8FF;
     }
 
     /** 是否是可批量选择的工具（供客户端框选渲染判断） */

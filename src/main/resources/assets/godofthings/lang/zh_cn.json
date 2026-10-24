@@ -1508,15 +1508,11 @@
     "tooltip.godofthings.super_fusion.mode.full":  "全量模式",
     "tooltip.godofthings.super_fusion.stored":  "已记录机器：%s",
     "tooltip.godofthings.super_fusion.no_stored":  "尚未复制任何机器（潜行右键机器可复制）",
-    "tooltip.godofthings.super_fusion.energy_hint":  "消耗卡内能量：每次安装 1000 FE",
     "tooltip.godofthings.super_fusion.extra_tier_support":  "已启用额外等级联动（Mekanism Extras / EvolvedMekanism）",
     "gui.godofthings.super_fusion.title":  "超级融合卡",
-    "gui.godofthings.super_fusion.status_ready":  "就绪",
-    "gui.godofthings.super_fusion.status_no_energy":  "无能量",
     "gui.godofthings.super_fusion.fusion_mode_short":  "融合",
     "gui.godofthings.super_fusion.module_mode_short":  "模块",
     "gui.godofthings.super_fusion.target_mode_short":  "目标",
-    "gui.godofthings.super_fusion.energy_short":  "能量",
     "gui.godofthings.super_fusion.mode_compact.tier":  "等级安装",
     "gui.godofthings.super_fusion.mode_compact.module":  "安装升级",
     "gui.godofthings.super_fusion.mode_compact.memory":  "内存复制",
@@ -1540,7 +1536,6 @@
     "message.godofthings.super_fusion.machine_in_use":  "机器正在被使用，无法升级",
     "message.godofthings.super_fusion.not_tier_upgradable":  "该方块不支持等级升级",
     "message.godofthings.super_fusion.cannot_upgrade":  "无法升级该机器",
-    "message.godofthings.super_fusion.no_energy":  "卡内能量不足（每次安装需要 1000 FE）",
     "message.godofthings.super_fusion.success":  "升级成功，共提升 %s 级",
     "message.godofthings.super_fusion.tier_unsupported":  "缺少对应等级的安装器",
     "message.godofthings.super_fusion.tier_failed":  "升级失败",
@@ -1565,5 +1560,7 @@
     "message.godofthings.super_fusion.selection_too_large":  "框选范围过大（单边最多 64 格，总量最多 32768 格）",
     "message.godofthings.super_fusion.selection_first":  "已记录第一个角点：%s",
     "message.godofthings.super_fusion.selection_cleared":  "已清除框选角点",
-    "manual.godofthings.super_fusion_card":  "【超级融合卡】移植自 Mekanism-Card 的全能机器改造工具，一张卡覆盖四种操作：\n· 等级安装：把机器一路升到卡里记录的等级（消耗对应安装器 + 每次 1000 FE）；\n· 安装升级：按卡里记录的升级档案，把目标机器的升级数量补齐或削平（多退少补，退掉的进背包）；\n· 内存复制/粘贴：把一台机器的配置（升级 + 面设置等）复制下来，粘贴到同类机器；\n· 全量模式：先升到记录等级，再粘贴升级与配置，一步到位。\n【操作】右键机器执行当前模式；潜行右键机器复制配置；潜行右键空气清空卡内数据；左键空气打开设置界面；潜行左键空气轮换模式；中键机器一次装满升级；按住「融合卡批量选择」键（默认不绑定，在「众神之物」分类里自己设）左键点两个角点即可框选批量执行。\n【供能】卡自身可存 200000 FE，可放进通用机械的能量立方或其它充电设备充能。\n【软依赖】本物品只在装了通用机械（Mekanism）时才会注册出现；装 Mekanism Extras 或 EvolvedMekanism 时会自动支持它们注入的更高等级。"
+    "manual.godofthings.super_fusion_card":  "【超级融合卡】移植自 Mekanism-Card 的全能机器改造工具，一张卡覆盖四种操作：\n· 等级安装：把机器一路升到卡里记录的等级（消耗对应安装器）；\n· 安装升级：按卡里记录的升级档案，把目标机器的升级数量补齐或削平（多退少补，退掉的进背包）；\n· 内存复制/粘贴：把一台机器的配置（升级 + 面设置等）复制下来，粘贴到同类机器；\n· 全量模式：先升到记录等级，再粘贴升级与配置，一步到位。\n【操作】右键机器执行当前模式；潜行右键机器复制配置；潜行右键空气清空卡内数据；左键空气打开设置界面；潜行左键空气轮换模式；中键机器一次装满升级；按住「融合卡批量选择」键（默认不绑定，在「众神之物」分类里自己设）左键点两个角点即可框选批量执行。\n【材料网络】把卡放进 ME 无线访问点并 Shift+右键即可绑定 AE 网络；潜行右键 QIO 仪表盘可绑定 QIO 频率。绑定后升级/安装器材料可直接从对应网络里扣。\n【软依赖】本物品只在装了通用机械（Mekanism）时才会注册出现；装 Mekanism Extras 或 EvolvedMekanism 时会自动支持它们注入的更高等级。",
+    "message.godofthings.super_fusion.qio_no_frequency":  "该方块没有设置 QIO 频率",
+    "message.godofthings.super_fusion.qio_bound":  "已绑定 QIO 频率：%s"
 }
