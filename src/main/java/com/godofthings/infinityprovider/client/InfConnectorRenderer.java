@@ -197,7 +197,7 @@ public final class InfConnectorRenderer {
             Direction lookFace = bhr.getDirection();
             scratchConnectionSet.clear();
             if (mc.level.getBlockEntity(selectedPos) instanceof InfEnhancedBlockEntity provider) {
-                for (var conn : provider.infConnections()) {
+                for (var conn : provider.getClientConnections()) {
                     if (conn.dimension().equals(mc.level.dimension()) && conn.boundFace() == lookFace) {
                         scratchConnectionSet.add(conn.pos());
                     }
@@ -225,7 +225,7 @@ public final class InfConnectorRenderer {
             Level level, BlockPos hostPos, InfEnhancedBlockEntity provider, boolean selected) {
         renderInnerCube(poseStack, buffer, hostPos, selected ? COLOR_HOST_SELECTED : COLOR_HOST);
 
-        for (var conn : provider.infConnections()) {
+        for (var conn : provider.getClientConnections()) {
             if (!conn.dimension().equals(level.dimension())) {
                 continue;
             }

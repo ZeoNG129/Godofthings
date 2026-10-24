@@ -49,6 +49,8 @@ import com.godofthings.mixin.PatternProviderLogicAccessor;
  */
 public class InfProviderLogic extends PatternProviderLogic {
 
+    private static final org.slf4j.Logger LOGGER =
+            com.mojang.logging.LogUtils.getLogger();
     private static final int TARGET_CACHE_TTL = 20;
     /** 每次回收扫描最多轮询的机器数。 */
     private static final int MAX_RETURN_POLLS_PER_TICK = 64;
@@ -103,10 +105,19 @@ public class InfProviderLogic extends PatternProviderLogic {
 
     private boolean wirelessPushPattern(IPatternDetails pattern, KeyCounter[] inputs) {
         // 照抄上游守卫顺序：无线路径不检查 sendList（那是贴邻模式的溢出队列，
-        // 无线溢出会卡死在 sendDirection==null 的IllegalStateException 前置判断里）
+        // 无线溢出会卡死在 sendDirection==null 的 IllegalStateException 前置判断里）
         var accessor = (PatternProviderLogicAccessor) this;
-        if (!accessor.getMainNode().isActive()
-                || this.getCraftingLockedReason() != LockCraftingMode.NONE) {
+        if (!accessor.getMainNode().isActive()) {
+            LOGGER.debug("[InfProvider] wireless push rejected: grid node inactive");
+            return false;
+        }
+        if (!accessor.getPatterns().contains(pattern)) {
+            LOGGER.debug("[InfProvider] wireless push rejected: pattern not loaded in this provider");
+            return false;
+        }
+        if (this.getCraftingLockedReason() != LockCraftingMode.NONE) {
+            LOGGER.debug("[InfProvider] wireless push rejected: crafting locked {}",
+                    this.getCraftingLockedReason());
             return false;
         }
         if (!(this.hostLevel() instanceof ServerLevel level)) {
@@ -114,6 +125,8 @@ public class InfProviderLogic extends PatternProviderLogic {
         }
         var connections = this.validConnections(level);
         if (connections.isEmpty()) {
+            LOGGER.debug("[InfProvider] wireless push rejected: no valid connections (host={})",
+                    this.enhancedHost.infConnections().size());
             return false;
         }
         long gameTick = level.getGameTime();
@@ -126,6 +139,8 @@ public class InfProviderLogic extends PatternProviderLogic {
         if (any) {
             this.cursor++;
             accessor.invokeOnPushPatternSuccess(pattern);
+        } else {
+            LOGGER.debug("[InfProvider] wireless push failed for all {} connections", connections.size());
         }
         return any;
     }
@@ -134,16 +149,19 @@ public class InfProviderLogic extends PatternProviderLogic {
             IPatternDetails pattern, KeyCounter[] inputs, long gameTick) {
         var target = this.resolveTarget(level, conn, gameTick);
         if (target == null || target.target() == null) {
+            LOGGER.debug("[InfProvider] conn {} -> no PatternProviderTarget (be missing or no storage)", conn);
             return false;
         }
         var dispatch = target.target();
         if (!pattern.supportsPushInputsToExternalInventory()) {
+            LOGGER.debug("[InfProvider] conn {} -> pattern does not support external push", conn);
             return false;
         }
         // 阻挡模式：机器里还留着样板输入时不派新任务
         if (this.isBlocking()
                 && dispatch.containsPatternInput(
                         ((PatternProviderLogicAccessor) this).getPatternInputs())) {
+            LOGGER.debug("[InfProvider] conn {} -> blocked by existing pattern inputs", conn);
             return false;
         }
 
@@ -154,13 +172,17 @@ public class InfProviderLogic extends PatternProviderLogic {
 
         var planned = planInputs(pattern, inputs, copies);
         if (planned == null || planned.isEmpty()) {
+            LOGGER.debug("[InfProvider] conn {} -> planned inputs empty", conn);
             return false;
         }
         // 先模拟全部可入再实际投放（上游 ICraftingMachine 路径同为全有或全无语义）；
         // 无线路径绝不产生 sendList 残留——原版 sendList 只会往贴邻方向送，
         // 无线模式下没有那个方向，残留即永久卡死整台供应器
         for (var stack : planned) {
-            if (dispatch.insert(stack.what(), stack.amount(), Actionable.SIMULATE) < stack.amount()) {
+            long accepted = dispatch.insert(stack.what(), stack.amount(), Actionable.SIMULATE);
+            if (accepted < stack.amount()) {
+                LOGGER.debug("[InfProvider] conn {} -> simulate rejected {} ({} of {})", conn,
+                        stack.what(), accepted, stack.amount());
                 this.rememberBatch(conn, pattern, Math.max(1, copies / 2));
                 return false;
             }
@@ -169,6 +191,7 @@ public class InfProviderLogic extends PatternProviderLogic {
             dispatch.insert(stack.what(), stack.amount(), Actionable.MODULATE);
         }
         this.rememberBatch(conn, pattern, copies);
+        LOGGER.debug("[InfProvider] conn {} -> pushed {} copies ({} stacks)", conn, copies, planned.size());
         return true;
     }
 

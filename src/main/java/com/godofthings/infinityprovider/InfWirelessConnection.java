@@ -41,9 +41,14 @@ public final class InfWirelessConnection {
         return this.boundFace;
     }
 
-    /** 机器面朝供应器的方向（派发时传给机器的 side 参数）。 */
+    /**
+     * 派发 / 回收时传给机器的 capability 面。
+     * 照抄上游 ProviderTarget.resolveStorageTarget：直接用 boundFace，
+     * 不取反——boundFace 记录的就是「点中的那一面」，AE2 的
+     * PatternProviderTarget.get 也按这一面去查目标机器能力。
+     */
     public Direction machineSide() {
-        return this.boundFace.getOpposite();
+        return this.boundFace;
     }
 
     public boolean isAlive(ServerLevel level) {

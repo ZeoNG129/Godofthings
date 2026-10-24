@@ -2086,6 +2086,7 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - **自查**：`check-lang.ps1` checks: OK（zh/en 各 +7 键）；`gradlew build` 成功；`runGameTestServer` 45 条全过。
 
 - 7.3.1 -> **7.3.2（修复：按钮图标 / 无线派发卡死 / Ctrl 预览三件，全部照抄上游实现）**。2026-10-24
+- 7.3.2 -> **7.3.3（修复：无线派发面语义 / 连接明细客户端同步 / 连接数文字重叠）**。2026-10-24
   - **图标隐形**：图标改用 AE2 的 `Blitter.texture(rl, 16, 16)` 绘制（照抄上游 TextureToggleButton），
     非激活半透明、y 偏移 1+yOffset、zOffset=3 盖在按钮底图上；之前的 GuiGraphics.blit 方式对
     16×16 独立贴图不生效。

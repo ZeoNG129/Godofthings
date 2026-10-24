@@ -43,6 +43,10 @@ public interface PatternProviderLogicAccessor {
     @Accessor("patternInputs")
     Set<AEKey> getPatternInputs();
 
+    /** 已解码的样板列表（原版 pushPattern 用它确认样板确实在本机）。 */
+    @Accessor("patterns")
+    List<IPatternDetails> getPatterns();
+
     @Accessor("sendList")
     List<GenericStack> getSendList();
 

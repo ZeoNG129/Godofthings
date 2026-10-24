@@ -29,6 +29,8 @@ public abstract class InfEnhancedBlockEntity extends PatternProviderBlockEntity
     private final List<InfWirelessConnection> connections = new ArrayList<>();
 
     private int clientConnectionCount;
+    /** 客户端侧的连接明细副本（渲染器用；服务端不使用）。 */
+    private final List<InfWirelessConnection> clientConnections = new ArrayList<>();
 
     protected InfEnhancedBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -43,15 +45,15 @@ public abstract class InfEnhancedBlockEntity extends PatternProviderBlockEntity
     public List<InfWirelessConnection> infConnections() {
         return this.connections;
     }
-
     @Override
     public void infConnectionsChanged() {
         if (this.getLogic() instanceof InfProviderLogic logic) {
             logic.infInvalidateCaches();
         }
         this.saveChanges();
+        // 连接明细要走客户端同步，渲染器才会画出蓝色平面与连线
+        this.markForClientUpdate();
     }
-
     @Override
     public void infSettingsChanged() {
         this.infConnectionsChanged();
@@ -100,21 +102,45 @@ public abstract class InfEnhancedBlockEntity extends PatternProviderBlockEntity
         }
     }
 
-    // ---- 客户端同步（设置 + 连接数摘要；连接明细不下发）----
+    // ---- 客户端同步（设置 + 完整连接明细；渲染器要靠 boundFace 画面）----
 
     @Override
     public void writeToStream(RegistryFriendlyByteBuf data) {
         super.writeToStream(data);
         this.settings.writeToStream(data);
+        // 照抄上游：连接明细必须下发，否则客户端渲染器拿不到坐标与绑面，
+        // 蓝色平面和连线永远不出现（只发数量不够）
         data.writeVarInt(this.connections.size());
+        for (var conn : this.connections) {
+            data.writeResourceLocation(conn.dimension().location());
+            data.writeBlockPos(conn.pos());
+            data.writeByte(conn.boundFace().get3DDataValue());
+        }
     }
 
     @Override
     public boolean readFromStream(RegistryFriendlyByteBuf data) {
         boolean changed = super.readFromStream(data);
         changed |= this.settings.readFromStream(data);
-        this.clientConnectionCount = data.readVarInt();
+        int count = data.readVarInt();
+        var received = new ArrayList<InfWirelessConnection>(Math.min(count, InfEnhancedHost.INF_MAX_CONNECTIONS));
+        for (int i = 0; i < count; i++) {
+            var dim = ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
+                    data.readResourceLocation());
+            var pos = data.readBlockPos();
+            var face = Direction.from3DDataValue(data.readByte());
+            received.add(new InfWirelessConnection(dim, pos, face));
+        }
+        this.clientConnections.clear();
+        this.clientConnections.addAll(received);
+        this.clientConnectionCount = received.size();
+        changed |= !received.equals(this.connections);
         return changed;
+    }
+
+    /** 客户端渲染器读取的连接明细（服务端未同步前为空列表）。 */
+    public List<InfWirelessConnection> getClientConnections() {
+        return this.clientConnections;
     }
 
     public int getClientConnectionCount() {

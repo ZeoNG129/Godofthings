@@ -80,12 +80,14 @@ public class InfProviderEnhancedScreen<M extends InfProviderMenu.EnhancedActions
     @Override
     public void drawFG(GuiGraphics guiGraphics, int offsetX, int offsetY, int mouseX, int mouseY) {
         super.drawFG(guiGraphics, offsetX, offsetY, mouseX, mouseY);
-        // 无线模式下在标题右侧画连接数提示
+        // 无线模式下在「返回栏」标题左侧画连接数（照抄上游把状态文字放在
+        // 有专属空位的位置；y=17 是「可用升级卡」槽位标签、y=33 是页码，
+        // 都会文字重叠，这里用 y=116 返回栏标题那一行的右侧空位）
         if (this.getMenu().isWirelessMode()) {
             var text = Component.translatable("gui.godofthings.infprovider.connections",
                     this.getMenu().getConnectionCount());
             guiGraphics.drawString(this.font, text,
-                    this.imageWidth - 8 - this.font.width(text), 17,
+                    this.imageWidth - 8 - this.font.width(text), 116,
                     this.style.getColor(PaletteColor.DEFAULT_TEXT_COLOR).toARGB(), false);
         }
     }
