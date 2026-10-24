@@ -5,6 +5,7 @@ import com.godofthings.infinityprovider.BinderUsePayload;
 import com.godofthings.infinityprovider.InfEnhancedBlockEntity;
 import com.godofthings.infinityprovider.InfEnhancedHost;
 import com.godofthings.infinityprovider.InfProviderSettings;
+import com.godofthings.infinityprovider.InfWirelessConnection;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -251,7 +252,7 @@ public class GodBinderItem extends Item
             return;
         }
 
-        // 潜行 = 断开
+        // 潜行 = 强制断开（照抄上游过载无线连接工具的语义）
         if (player.isShiftKeyDown()) {
             int disconnected = 0;
             for (var targetPos : targets) {
@@ -271,9 +272,41 @@ public class GodBinderItem extends Item
             return;
         }
 
+        // 幂等切换（照抄上游 WirelessConnectionBatchEdit.planSingleFacePerTarget）：
+        // 全部目标都已连同一面 → 整组断开；否则未连的连、异面的改绑
+        var plan = planSingleFacePerTarget(
+                targets, level.dimension(), host.infConnections(), face,
+                InfWirelessConnection::dimension, InfWirelessConnection::pos,
+                InfWirelessConnection::boundFace);
+        if (plan.deselecting()) {
+            for (var targetPos : plan.disconnect()) {
+                host.infRemoveConnection(level.dimension(), targetPos);
+            }
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.machines_disconnected_many",
+                            plan.disconnect().size()).withStyle(ChatFormatting.GREEN), true);
+            return;
+        }
+
+        int disconnected = 0;
+        int updated = 0;
         int connected = 0;
         int skippedFull = 0;
-        for (var targetPos : targets) {
+        for (var targetPos : plan.disconnect()) {
+            if (host.infRemoveConnection(level.dimension(), targetPos)) {
+                disconnected++;
+            }
+        }
+        for (var targetPos : plan.update()) {
+            if (host.infConnections().size() >= InfEnhancedHost.INF_MAX_CONNECTIONS) {
+                skippedFull++;
+                continue;
+            }
+            if (host.infAddOrUpdateConnection(level.dimension(), targetPos, face)) {
+                updated++;
+            }
+        }
+        for (var targetPos : plan.connect()) {
             if (host.infConnections().size() >= InfEnhancedHost.INF_MAX_CONNECTIONS) {
                 skippedFull++;
                 continue;
@@ -282,16 +315,29 @@ public class GodBinderItem extends Item
                 connected++;
             }
         }
-        if (connected > 1) {
+
+        int changed = disconnected + updated + connected;
+        if (changed > 1) {
             player.displayClientMessage(
-                    Component.translatable("message.godofthings.binder.machines_connected_many",
-                            connected, face.getName()).withStyle(ChatFormatting.GREEN), true);
-        } else if (connected == 1) {
-            var p = targets.iterator().next();
-            player.displayClientMessage(
-                    Component.translatable("message.godofthings.binder.machine_connected",
-                            p.getX(), p.getY(), p.getZ(), face.getName())
-                            .withStyle(ChatFormatting.GREEN), true);
+                    Component.translatable("message.godofthings.binder.batch_toggled",
+                            changed, face.getName()).withStyle(ChatFormatting.GREEN), true);
+        } else if (changed == 1) {
+            var p = firstOf(plan.connect(), plan.update(), plan.disconnect());
+            if (connected == 1) {
+                player.displayClientMessage(
+                        Component.translatable("message.godofthings.binder.machine_connected",
+                                p.getX(), p.getY(), p.getZ(), face.getName())
+                                .withStyle(ChatFormatting.GREEN), true);
+            } else if (updated == 1) {
+                player.displayClientMessage(
+                        Component.translatable("message.godofthings.binder.machine_face_updated",
+                                p.getX(), p.getY(), p.getZ(), face.getName())
+                                .withStyle(ChatFormatting.GREEN), true);
+            } else {
+                player.displayClientMessage(
+                        Component.translatable("message.godofthings.binder.machine_disconnected",
+                                p.getX(), p.getY(), p.getZ()).withStyle(ChatFormatting.GREEN), true);
+            }
         }
         if (skippedFull > 0) {
             player.displayClientMessage(
@@ -456,25 +502,144 @@ public class GodBinderItem extends Item
                             .withStyle(ChatFormatting.YELLOW), true);
             return;
         }
+
+        // 幂等切换（照抄上游 WirelessConnectionBatchEdit.planSingleFacePerTarget）：
+        // 全部目标都已连同一面 → 整组断开；否则未连的连、异面的改绑
+        var plan = planSingleFacePerTarget(
+                targets, level.dimension(), iface.getConnections(), face,
+                com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity.WirelessConnection::dimension,
+                com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity.WirelessConnection::pos,
+                com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity.WirelessConnection::boundFace);
+        if (plan.deselecting()) {
+            for (var targetPos : plan.disconnect()) {
+                iface.removeConnection(level.dimension(), targetPos);
+            }
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.machines_disconnected_many",
+                            plan.disconnect().size()).withStyle(ChatFormatting.GREEN), true);
+            return;
+        }
+
+        int disconnected = 0;
+        int updated = 0;
         int connected = 0;
-        for (var targetPos : targets) {
+        for (var targetPos : plan.disconnect()) {
+            if (iface.removeConnection(level.dimension(), targetPos)) {
+                disconnected++;
+            }
+        }
+        for (var targetPos : plan.update()) {
+            if (iface.addOrUpdateConnection(
+                    new com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity
+                            .WirelessConnection(level.dimension(), targetPos, face))) {
+                updated++;
+            }
+        }
+        for (var targetPos : plan.connect()) {
             if (iface.addOrUpdateConnection(
                     new com.godofthings.overloadedinterface.OverloadedInterfaceBlockEntity
                             .WirelessConnection(level.dimension(), targetPos, face))) {
                 connected++;
             }
         }
-        if (connected > 1) {
+
+        int changed = disconnected + updated + connected;
+        if (changed > 1) {
             player.displayClientMessage(
-                    Component.translatable("message.godofthings.binder.machines_connected_many",
-                            connected, face.getName()).withStyle(ChatFormatting.GREEN), true);
-        } else if (connected == 1) {
-            var p = targets.iterator().next();
-            player.displayClientMessage(
-                    Component.translatable("message.godofthings.binder.machine_connected",
-                            p.getX(), p.getY(), p.getZ(), face.getName())
-                            .withStyle(ChatFormatting.GREEN), true);
+                    Component.translatable("message.godofthings.binder.batch_toggled",
+                            changed, face.getName()).withStyle(ChatFormatting.GREEN), true);
+        } else if (changed == 1) {
+            var p = firstOf(plan.connect(), plan.update(), plan.disconnect());
+            if (connected == 1) {
+                player.displayClientMessage(
+                        Component.translatable("message.godofthings.binder.machine_connected",
+                                p.getX(), p.getY(), p.getZ(), face.getName())
+                                .withStyle(ChatFormatting.GREEN), true);
+            } else if (updated == 1) {
+                player.displayClientMessage(
+                        Component.translatable("message.godofthings.binder.machine_face_updated",
+                                p.getX(), p.getY(), p.getZ(), face.getName())
+                                .withStyle(ChatFormatting.GREEN), true);
+            } else {
+                player.displayClientMessage(
+                        Component.translatable("message.godofthings.binder.machine_disconnected",
+                                p.getX(), p.getY(), p.getZ()).withStyle(ChatFormatting.GREEN), true);
+            }
         }
+    }
+
+    /**
+     * 单面端点模型的幂等批量切换计划（移植上游
+     * {@code WirelessConnectionBatchEdit.planSingleFacePerTarget}）：
+     * 全部目标都已连到同一面 → deselecting=true 整组断开；
+     * 否则按目标现状分派：未连 → connect、已连但绑面不同 → update、同面已连 → 无动作。
+     */
+    private record BatchPlan(boolean deselecting,
+            java.util.List<BlockPos> disconnect,
+            java.util.List<BlockPos> update,
+            java.util.List<BlockPos> connect) {
+    }
+
+    private static <C> BatchPlan planSingleFacePerTarget(java.util.Set<BlockPos> targets,
+            ResourceKey<Level> dimension,
+            java.util.List<C> connections,
+            Direction face,
+            java.util.function.Function<C, ResourceKey<Level>> dimensionGetter,
+            java.util.function.Function<C, BlockPos> posGetter,
+            java.util.function.Function<C, Direction> faceGetter) {
+        var targetList = new java.util.ArrayList<>(targets);
+        if (targetList.isEmpty()) {
+            return new BatchPlan(false, java.util.List.of(), java.util.List.of(), java.util.List.of());
+        }
+        boolean allSelected = true;
+        for (var target : targetList) {
+            var existing = findConnection(connections, dimension, target,
+                    dimensionGetter, posGetter);
+            if (existing == null || faceGetter.apply(existing) != face) {
+                allSelected = false;
+                break;
+            }
+        }
+        if (allSelected) {
+            return new BatchPlan(true, targetList, java.util.List.of(), java.util.List.of());
+        }
+        var update = new java.util.ArrayList<BlockPos>();
+        var connect = new java.util.ArrayList<BlockPos>();
+        for (var target : targetList) {
+            var existing = findConnection(connections, dimension, target,
+                    dimensionGetter, posGetter);
+            if (existing == null) {
+                connect.add(target);
+            } else if (faceGetter.apply(existing) != face) {
+                update.add(target);
+            }
+        }
+        return new BatchPlan(false, java.util.List.of(), java.util.List.copyOf(update),
+                java.util.List.copyOf(connect));
+    }
+
+    @Nullable
+    private static <C> C findConnection(java.util.List<C> connections,
+            ResourceKey<Level> dimension, BlockPos pos,
+            java.util.function.Function<C, ResourceKey<Level>> dimensionGetter,
+            java.util.function.Function<C, BlockPos> posGetter) {
+        for (var conn : connections) {
+            if (dimensionGetter.apply(conn).equals(dimension) && posGetter.apply(conn).equals(pos)) {
+                return conn;
+            }
+        }
+        return null;
+    }
+
+    /** 依次取第一个非空清单的首个元素（单目标反馈用）；都为空返回 null。 */
+    @Nullable
+    private static BlockPos firstOf(java.util.List<BlockPos>... lists) {
+        for (var list : lists) {
+            if (!list.isEmpty()) {
+                return list.get(0);
+            }
+        }
+        return null;
     }
     /**
      * 收集连接目标（移植上游 WirelessConnectorTargetHelper.collectTargets）：

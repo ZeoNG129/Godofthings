@@ -2121,3 +2121,17 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   - 渲染器独立成类（`overloadedinterface/client/`），不与 `InfConnectorRenderer` 混合，首次编译时补上漏抄的
     `RenderType` import。
 - **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功并自动部署两个测试目录；`runGameTestServer` 45 条全过。
+
+## 7.7.1 → 7.7.2
+
+- **同心契交互改为幂等切换**（照抄上游 `WirelessConnectionBatchEdit.planSingleFacePerTarget`，
+  供应器与过载接口两条无线绑定路径同步修改）：
+  - 选中宿主后**右键已连接的同一面 = 直接断开该连接**，不再需要潜行；
+  - 右键已连接机器的其他面 = 改绑到新面；右键未连接机器 = 新建连接（与之前一致）；
+  - Ctrl 批量语义：整组目标都已连到同一面 → 整组断开；否则未连的连、异面的改绑；
+  - 潜行右键保留为**强制断开**（与上游 AE2LT 过载无线连接工具一致）；
+  - 反馈消息细化：单台区分「已连接 / 已改绑 / 已断开」，批量统一为「已切换 N 处连接」，
+    新增 `batch_toggled` / `machine_face_updated` 语言键（zh/en 同步）；
+  - tooltip 新增 `shift_3` 行说明无线绑定的切换交互。
+- **自查**：`check-lang.ps1` checks: OK（1303 键 zh/en 对齐）；`gradlew build` 成功并自动部署；
+  `runGameTestServer` 45 条全过。

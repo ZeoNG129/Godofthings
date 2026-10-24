@@ -1,4 +1,4 @@
-{
+﻿{
     "gui.godofthings.grid.face":  "面",
     "gui.godofthings.grid.face.tooltip":  "六面输入输出配置",
     "gui.godofthings.grid.ae.on":  "AE 并网：开（产物自动进网络）",
@@ -1044,7 +1044,8 @@
     "tooltip.godofthings.god_black_box.shift_3":  "§b[快捷操作] §f潜行滚轮手持切换开关；潜行右键容器转存；潜行右键吞噬方块一键清空。",
     "tooltip.godofthings.god_binder.lore":  "§6§o\"牵起两界灵脉之丝，纵万水千山，气机息息相通。\"",
     "tooltip.godofthings.god_binder.shift_1":  "§e[配对方法] §f右键 FE 机器即刻与同维度最近的极光灵脉引渡枢设备完成绑定。",
-    "tooltip.godofthings.god_binder.shift_2":  "§a[副手自动化] §f副手持有该工具时，主手放置任何 FE 机器将自动完成绑定！",
+    "tooltip.godofthings.god_binder.shift_2":  "§a[副手自动化] §f副手持有该工具时，主手放置任何 FE 机器将自动完成绑定！",
+        "tooltip.godofthings.god_binder.shift_3":  "§b[无线绑定] §f右键供应器/过载接口选中，再右键机器连接；已连接同一面时再次右键即断开（Ctrl 批量切换，潜行强制断开）",
     "tooltip.godofthings.god_construction.lore":  "§6§o\"一杖指处，高台千丈拔地起，琼楼玉宇刹那成。\"",
     "tooltip.godofthings.god_construction.shift_1":  "§e[施工上限] §f单次最大延伸 1024 格；支持右键空气天使放置（视线前 2 格）。",
     "tooltip.godofthings.god_construction.shift_2":  "§a[操作模式] §f潜行右键循环切换模式；潜行右键空气打开菜单（支持 10 步撤销与方块匹配）。",
@@ -1386,7 +1387,9 @@
     "gui.godofthings.infprovider.filtered.off":  "输入过滤：关（回收一切）",
     "gui.godofthings.infprovider.advanced.input_filter":  "输入过滤",
     "message.godofthings.binder.machines_connected_many":  "已连接 %d 台机器的 %s 面",
-    "message.godofthings.binder.machines_disconnected_many":  "已断开 %d 台机器",
+    "message.godofthings.binder.machines_disconnected_many":  "已断开 %d 台机器",
+        "message.godofthings.binder.batch_toggled":  "已切换 %d 处连接（%s 面）",
+        "message.godofthings.binder.machine_face_updated":  "已改绑 [%d, %d, %d] 至 %s 面",
     "message.godofthings.binder.provider_full_skipped":  "已跳过 %d 台（连接上限 %d）",
     "gui.godofthings.infprovider.apply":  "应用",
     "message.godofthings.binder.provider_selected":  "已选中供应器 [%d, %d, %d]，现在右键机器建立无线连接",

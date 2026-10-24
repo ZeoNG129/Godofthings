@@ -1,4 +1,4 @@
-{
+﻿{
     "gui.godofthings.grid.face":  "F",
     "gui.godofthings.grid.face.tooltip":  "Side configuration (six faces)",
     "gui.godofthings.grid.ae.on":  "AE network: ON (outputs pushed)",
@@ -963,7 +963,8 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "tooltip.godofthings.god_miner.shift_4":  "§b[AE2 & Storage] §f4096-type buffer with AE2 link; pauses automatically when full.",
     "tooltip.godofthings.god_binder.lore":  "§6§o\"Draw the leyline thread between two worlds; across mountains and rivers, the qi connects.\"",
     "tooltip.godofthings.god_binder.shift_1":  "§e[Pairing] §fRight-click an FE machine to bind it to the nearest Aurora Leyline Ferry Hub in the same dimension.",
-    "tooltip.godofthings.god_binder.shift_2":  "§a[Off-hand Automation] §fHolding this in the off-hand auto-binds any FE machine you place with the main hand.",
+    "tooltip.godofthings.god_binder.shift_2":  "§a[Off-hand Automation] §fHolding this in the off-hand auto-binds any FE machine you place with the main hand.",
+    "tooltip.godofthings.god_binder.shift_3":  "§b[Wireless Link] §fRight-click a provider/interface to select it, then right-click machines to link. Right-clicking an already-linked face toggles it off (Ctrl for batch toggle, sneak to force-disconnect).",
     "tooltip.godofthings.god_accelerator.lore":  "§6§o\"Steal the torrent of time's long river; let a thousand years of cycles converge in an instant.\"",
     "tooltip.godofthings.god_accelerator.shift_1":  "§e[Exponential] §fOne gives x16, a stack of 64 gives x1024.",
     "tooltip.godofthings.god_accelerator.shift_2":  "§a[Break Limits] §fFill 64 into a resource machine to max a single round at 2.14 billion (Integer.MAX_VALUE)!",
@@ -1386,7 +1387,9 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
     "gui.godofthings.infprovider.filtered.off":  "Filter: OFF (accept all)",
     "gui.godofthings.infprovider.advanced.input_filter":  "Input Filter",
     "message.godofthings.binder.machines_connected_many":  "Linked %d machines face %s",
-    "message.godofthings.binder.machines_disconnected_many":  "Unlinked %d machines",
+    "message.godofthings.binder.machines_disconnected_many":  "Unlinked %d machines",
+    "message.godofthings.binder.batch_toggled":  "Toggled %d link(s) (face %s)",
+    "message.godofthings.binder.machine_face_updated":  "Re-linked [%d, %d, %d] to face %s",
     "message.godofthings.binder.provider_full_skipped":  "Skipped %d (limit %d)",
     "gui.godofthings.infprovider.apply":  "Apply",
     "message.godofthings.binder.provider_selected":  "Selected provider at [%d, %d, %d], now right-click machines to link",
