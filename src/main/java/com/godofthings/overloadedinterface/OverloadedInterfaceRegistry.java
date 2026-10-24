@@ -73,4 +73,30 @@ public final class OverloadedInterfaceRegistry
     {
         return item == OVERLOADED_INTERFACE_ITEM.get();
     }
+
+    /**
+     * 绑定方块与方块实体（AE2 特有流程，必须在 commonSetup 里调用）。
+     *
+     * <p>AE2 的 {@code AEBaseEntityBlock.newBlockEntity} 依赖内部的 blockEntityType 字段，
+     * 不调用 {@code setBlockEntity} 就会在放置方块时抛
+     * {@code NullPointerException: this.blockEntityType is null}。
+     * 同时要把方块实体与物品关联起来，否则 AE2 的部分 UI 逻辑拿不到代表物品。</p>
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static void bindBlockAndEntity()
+    {
+        var block = (appeng.block.AEBaseEntityBlock) OVERLOADED_INTERFACE.get();
+        BlockEntityType<OverloadedInterfaceBlockEntity> type = openBeType();
+        block.setBlockEntity(OverloadedInterfaceBlockEntity.class, type, null, null);
+        appeng.blockentity.AEBaseBlockEntity.registerBlockEntityItem(
+                type, OVERLOADED_INTERFACE_ITEM.get());
+    }
+
+    /** 强类型引用（DeferredHolder 的泛型是 BlockEntityType<?>，这里收窄一次）。 */
+    @SuppressWarnings("unchecked")
+    private static BlockEntityType<OverloadedInterfaceBlockEntity> openBeType()
+    {
+        return (BlockEntityType<OverloadedInterfaceBlockEntity>) (BlockEntityType<?>)
+                OVERLOADED_INTERFACE_BE.get();
+    }
 }

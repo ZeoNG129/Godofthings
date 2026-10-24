@@ -1014,6 +1014,8 @@ public class Godofthings
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
+        // 注意：构造函数里只做注册；方块实体的绑定必须在 commonSetup 里做
+        event.enqueueWork(com.godofthings.overloadedinterface.OverloadedInterfaceRegistry::bindBlockAndEntity);
         // ME 无限元件：存储处理器 + 驱动器槽位模型注册（enqueueWork 保证注册表就绪且主线程执行；
         // StorageCellModels 虽在 api.client 包里，但上游 ExtendedAE 同样在双侧通用初始化中调用）
         event.enqueueWork(() -> {
