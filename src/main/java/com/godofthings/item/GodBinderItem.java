@@ -96,6 +96,22 @@ public class GodBinderItem extends Item
             return InteractionResult.PASS;
         }
 
+        boolean clickingBlockEntity = level.getBlockEntity(pos) != null;
+        boolean hasSelection = getProviderSelection(stack) != null;
+
+        // 潜行右键「非机器方块」= 取消选中的供应器；客户端也要拦下来发包，
+        // 否则这里会 PASS 给原版、服务端永远收不到取消请求
+        if (player.isShiftKeyDown() && !clickingBlockEntity && hasSelection)
+        {
+            if (level.isClientSide())
+            {
+                PacketDistributor.sendToServer(new BinderUsePayload(
+                        ctx.getHand(), pos, ctx.getClickedFace(),
+                        net.minecraft.client.gui.screens.Screen.hasControlDown()));
+            }
+            return InteractionResult.SUCCESS_NO_ITEM_USED;
+        }
+
         // 目标是自家供应器：选中 / 取消选中（客户端发包，服务端处理，选中状态在物品上需要服务端写）
         if (level.getBlockEntity(pos) instanceof InfEnhancedBlockEntity)
         {
@@ -109,7 +125,7 @@ public class GodBinderItem extends Item
         }
 
         // 已选中供应器时点机器：无线连接 / 断开（Ctrl 批量状态随包走）
-        if (getProviderSelection(stack) != null && level.getBlockEntity(pos) != null)
+        if (hasSelection && clickingBlockEntity)
         {
             if (level.isClientSide())
             {
@@ -160,6 +176,17 @@ public class GodBinderItem extends Item
             return;
         }
 
+        // 潜行右键「空处 / 非机器方块」= 取消选中的供应器（照抄上游过载无线
+        // 连接工具：它的 use() 在任意地方右键就清掉选中状态）。点机器时潜行
+        // 仍是「断开连接」，点供应器时仍由 handleProviderClick 处理，都不受影响。
+        boolean clickingMachine = level.getBlockEntity(pos) != null;
+        if (player.isShiftKeyDown() && !clickingMachine && getProviderSelection(stack) != null) {
+            clearProviderSelection(stack);
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.provider_deselected")
+                            .withStyle(ChatFormatting.YELLOW), true);
+            return;
+        }
         // 分支一：点到自家供应器 → 选中 / 取消选中
         if (level.getBlockEntity(pos) instanceof InfEnhancedBlockEntity provider) {
             handleProviderClick(stack, player, level, pos, provider);
@@ -255,6 +282,14 @@ public class GodBinderItem extends Item
     private static void handleProviderClick(ItemStack stack, Player player, Level level,
             BlockPos pos, InfEnhancedBlockEntity provider) {
         var selection = getProviderSelection(stack);
+        // 潜行点供应器 = 无条件取消选中（不管点的是不是当前选中的那台）
+        if (player.isShiftKeyDown() && selection != null) {
+            clearProviderSelection(stack);
+            player.displayClientMessage(
+                    Component.translatable("message.godofthings.binder.provider_deselected")
+                            .withStyle(ChatFormatting.YELLOW), true);
+            return;
+        }
         if (selection != null && selection.pos().equals(pos)) {
             clearProviderSelection(stack);
             player.displayClientMessage(

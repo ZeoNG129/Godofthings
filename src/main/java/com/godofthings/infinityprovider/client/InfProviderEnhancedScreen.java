@@ -80,15 +80,24 @@ public class InfProviderEnhancedScreen<M extends InfProviderMenu.EnhancedActions
     @Override
     public void drawFG(GuiGraphics guiGraphics, int offsetX, int offsetY, int mouseX, int mouseY) {
         super.drawFG(guiGraphics, offsetX, offsetY, mouseX, mouseY);
-        // 无线模式下在「返回栏」标题左侧画连接数（照抄上游把状态文字放在
-        // 有专属空位的位置；y=17 是「可用升级卡」槽位标签、y=33 是页码，
-        // 都会文字重叠，这里用 y=116 返回栏标题那一行的右侧空位）
+        // 无线模式下把连接数画在「物品返回栏」标题那一行的右侧空位。
+        // 行高不能硬编码：1 槽版返回栏标签在 top=62，其余三档在 top=116，
+        // 直接读当前屏幕 json 里 interface_stored_items 的坐标即可自适应。
         if (this.getMenu().isWirelessMode()) {
             var text = Component.translatable("gui.godofthings.infprovider.connections",
                     this.getMenu().getConnectionCount());
             guiGraphics.drawString(this.font, text,
-                    this.imageWidth - 8 - this.font.width(text), 116,
+                    this.imageWidth - 8 - this.font.width(text), this.storedItemsLabelY(),
                     this.style.getColor(PaletteColor.DEFAULT_TEXT_COLOR).toARGB(), false);
         }
+    }
+
+    /** 返回栏标题的 y 坐标（各档界面不同，从样式 json 读，缺省回退到 116）。 */
+    private int storedItemsLabelY() {
+        var label = this.style.getText().get("interface_stored_items");
+        if (label != null && label.getPosition() != null && label.getPosition().getTop() != null) {
+            return label.getPosition().getTop();
+        }
+        return 116;
     }
 }
