@@ -338,7 +338,8 @@ public class GodBinderItem extends Item
     private static final String TAG_IFACE_DIM = "InfIfaceDim";
     private static final String TAG_IFACE_POS = "InfIfacePos";
 
-    private record IfaceSelection(ResourceKey<Level> dimension, BlockPos pos) {
+    /** 过载接口选中记录（渲染器也要读，故为 public）。 */
+    public record IfaceSelection(ResourceKey<Level> dimension, BlockPos pos) {
     }
 
     private static void selectOverloadedInterface(ItemStack stack, ResourceKey<Level> dim, BlockPos pos) {
@@ -351,7 +352,7 @@ public class GodBinderItem extends Item
     }
 
     @Nullable
-    private static IfaceSelection getOverloadedInterfaceSelection(ItemStack stack) {
+    public static IfaceSelection getOverloadedInterfaceSelection(ItemStack stack) {
         var data = stack.get(DataComponents.CUSTOM_DATA);
         if (data == null) {
             return null;

@@ -2110,3 +2110,14 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     按 Ctrl 即实时预览将要批量连接的连通同种机器群（黄色面 + 黄线）；4 tick 重扫节流 + 换维度清缓存。
   - **高级设置文案**：并行数说明 / 提示文案缩短到一行放得下（176px 界面宽度）。
   - **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功；`runGameTestServer` 45 条全过。
+
+## 7.7.0 → 7.7.1
+
+- **过载接口世界内连接渲染补齐**（与供应器 7.3.x 的 AE2LT 移植项对齐，新增 `OverloadedInterfaceRenderer`）：
+  - 手持同心契时 64 格内无线模式过载接口显示透视内芯（蓝=未选中 / 黄=已选中）；
+  - 已连接机器面蓝色高亮平面 + 接口中心到目标面中心的蓝色连线（连接明细客户端全量下发在 7.5.x 已就位）；
+  - 选中接口后准星指向机器时按 Ctrl 实时预览将要批量连接的同种机器群（黄色面 + 黄线，已连接的不画）；
+  - 与供应器渲染器互不干扰：选中态共用同一份 CustomData 二选一存储，选中接口时供应器视图不渲染、反之亦然；
+  - 渲染器独立成类（`overloadedinterface/client/`），不与 `InfConnectorRenderer` 混合，首次编译时补上漏抄的
+    `RenderType` import。
+- **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功并自动部署两个测试目录；`runGameTestServer` 45 条全过。
