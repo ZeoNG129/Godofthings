@@ -1438,5 +1438,9 @@
   "gui.godofthings.overloaded_interface.speed.normal": "IO 速度：普通（每 20 tick 一轮）",
   "gui.godofthings.overloaded_interface.speed.fast": "IO 速度：快速（每 5 tick 一轮）",
   "gui.godofthings.overloaded_interface.connections": "已连接 %d 台机器",
-  "gui.godofthings.overloaded_interface.eject_storage": "接口输出仓"
+  "gui.godofthings.overloaded_interface.eject_storage": "接口输出仓",
+  "gui.godofthings.overloaded_interface.page.next": "下一页（也可滚轮翻页）",
+  "gui.godofthings.overloaded_interface.page.prev": "上一页（也可滚轮翻页）",
+  "gui.godofthings.overloaded_interface.set_amount": "设置数量",
+  "gui.godofthings.overloaded_interface.set_amount.tooltip": "左键：设置该槽库存数量；Shift+左键：切换无限库存（∞）"
 }

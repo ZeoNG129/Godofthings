@@ -1438,5 +1438,9 @@ Note: this cell replaces the old four single-resource cells (water / lava / cobb
   "gui.godofthings.overloaded_interface.speed.normal": "IO speed: Normal (one pass per 20 ticks)",
   "gui.godofthings.overloaded_interface.speed.fast": "IO speed: Fast (one pass per 5 ticks)",
   "gui.godofthings.overloaded_interface.connections": "Connected to %d machines",
-  "gui.godofthings.overloaded_interface.eject_storage": "Interface output slot"
+  "gui.godofthings.overloaded_interface.eject_storage": "Interface output slot",
+  "gui.godofthings.overloaded_interface.page.next": "Next page (scroll wheel works too)",
+  "gui.godofthings.overloaded_interface.page.prev": "Previous page (scroll wheel works too)",
+  "gui.godofthings.overloaded_interface.set_amount": "Set amount",
+  "gui.godofthings.overloaded_interface.set_amount.tooltip": "Left-click: set stock amount; Shift+left-click: toggle unlimited (∞)"
 }

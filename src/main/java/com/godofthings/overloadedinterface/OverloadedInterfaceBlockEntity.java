@@ -75,11 +75,11 @@ public class OverloadedInterfaceBlockEntity extends InterfaceBlockEntity
     private static final String TAG_FILTER_INV = "FilterInv";
 
     /** 普通模式一次 IO 的最短间隔（tick）。 */
-    private static final int NORMAL_INTERVAL = 20;
-    /** 快速模式一次 IO 的最短间隔（tick）。 */
-    private static final int FAST_INTERVAL = 5;
-    /** 单次向外部目标投放的上限（避免一次刷爆）。 */
-    private static final long TRANSFER_LIMIT = 1_000_000L;
+    private static final int NORMAL_INTERVAL = 10;
+    /** 快速模式一次 IO 的最短间隔（tick）——每 tick 都跑。 */
+    private static final int FAST_INTERVAL = 1;
+    /** 单次向外部目标投放的上限（对齐上游：不设人工瓶颈）。 */
+    private static final long TRANSFER_LIMIT = Long.MAX_VALUE;
 
     public enum InterfaceMode { NORMAL, WIRELESS }
 
