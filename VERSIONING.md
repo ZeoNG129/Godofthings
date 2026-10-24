@@ -2049,3 +2049,10 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
     部件形态与方块形态之间也可互转。
   - **自查**：`check-lang.ps1` checks: OK（zh/en 各 1225 键，92 方块 / 103 物品 / 1 实体 / 32 成就）；
     `gradlew build` 成功并自动部署；`runGameTestServer` 45 条全部通过。
+
+- 7.2.0 -> **7.2.1（修复：无限样板供应器界面背景图错位）**。2026-10-24
+  - **根因**：7.2.0 移植时误判上游 jar 缺 GUI 背景图而自绘了四张，自绘图把玩家物品栏区块画错位置，
+    导致槽位与界面对不上；上游设计的翻页箭头是「背景图右侧凹槽 + 悬停高亮」两件套，背景错了箭头也就看不见了。
+  - **修复**：直接改用上游 jar 自带的原始背景图（`infinity_pattern_provider.png` 与 `_1slots_pattern_provider.png`，
+    三张大容量档共用前者），删除两张自绘孤儿图；json 无需改动（坐标本就与上游一致）。
+  - **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功并自动部署。客户端界面需实机复核。
