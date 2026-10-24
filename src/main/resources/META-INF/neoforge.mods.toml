@@ -93,3 +93,7 @@ config="${mod_id}.beef.mixins.json"
 # 因为 package 与主配置不同（com.godofthings.doll.mixin）。
 [[mixins]]
 config="${mod_id}.doll.mixins.json"
+# 高级内存卡的 P2P 部件 Mixin（package：com.godofthings.advancedmemorycard.mixin）。
+# 之前误挂在主配置的 "advancedmemorycard.P2PTunnelPartMixin"（路径不存在，静默不生效），v7.11.4 修复。
+[[mixins]]
+config="${mod_id}.amc.mixins.json"

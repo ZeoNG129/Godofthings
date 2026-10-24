@@ -339,6 +339,63 @@ public class ConnectorCardItem extends appeng.items.materials.UpgradeCardItem
         return ItemStack.EMPTY;
     }
 
+    /**
+     * 终端联网重定向（照抄上游 WTMenuHostMixin 的 resolveFrequencyNode 语义）：
+     * 终端升级槽里插着已绑定的连接器卡时，返回绑定连接器所在的 ME 网络；
+     * 没插卡 / 未绑定 / 连接器不可用返回 null（调用方走原版无线访问点逻辑）。
+     * 仅服务端（level 为 ServerLevel 时才有意义）。
+     */
+    public static appeng.api.networking.IGrid resolveBoundGridForTerminal(
+            ItemStack terminalStack, net.minecraft.world.level.Level level)
+    {
+        if (terminalStack.isEmpty() || level == null || level.isClientSide())
+        {
+            return null;
+        }
+        if (!(terminalStack.getItem() instanceof appeng.api.upgrades.IUpgradeableItem upgradeable))
+        {
+            return null;
+        }
+        var upgrades = upgradeable.getUpgrades(terminalStack);
+        for (int slot = 0; slot < upgrades.size(); slot++)
+        {
+            var card = upgrades.getStackInSlot(slot);
+            if (!(card.getItem() instanceof ConnectorCardItem))
+            {
+                continue;
+            }
+            var data = getData(card);
+            if (!data.isBound())
+            {
+                continue;
+            }
+            var dimId = net.minecraft.resources.ResourceLocation.tryParse(
+                    data.boundConnectorDimension().orElse(""));
+            if (dimId == null || !(level instanceof net.minecraft.server.level.ServerLevel serverLevel))
+            {
+                continue;
+            }
+            var hubLevel = serverLevel.getServer().getLevel(
+                    net.minecraft.resources.ResourceKey.create(
+                            net.minecraft.core.registries.Registries.DIMENSION, dimId));
+            if (hubLevel == null)
+            {
+                continue;
+            }
+            var hubPos = net.minecraft.core.BlockPos.of(data.boundConnectorPos().orElse(0L));
+            if (!(hubLevel.getBlockEntity(hubPos) instanceof AaLinkConnectorBlockEntity hub))
+            {
+                continue;
+            }
+            var hubNode = hub.getHubNode();
+            if (hubNode != null && hubNode.getGrid() != null)
+            {
+                return hubNode.getGrid();
+            }
+        }
+        return null;
+    }
+
     /** 选卡结果（对应上游 FrequencyCardCandidateSelector.Selection）。 */
     public record CardSelection(Optional<ItemStack> chosen, boolean isAmbiguous)
     {

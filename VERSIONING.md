@@ -2321,3 +2321,14 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
      AE2 原生 IUpgradeableItem 扫描，AE2 / ae2wtlib 终端通用；只供自动连接这类只读路径，
      切换/连接动作不碰终端内卡快照，与上游一致）。
   端到端探针实证：放连接器 → 绑卡开自动连接 → 放 AE 能量接收器 → 重试队列自动接线同网。
+## 7.11.4（2026-10-25）
+- **终端插卡直连网络**（补齐上游过载频率卡的终端联网能力）：上游用 mixin 重定向 ae2wtlib
+  终端的联网节点到卡绑定的频率网络；本地改挂 AE2 基类 `WirelessTerminalItem.getLinkedGrid`
+  （AE2 是硬依赖可编译期 mixin；ae2wtlib 的 ItemWT 未覆写此方法，其全部终端同样经过这里）——
+  无线终端 / 无线合成终端 / 染色器以及 ae2wtlib 系终端插着**已绑定的无线连接器卡**时，
+  直接连进绑定连接器所在的 ME 网络（跨维度、无无线信号均可，语义同量子桥卡）；
+  未插卡 / 未绑定 / 连接器不可用时走原版无线访问点逻辑，行为不变。
+- **顺手修复高级内存卡 P2P Mixin 静默失效**：`P2PTunnelPartMixin` 实际在
+  `com.godofthings.advancedmemorycard.mixin` 包，之前误挂在主 mixin 配置的
+  `advancedmemorycard.P2PTunnelPartMixin` 路径下（不存在，自移植以来从未生效）；
+  新增独立 `godofthings.amc.mixins.json` 并在 mods.toml 注册。

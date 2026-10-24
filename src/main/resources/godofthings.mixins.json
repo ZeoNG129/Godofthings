@@ -6,7 +6,7 @@
   "mixins": [
     "KeyCounterMixin",
     "PatternProviderLogicAccessor",
-    "advancedmemorycard.P2PTunnelPartMixin"
+    "WirelessTerminalItemConnectorMixin"
   ],
   "client": [
     "GuiHeartsCompressMixin",

@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.godofthings.advancedmemorycard.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "P2PTunnelPartMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
