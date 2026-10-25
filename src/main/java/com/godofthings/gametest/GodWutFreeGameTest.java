@@ -154,6 +154,21 @@ public class GodWutFreeGameTest
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void serializersAreRegisteredSingletons(GameTestHelper helper)
+    {
+        // 防回归（7.15.1 进存档 update_recipes 断连）：注册表里登记的必须是配方类的
+        // 静态单例——否则 JSON 配方持有的序列化器实例在注册表里查不到 id，
+        // 客户端进服时配方同步包编码直接抛 IllegalArgumentException。
+        helper.assertTrue(net.minecraft.core.registries.BuiltInRegistries.RECIPE_SERIALIZER
+                .get(Godofthings.godofthingsId("wutfree_combine")) == WtWutCombine.SERIALIZER,
+                "wutfree_combine 必须注册静态单例序列化器");
+        helper.assertTrue(net.minecraft.core.registries.BuiltInRegistries.RECIPE_SERIALIZER
+                .get(Godofthings.godofthingsId("wutfree_upgrade")) == WtWutUpgrade.SERIALIZER,
+                "wutfree_upgrade 必须注册静态单例序列化器");
+        helper.succeed();
+    }
+
     private static java.util.List<net.minecraft.world.item.crafting.RecipeHolder<net.minecraft.world.item.crafting.Recipe<?>>>
             recipeManagerRecipes(net.minecraft.world.item.crafting.RecipeManager recipeManager,
                     net.minecraft.world.item.crafting.RecipeSerializer<?> serializer)

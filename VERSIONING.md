@@ -40,6 +40,14 @@ eoforge.mods.toml 移除 ae2wtlib 依赖声明，uild.gradle / etch-libs.ps1 �
 - **配置**：wutfree-common.toml（磁卡范围）+ wutfree-client.toml（选择面板常显开关）。
 - 未移植：量子桥卡（本模组无量子网络需求，[本地改动] 恒断开）。
 
+## 7.15.1 → 7.15.2
+
+**修复 7.15.1 进存档断连**（`Failed to encode packet clientbound/minecraft:update_recipes`）：
+
+- 根因：combine / upgrade 两个配方序列化器注册时 new 了新实例，而 JSON 配方加载出的 recipe 持有的是配方类里的静态单例实例——客户端进存档时配方同步包按注册表反查序列化器 id 查不到，编码直接抛 `IllegalArgumentException`。
+- 修复：`RECIPE_SERIALIZERS.register` 改为登记配方类的静态单例（与上游 `Registry.register(..., Upgrade.serializer)` 语义一致）。
+- 新增 1 条防回归探针 `GodWutFreeGameTest.serializersAreRegisteredSingletons`（回归测试共 52 条）。
+
 - 1.0.0 → 1.3.0：神之剑新增可切换功能（斩首 / 捕捉 / 抢劫，J 键打开面板，可单独或同时生效）。
 - 1.3.0 → 1.4.0：神之剑新增吸星 / 吸魂功能；修复神之工具连锁挖掘 Tab 键状态残留导致默认连锁且关不掉的问题。
 - 1.4.0 → 1.5.0：新增请神物品（右键生物赋予无限血量、保留受击反馈）。

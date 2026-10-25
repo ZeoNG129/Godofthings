@@ -869,12 +869,15 @@ public class Godofthings
             RECIPE_SERIALIZERS.register("god_unbreakable", GodUnbreakableRecipe.Serializer::new);
 
     // ---- 无耗能通用终端配方序列化器（v7.15.1 独立实现，JSON 参数格式与 ae2wtlib combine/upgrade 一致）----
+    // 注册静态单例（照抄上游 Registry.register(..., Upgrade.serializer)）：
+    // JSON 配方加载出的 recipe.getSerializer() 返回的是静态字段实例，若注册的是另一个
+    // new 出来的实例，进存档同步 update_recipes 包时注册表查不到 id 直接断连（7.15.1 踩过）。
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> WUTFREE_COMBINE_SERIALIZER =
             RECIPE_SERIALIZERS.register("wutfree_combine",
-                    com.godofthings.wt.recipe.WtWutCombineSerializer::new);
+                    () -> com.godofthings.wt.recipe.WtWutCombine.SERIALIZER);
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> WUTFREE_UPGRADE_SERIALIZER =
             RECIPE_SERIALIZERS.register("wutfree_upgrade",
-                    com.godofthings.wt.recipe.WtWutUpgradeSerializer::new);
+                    () -> com.godofthings.wt.recipe.WtWutUpgrade.SERIALIZER);
 
     // ---- 创造标签 ----
     /**
