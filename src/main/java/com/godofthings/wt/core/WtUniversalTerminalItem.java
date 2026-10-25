@@ -99,13 +99,18 @@ public class WtUniversalTerminalItem extends WtTerminalItem
         return terminals;
     }
 
+    @Override
     public IConfigManager getConfigManager(Supplier<ItemStack> target)
     {
-        var item = WtTerminalDefinition.of(target.get()).item();
-        if (item instanceof WtTerminalItem terminalItem)
-        {
-            return terminalItem.getConfigManager(target);
-        }
-        return super.getConfigManager(target);
+        // [本地改动] v7.15.3 单物品架构：三台终端定义的 item 都指向本物品，
+        // 上游「按当前终端定义转发到对应物品的 getConfigManager」会变成自我递归
+        // （7.15.3 首版 StackOverflow 崩溃），改为直接自建并注册全部终端需要的设置。
+        return WtConfigManager.builder(target)
+                .registerSetting(appeng.api.config.Settings.SORT_BY, appeng.api.config.SortOrder.NAME)
+                .registerSetting(appeng.api.config.Settings.VIEW_MODE, appeng.api.config.ViewItems.ALL)
+                .registerSetting(appeng.api.config.Settings.SORT_DIRECTION, appeng.api.config.SortDir.ASCENDING)
+                .registerSetting(appeng.api.config.Settings.TERMINAL_SHOW_PATTERN_PROVIDERS,
+                        appeng.api.config.ShowPatternProviders.VISIBLE)
+                .build();
     }
 }

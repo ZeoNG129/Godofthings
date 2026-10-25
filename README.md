@@ -161,7 +161,7 @@
 
 ```powershell
 .\check-lang.ps1              # 静态校验：语言键 + 资源一致性 + 手册覆盖 + 脚本纯 ASCII（见下）
-.\gradlew runGameTestServer   # 回归测试（共 52 项）：便签 / 传送点、掉落机战利品表、
+.\gradlew runGameTestServer   # 回归测试（共 53 项）：便签 / 传送点、掉落机战利品表、
                               #   刷怪蛋、资源三机过滤、去皮机、神之共鸣、神之皮带（10 个测试类）
 ```
 

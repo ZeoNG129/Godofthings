@@ -168,6 +168,24 @@ public class GodWutFreeGameTest
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void configManagerNoRecursion(GameTestHelper helper)
+    {
+        // 防回归（7.15.3 打开终端 StackOverflow）：单物品架构下 getConfigManager 不许
+        // 按定义转发回自己，且三台终端需要的设置都要注册（样板管理界面读
+        // TERMINAL_SHOW_PATTERN_PROVIDERS，缺了抛 UnsupportedSettingException）。
+        var stack = new ItemStack(Godofthings.WIRELESS_UNIVERSAL_TERMINAL_FREE.get());
+        stack.set(WtRegistration.PATTERN_ACCESS().componentType().type(),
+                com.mojang.datafixers.util.Unit.INSTANCE);
+        var item = (WtUniversalTerminalItem) stack.getItem();
+        var config = item.getConfigManager(() -> stack);
+        helper.assertTrue(config.getSetting(appeng.api.config.Settings.SORT_BY)
+                == appeng.api.config.SortOrder.NAME, "SORT_BY 设置应可读取");
+        helper.assertTrue(config.getSetting(appeng.api.config.Settings.TERMINAL_SHOW_PATTERN_PROVIDERS)
+                == appeng.api.config.ShowPatternProviders.VISIBLE, "样板供应器显示设置应可读取");
+        helper.succeed();
+    }
+
     private static java.util.List<net.minecraft.world.item.crafting.RecipeHolder<net.minecraft.world.item.crafting.Recipe<?>>>
             recipeManagerRecipes(net.minecraft.world.item.crafting.RecipeManager recipeManager,
                     net.minecraft.world.item.crafting.RecipeSerializer<?> serializer)
