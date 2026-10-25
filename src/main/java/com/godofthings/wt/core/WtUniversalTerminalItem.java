@@ -3,7 +3,9 @@ package com.godofthings.wt.core;
 import java.util.List;
 import java.util.function.Supplier;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -24,6 +26,8 @@ import appeng.menu.locator.ItemMenuHostLocator;
  */
 public class WtUniversalTerminalItem extends WtTerminalItem
 {
+    private static final Style STYLE_GRAY = Style.EMPTY.withColor(ChatFormatting.GRAY);
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand)
     {
@@ -69,6 +73,11 @@ public class WtUniversalTerminalItem extends WtTerminalItem
             {
                 lines.add(terminal.formattedName());
             }
+        }
+        // [本地改动] v7.15.5：列出已合并的附属终端
+        for (var extra : WtExtraTerminals.list(stack))
+        {
+            lines.add(WtExtraTerminals.displayName(extra).copy().withStyle(STYLE_GRAY));
         }
         lines.add(Component.translatable("tooltip.godofthings.wut.no_energy"));
         super.appendHoverText(stack, context, lines, advancedTooltips);

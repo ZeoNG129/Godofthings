@@ -73,6 +73,15 @@ public final class WtComponents
     public static final DataComponentType<CompoundTag> PATTERN_ENCODING_LOGIC = register("wt_pattern_encoding_logic",
             COMPOUND_TAG_CODECS);
 
+    /** 附属无线终端列表（v7.15.5：任何 AE2 WirelessTerminalItem 子类合并进来后存这里）。 */
+    public static final DataComponentType<java.util.List<ItemStack>> EXTRA_TERMINALS = register("wt_extra_terminals",
+            builder -> builder.persistent(ItemStack.CODEC.listOf())
+                    .networkSynchronized(ItemStack.STREAM_CODEC
+                            .apply(net.minecraft.network.codec.ByteBufCodecs.list())));
+    public static final DataComponentType<Integer> EXTRA_CURRENT = register("wt_extra_current",
+            builder -> builder.persistent(Codec.intRange(-1, Integer.MAX_VALUE))
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
     public static <T> DataComponentType<T> register(String name,
             Consumer<DataComponentType.Builder<T>> customizer)
     {

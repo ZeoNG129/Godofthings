@@ -122,6 +122,12 @@ public record WtTerminalDefinition(String terminalName, ContainerOpener containe
                     return def;
                 }
             }
+            // [本地改动] v7.15.5：内建选择无效时，若游标指向附属终端则维持附属选择
+            // （不能自动写回内建终端，否则循环切到附属终端后会被立即拽回）。
+            if (WtExtraTerminals.current(stack) >= 0 && !WtExtraTerminals.list(stack).isEmpty())
+            {
+                return null;
+            }
             for (var def : TERMINAL_LIST)
             {
                 if (stack.get(def.componentType().type()) != null)
@@ -205,12 +211,55 @@ public record WtTerminalDefinition(String terminalName, ContainerOpener containe
     public static void cycle(Player player, ItemMenuHostLocator locator, ItemStack stack,
             boolean isHandlingRightClick)
     {
-        var next = nextTerminal(stack, isHandlingRightClick);
-        if (next == null)
+        // [本地改动] v7.15.5：循环序列 = 已装内建终端 + 已合并附属终端（平铺后环形移动）
+        var builtins = new ArrayList<WtTerminalDefinition>();
+        for (var def : TERMINAL_LIST)
+        {
+            if (stack.get(def.componentType().type()) != null)
+            {
+                builtins.add(def);
+            }
+        }
+        var extras = WtExtraTerminals.list(stack);
+        int total = builtins.size() + extras.size();
+        if (total == 0)
         {
             return;
         }
-        stack.set(com.godofthings.Godofthings.WT_CURRENT_TERMINAL, next.terminalName());
+
+        int cur;
+        var currentDef = ofOrNull(stack);
+        if (currentDef != null)
+        {
+            cur = builtins.indexOf(currentDef);
+            if (cur < 0)
+            {
+                return;
+            }
+        }
+        else
+        {
+            int extraCur = WtExtraTerminals.current(stack);
+            if (extraCur < 0 || extraCur >= extras.size())
+            {
+                return;
+            }
+            cur = builtins.size() + extraCur;
+        }
+
+        int next = ((cur + (isHandlingRightClick ? -1 : 1)) % total + total) % total;
+        if (next < builtins.size())
+        {
+            // 切到内建终端
+            stack.set(com.godofthings.Godofthings.WT_CURRENT_TERMINAL, builtins.get(next).terminalName());
+            WtExtraTerminals.setCurrent(stack, -1);
+        }
+        else
+        {
+            // 切到附属终端：清掉内建选择，游标指向附属列表
+            stack.remove(com.godofthings.Godofthings.WT_CURRENT_TERMINAL);
+            WtExtraTerminals.setCurrent(stack, next - builtins.size());
+        }
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer)
         {
             com.godofthings.wt.network.WtNetwork.updateClientTerminal(serverPlayer, locator, stack);
@@ -219,16 +268,47 @@ public record WtTerminalDefinition(String terminalName, ContainerOpener containe
 
     /**
      * 打开当前终端菜单（照抄 WUTHandler.open；耗电检查已被无耗能五连覆盖）。
+     * [本地改动] v7.15.5：当前游标指向附属终端时，直接打开该终端物品自己的 AE2 原生菜单
+     * （借它的 getMenuType / checkPreconditions，菜单宿主由 AE2 原生 WirelessTerminalItem
+     * 路径创建，本模组组件仍存在通用终端上）。
      */
     public static boolean open(Player player, ItemMenuHostLocator locator, boolean returningFromSubmenu)
     {
-        var current = ofOrNull(locator.locateItem(player));
+        var stack = locator.locateItem(player);
+        var current = ofOrNull(stack);
         if (current == null)
         {
+            // 内建三台都没有：有附属终端时打开游标指向的附属终端
+            var extras = WtExtraTerminals.list(stack);
+            int cursor = WtExtraTerminals.current(stack);
+            if (!extras.isEmpty() && cursor >= 0 && cursor < extras.size())
+            {
+                return openExtra(player, locator, stack, extras.get(cursor), returningFromSubmenu);
+            }
             player.displayClientMessage(Component.translatable("msg.godofthings.wut.empty"), false);
             return false;
         }
         return current.containerOpener().tryOpen(player, locator, returningFromSubmenu);
+    }
+
+    /**
+     * 打开一台合并进来的附属终端（[本地改动] 走 AE2 原生 MenuOpener：用附属终端物品
+     * 自己的菜单类型 + 栈定位器（AE2 会按栈定位器调 getMenuHost 创建该终端原生宿主）。
+     * 临时副本在打开前把电量充满——通用终端本身无耗能，附属终端的电量检查也一并免除，
+     * 且副本不回写不会污染存档数据。
+     */
+    private static boolean openExtra(Player player, ItemMenuHostLocator locator, ItemStack stack,
+            ItemStack extra, boolean returningFromSubmenu)
+    {
+        if (extra.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem terminal)
+        {
+            var copy = extra.copyWithCount(1);
+            copy.set(appeng.api.ids.AEComponents.STORED_ENERGY, copy
+                    .getOrDefault(appeng.api.ids.AEComponents.ENERGY_CAPACITY, 0.0) + 1.0);
+            return appeng.menu.MenuOpener.open(terminal.getMenuType(), player,
+                    appeng.menu.locator.MenuLocators.forStack(copy), returningFromSubmenu);
+        }
+        return false;
     }
 
     /** 找到玩家身上装有指定终端的槽位定位器（照抄 WUTHandler.findTerminal，含 Curios）。 */

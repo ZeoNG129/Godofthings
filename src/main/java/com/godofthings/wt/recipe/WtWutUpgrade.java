@@ -10,6 +10,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
+import com.godofthings.wt.core.WtExtraTerminals;
 import com.godofthings.wt.core.WtTerminalDefinition;
 
 /**
@@ -43,16 +44,46 @@ public class WtWutUpgrade extends WtWutCommon
     public boolean matches(CraftingInput inv, Level world)
     {
         ItemStack wut = WtWutInputHelper.getInputStack(inv, WtWutInputHelper.WUT);
-        return !WtWutInputHelper.getInputStack(inv, terminal).isEmpty() && !wut.isEmpty()
-                && inv.ingredientCount() == 2
-                && wut.get(terminalDefinition.componentType().type()) == null;
+        if (wut.isEmpty() || inv.ingredientCount() != 2)
+        {
+            return false;
+        }
+        // [本地改动] v7.15.5：标准食材（AE2 终端）不匹配时，退而接受任意 AE2 无线终端
+        // （附属模组终端）作为「额外终端」合并——与原版 wtlib 的开放生态对齐。
+        ItemStack standard = WtWutInputHelper.getInputStack(inv, terminal);
+        if (!standard.isEmpty())
+        {
+            return wut.get(terminalDefinition.componentType().type()) == null;
+        }
+        for (var stack : inv.items())
+        {
+            if (WtExtraTerminals.isMergeable(stack))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public ItemStack assemble(CraftingInput inv, HolderLookup.Provider provider)
     {
-        return mergeTerminal(WtWutInputHelper.getInputStack(inv, WtWutInputHelper.WUT).copy(),
-                WtWutInputHelper.getInputStack(inv, terminal).copy(), terminalDefinition);
+        ItemStack standard = WtWutInputHelper.getInputStack(inv, terminal);
+        if (!standard.isEmpty())
+        {
+            return mergeTerminal(WtWutInputHelper.getInputStack(inv, WtWutInputHelper.WUT).copy(),
+                    standard.copy(), terminalDefinition);
+        }
+        // 附属终端合并分支
+        for (var stack : inv.items())
+        {
+            if (WtExtraTerminals.isMergeable(stack))
+            {
+                return mergeExtraTerminal(
+                        WtWutInputHelper.getInputStack(inv, WtWutInputHelper.WUT).copy(), stack.copy());
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     @Override

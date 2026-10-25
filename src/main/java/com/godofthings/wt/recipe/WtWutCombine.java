@@ -10,6 +10,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
+import com.godofthings.wt.core.WtExtraTerminals;
 import com.godofthings.wt.core.WtTerminalDefinition;
 
 /**
@@ -58,18 +59,54 @@ public class WtWutCombine extends WtWutCommon
     @Override
     public boolean matches(CraftingInput inv, Level world)
     {
-        return !WtWutInputHelper.getInputStack(inv, terminalA).isEmpty()
-                && !WtWutInputHelper.getInputStack(inv, terminalB).isEmpty() && inv.ingredientCount() == 2;
+        ItemStack a = WtWutInputHelper.getInputStack(inv, terminalA);
+        ItemStack b = WtWutInputHelper.getInputStack(inv, terminalB);
+        // [本地改动] v7.15.5：标准食材（AE2 终端）不齐时，接受「通用终端 + 任意一台 AE2
+        // 无线终端（附属模组终端）」的组合——合并为额外终端（与 wtlib 开放生态对齐）。
+        if (!a.isEmpty() && !b.isEmpty())
+        {
+            return inv.ingredientCount() == 2;
+        }
+        if (inv.ingredientCount() != 2)
+        {
+            return false;
+        }
+        boolean hasWut = false;
+        boolean hasExtra = false;
+        for (var stack : inv.items())
+        {
+            if (stack.getItem() instanceof com.godofthings.wt.core.WtUniversalTerminalItem)
+            {
+                hasWut = true;
+            }
+            else if (WtExtraTerminals.isMergeable(stack))
+            {
+                hasExtra = true;
+            }
+        }
+        return hasWut && hasExtra;
     }
 
     @Override
     public ItemStack assemble(CraftingInput inv, HolderLookup.Provider provider)
     {
-        ItemStack wut = mergeTerminal(outputStack.copy(), WtWutInputHelper.getInputStack(inv, terminalA),
-                terminalADefinition);
-        wut = mergeTerminal(wut, WtWutInputHelper.getInputStack(inv, terminalB), terminalBDefinition);
-
-        return wut;
+        ItemStack a = WtWutInputHelper.getInputStack(inv, terminalA);
+        ItemStack b = WtWutInputHelper.getInputStack(inv, terminalB);
+        if (!a.isEmpty() && !b.isEmpty())
+        {
+            ItemStack wut = mergeTerminal(outputStack.copy(), a, terminalADefinition);
+            wut = mergeTerminal(wut, b, terminalBDefinition);
+            return wut;
+        }
+        // 附属终端合并分支
+        for (var stack : inv.items())
+        {
+            if (WtExtraTerminals.isMergeable(stack))
+            {
+                return mergeExtraTerminal(outputStack.copy(), stack.copy());
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     @Override

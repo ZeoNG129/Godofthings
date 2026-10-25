@@ -14,6 +14,7 @@ import appeng.api.ids.AEComponents;
 import appeng.api.upgrades.IUpgradeInventory;
 
 import com.godofthings.Godofthings;
+import com.godofthings.wt.core.WtExtraTerminals;
 import com.godofthings.wt.core.WtTerminalDefinition;
 import com.godofthings.wt.core.WtTerminalItem;
 import com.godofthings.wt.core.WtUniversalTerminalItem;
@@ -92,6 +93,36 @@ public abstract class WtWutCommon implements CraftingRecipe
         componentsPatch = componentsPatch.forget(AEComponents.UPGRADES::equals);
         wut.applyComponents(componentsPatch);
 
+        return wut;
+    }
+
+    /**
+     * [本地改动] v7.15.5：把任意 AE2 无线终端（附属模组的终端也行）合并进通用终端——
+     * 存入 {@link WtComponents#EXTRA_TERMINALS}，同时合并它的升级卡与电量。
+     * 返回 null 表示食材不可合并。
+     */
+    public static ItemStack mergeExtraTerminal(ItemStack wut, ItemStack toMerge)
+    {
+        if (!(wut.getItem() instanceof WtUniversalTerminalItem itemWUT))
+            return ItemStack.EMPTY;
+        var merged = WtExtraTerminals.merge(wut, toMerge);
+        if (merged == null)
+            return ItemStack.EMPTY;
+
+        if (toMerge.getItem() instanceof appeng.api.upgrades.IUpgradeableItem itemWT)
+        {
+            Iterator<ItemStack> iterator = itemWT.getUpgrades(toMerge).iterator();
+            IUpgradeInventory wutUpgrades = itemWUT.getUpgrades(wut);
+            while (iterator.hasNext())
+            {
+                wutUpgrades.addItems(iterator.next());
+            }
+            itemWUT.onUpgradesChanged(wut, itemWUT.getUpgrades(wut));
+        }
+        if (toMerge.getItem() instanceof appeng.items.tools.powered.powersink.AEBasePoweredItem powered)
+        {
+            itemWUT.injectAEPower(wut, powered.getAECurrentPower(toMerge), Actionable.MODULATE);
+        }
         return wut;
     }
 }
