@@ -37,36 +37,6 @@ public final class ModItems {
     );
 
 
-    // ===== 造化垂青之杖全套（v7.13.0 恢复，注册名与上游 ModItems 一致）=====
-    // 基础杖（扳手标记开）与无扳手杖：模式轮盘在这两者之间切换扳手标签。
-    public static final DeferredItem<com.godofthings.beef.content.items.EndlessBeafItem> ENDLESS_BEAF_ITEM =
-            ITEMS.register("endless_beaf_item",
-                    () -> new com.godofthings.beef.content.items.EndlessBeafItem());
-    public static final DeferredItem<com.godofthings.beef.content.items.EndlessBeafItem> ENDLESS_BEAF_ITEM_NO_WRENCH =
-            ITEMS.register("endless_beaf_item_no_wrench",
-                    () -> new com.godofthings.beef.content.items.EndlessBeafItem(
-                            com.godofthings.beef.api.enums.tool.ToolTypeMode.NONE_MODE, false));
-    // 五个工具形态子物品（模式轮盘切换产物，不单独进创造栏）
-    public static final DeferredItem<com.godofthings.beef.content.items.EndlessBeafItem> ENDLESS_BEAF_WRENCH =
-            ITEMS.register("endless_beaf_wrench",
-                    () -> new com.godofthings.beef.content.items.EndlessBeafItem(
-                            com.godofthings.beef.api.enums.tool.ToolTypeMode.WRENCH_MODE));
-    public static final DeferredItem<com.godofthings.beef.content.items.EndlessBeafItem> ENDLESS_BEAF_SCREWDRIVER =
-            ITEMS.register("endless_beaf_screwdriver",
-                    () -> new com.godofthings.beef.content.items.EndlessBeafItem(
-                            com.godofthings.beef.api.enums.tool.ToolTypeMode.SCREWDRIVER_MODE));
-    public static final DeferredItem<com.godofthings.beef.content.items.EndlessBeafItem> ENDLESS_BEAF_MALLET =
-            ITEMS.register("endless_beaf_mallet",
-                    () -> new com.godofthings.beef.content.items.EndlessBeafItem(
-                            com.godofthings.beef.api.enums.tool.ToolTypeMode.MALLET_MODE));
-    public static final DeferredItem<com.godofthings.beef.content.items.EndlessBeafItem> ENDLESS_BEAF_CROWBAR =
-            ITEMS.register("endless_beaf_crowbar",
-                    () -> new com.godofthings.beef.content.items.EndlessBeafItem(
-                            com.godofthings.beef.api.enums.tool.ToolTypeMode.CROWBAR_MODE));
-    public static final DeferredItem<com.godofthings.beef.content.items.EndlessBeafItem> ENDLESS_BEAF_HAMMER =
-            ITEMS.register("endless_beaf_hammer",
-                    () -> new com.godofthings.beef.content.items.EndlessBeafItem(
-                            com.godofthings.beef.api.enums.tool.ToolTypeMode.HAMMER_MODE));
     private ModItems() {}
 
     public static void register(IEventBus eventBus) {

@@ -45,30 +45,9 @@ public class ClientEventBusSubscriber {
 
     @SubscribeEvent
     public static void registerKeyBindings(RegisterKeyMappingsEvent event) {
-        // 附魔切换
-        event.register(KeyBindings.SWITCH_SILK_TOUCH_KEY.get());
-        event.register(KeyBindings.SWITCH_FORTUNE_KEY.get());
-
-        // 模式开关
-        event.register(KeyBindings.TOGGLE_CHAIN_MODE_KEY.get());
-        event.register(KeyBindings.SWITCH_FORCE_MINING_KEY.get());
-        event.register(KeyBindings.SWITCH_FARMLAND_MODE_KEY.get());
-        event.register(KeyBindings.TOGGLE_CROP_HARVEST_KEY.get());
-        // 这两个按键此前只被 onKeyInput / tooltip 使用，却漏了注册，导致按键实际不生效
-        event.register(KeyBindings.TOGGLE_SHEARS_KEY.get());
-        event.register(KeyBindings.TOGGLE_FLINT_AND_STEEL_KEY.get());
-        // 连点模式（默认未绑定）
-        event.register(KeyBindings.TOGGLE_AUTO_CLICK_KEY.get());
-
-        // 触发按键
-        event.register(KeyBindings.TRIGGER_CHAIN_MINING_KEY.get());
-        event.register(KeyBindings.TRIGGER_FORCE_MINING_KEY.get());
-
-        // 短距传送（造化杖）
-        event.register(KeyBindings.SHORT_TELEPORT_KEY.get());
-
-        // UI
-        event.register(KeyBindings.SWITCH_MODE_WHEEL_KEY.get());
+        // v7.14.0 起按键注册统一移到 com.godofthings.client.ClientModEvents：
+        // 权杖分类的排序要求「原版 useless 键在上、荒辰附属键在下」，
+        // 拆在两个自动订阅类里无法保证注册顺序，集中注册才能确定顺序。
     }
 
     @SubscribeEvent

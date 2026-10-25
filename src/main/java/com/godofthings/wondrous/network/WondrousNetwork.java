@@ -120,6 +120,24 @@ public final class WondrousNetwork
     }
 
     // ------------------------------------------------------------------
+    // 独立传送
+    // ------------------------------------------------------------------
+
+    /** 独立传送上行：只上报「按下了」，落点由服务端计算与校验。 */
+    public record StandaloneTeleportPayload() implements CustomPacketPayload
+    {
+        public static final Type<StandaloneTeleportPayload> TYPE = WondrousNetwork.type("standalone_teleport");
+        public static final StreamCodec<RegistryFriendlyByteBuf, StandaloneTeleportPayload> STREAM_CODEC =
+                StreamCodec.of((buf, value) -> { }, buf -> new StandaloneTeleportPayload());
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return TYPE;
+        }
+    }
+
+    // ------------------------------------------------------------------
     // 时停
     // ------------------------------------------------------------------
 
@@ -466,6 +484,13 @@ public final class WondrousNetwork
                 (payload, context) -> context.enqueueWork(() -> ClientStateReceiver.handleStaffPhase(payload)));
         registrar.playToServer(WondrousStaffSpeedPayload.TYPE, WondrousStaffSpeedPayload.STREAM_CODEC,
                 (payload, context) -> context.enqueueWork(() -> handleWondrousStaffSpeed(payload, context)));
+        registrar.playToServer(StandaloneTeleportPayload.TYPE, StandaloneTeleportPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> {
+                    if (context.player() instanceof ServerPlayer player)
+                    {
+                        com.godofthings.wondrous.content.travel.StandaloneTeleport.activate(player);
+                    }
+                }));
         registrar.playToServer(StaffTimeStopPayload.TYPE, StaffTimeStopPayload.STREAM_CODEC,
                 (payload, context) -> context.enqueueWork(() -> handleStaffTimeStop(payload, context)));
         registrar.playToClient(TimeStopStatePayload.TYPE, TimeStopStatePayload.STREAM_CODEC,
@@ -727,6 +752,11 @@ public final class WondrousNetwork
     {
         PacketDistributor.sendToServer(new WondrousStaffSpeedPayload(
                 speed, mode, accelerationEnabled, hand == InteractionHand.OFF_HAND));
+    }
+
+    public static void sendStandaloneTeleport()
+    {
+        PacketDistributor.sendToServer(new StandaloneTeleportPayload());
     }
 
     public static void sendStaffTimeStop(InteractionHand hand)

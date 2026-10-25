@@ -74,6 +74,10 @@ public final class WondrousStaffClient
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
         if (player == null || mc.screen != null) return;
+        if (StretcherKeyBindings.STANDALONE_TELEPORT.consumeClick())
+        {
+            WondrousNetwork.sendStandaloneTeleport();
+        }
         if (StretcherKeyBindings.TWO_I_REMOTE_RECLAIM.consumeClick())
         {
             // [本地改动] 复用本模组玩偶的远程收回载荷（服务端已有完整实现）。

@@ -10,11 +10,18 @@ import org.lwjgl.glfw.GLFW;
  * 荒辰移晷之杖的客户端按键（照抄上游 StretcherKeyBindings，按用户要求并入工具键位分类）。
  * [本地改动] 上游分类是独立的 key.categories.useless_stretcher，这里改用本模组
  * 「众神之物：工具」分类（key.category.godofthings.wand）；上游的
- * STANDALONE_TELEPORT（独立传送）不移植，键名前缀从 godofthings. 改为 godofthings.。
+ * 键名前缀从 useless_stretcher. 改为 godofthings.。
  */
 public final class StretcherKeyBindings
 {
     public static final String CATEGORY = "key.category.godofthings.wand_staff";
+
+    /** 独立传送（普通：瞬移 / 潜行：旅行锚）；上游默认不绑定。 */
+    public static final KeyMapping STANDALONE_TELEPORT = new KeyMapping(
+            "key.godofthings.beef_standalone_teleport",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_UNKNOWN,
+            CATEGORY);
 
     /** 打开杖的加速配置界面。 */
     public static final KeyMapping WONDROUS_STAFF_MODE = new KeyMapping(

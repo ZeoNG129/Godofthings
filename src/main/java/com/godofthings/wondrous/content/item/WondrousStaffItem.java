@@ -92,7 +92,7 @@ public class WondrousStaffItem extends com.godofthings.beef.content.items.Endles
         }
         // The upstream base item exposes mode-specific abilities. Keep the staff in NONE_MODE,
         // but never leak wrench abilities when the G-menu wrench tag is disabled.
-        if (isWrenchAbility(ability) && !com.godofthings.wondrous.support.StaffBaseItem.isWrenchTagEnabled(stack)) {
+        if (isWrenchAbility(ability) && !com.godofthings.beef.content.items.BeefToolVariants.isWrenchTagEnabled(stack)) {
             return false;
         }
         return super.canPerformAction(stack, ability);
@@ -106,7 +106,7 @@ public class WondrousStaffItem extends com.godofthings.beef.content.items.Endles
     /** The extra switches only exist in newer Useless Mod builds; old builds keep legacy defaults. */
     private static boolean staffShearsEnabled(ItemStack stack) {
         try {
-            return com.godofthings.wondrous.support.StaffBaseItem.isShearsEnabled(stack);
+            return isShearsEnabled(stack);
         } catch (NoSuchMethodError ignored) {
             return true;
         }
@@ -114,7 +114,7 @@ public class WondrousStaffItem extends com.godofthings.beef.content.items.Endles
 
     private static boolean staffFlintAndSteelEnabled(ItemStack stack) {
         try {
-            return com.godofthings.wondrous.support.StaffBaseItem.isFlintAndSteelEnabled(stack);
+            return isFlintAndSteelEnabled(stack);
         } catch (NoSuchMethodError ignored) {
             return true;
         }

@@ -881,8 +881,6 @@ public class Godofthings
                         output.accept(GOD_LEGGINGS.get());
                         output.accept(GOD_BOOTS.get());
                         // ---- 手持神之工具（外形相近，按用途排）----
-                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_ITEM.get());
-                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_ITEM_NO_WRENCH.get());
                         output.accept(com.godofthings.wondrous.init.WondrousItems.WONDROUS_STAFF.get());
                         output.accept(GOD_INVITE.get());
                         output.accept(GOD_CHANGE.get());

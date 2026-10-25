@@ -2398,3 +2398,25 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   30 个模式轮盘 / 手册条目 7 条 / 时间加速实体名）；README 物品 117 / 实体 5。
 - **自查**：`check-lang.ps1` checks: OK（2140 键）；`gradlew build` 成功并自动部署；
   `runGameTestServer` 45 条全过（复活 122 文件后无回归）。
+## 7.13.0 → 7.14.0
+
+- **只保留一根杖**：删除 7.13.0 恢复的 7 个造化杖独立物品（基础 / 无扳手 / 扳手 / 螺丝刀 / 软锤 /
+  撬棍 / 铁锤），只留 `godofthings:wondrous_staff`。功能不缩水——荒辰杖继承 `EndlessBeafItem`
+  基类的全部能力，工具形态切换本来就走数据组件（BeefToolVariants v5.1.2 起就是组件制，
+  不需要独立物品）；配方 / 8 个模型 / 2 张贴图与 16 个孤儿语言键一并删除。
+  StaffBaseItem 空壳退役（引用改指 BeefToolVariants 与基类静态方法）。
+- **牛排工具配置界面（模式轮盘编辑布局）修复**：补 43 个缺失语言键（mode_config 编辑页 /
+  ae_connect 七条 / force/status / 五类 tooltip 模式名 / 工具核心名等），此前界面右列
+  两个按钮与工具形态行显示原始键名；标题「牛排工具配置」改「权杖配置」，
+  分组标题 Tools/Mining/Combat/Auxiliary 补中文（工具/挖掘/战斗/辅助）。
+  页面名「Page 1」与分组名属可编辑布局数据（上游同款），在「编辑布局」里可改。
+- **键位分类与排序**：分类名正确显示为「众神之物：权杖」
+  （此前键名 `key.category.godofthings.wand_staff` 没进语言文件）；注册顺序集中到
+  ClientModEvents —— **原版 useless 的 13 键在上，荒辰附属 4 键在下**（beef
+  ClientEventBusSubscriber 的注册摘除以保证确定性顺序）。
+- **补独立传送**（7.12.0 有意排除，用户要求合并回来）：照抄上游 StandaloneTeleport +
+  StandaloneBlink（无手持物要求，普通 = 24 格瞬发闪现，潜行 + Ender IO = 旅行锚），
+  新增 `StandaloneTeleportPayload` 与键位（默认不绑定，上游同款）。
+- **回收紬紬**：B 键名已是「回收紬紬」（此前截图里显示旧名属语言键缓存）。
+- **自查**：`check-lang.ps1` checks: OK（2174 键）；`gradlew build` 成功并自动部署；
+  `runGameTestServer` 45 条全过。

@@ -128,7 +128,28 @@ public class ClientModEvents
         event.register(com.godofthings.mept.client.MeptKeyBindings.UNDO_MODIFIER);
         event.register(com.godofthings.mept.client.MeptKeyBindings.OPEN_CABLE_TOOL_GUI);
         event.register(com.godofthings.mept.client.MeptKeyBindings.MARK_COLOR_SHORTCUT);
-        // 荒辰移晷之杖三键（X 配置 / P 时停 / B 回收紬紬，分类并入「众神之物：工具」）
+        // ===== 权杖按键（分类「众神之物：权杖」）。排序即注册顺序：
+        // 原版 useless（造化杖）13 键在上，荒辰附属 4 键在下。=====
+        // 附魔切换
+        event.register(com.godofthings.beef.core.common.KeyBindings.SWITCH_SILK_TOUCH_KEY.get());
+        event.register(com.godofthings.beef.core.common.KeyBindings.SWITCH_FORTUNE_KEY.get());
+        // 模式开关
+        event.register(com.godofthings.beef.core.common.KeyBindings.TOGGLE_CHAIN_MODE_KEY.get());
+        event.register(com.godofthings.beef.core.common.KeyBindings.SWITCH_FORCE_MINING_KEY.get());
+        event.register(com.godofthings.beef.core.common.KeyBindings.SWITCH_FARMLAND_MODE_KEY.get());
+        event.register(com.godofthings.beef.core.common.KeyBindings.TOGGLE_CROP_HARVEST_KEY.get());
+        event.register(com.godofthings.beef.core.common.KeyBindings.TOGGLE_SHEARS_KEY.get());
+        event.register(com.godofthings.beef.core.common.KeyBindings.TOGGLE_FLINT_AND_STEEL_KEY.get());
+        event.register(com.godofthings.beef.core.common.KeyBindings.TOGGLE_AUTO_CLICK_KEY.get());
+        // 触发按键
+        event.register(com.godofthings.beef.core.common.KeyBindings.TRIGGER_CHAIN_MINING_KEY.get());
+        event.register(com.godofthings.beef.core.common.KeyBindings.TRIGGER_FORCE_MINING_KEY.get());
+        // 短距传送（造化杖）
+        event.register(com.godofthings.beef.core.common.KeyBindings.SHORT_TELEPORT_KEY.get());
+        // 模式轮盘
+        event.register(com.godofthings.beef.core.common.KeyBindings.SWITCH_MODE_WHEEL_KEY.get());
+        // ---- 荒辰移晷之杖附属四键 ----
+        event.register(com.godofthings.wondrous.client.StretcherKeyBindings.STANDALONE_TELEPORT);
         event.register(com.godofthings.wondrous.client.StretcherKeyBindings.WONDROUS_STAFF_MODE);
         event.register(com.godofthings.wondrous.client.StretcherKeyBindings.WONDROUS_STAFF_TIME_STOP);
         event.register(com.godofthings.wondrous.client.StretcherKeyBindings.TWO_I_REMOTE_RECLAIM);
