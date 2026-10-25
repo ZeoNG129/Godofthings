@@ -43,7 +43,7 @@ import com.godofthings.energy.CreativeEnergyCubeMenu;
 
 import com.godofthings.belt.BeltRegistration;
 import com.godofthings.belt.ConfigData;
-import com.godofthings.belt.belt.ToolBeltItem;
+import com.godofthings.belt.ToolBeltItem;
 import com.godofthings.belt.common.BeltContainer;
 import com.godofthings.belt.slot.BeltAttachment;
 import com.godofthings.belt.slot.BeltSlotMenu;

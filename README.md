@@ -16,8 +16,8 @@
 ![MC](https://img.shields.io/badge/Minecraft-1.21.1-50586d?logo=minecraft&logoColor=white)
 ![NeoForge](https://img.shields.io/badge/NeoForge-21.1.249-F16436)
 ![Java](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)
-![Version](https://img.shields.io/badge/Release-v5.17.4-7c3aed)
-![Tests](https://img.shields.io/badge/回归测试-45%20Passed-success)
+![Version](https://img.shields.io/badge/Release-v7.15.5-7c3aed)
+![Tests](https://img.shields.io/badge/回归测试-53%20Passed-success)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.txt)
 
 <br/>
@@ -89,14 +89,14 @@
 | 🌐 **AE2 并网** | 9 台产资源机器可作 AE2 网格节点（产物自动进入 AE2 网络，GUI 内配备 AE 启闭总闸） |
 | 🪄 **ME 放置工具三件套** <br/>ME Placement Tools | 从 ME 网络直接施工的三大神器（移植自 moakiee 的 ME-Placement-Tool，不耗能源版）：**ME 放置工具**对空气右键开 18 槽幽灵配置、G 键轮盘选目标、潜行右键无线访问点绑定；**ME 多方块放置工具**批量放置选中物品（1/8/64/256/1024，三层轮盘选方向/数量/物品，Ctrl+左键撤销）；**ME 线缆放置工具**三模式（直线/平面填充/平面分支）批量铺线缆，内置光谱钥匙功能可直接选全部 17 色，副手持染料自动补染 |
 | 📡 **无线连接器** <br/>Wireless Connector | 把任意位置的 AE 设备无线接入指定网络（连接器方块 + 连接卡，卡功能移植自 AE2LT 过载频率卡）：潜行右键**无线连接器方块**入网并作为网络入口；**无线连接器卡**潜行右键连接器绑定、右键 AE 设备接入/再点断开、按键开关自动连接（放置即接入）、快捷键连接注视目标，可插进 AE2 无线终端升级槽随身携带 |
-| 🖥️ **无耗能无线通用终端** <br/>`Wireless Universal Terminal (No Power)` | 移植自 ae2wtlib 的无线通用终端（**硬依赖 ae2wtlib**）且**不消耗任何能量**（能量条恒满）：与无线合成 / 无线样板 / 无线样板管理终端在工作台合成即可装载（可多台叠加），右键打开、按键或 Shift+滚轮切换当前终端；与原版 ae2wtlib 通用终端互相兼容 |
+| 🖥️ **无耗能无线通用终端** <br/>`Wireless Universal Terminal (No Power)` | 无线通用终端的完全独立移植（v7.15.1 起零 ae2wtlib 依赖）且**不消耗任何能量**（能量条恒满）：与无线合成 / 无线样板 / 无线样板管理终端在工作台合成即可装载（可多台叠加），右键打开、按键或 Shift+滚轮切换当前终端；与原版 ae2wtlib 通用终端互相兼容 |
 | 🧲 **磁卡** <br/>`Magnet Card` | 移植自 ae2wtlib 的磁卡升级：装进支持磁卡的终端后自动吸取附近掉落物（吸进背包或经终端绑定的 AE 网络直接入网），过滤列表与模式沿用 ae2wtlib 磁卡界面，与原版 ae2wtlib 磁卡互通 |
 | ⚗️ **超级融合卡** <br/>Super Fusion Card | 通用机械机器终极配置器（移植自 Mekanism-Card，软依赖 Mekanism）：等级安装 / 模块升级 / 内存复制 / 配置粘贴四模式 + 按键批量选择 |
 | 🏆 **成就树** | 沉浸式成就体系：包含 **33 个成就**，横跨机器线、套装线、便签线与探索维度线 |
 | 📖 **众神全知启示录** <br/>`God Manual` | 游戏内维基百科：每一个方块和物品均收录图文词条，支持随时按键查阅 |
 | 🩺 **诊断与备份** | 运行 `/godofthings doctor` 智能诊断；支持通过指令无损导出与恢复便签及传送点 |
 
-> 💡 **版本历史**：每个版本详细变更见 [VERSIONING.md](VERSIONING.md)；游戏中可随时按下 <kbd>P</kbd> 键调出《众神全知启示录》查阅全物品条目。
+> 💡 **版本历史**：每个版本详细变更见 [CHANGELOG.md](CHANGELOG.md)；游戏中可随时按下 <kbd>P</kbd> 键调出《众神全知启示录》查阅全物品条目。
 
 ---
 
@@ -106,7 +106,7 @@
 1. **环境准备**：安装 **Minecraft 1.21.1 + NeoForge 21.1.249** 与 **Java 21**。
 2. **下载模组**：从 [Releases](https://github.com/ZeoNG129/Godofthings/releases) 下载 `godofthings-<版本>.jar`（最新 5.x 版本的 jar 文件均可在对应 Release 资产列表中获取）。
 3. **安装依赖**：将 jar 放入 `.minecraft/mods/` 目录。
-   > ⚠️ **运行依赖说明**：运行期**必须安装 Applied Energistics 2 (AE2)**（模组内多台机器直接实现了 AE2 接口）与 **AE2WTLib（ae2wtlib 19.2.17+）**（v7.15.0 起无耗能无线通用终端直接继承其 API），缺少任一依赖将在加载阶段报错退出。
+   > ⚠️ **运行依赖说明**：运行期**必须安装 Applied Energistics 2 (AE2)**（模组内多台机器直接实现了 AE2 接口），缺少它将在加载阶段报错退出。无耗能无线通用终端自 v7.15.1 起为完全独立实现，不再需要 ae2wtlib。
 4. **探索体验**：进入世界后按下 <kbd>P</kbd> 键即可打开《众神全知启示录》，内置详细图文指导与配方解析。
 
 ---
@@ -226,26 +226,16 @@
 
 ## 🗂️ 目录结构
 
-```
-src/main/java/com/godofthings/
-  ├─ Godofthings.java        # 主类：全部 DeferredRegister 注册 + 模组配置 + 网络数据包注册
-  ├─ block/ block/entity/    # 方块与方块实体（熔炉/矿机/资源机/去皮机/掉落机/附魔/合成/传送门…）
-  ├─ item/ menu/ client/     # 物品、容器菜单交互、网络包与渲染窗口
-  ├─ armor/ skill/           # 神之套装：8 个功能开关 + 神之增幅 7 节点（含老存档无损迁移）
-  ├─ note/ waypoint/         # 神思夙愿天书（支持 HUD 悬浮窗）、维度传送点
-  ├─ measurement/            # 量天裁度金尺（激光卷尺，自 Measurements 移植精简）
-  ├─ infinitecell/           # ME 无限存储元件（水/熔岩/圆石/空白样板，自 ExtendedAE 移植优化）
-  ├─ manual/                 # 众神全知启示录（基于游戏内注册表自动生成图文词条）
-  ├─ network/                # 网络数据包通信（套装开关/技能、传送点、便签、维度配置）
-  ├─ recipe/ config/         # 自定义配方与机器核心运行参数配置
-  ├─ dimension/ energy/      # 虚空维度系统、无限能阶发生源
-  ├─ handler/ emi/ jei/      # 模组联动集成（Ad Astra / EMI / JEI / AE2）
-  └─ beef/                   # 移植 useless_mod 部分（无用维度、传送方块、合金炉、AE 链接等）
-src/main/resources/
-  ├─ assets/godofthings/     # blockstates / models / textures / lang
-  ├─ data/godofthings/       # recipe / loot_table / advancement / dimension / worldgen…
-  └─ META-INF/neoforge.mods.toml
-```
+代码全部位于 `src/main/java/com/godofthings/`，按「一个功能子系统一个包」组织：
+
+- **`Godofthings.java`** — 主类：全部 `DeferredRegister` 注册 + 模组配置 + 网络数据包注册（只做注册，不写逻辑）。
+- **根级包**（`block/` `block/entity/` `item/` `menu/` `client/` `network/` `handler/` `armor/` `note/` `waypoint/` `manual/` `dimension/` `energy/` `config/` `recipe/` 等）— 首批原创核心功能：神之机器、套装、便签、传送点、手册、虚空维度等。
+- **移植子系统包**（各包 `package-info.java` 注明上游与许可）— `beef/`（useless_mod）、`compass/explorers`+`compass/natures`（双罗盘）、`doll/`+`wondrous/`（useless_stretcher）、`belt/`（ToolBelt）、`advancedmemorycard/`、`wt/`（无线通用终端，自 ae2wtlib 独立移植）、`aalink/`（作者自有项目并入）、`mept/`（ME 放置工具）、`superfusion/`（Mekanism-Card）、`omni/`（Omni Upgrades）、`measurement/`、`infinitecell/`（ExtendedAE / ExtendedAE+）、`building/`+`overloadedinterface/`（AE2LT）、`construction/`（ConstructionSticks）、`armor/skill/`（Zifeng Skill Tree）。
+- **支撑包** — `gametest/`（数据层回归测试）、`jei/` `emi/`（配方查看器集成）。
+
+资源在 `src/main/resources/`：`assets/godofthings/`（blockstates / models / textures / lang）、
+`data/godofthings/`（recipe / loot_table / advancement / dimension / worldgen…，GameTest 专用结构在
+`data/godofthings/structure/gametest/`）、`META-INF/`（mods.toml、访问转换器、第三方许可声明）。
 
 ---
 
@@ -256,8 +246,11 @@ src/main/resources/
 本模组核心代码基于 **[MIT 许可证](LICENSE.txt)** 开源 —— 允许自由使用、修改、学习与分发（包括直接收录至第三方整合包），仅需保留原项目版权与许可声明。
 
 ⚠️ **部分引入的开源子模块遵循其原始许可协议**：
-- **useless_mod**：MIT 许可证
-- **GT New Horizons / PersonalSpace**：LGPL-3.0 许可证
-- **AE2 Lightning Tech Reborn**：源码基于 LGPL-3.0，模型与材质素材遵循 CC BY-NC-SA 3.0（**该模型素材严禁用于商业用途**）
+- **MIT**：useless_mod、AE2WTLib、Zifeng Skill Tree、Omni Upgrades、Measurements、ConstructionSticks
+- **LGPL-3.0**：GT New Horizons / PersonalSpace、ExtendedAE / ExtendedAE+、AE2 Lightning Tech Reborn（源码）、ME-Placement-Tool
+- **BSD-3-Clause**：ToolBelt
+- **CC BY-NC-SA（禁止商用）**：Nature's / Explorer's Compass（4.0）、AE2 Lightning Tech Reborn 素材（3.0）
+- **GPL-3.0（传染性）**：Advanced Memory Card —— 与本模组同库分发时整体需满足 GPL-3.0 义务
+- ⚠️ **待决项**：Useless Stretcher（doll/wondrous 两包的上游）为 All Rights Reserved、Mekanism Card（superfusion）许可待验证，详见声明文件
 
 完整第三方项目清单与版权声明请见 [`THIRD_PARTY_NOTICES.md`](src/main/resources/META-INF/THIRD_PARTY_NOTICES.md)，开源协议全文见 [`LICENSES/`](LICENSES/)。

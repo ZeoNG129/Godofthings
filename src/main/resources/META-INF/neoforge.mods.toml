@@ -14,10 +14,13 @@ logoFile="logo.png"
 displayURL="https://github.com/ZeoNG129/Godofthings"
 issueTrackerURL="https://github.com/ZeoNG129/Godofthings/issues"
 credits='''整合与维护：ZeoNG129。
-部分子系统照抄自开源项目：useless_mod、PersonalSpace（LGPL-3.0）、ExtendedAE（LGPL-3.0）、
-AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁止商用）；
-神之套装技能树移植自 Zifeng Skill Tree（MIT）。
-各部分的适用范围、署名与许可全文见 THIRD_PARTY_NOTICES.md 与 jar 内 META-INF/LICENSE-*。'''
+部分子系统移植自第三方项目：useless_mod（MIT）、PersonalSpace（LGPL-3.0）、
+ExtendedAE / ExtendedAE+（LGPL-3.0）、AE2 Lightning Tech Reborn（源码 LGPL-3.0、素材 CC BY-NC-SA 3.0 禁商用）、
+ToolBelt（BSD-3-Clause）、Nature's / Explorer's Compass（CC BY-NC-SA 4.0 禁商用）、
+Advanced Memory Card（GPL-3.0）、AE2WTLib（MIT）、Zifeng Skill Tree（MIT）、Omni Upgrades（MIT）、
+Measurements（MIT）、ConstructionSticks（MIT）、ME-Placement-Tool（LGPL-3.0）。
+例外：Useless Stretcher（doll/wondrous 两包）上游为 All Rights Reserved；Mekanism Card（superfusion 包）许可待验证。
+各部分适用范围、署名与许可全文见 THIRD_PARTY_NOTICES.md 与 jar 内 META-INF/LICENSE-*。'''
 
 [[dependencies.${mod_id}]]
     modId="neoforge"

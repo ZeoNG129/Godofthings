@@ -14,6 +14,7 @@
 #   9. reverse: a blockstate whose block id is no longer registered (stale resource)
 #  10. reverse: a models/item json whose item id is no longer registered (warning only,
 #      variant models such as the staff's silk-touch override are legitimate)
+#  11. README "Release-vX.Y.Z" badge matches mod_version in gradle.properties
 #
 # ASCII-only on purpose: PowerShell 5.1 misreads a UTF-8-no-BOM script containing Chinese,
 # and this script must run both locally (PS 5.1 / pwsh) and in CI (pwsh on Linux).
@@ -476,6 +477,28 @@ if (-not $mPrefix.Success) {
 } elseif ([int]$mPrefix.Groups[1].Value -ne $prefixAllow.Count) {
     Write-Host ('[FAIL] README claims {0} key prefixes but check-lang has {1}' -f $mPrefix.Groups[1].Value, $prefixAllow.Count)
     $problems++
+}
+
+# ------------------------------------------------- README version badge vs gradle.properties
+# The shields.io badge is static text, so it rots silently (it sat at v5.17.4 while the mod
+# was at 7.15.0). mod_version in gradle.properties is the single source of truth; the badge
+# must be bumped in the same commit that bumps the version.
+$gpText = Get-Content (Join-Path $root 'gradle.properties') -Raw -Encoding UTF8
+$mv = [regex]::Match($gpText, '(?m)^mod_version=([0-9]+\.[0-9]+\.[0-9]+)\s*$')
+if (-not $mv.Success) {
+    Write-Host '[FAIL] docs: cannot read mod_version=x.y.z from gradle.properties'
+    $problems++
+} else {
+    $badge = [regex]::Match($readmeText, 'Release-v([0-9]+\.[0-9]+\.[0-9]+)')
+    if (-not $badge.Success) {
+        Write-Host '[FAIL] docs: no Release-vX.Y.Z version badge found in README.md'
+        $problems++
+    } elseif ($badge.Groups[1].Value -ne $mv.Groups[1].Value) {
+        Write-Host ('[FAIL] README version badge is v{0} but gradle.properties mod_version is {1} (bump the badge in the same commit)' -f $badge.Groups[1].Value, $mv.Groups[1].Value)
+        $problems++
+    } else {
+        Write-Host ('docs: README version badge v{0} matches mod_version' -f $badge.Groups[1].Value)
+    }
 }
 Write-Host ('docs: gametests {0} / ae2 grid BEs {1} / advancements {2} -- claims in AGENTS.md + README.md verified' -f $actualGameTests, $actualAe2Bes, $actualAdvancements)
 

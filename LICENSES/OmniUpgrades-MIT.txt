@@ -1,0 +1,14 @@
+Omni Upgrades（全能升级）许可注记
+====================================
+
+上游：Omni Upgrades（作者：雨下的樱花，见 MC 百科 mod 页与 CurseForge 页
+https://www.curseforge.com/minecraft/mc-mods/omni-upgrades ）。
+
+上游未公开源码仓库，未随分发附独立 LICENSE 全文；其 CurseForge 页面的 License
+栏标注为 MIT License（另见 mcmod.cn 对该模组"声明许可协议为: MIT License"的记载）。
+
+因此本文件不是许可全文，而是许可依据的注记：God of Things 的 com.godofthings.omni
+包移植自该模组（原样移植 OmniBlacklistPayload / OmniEnabledPayload /
+ServerBlacklistPayload / OmniSyncEvents / CompatManager / NeighborOffsets /
+AE2Compat 等类），按上游声明的 MIT 许可再分发并保留本署名说明。
+若上游后续公开源码仓库与本注记不符，以仓库内的 LICENSE 为准并更新本文件。
