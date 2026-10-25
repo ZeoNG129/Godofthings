@@ -351,12 +351,11 @@ public final class UComponents {
             );
 
     /**
-     * 连点模式组件（BeefAutoClick）
-     * true = 客户端手持造化杖时以最快速度重复触发右键，再次按下绑定按键关闭。
-     * 只存状态，真正的连点循环在客户端 {@code BeefAutoClicker} 中执行。
+     * 杀戮光环组件（BeefKillAura）—— v7.14.1 补齐上游功能时加入。
+     * true = 手持杖每 20 tick 对范围内生物结算一次攻击伤害。
      */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefAutoClickComponent =
-            register("beef_auto_click", builder ->
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefKillAuraComponent =
+            register("beef_kill_aura", builder ->
                     builder.persistent(Codec.BOOL)
                            .networkSynchronized(StreamCodec.of(
                                    FriendlyByteBuf::writeBoolean,
@@ -365,11 +364,19 @@ public final class UComponents {
             );
 
     /**
-     * 强制生长组件（BeefForceGrow）
-     * true = 催熟时额外用「随机刻」推进方块，可作用于甘蔗、仙人掌、竹子等
-     * 原版骨粉无效的方块。代价是它不挑方块——树叶枯萎、火蔓延、雪冰融化、
-     * 耕地退化这些随机刻行为同样会被推，是否开启由玩家自行抉择。
+     * 保护名单模式组件（BeefProtectMode）—— v7.14.1 补齐上游功能时加入。
+     * true = 暂停杀戮光环与范围伤害，方便 Ctrl/Shift 右键添加保护名单。
      */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefProtectModeComponent =
+            register("beef_protect_mode", builder ->
+                    builder.persistent(Codec.BOOL)
+                           .networkSynchronized(StreamCodec.of(
+                                   FriendlyByteBuf::writeBoolean,
+                                   FriendlyByteBuf::readBoolean
+                           ))
+            );
+    /**
+     * 寮哄埗鐢熼暱缁勪欢锛圔eefForceGrow锛?     * true = 鍌啛鏃堕澶栫敤闅忔満鍒绘帹杩涙柟鍧楋紙鐢樿敆 / 浠欎汉鎺?/ 绔瑰瓙绛夊師鐗堥绮夋棤鏁堢殑鏂瑰潡锛夈€?     */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefForceGrowComponent =
             register("beef_force_grow", builder ->
                     builder.persistent(Codec.BOOL)
@@ -379,29 +386,31 @@ public final class UComponents {
                            ))
             );
 
-    // 私有构造器，防止外部实例化（该类仅用于注册静态组件）
+    /**
+     * 杩炵偣妯″紡缁勪欢锛圔eefAutoClick锛夆€斺€斿巻鍙查仐鐣欙細杩炵偣寮€鍏崇幇涓哄鎴风浼氳瘽绾х姸鎬侊紝
+     * 淇濈暀娉ㄥ唽浠呰鏃у瓨妗ｅ彲鍙嶅簭鍒楀寲銆?     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BeefAutoClickComponent =
+            register("beef_auto_click", builder ->
+                    builder.persistent(Codec.BOOL)
+                           .networkSynchronized(StreamCodec.of(
+                                   FriendlyByteBuf::writeBoolean,
+                                   FriendlyByteBuf::readBoolean
+                           ))
+            );
+
+    // 绉佹湁鏋勯€犲櫒锛岄槻姝㈠閮ㄥ疄渚嬪寲
     private UComponents() {}
 
     /**
-     * 通用注册方法
-     *
-     * @param name            组件的注册名称（资源位置路径部分）
-     * @param builderOperator 对 DataComponentType.Builder 的操作函数
-     * @param <T>             组件存储的数据类型
-     * @return DeferredHolder，用于延迟获取已注册的 DataComponentType
-     */
+     * 閫氱敤娉ㄥ唽鏂规硶銆?     */
     private static <T> DeferredHolder<DataComponentType<?>, DataComponentType<T>> register(
             String name,
             UnaryOperator<DataComponentType.Builder<T>> builderOperator) {
-        // 通过 DeferredRegister 注册，实际构建在模组加载时进行
         return DATA_COMPONENTS.register(name, () -> builderOperator.apply(DataComponentType.builder()).build());
     }
 
     /**
-     * 初始化方法：在模组事件总线上注册 DeferredRegister
-     * 通常在模组主类的构造函数中调用：UComponents.init(modEventBus);
-     * @param modEventBus 模组的事件总线（通常是 MOD 事件总线）
-     */
+     * 鍒濆鍖栨柟娉曪細鍦ㄦā缁勪富绫绘瀯閫犲嚱鏁颁腑璋冪敤锛圲Components.init(modEventBus)锛夈€?     */
     public static void init(IEventBus modEventBus) {
         DATA_COMPONENTS.register(modEventBus);
     }

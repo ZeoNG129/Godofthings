@@ -5,6 +5,7 @@ import com.godofthings.beef.api.enums.tool.ToolTypeMode;
 import com.godofthings.beef.compat.enderio.EnderIOTravelCompat;
 import com.godofthings.beef.core.common.KeyBindings;
 import com.godofthings.beef.core.component.UComponents;
+import com.godofthings.beef.core.config.BeefToolProtectionManager;
 import com.godofthings.beef.core.config.ConfigManager;
 import com.godofthings.beef.init.ModDamageTypes;
 import com.godofthings.beef.init.ModTags;
@@ -41,6 +42,7 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -544,55 +546,171 @@ public class EndlessBeafItem extends TieredItem {
      * @param primary 直接命中的目标（作为范围中心，本身不重复结算）
      */
     private static void applyAoeDamage(ItemStack stack, Player player, Entity primary) {
-        if (!(player.level() instanceof ServerLevel level)
-                || !stack.getOrDefault(UComponents.BeefAoeDamageEnabledComponent, false)) {
+        if (!(player.level() instanceof ServerLevel level)) {
             return;
         }
-        // 重入保护：范围伤害过程中不再触发新的范围伤害
-        if (!AOE_DAMAGE_CONTEXT.add(player.getUUID())) {
-            return;
-        }
-
-        try {
-            double rangeX = ConfigManager.getBeefAoeDamageRangeX();
-            double rangeY = ConfigManager.getBeefAoeDamageRangeY();
-            double rangeZ = ConfigManager.getBeefAoeDamageRangeZ();
-            AABB area = AABB.ofSize(primary.position(), rangeX * 2 + 1, rangeY * 2 + 1, rangeZ * 2 + 1);
-
-            float damage = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE);
-            DamageSource damageSource = ModDamageTypes.beefTool(level, player);
-            int maxTargets = ConfigManager.getBeefAoeDamageMaxTargets();
-            int hit = 0;
-
-            for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, area)) {
-                if (hit >= maxTargets) {
-                    break;
-                }
-                if (victim == primary || victim == player || victim instanceof Player
-                        || !victim.isAlive() || player.isAlliedTo(victim)) {
-                    continue;
-                }
-
-                hit++;
-                if (forceKillLivingEntity(stack, victim, player)) {
-                    continue;
-                }
-                victim.invulnerableTime = 0;
-                victim.hurt(damageSource, damage);
-            }
-
-            if (hit > 0) {
-                // 主动登记一次吸附：范围取「AoE 半径 + 磁力半径」，保证最外圈被打死的怪的掉落也能覆盖到。
-                // 与单体死亡事件登记合并，覆盖强杀兜底和范围内普通伤害产生的掉落。
-                BeefMagnetHandler.scheduleSweep(level, player, stack, primary.position(),
-                        rangeX + ConfigManager.getBeefMagnetRangeX(),
-                        rangeY + ConfigManager.getBeefMagnetRangeY(),
-                        rangeZ + ConfigManager.getBeefMagnetRangeZ());
-            }
-        } finally {
-            AOE_DAMAGE_CONTEXT.remove(player.getUUID());
-        }
+        damageArea(stack, player, level, primary.position(), primary, true);
     }
+
+    private static int damageArea(ItemStack stack, Player player, ServerLevel level, Vec3 center,
+                                      @Nullable Entity excluded, boolean requireAoeFlag) {
+            // 保护名单模式：光环与范围伤害都停手，让玩家能从容地把生物加进名单
+            if (isProtectModeEnabled(stack)) {
+                return 0;
+            }
+            if (requireAoeFlag && !stack.getOrDefault(UComponents.BeefAoeDamageEnabledComponent, false)) {
+                return 0;
+            }
+            // 重入保护：左键范围伤害与杀戮光环共用同一把锁，避免同一次结算里互相嵌套
+            if (!AOE_DAMAGE_CONTEXT.add(player.getUUID())) {
+                return 0;
+            }
+    
+            try {
+                double rangeX = ConfigManager.getBeefAoeDamageRangeX();
+                double rangeY = ConfigManager.getBeefAoeDamageRangeY();
+                double rangeZ = ConfigManager.getBeefAoeDamageRangeZ();
+                AABB area = AABB.ofSize(center, rangeX * 2 + 1, rangeY * 2 + 1, rangeZ * 2 + 1);
+    
+                float damage = staffAttackDamage(player);
+                DamageSource damageSource = ModDamageTypes.beefTool(level, player);
+                int maxTargets = ConfigManager.getBeefAoeDamageMaxTargets();
+                int hit = 0;
+    
+                for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, area)) {
+                    if (hit >= maxTargets) {
+                        break;
+                    }
+                    if (victim == excluded || !victim.isAlive()) {
+                        continue;
+                    }
+                    // 统一的保护判定：玩家/盟友/自己的宠物与坐骑/手动维护的保护名单
+                    if (isProtectedTarget(player, victim)) {
+                        continue;
+                    }
+    
+                    hit++;
+                    if (forceKillLivingEntity(stack, victim, player)) {
+                        continue;
+                    }
+                    victim.invulnerableTime = 0;
+                    victim.hurt(damageSource, damage);
+                }
+    
+                if (hit > 0) {
+                    // 主动登记一次吸附：范围取「AoE 半径 + 磁力半径」，保证最外圈被打死的怪的掉落也能覆盖到。
+                    // 与单体死亡事件登记合并，覆盖强杀兜底和范围内普通伤害产生的掉落。
+                    BeefMagnetHandler.scheduleSweep(level, player, stack, center,
+                            rangeX + ConfigManager.getBeefMagnetRangeX(),
+                            rangeY + ConfigManager.getBeefMagnetRangeY(),
+                            rangeZ + ConfigManager.getBeefMagnetRangeZ());
+                }
+                return hit;
+            } finally {
+                AOE_DAMAGE_CONTEXT.remove(player.getUUID());
+            }
+        }
+
+    public static void tickKillAura(Player player, @Nullable ItemStack killAuraStaff) {
+            if (killAuraStaff == null || killAuraStaff.isEmpty()) {
+                return;
+            }
+            if (player.isSpectator() || player.isDeadOrDying()) {
+                return;
+            }
+            if (!(player.level() instanceof ServerLevel level)) {
+                return;
+            }
+            withStaffInMainHand(player, killAuraStaff,
+                    () -> damageArea(killAuraStaff, player, level, player.position(), null, false));
+        }
+
+    private static void withStaffInMainHand(Player player, ItemStack staff, Runnable action) {
+            ItemStack previous = player.getMainHandItem();
+            boolean swapped = previous != staff;
+            if (swapped) {
+                player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+            }
+            try {
+                action.run();
+            } finally {
+                if (swapped) {
+                    player.setItemInHand(InteractionHand.MAIN_HAND, previous);
+                }
+            }
+        }
+
+    public static Entity unwrapPartEntity(@Nullable Entity entity) {
+            if (entity instanceof PartEntity<?> partEntity) {
+                return partEntity.getParent();
+            }
+            return entity;
+        }
+
+    public static boolean isKillAuraEnabled(ItemStack stack) {
+            return stack.getOrDefault(UComponents.BeefKillAuraComponent.get(), false);
+        }
+    
+    public static void setKillAuraEnabled(ItemStack stack, boolean enabled) {
+            stack.set(UComponents.BeefKillAuraComponent.get(), enabled);
+        }
+
+    public static boolean isProtectModeEnabled(ItemStack stack) {
+            return stack.getOrDefault(UComponents.BeefProtectModeComponent.get(), false);
+        }
+    
+    public static void setProtectModeEnabled(ItemStack stack, boolean enabled) {
+            stack.set(UComponents.BeefProtectModeComponent.get(), enabled);
+        }
+    
+    public static float staffAttackDamage(Player player) {
+            double damage = player.getAttributeValue(Attributes.ATTACK_DAMAGE);
+            AttributeInstance instance = player.getAttribute(Attributes.ATTACK_DAMAGE);
+            if (instance != null) {
+                AttributeModifier mainHandWeapon = instance.getModifier(Item.BASE_ATTACK_DAMAGE_ID);
+                if (mainHandWeapon != null) {
+                    damage -= mainHandWeapon.amount();
+                }
+            }
+            damage += createAttackDamageModifier().amount();
+            return (float) Math.max(0.0D, damage);
+        }
+
+    public static boolean isProtectGestureAvailable(ItemStack stack) {
+            return stack.getOrDefault(UComponents.BeefAoeDamageEnabledComponent, false)
+                    || stack.getOrDefault(UComponents.BeefKillAuraComponent, false)
+                    || isProtectModeEnabled(stack);
+        }
+
+    public static boolean isProtectedTarget(Player player, Entity victim) {
+            if (victim == player || victim instanceof Player) {
+                return true;
+            }
+            if (victim != null && player.getTeam() != null && player.isAlliedTo(victim)) { // [本地改动] 空队伍守卫（GameTest 假玩家无队伍）
+                return true;
+            }
+            // 自动保护：自己驯服的宠物（狼/猫/鹦鹉/已驯服的马等）
+            if (victim instanceof OwnableEntity ownable && player.getUUID().equals(ownable.getOwnerUUID())) {
+                return true;
+            }
+            // 自动保护：当前骑乘的坐骑（未驯服的猪/船等不属于 OwnableEntity）
+            if (victim == player.getVehicle()) {
+                return true;
+            }
+    
+            BeefToolProtectionManager.Protection protection = BeefToolProtectionManager.protectionFor(player);
+            if (protection.isEmpty()) {
+                return false;
+            }
+            if (protection.types().contains(getEntityId(victim))) {
+                return true;
+            }
+            return protection.entities().contains(victim.getUUID());
+        }
+
+    public static String getEntityId(Entity entity) {
+            return entity.getType().builtInRegistryHolder().key().location().toString();
+        }
 
     private static Entity getForceKillTarget(Entity entity) {
         if (entity instanceof PartEntity<?> partEntity) {
@@ -914,9 +1032,7 @@ public class EndlessBeafItem extends TieredItem {
         return ConfigManager.getBeefToolForceKillNonLivingWhitelist().contains(getEntityId(entity));
     }
 
-    private static String getEntityId(Entity entity) {
-        return entity.getType().builtInRegistryHolder().key().location().toString();
-    }
+
 
     @Override
     public void onUseTick(@NotNull Level level,

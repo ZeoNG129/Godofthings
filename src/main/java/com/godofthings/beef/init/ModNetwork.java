@@ -17,6 +17,7 @@ import com.godofthings.beef.network.EnchantmentSwitchPacket;
 import com.godofthings.beef.network.ForceBreakKeyPacket;
 import com.godofthings.beef.network.MiningDataSyncPacket;
 import com.godofthings.beef.network.ModeTogglePacket;
+import com.godofthings.beef.network.ProtectEntityPacket;
 import com.godofthings.beef.network.RitualSatchelPlacePacket;
 import com.godofthings.beef.network.TabKeyPressedPacket;
 import com.godofthings.beef.network.TeleportKeyPacket;
@@ -71,6 +72,9 @@ public class ModNetwork {
         registrar.playToClient(ConstructionWandPreviewPacket.TYPE,
                                ConstructionWandPreviewPacket.STREAM_CODEC,
                                ConstructionWandPreviewPacket::handle
+        );
+        registrar.playToServer(ProtectEntityPacket.TYPE, ProtectEntityPacket.STREAM_CODEC,
+                               ProtectEntityPacket::handle
         );
         registrar.playToServer(TabKeyPressedPacket.TYPE, TabKeyPressedPacket.STREAM_CODEC,
                                TabKeyPressedPacket::handle

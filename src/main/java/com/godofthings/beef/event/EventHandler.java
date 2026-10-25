@@ -255,7 +255,11 @@ public class EventHandler {
         updateBeefToolFlight(player);
 
         updateBeefInvulnerability(player);
-        
+
+        // 杀戮光环：一趟扫描取出身上第一把开着光环的杖再结算（v7.14.1 补齐上游功能）
+        UselessItemUtils.StaffScan scan = UselessItemUtils.scanStaff(player);
+        EndlessBeafItem.tickKillAura(player, scan.killAuraStaff());
+
         MiningDispatcher.tickCacheUpdate(player);
     }
 

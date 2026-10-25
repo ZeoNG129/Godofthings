@@ -2420,3 +2420,26 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 - **回收紬紬**：B 键名已是「回收紬紬」（此前截图里显示旧名属语言键缓存）。
 - **自查**：`check-lang.ps1` checks: OK（2174 键）；`gradlew build` 成功并自动部署；
   `runGameTestServer` 45 条全过。
+## 7.14.0 → 7.14.1
+
+- **补齐复活树缺失的原手杖功能**（7.13.0 复活的是 v5.1.2 时代的修订版，比上游缺三块，
+  用户明确「原手杖的功能也还是需要」）：
+  - **保护名单**：BeefToolProtectionManager（读 BeefToolLayout 的 protectedTypes /
+    protectedEntities 名单，服务端按玩家缓存 / 客户端镜像）+ BeefToolLayout / LayoutManager /
+    ModuleRegistry / ModeTypeEnum 整体升级到上游版（布局记录多出保护名单两列 + 5 个新模块）；
+    新增 ProtectEntityPacket（Ctrl/Shift 右键生物加名单的上行包，手持杖 + 光环/范围伤害/
+    名单模式至少开一个才生效）并注册进 ModNetwork；
+  - **范围伤害重写**：applyAoeDamage 改走上游 damageArea（重入保护 / 数量上限 /
+    统一保护判定：自己 / 队友 / 自己的宠物坐骑 / 手动名单 / 保护模式停手）；
+  - **杀戮光环**：tickKillAura + BeefKillAuraComponent / BeefProtectModeComponent 两组件 +
+    UselessItemUtils.scanStaff（主手/副手/主背包一趟扫描取出光环杖）+
+    EventHandler.onPlayerTick 每_tick 结算钩子（结算时把杖临时顶到主手再还原，
+    让附魔 / 掉落下游按主手武器解析）；
+  - EndlessBeafItem 补 isKillAuraEnabled / isProtectModeEnabled / staffAttackDamage /
+    isProtectedTarget / isProtectGestureAvailable / unwrapPartEntity 公开化。
+- **修复**：isProtectedTarget 的 isAlliedTo 在无队伍实体（GameTest 假玩家）上 NPE，
+  加空队伍守卫（[本地改动] 注释标注）。
+- **探针验证**（4 条，跑完已删）：荒辰杖继承链与默认组件 / 形态切换组件语义（切形态不换物品）/
+  保护名单判定（自己受保护、未加名单的猪不受、空队伍不炸）/ 时停对独立传送的门控。
+  49 条（45 基线 + 4 探针）全过；删探针后 45 基线复跑全过。
+- **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功并自动部署。

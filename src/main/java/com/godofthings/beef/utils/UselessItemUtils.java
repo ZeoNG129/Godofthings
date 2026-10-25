@@ -19,6 +19,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -387,4 +388,44 @@ public class UselessItemUtils {
         itemStack.set(UComponents.BeefInvulnerabilityEnabledComponent.get(), true);
         return true;
     }
+    public record StaffScan(boolean anyStaff,
+                                boolean invulnerabilityEnabled,
+                                boolean advancedStealthEnabled,
+                                @Nullable ItemStack killAuraStaff) {
+            public boolean hasKillAura() {
+                return killAuraStaff != null;
+            }
+        }
+
+    public static StaffScan scanStaff(Player player) {
+            if (player == null || player.getInventory() == null) {
+                return new StaffScan(false, false, false, null);
+            }
+    
+            boolean anyStaff = false;
+            boolean invulnerabilityEnabled = false;
+            boolean advancedStealthEnabled = false;
+            ItemStack killAuraStaff = null;
+    
+            var items = player.getInventory().items;
+            // i == -2 主手、i == -1 副手、其余为主背包/快捷栏下标
+            for (int i = -2, size = items.size(); i < size; i++) {
+                ItemStack stack = i == -2 ? player.getMainHandItem()
+                        : i == -1 ? player.getOffhandItem()
+                        : items.get(i);
+                if (stack.isEmpty() || !isTargetTool(stack)) {
+                    continue;
+                }
+                anyStaff = true;
+                invulnerabilityEnabled |= isInvulnerabilityEnabledTargetTool(stack);
+                advancedStealthEnabled |= isAdvancedStealthEnabledTargetTool(stack);
+                if (killAuraStaff == null
+                        && stack.getItem() instanceof EndlessBeafItem
+                        && EndlessBeafItem.isKillAuraEnabled(stack)) {
+                    killAuraStaff = stack;
+                }
+            }
+    
+            return new StaffScan(anyStaff, invulnerabilityEnabled, advancedStealthEnabled, killAuraStaff);
+        }
 }
