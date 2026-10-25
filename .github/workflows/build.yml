@@ -5,11 +5,12 @@ name: build
 #   2. 完整构建（顺带验证资源 / mixin 配置 / 数据文件都能进 jar）
 #
 # 说明：
-#  - 编译期的 19 个可选依赖 jar 不再进版本库，CI 里先跑 fetch-libs.ps1 拉回来（带缓存）。
+#  - 编译期的依赖 jar（JEI/EMI/AE2/ae2wtlib/curios 等，清单见 fetch-libs.ps1，v7.15.0 起共 11 个）
+#    不进版本库，CI 里先跑 fetch-libs.ps1 拉回来（带缓存）。
 #    加 -IncludeTestMods 会额外拉 guideme（AE2 的运行期前置），下面那步 gametest 需要它。
 #  - game test 跑的是数据层回归测试（便签/传送点的存档与封包往返、自动更名、兜底 clamp），
 #    需要运行期有 AE2 —— prepareGameTestMods 任务会把 AE2 与 guideme 拷进 run-gametest/mods。
-#  - deployJars 在 CI 上会自己跳过（非 Windows 平台），不影响构建结果。
+#  - deployJars 不再挂在 build 上（需显式 `gradlew build deployJars`），CI 构建不会碰本机目录。
 
 on:
   push:
@@ -48,15 +49,16 @@ jobs:
         run: ./check-lang.ps1
 
       - name: Build
-        # gradle.properties 里写死了本机 JDK 路径（org.gradle.java.home），CI 上用命令行覆盖掉
+        # JDK 来自 setup-java 的 JAVA_HOME（temurin 21）；项目 gradle.properties 不再写死
+        # org.gradle.java.home，无需命令行覆盖。
         run: |
           chmod +x gradlew
-          ./gradlew build --no-daemon -Dorg.gradle.java.home="$JAVA_HOME"
+          ./gradlew build --no-daemon
 
       - name: Game tests
         run: |
           chmod +x gradlew
-          ./gradlew runGameTestServer --no-daemon -Dorg.gradle.java.home="$JAVA_HOME"
+          ./gradlew runGameTestServer --no-daemon
 
       - name: Upload jar
         uses: actions/upload-artifact@v4

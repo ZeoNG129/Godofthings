@@ -149,8 +149,10 @@ tasks.matching { it.name == 'prepareGameTestServerRun' }.configureEach {
     dependsOn 'prepareGameTestMods'
 }
 
-// ===== 构建产物自动部署 =====
-// `gradlew build` 成功后，自动把 jar 同步到本机 1.21.1 测试 mods 目录。
+// ===== 构建产物部署（显式任务） =====
+// `gradlew build deployJars` 在构建成功后把 jar 同步到本机 1.21.1 测试 mods 目录。
+// 不再自动挂在 build 依赖链上（旧的「build 即部署」会在每次构建时删除目标目录里的旧 jar，
+// 对 CI / 其他机器是意外的副作用）；只跑 `gradlew build` 时不会碰本机 mods 目录。
 // 目标目录不存在时跳过并警告，不会阻断构建。
 def deployTargets = [
         'E:/MC/modpacks/PCL/versions/1.21.1测试/mods', // PCL 测试实例（存在才部署）
@@ -203,7 +205,5 @@ tasks.register('deployJars') {
     }
 }
 
-// build 编译失败时 deployJars 不会执行（依赖链保证），成功后自动部署
-tasks.named('build').configure {
-    dependsOn 'deployJars'
-}
+// 部署是显式动作：`gradlew build deployJars`。不在 build 上自动依赖，
+// 避免每次构建（包括 CI / 其他机器）都触发本机目录的清理与拷贝。
