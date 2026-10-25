@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:god_recipe" },
+    { "item": "ae2:wireless_terminal" }
+  ],
+  "result": {
+    "id": "godofthings:wireless_universal_terminal_free",
+    "count": 1
+  }
+}

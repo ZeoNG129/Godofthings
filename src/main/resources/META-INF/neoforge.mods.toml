@@ -43,6 +43,16 @@ AE2 Lightning Tech Reborn（源码 LGPL-3.0、模型素材 CC BY-NC-SA 3.0，禁
     ordering="AFTER"
     side="BOTH"
 
+# ⚠ ae2wtlib 也是**硬依赖**（v7.15.0 起）：无耗能无线通用终端直接继承它 api 模块的 ItemWUT，
+# 终端打开 / 切换 / 菜单宿主 / 磁力拾取全部走上游原生代码；没有它时本模组在加载阶段
+# NoClassDefFoundError。版本取上游 mods.toml 对 AE2 的兼容口径（19.2.17 起）。
+[[dependencies.${mod_id}]]
+    modId="ae2wtlib"
+    type="required"
+    versionRange="[19.2.17,)"
+    ordering="AFTER"
+    side="BOTH"
+
 # ===== 以下均为可选兼容（装了才生效，没装自动跳过）=====
 # v5.12.1 精简：只保留代码里真实存在兼容接线的 mod（与 GodofthingsCommand.OPTIONAL_MODS 对齐）。
 # 此前登记的一批 mod（ae2wtlib/extendedae/appliedflux/appmek/occultism/malum/
@@ -103,3 +113,8 @@ config="${mod_id}.amc.mixins.json"
 # accessor、刷子、辐射 @Pseudo（Mekanism 不在时自动跳过）。
 [[mixins]]
 config="${mod_id}.wondrous.mixins.json"
+
+# 无线通用终端（v7.15.0 移植自 ae2wtlib）：让 ae2wtlib 承认本模组的无耗能通用终端
+# （isUniversalTerminal 放行）与本地磁卡（磁力模式判定）。ae2wtlib 为硬依赖，目标类必在。
+[[mixins]]
+config="${mod_id}.ae.mixins.json"

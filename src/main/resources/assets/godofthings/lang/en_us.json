@@ -2198,5 +2198,12 @@
     "godofthings.wondrous.configuration.doll_leaf_drop.enable":  "Leaf Drop: Zhuzhu",
     "godofthings.wondrous.configuration.doll_leaf_drop.probability":  "Leaf Drop: Zhuzhu Chance",
     "godofthings.wondrous.configuration.server.apotheosis_compat":  "Apotheosis Compat",
-    "godofthings.wondrous.configuration.client.highlight_see_through":  "Highlight See-Through"
+    "godofthings.wondrous.configuration.client.highlight_see_through":  "Highlight See-Through",
+    "item.godofthings.wireless_universal_terminal_free":  "Wireless Universal Terminal (No Power)",
+    "item.godofthings.magnet_card":  "Magnet Card",
+    "tooltip.godofthings.wut.no_energy":  "Consumes no energy at all",
+    "manual.godofthings.wireless_universal_terminal_free":  "[Wireless Universal Terminal (No Power)] Ported from the ae2wtlib Wireless Universal Terminal, and it consumes no energy.\n- Right-click to open the current terminal; use the Cycle Current Terminal key (Gods of Things: AE category, unbound by default) or Shift+Scroll to cycle between installed terminals.\n- Combine it in a crafting table with the Wireless Crafting Terminal / Wireless Pattern Encoding Terminal / Wireless Pattern Access Terminal to install them (multiple can be stacked).\n- Fully compatible with the vanilla ae2wtlib Wireless Universal Terminal: terminal components, the current selection and magnet settings are shared.\n- The energy bar is always full and no AE energy is consumed; idle drain while the menu is open and in-terminal costs are all waived.\n[Requirements] Requires both AE2 and ae2wtlib (hard dependencies of this mod).",
+    "key.category.godofthings.ae":  "Gods of Things: AE",
+    "key.godofthings.cycle_universal_terminal":  "Cycle Current Terminal",
+    "manual.godofthings.magnet_card":  "[Magnet Card] Ported from the ae2wtlib magnet upgrade. Installed in a magnet-capable terminal (the No-Power Wireless Universal Terminal / ae2wtlib terminals), nearby item drops are picked up automatically: into the inventory by default, or directly into the AE2 network linked by the terminal when switched to Pick Up to ME (the terminal must be linked). Install it in a terminal upgrade slot; the filter list and modes reuse the ae2wtlib magnet UI and stay compatible with the vanilla ae2wtlib Magnet Card."
 }

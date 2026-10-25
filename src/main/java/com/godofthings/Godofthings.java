@@ -664,6 +664,14 @@ public class Godofthings
             ITEMS.registerItem("infinity_biginteger_cell",
                     props -> new com.godofthings.infinitecell.big.InfinityCellItem());
 
+    // ---- 无耗能无线通用终端 + 磁卡（v7.15.0 移植自 ae2wtlib；终端复用 ae2wtlib 终端注册表）----
+    public static final DeferredItem<com.godofthings.ae.wt.ItemWUTFree> WIRELESS_UNIVERSAL_TERMINAL_FREE =
+            ITEMS.registerItem("wireless_universal_terminal_free",
+                    props -> new com.godofthings.ae.wt.ItemWUTFree());
+    public static final DeferredItem<Item> MAGNET_CARD =
+            ITEMS.registerItem("magnet_card",
+                    props -> appeng.api.upgrades.Upgrades.createUpgradeCardItem(props.stacksTo(1)));
+
     // ---- 神之合成 ----
     public static final DeferredBlock<GodCraftBlock> GOD_CRAFT = BLOCKS.registerBlock("god_craft",
             GodCraftBlock::new,
@@ -809,6 +817,14 @@ public class Godofthings
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> GOD_UNBREAKABLE_SERIALIZER =
             RECIPE_SERIALIZERS.register("god_unbreakable", GodUnbreakableRecipe.Serializer::new);
 
+    // ---- 无耗能通用终端配方序列化器（v7.15.0，照抄 ae2wtlib combine/upgrade 的 JSON 参数格式）----
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> WUTFREE_COMBINE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("wutfree_combine",
+                    com.godofthings.ae.wt.recipe.WutfreeCombineSerializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> WUTFREE_UPGRADE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("wutfree_upgrade",
+                    com.godofthings.ae.wt.recipe.WutfreeUpgradeSerializer::new);
+
     // ---- 创造标签 ----
     /**
      * 创造标签：众神之物（机器与方块合并页）。
@@ -910,6 +926,9 @@ public class Godofthings
                         // ---- ME 无限元件 ----
                         output.accept(UNIVERSAL_CELL.get());
                         output.accept(INFINITY_BIGINTEGER_CELL.get());
+                        // ---- 无耗能无线通用终端 + 磁卡（v7.15.0 移植自 ae2wtlib）----
+                        output.accept(WIRELESS_UNIVERSAL_TERMINAL_FREE.get());
+                        output.accept(MAGNET_CARD.get());
                         // ---- 高级内存卡（移植自 Advanced Memory Card：AE2 内存卡增强版）----
                         output.accept(com.godofthings.advancedmemorycard.item.AmcItems.ADVANCED_MEMORY_CARD.get());
                         // ---- 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件 ----
@@ -1058,6 +1077,7 @@ public class Godofthings
         com.godofthings.wondrous.config.WondrousConfig.register(modContainer);
         // 网络载荷（照抄上游 Network::register；内含 ApotheosisNetwork 段）
         modEventBus.addListener(com.godofthings.wondrous.network.WondrousNetwork::register);
+
         // 服务端 tick / 特性开关 / 相位交互 / 时停交互 / 树叶奖励 / 辐射防护（游戏总线事件类）
         NeoForge.EVENT_BUS.register(com.godofthings.wondrous.event.StaffServerTickHandler.class);
         NeoForge.EVENT_BUS.register(com.godofthings.wondrous.event.WondrousStaffFeatureEvents.class);
@@ -1100,6 +1120,15 @@ public class Godofthings
             appeng.api.upgrades.Upgrades.add(card, AEItems.WIRELESS_CRAFTING_TERMINAL.get(), 1, wtGroup);
             appeng.api.upgrades.Upgrades.add(card, AEItems.COLOR_APPLICATOR.get(), 1, wtGroup);
             com.godofthings.aalink.ConnectorCardTerminalCompat.registerAe2wtlibUpgrades(card);
+        });
+        // 无耗能通用终端 + 磁卡（v7.15.0）：WUT 可绑定 + 磁卡装本地 WUT + 注册进 ae2wtlib 全终端
+        // （ae2wtlib v7.15.0 起为编译期依赖，UpgradeHelper 可直接调用；上游对磁卡判定认本地卡
+        // 由 MagnetHandlerCardMixin 放行）
+        event.enqueueWork(() -> {
+            appeng.api.features.GridLinkables.register(WIRELESS_UNIVERSAL_TERMINAL_FREE.get(),
+                    appeng.items.tools.powered.WirelessTerminalItem.LINKABLE_HANDLER);
+            appeng.api.upgrades.Upgrades.add(MAGNET_CARD.get(), WIRELESS_UNIVERSAL_TERMINAL_FREE.get(), 1);
+            de.mari_023.ae2wtlib.api.registration.UpgradeHelper.addUpgradeToAllTerminals(MAGNET_CARD.get(), 1);
         });
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上

@@ -2270,7 +2270,8 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   数据组件前缀 mept_，网络包 mept_ 前缀 godofthings 命名空间，GUI 贴图放 	extures/gui/mept/——
   与用户整合包里的上游本体 jar 完全隔离。
 - **自查**：check-lang.ps1 checks: OK（1534 键、111 物品）；gradlew build 成功并自动部署；
-  unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 MEPT 专项测试
+  
+unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 MEPT 专项测试
   （物品注册 / 状态读写往返 / 配置持久化 / 光谱钥匙槽校验 / 撤销历史单例 / 智能落点 / 直线计算）
   共 52 条全过后恢复 45 条基线。
 ## 7.10.1（2026-10-25）
@@ -2490,3 +2491,34 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   server 配置）与 `godofthings-staff-common.toml`。
 - **自查**：`check-lang.ps1` checks: OK（2200 键）；`gradlew build` 成功并自动部署；
   `runGameTestServer` 45 条全过。
+
+## 7.14.4 → 7.15.0
+
+- **移植 ae2wtlib 的无线通用终端（无耗能版）**（用户需求：不改任何能量消耗行为）：
+  - 新物品 `godofthings:wireless_universal_terminal_free`（无耗能无线通用终端）：
+    直接继承 ae2wtlib api 模块的 `ItemWUT`（ae2wtlib 由此从可选依赖升级为**硬依赖**
+    19.2.17+），终端打开 / 循环切换（按键或 Shift+滚轮）/ 菜单宿主 / 升级槽 /
+    磁力拾取全部走上游原生代码；
+  - **无耗能五连** `[本地改动]`：`hasPower` / `usePower` 恒 true、`getChargeRate` 0、
+    `getAECurrentPower` 恒等于容量（能量条恒满）、`extractAEPower` 恒返回请求量——
+    菜单闲置耗电与终端内操作耗电全部免除；
+  - 与其他终端合成时保持无耗能：照抄上游 combine / upgrade 配方类
+    （`WutfreeCommon` / `WutfreeCombine` / `WutfreeUpgrade` + 两个序列化器，注册为
+    `godofthings:wutfree_combine` / `godofthings:wutfree_upgrade`，JSON 参数格式与
+    上游一致），产物硬编码为本地无耗能 WUT；配方 6 个（1 个本体 + 3 个 upgrade +
+    2 个 combine，本体配方沿用万物原石 + AE2 无线终端）；
+  - **磁卡 `godofthings:magnet_card`** 一并移植：`Upgrades.createUpgradeCardItem`，
+    注册进本地 WUT 与 ae2wtlib 全部终端（`UpgradeHelper.addUpgradeToAllTerminals`）；
+    `MagnetHandlerCardMixin` 让上游磁力系统认本地磁卡（模式组件沿用 ae2wtlib 键，
+    两种卡互通）；磁力拾取由上游 `ItemWCT.inventoryTick → MagnetHandler.handle`
+    原生驱动，本地 WUT 的 tick 经上游 `ItemWUT.inventoryTick` 分发同样生效；
+  - `WutLibUniversalTerminalMixin`：上游 `isUniversalTerminal` 从实例比对放宽为
+    `instanceof ItemWUT`（放行本地 WUT 打开菜单与 Curios/背包扫描）；
+  - 新按键「切换当前终端」（`key.godofthings.cycle_universal_terminal`，分类
+    「众神之物：AE」，默认不绑定）——转发上游 `AE2wtlibAPI.cycleTerminal`。
+- **构建侧**：libs 新增 ae2wtlib-19.5.1.jar + ae2wtlib_api-19.5.1.jar（后者从主 jar 的
+  jarjar 嵌套包解出，提供编译期 API 类）；fetch-libs.ps1 下载清单 9→11 个；
+  GameTest 环境自动带上 ae2wtlib。
+- **自查**：临时探针 5 条（类型继承链 / 无耗能五连 / 磁卡注册与升级槽 / upgrade 与
+  combine 配方产物 / 上游注册表解析）全过，已删除；`check-lang.ps1` checks: OK
+  （2207 键，112 物品）；`runGameTestServer` 45 条全过。

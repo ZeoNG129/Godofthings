@@ -1,0 +1,11 @@
+{
+  "type": "godofthings:wutfree_combine",
+  "terminalA": {
+    "item": "ae2:wireless_crafting_terminal"
+  },
+  "terminalB": {
+    "item": "ae2wtlib:wireless_pattern_access_terminal"
+  },
+  "terminalAName": "crafting",
+  "terminalBName": "pattern_access"
+}

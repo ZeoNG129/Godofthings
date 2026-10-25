@@ -84,6 +84,10 @@ dependencies {
 
     // AE2 (应用能源2) —— 7 台机器的并网方块实体直接 implements AE2 接口（运行期硬依赖）
     compileOnly files('libs/ae2-1.21.1-neoforge.jar')
+    // ae2wtlib（v7.15.0 起硬依赖）：无耗能无线通用终端直接继承它 api 模块的 ItemWUT，
+    // 终端打开/切换/菜单宿主/磁力拾取全走上游原生代码。主 jar 提供运行期实现，
+    // api jar（从主 jar 的 jarjar 嵌套包解出）提供编译期 API 类。
+    compileOnly files('libs/ae2wtlib-19.5.1.jar', 'libs/ae2wtlib_api-19.5.1.jar')
 // Curios（可选依赖）：玩偶饰品栏集成需要编译期 API；运行期仍按 optional 处理，没装也能进游戏
 compileOnly files('libs/curios-neoforge-9.5.1+1.21.1.jar')
 // 全能升级（Omni Upgrades 移植）的适配器编译依赖：通用机械 / 工业先锋(+titanium) / 气动工艺。
@@ -141,6 +145,8 @@ tasks.register('prepareGameTestMods', Copy) {
     // AE2 的运行期前置 guideme：本机 dev 环境在 run-server/mods/，CI 用 fetch-libs.ps1 -IncludeTestMods 拉到 libs/
     from('libs') { include 'guideme-*.jar' }
     from('run-server/mods') { include 'guideme-*.jar' }
+    // ae2wtlib（v7.15.0 硬依赖）：WUT 探针与模组加载都需要它（jarjar 嵌套 api 包在游戏内自动解出）
+    from('libs') { include 'ae2wtlib-*.jar' }
     into('run-gametest/mods')
     onlyIf { file('libs/ae2-1.21.1-neoforge.jar').isFile() }
 }

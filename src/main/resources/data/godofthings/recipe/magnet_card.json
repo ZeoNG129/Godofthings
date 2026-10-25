@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["abc", "ded", "ddd"],
+  "key": {
+    "a": {
+      "item": "minecraft:redstone_block"
+    },
+    "b": {
+      "item": "ae2:annihilation_plane"
+    },
+    "c": {
+      "item": "minecraft:lapis_block"
+    },
+    "d": {
+      "item": "minecraft:iron_block"
+    },
+    "e": {
+      "item": "ae2:advanced_card"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "godofthings:magnet_card"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.godofthings.ae.wt.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MagnetHandlerCardMixin",
+    "WutLibUniversalTerminalMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

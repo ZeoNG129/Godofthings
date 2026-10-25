@@ -37,6 +37,9 @@ $baseUrl = "https://github.com/$owner/$repoName/releases/download/$tag"
 # v7.8.0: back to 9 jars -- the doll curios integration and the omni-upgrade
 # adapters (Mekanism / Industrial Foregoing + titanium / PneumaticCraft) compile
 # against these; the first CI failure they caused was build #135 (2026-10-23).
+# v7.15.0: +2 jars -- ae2wtlib became a hard dependency (the no-power wireless
+# universal terminal extends its api ItemWUT). The api jar is extracted from the
+# fat jar's META-INF/jarjar nested package and provides the compile-time classes.
 $files = @(
     @{ local = 'ae2-1.21.1-neoforge.jar'; remote = '' },
     @{ local = 'emi-1.1.24+1.21.1+neoforge.jar'; remote = 'emi-1.1.24.1.21.1.neoforge.jar' },
@@ -46,7 +49,9 @@ $files = @(
     @{ local = 'Mekanism-1.21.1-10.7.19.85.jar'; remote = '' },
     @{ local = 'industrialforegoing-1.21-3.6.39.jar'; remote = '' },
     @{ local = 'titanium-1.21-4.0.51.jar'; remote = '' },
-    @{ local = 'pneumaticcraft-repressurized-8.2.23+mc1.21.1.jar'; remote = '' }
+    @{ local = 'pneumaticcraft-repressurized-8.2.23+mc1.21.1.jar'; remote = '' },
+    @{ local = 'ae2wtlib-19.5.1.jar'; remote = '' },
+    @{ local = 'ae2wtlib_api-19.5.1.jar'; remote = '' }
 )
 
 if ($IncludeTestMods) {

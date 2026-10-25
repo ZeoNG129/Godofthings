@@ -2198,5 +2198,12 @@
     "godofthings.wondrous.configuration.doll_leaf_drop.enable":  "树叶掉落：紬紬",
     "godofthings.wondrous.configuration.doll_leaf_drop.probability":  "树叶掉落：紬紬概率",
     "godofthings.wondrous.configuration.server.apotheosis_compat":  "APOC 附魔台兼容",
-    "godofthings.wondrous.configuration.client.highlight_see_through":  "高亮穿墙显示"
+    "godofthings.wondrous.configuration.client.highlight_see_through":  "高亮穿墙显示",
+    "item.godofthings.wireless_universal_terminal_free":  "无耗能无线通用终端",
+    "item.godofthings.magnet_card":  "磁卡",
+    "tooltip.godofthings.wut.no_energy":  "不消耗任何能量",
+    "manual.godofthings.wireless_universal_terminal_free":  "【无耗能无线通用终端】移植自 ae2wtlib 的无线通用终端，且不消耗任何能量。\n· 右键打开当前终端；用「切换当前终端」键（众神之物：AE 分类，默认不绑定）或 Shift+滚轮在已安装的终端之间循环切换；\n· 在工作台里与无线合成终端 / 无线样板终端 / 无线样板管理终端合成即可装载（可多台叠加）；\n· 与 ae2wtlib 原版无线通用终端互相兼容：终端组件、当前选择与磁卡设置全部通用；\n· 能量条恒满、不消耗 AE 能量；菜单闲置耗电与终端内操作耗电全部免除。\n【前置】需同时安装 AE2 与 ae2wtlib（本模组硬依赖，缺一无法加载）。",
+    "key.category.godofthings.ae":  "众神之物：AE",
+    "key.godofthings.cycle_universal_terminal":  "切换当前终端",
+    "manual.godofthings.magnet_card":  "【磁卡】移植自 ae2wtlib 的磁卡升级。装进支持磁卡的终端（无耗能无线通用终端 / ae2wtlib 各终端）后，站在掉落物附近会自动拾取：默认吸进背包，切换到「存储至ME网络」后经由终端已绑定的 AE 网络直接入网（需终端已绑定网络）。在终端升级槽中安装；过滤列表与模式沿用 ae2wtlib 的磁卡界面，与原版 ae2wtlib 磁卡互通。"
 }
