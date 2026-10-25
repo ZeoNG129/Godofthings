@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "godofthings:item/endless_beaf_item_silk_touch"
+  }
+}

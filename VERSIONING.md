@@ -2374,3 +2374,27 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   注册表 / 进度 / 实体 NBT 标签（`useless_stretcher_2i_prank_owner` 属实体私有 NBT，不跨模组）
   都自带命名空间或实体隔离，与上游同装安全。
 - **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功并自动部署；`runGameTestServer` 45 条全过。
+## 7.12.1 → 7.13.0
+
+- **恢复造化垂青之杖**（`endless_beaf_item`，v5.1.2 曾按需求移除；用户要求「荒辰是 useless 手杖的衍生，
+  原手杖的功能也还是需要」）：从 v5.10.0 删除提交（2d26b0c^）的 git 历史整体复活当年的完整移植
+  （73 个文件 ≈1.2 万行：EndlessBeafItem 全套 / 模式轮盘 / 工具按键与 19 个网络包 / 工具 HUD /
+  挖掘辅助与连锁形状 / 5+4 个工具 Mixin / ModEntities 与 ModDamageTypes / 工具专属 compat），
+  再补做 7.12.1 之后新增的工程约束适配：
+  - 6 个第三方 compat（AppFlux / Draconic / enderio×2 / occultism×2 / productivebees）改为
+    本地空壳类（v5.12.1 起开发环境无这些编译依赖，调用方均有 ModList 守卫，恒走降级路径）；
+  - 访问转换器恢复：强杀 / 掉落 / 实体存储内部字段 13 条 AT 并入 accesstransformer.cfg；
+  - beef.mixins.json 恢复 13 个 mixin 段（含客户端 4 个）；
+  - UComponents.init 与 ModEntities 注册重新接进主类构造（组件注册漏接会在 RegisterEvent
+    期间报「unbound value」崩溃，已实测修复）。
+- **荒辰移晷之杖改回继承真基类**：`WondrousStaffItem extends EndlessBeafItem`（恢复上游结构，
+  之前用的 StaffBaseItem 空壳退役；荒辰的加速 / 时停 / 召唤等能力不变，额外继承造化杖的全部
+  挖掘 / 工具形态 / 击杀类能力）。
+- **按键分类**：新开独立分类「众神之物：权杖」（`key.category.godofthings.wand_staff`），
+  造化杖 13 键 + 荒辰杖 3 键（X / P / B）全部归入该分类。
+- **创造栏**：造化杖（基础 + 无扳手）与荒辰杖补进「众神之物」物品标签页（v7.12.0 漏加）。
+- **配方**：造化杖恢复 v3.0.1 原配方（下界合金锭×5 + 钻石镐 + 下界合金镐 + 金胡萝卜 + 恶魂之泪）。
+- **资源**：8 个模型 + 2 张贴图（上游 asset 原样，命名空间改写）；语言键 +324（含 7 物品名 /
+  30 个模式轮盘 / 手册条目 7 条 / 时间加速实体名）；README 物品 117 / 实体 5。
+- **自查**：`check-lang.ps1` checks: OK（2140 键）；`gradlew build` 成功并自动部署；
+  `runGameTestServer` 45 条全过（复活 122 文件后无回归）。

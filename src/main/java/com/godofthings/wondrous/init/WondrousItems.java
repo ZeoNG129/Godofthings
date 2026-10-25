@@ -21,8 +21,7 @@ public final class WondrousItems
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Godofthings.MODID);
 
     public static final DeferredItem<WondrousStaffItem> WONDROUS_STAFF =
-            ITEMS.registerItem("wondrous_staff",
-                    props -> new WondrousStaffItem(props.stacksTo(1).fireResistant().rarity(Rarity.EPIC)));
+            ITEMS.register("wondrous_staff", WondrousStaffItem::new);
 
     private WondrousItems()
     {

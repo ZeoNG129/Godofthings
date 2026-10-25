@@ -1,5 +1,6 @@
 package com.godofthings.wondrous.content.item;
 
+import com.godofthings.beef.api.enums.tool.ToolTypeMode;
 import com.godofthings.wondrous.content.entity.WondrousStaffAcceleration;
 import com.godofthings.wondrous.content.apotheosis.ApotheosisStaffSettings;
 import com.godofthings.wondrous.content.range.RangeAccelerationSettings;
@@ -32,10 +33,10 @@ import java.util.List;
  * 时间/实体加速等扩展。AE 机器走自己的 AE 刻，因此这里不走普通方块 ticker，而是直接驱动
  * AE 节点的 {@code IGridTickable}。
  */
-public class WondrousStaffItem extends com.godofthings.wondrous.support.StaffBaseItem {
+public class WondrousStaffItem extends com.godofthings.beef.content.items.EndlessBeafItem {
 
-    public WondrousStaffItem(Properties properties) {
-        super(properties);
+    public WondrousStaffItem() {
+        super(ToolTypeMode.NONE_MODE, true);
     }
 
     @Override

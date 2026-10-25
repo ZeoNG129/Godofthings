@@ -1,36 +1,101 @@
 package com.godofthings.beef.init;
 
+import com.godofthings.beef.network.AeLinkPreviewPacket;
+import com.godofthings.beef.network.AeLinkPreviewRequestPacket;
+import com.godofthings.beef.network.BeefInvulnerabilityStatePacket;
+import com.godofthings.beef.network.BeefInvulnerabilitySyncPacket;
+import com.godofthings.beef.network.BeefToolLayoutRequestPacket;
+import com.godofthings.beef.network.BeefToolLayoutResultPacket;
+import com.godofthings.beef.network.BeefToolLayoutSyncPacket;
+import com.godofthings.beef.network.BeefToolLayoutUpdatePacket;
+import com.godofthings.beef.network.ConstructionWandCorePacket;
+import com.godofthings.beef.network.ConstructionWandPreviewPacket;
+import com.godofthings.beef.network.ConstructionWandPreviewRequestPacket;
 import com.godofthings.beef.network.DimensionConfigGhostSlotPacket;
 import com.godofthings.beef.network.DimensionConfigSubmitPacket;
-import com.godofthings.network.GodBackpackActionPayload;
-import com.godofthings.network.GodBackpackOpenPayload;
-import com.godofthings.network.GodBackpackSyncPayload;
+import com.godofthings.beef.network.EnchantmentSwitchPacket;
+import com.godofthings.beef.network.ForceBreakKeyPacket;
+import com.godofthings.beef.network.MiningDataSyncPacket;
+import com.godofthings.beef.network.ModeTogglePacket;
+import com.godofthings.beef.network.RitualSatchelPlacePacket;
+import com.godofthings.beef.network.TabKeyPressedPacket;
+import com.godofthings.beef.network.TeleportKeyPacket;
+import com.godofthings.beef.network.ToolTypeModeSwitchPacket;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 /**
- * 本模组（beef 子系统）的网络包注册。
+ * 造化杖的网络包注册。
  *
- * <p><b>死代码清理历程</b>：</p>
- * <ol>
- *   <li>牛排工具框架已整套删除，原先为它注册的 19 个包（模式轮盘布局 4 个、附魔 / 工具形态切换、
- *       强制破坏、Tab 连锁、短距传送、连点模式切换、挖掘数据同步、建筑手杖 3 个、匠心仪式挎包、
- *       模式开关）连同各自的类一并移除；</li>
- *   <li><b>AE 无线接入点连接子系统</b>已删除（{@code AeLinkPreviewRequestPacket} /
- *       {@code AeLinkPreviewPacket} 与 {@code AeDeviceLinker} /
- *       {@code AeLinkChannelBypass} / {@code AeConnectLinkSavedData} 整个子系统），
- *       两个连接预览包随之注销；</li>
- *   <li><b>玩家保护层（无敌 / 高级隐身）</b>已删除（{@code BeefInvulnerabilityStatePacket} /
- *       {@code BeefInvulnerabilitySyncPacket} 与其客户端处理器），两个状态同步包随之注销。</li>
- * </ol>
+ * <p>逐字照抄上游 {@code com.sorrowmist.useless.init.ModNetwork} 中与工具相关的注册项；
+ * 上游的机器/维度配置包（合金炉、发电机、维度配置、被动合成、AE 任务进度等）属于机器子系统，
+ * 未随本次照抄带入。</p>
  *
- * <p>如今只剩<b>无用维度配置界面</b>（{@link DimensionConfigGhostSlotPacket} /
- * {@link DimensionConfigSubmitPacket}）。</p>
- *
- * <p>通道版本是模组级设置而非子系统逻辑，沿用既有的 {@code event.registrar("1")}。</p>
+ * <p>唯一的适配点：上游用 {@code event.registrar(MODID).versioned("13")}，
+ * 而本模组既有的 9 处网络注册统一使用 {@code event.registrar("1")}，
+ * 通道版本是模组级设置而非工具逻辑，故这里与之保持一致。</p>
  */
 public class ModNetwork {
     public static void registerPayloadHandlers(final RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("1");
+        registrar.playToServer(BeefToolLayoutRequestPacket.TYPE,
+                               BeefToolLayoutRequestPacket.STREAM_CODEC,
+                               BeefToolLayoutRequestPacket::handle);
+        registrar.playToClient(BeefToolLayoutSyncPacket.TYPE,
+                               BeefToolLayoutSyncPacket.STREAM_CODEC,
+                               BeefToolLayoutSyncPacket::handle);
+        registrar.playToServer(BeefToolLayoutUpdatePacket.TYPE,
+                               BeefToolLayoutUpdatePacket.STREAM_CODEC,
+                               BeefToolLayoutUpdatePacket::handle);
+        registrar.playToClient(BeefToolLayoutResultPacket.TYPE,
+                               BeefToolLayoutResultPacket.STREAM_CODEC,
+                               BeefToolLayoutResultPacket::handle);
+        registrar.playToServer(EnchantmentSwitchPacket.TYPE, EnchantmentSwitchPacket.STREAM_CODEC,
+                               EnchantmentSwitchPacket::handle
+        );
+        registrar.playToServer(ToolTypeModeSwitchPacket.TYPE, ToolTypeModeSwitchPacket.STREAM_CODEC,
+                               ToolTypeModeSwitchPacket::handle
+        );
+        registrar.playToServer(ConstructionWandCorePacket.TYPE, ConstructionWandCorePacket.STREAM_CODEC,
+                               ConstructionWandCorePacket::handle
+        );
+        registrar.playToServer(AeLinkPreviewRequestPacket.TYPE, AeLinkPreviewRequestPacket.STREAM_CODEC,
+                               AeLinkPreviewRequestPacket::handle
+        );
+        registrar.playToClient(AeLinkPreviewPacket.TYPE, AeLinkPreviewPacket.STREAM_CODEC,
+                               AeLinkPreviewPacket::handle
+        );
+        registrar.playToServer(ConstructionWandPreviewRequestPacket.TYPE,
+                               ConstructionWandPreviewRequestPacket.STREAM_CODEC,
+                               ConstructionWandPreviewRequestPacket::handle
+        );
+        registrar.playToClient(ConstructionWandPreviewPacket.TYPE,
+                               ConstructionWandPreviewPacket.STREAM_CODEC,
+                               ConstructionWandPreviewPacket::handle
+        );
+        registrar.playToServer(TabKeyPressedPacket.TYPE, TabKeyPressedPacket.STREAM_CODEC,
+                               TabKeyPressedPacket::handle
+        );
+        registrar.playToServer(TeleportKeyPacket.TYPE, TeleportKeyPacket.STREAM_CODEC,
+                               TeleportKeyPacket::handle
+        );
+        registrar.playToServer(ModeTogglePacket.TYPE, ModeTogglePacket.STREAM_CODEC,
+                               ModeTogglePacket::handle
+        );
+        registrar.playToServer(ForceBreakKeyPacket.TYPE, ForceBreakKeyPacket.STREAM_CODEC,
+                               ForceBreakKeyPacket::handle
+        );
+        registrar.playToClient(MiningDataSyncPacket.TYPE, MiningDataSyncPacket.STREAM_CODEC,
+                               MiningDataSyncPacket::handle
+        );
+        registrar.playToClient(BeefInvulnerabilitySyncPacket.TYPE, BeefInvulnerabilitySyncPacket.STREAM_CODEC,
+                               BeefInvulnerabilitySyncPacket::handle
+        );
+        registrar.playToClient(BeefInvulnerabilityStatePacket.TYPE, BeefInvulnerabilityStatePacket.STREAM_CODEC,
+                               BeefInvulnerabilityStatePacket::handle
+        );
+        registrar.playToServer(RitualSatchelPlacePacket.TYPE,
+                               RitualSatchelPlacePacket.STREAM_CODEC,
+                               RitualSatchelPlacePacket::handle);
         // 无用维度配置界面（照抄上游 ModNetwork 的同名两项）
         registrar.playToServer(DimensionConfigGhostSlotPacket.TYPE,
                                DimensionConfigGhostSlotPacket.STREAM_CODEC,
@@ -38,17 +103,5 @@ public class ModNetwork {
         registrar.playToServer(DimensionConfigSubmitPacket.TYPE,
                                DimensionConfigSubmitPacket.STREAM_CODEC,
                                DimensionConfigSubmitPacket::handle);
-        // 神之背包（只加不改）：动作包（客户端 → 服务端：标记记忆格 / 忽略整理格、搜索词、滚动）
-        // 与设置同步包（服务端 → 客户端：设置 + 滚动全量推送），见 com.godofthings.network
-        registrar.playToServer(GodBackpackActionPayload.TYPE,
-                               GodBackpackActionPayload.STREAM_CODEC,
-                               GodBackpackActionPayload::handle);
-        registrar.playToClient(GodBackpackSyncPayload.TYPE,
-                               GodBackpackSyncPayload.STREAM_CODEC,
-                               GodBackpackSyncPayload::handle);
-        // 神之背包快捷键（只加不改）：空包，服务端自己找背包（饰品栏背部槽 / 主物品栏 / 副手）再开界面
-        registrar.playToServer(GodBackpackOpenPayload.TYPE,
-                               GodBackpackOpenPayload.STREAM_CODEC,
-                               GodBackpackOpenPayload::handle);
     }
 }

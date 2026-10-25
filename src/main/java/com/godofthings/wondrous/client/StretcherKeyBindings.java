@@ -14,7 +14,7 @@ import org.lwjgl.glfw.GLFW;
  */
 public final class StretcherKeyBindings
 {
-    public static final String CATEGORY = "key.category.godofthings.wand";
+    public static final String CATEGORY = "key.category.godofthings.wand_staff";
 
     /** 打开杖的加速配置界面。 */
     public static final KeyMapping WONDROUS_STAFF_MODE = new KeyMapping(

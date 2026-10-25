@@ -881,6 +881,9 @@ public class Godofthings
                         output.accept(GOD_LEGGINGS.get());
                         output.accept(GOD_BOOTS.get());
                         // ---- 手持神之工具（外形相近，按用途排）----
+                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_ITEM.get());
+                        output.accept(com.godofthings.beef.init.ModItems.ENDLESS_BEAF_ITEM_NO_WRENCH.get());
+                        output.accept(com.godofthings.wondrous.init.WondrousItems.WONDROUS_STAFF.get());
                         output.accept(GOD_INVITE.get());
                         output.accept(GOD_CHANGE.get());
                         output.accept(GOD_MEASURE.get());
@@ -974,6 +977,10 @@ public class Godofthings
         // ===== 照抄 useless_mod 的 beef 子系统接线（牛排工具框架已整套删除，只剩仍活着的部分）=====
         // 注：数据组件注册（beef.core.component.UComponents）已随玩家保护层与 AE 连接子系统一并删除，
         // 该注册表现在一个组件都没有了。
+        // 造化杖数据组件（v7.13.0 恢复杖子系统后重新接线；必须在构造期注册）
+        com.godofthings.beef.core.component.UComponents.init(modEventBus);
+        // 造化杖时间加速实体（v7.13.0 恢复）
+        com.godofthings.beef.init.ModEntities.ENTITY_TYPES.register(modEventBus);
         com.godofthings.beef.init.ModItems.ITEMS.register(modEventBus);
         com.godofthings.beef.init.ModMenuType.register(modEventBus);
         // 无用维度（奇数 / 偶数 / 三维度）：传送方块 + 方块物品 + POI + 区块生成器

@@ -1,0 +1,143 @@
+package com.godofthings.beef.client.gui;
+
+import com.godofthings.beef.content.items.EndlessBeafItem;
+import com.godofthings.beef.core.common.KeyBindings;
+import com.godofthings.beef.data.PlayerMiningData;
+import com.godofthings.beef.utils.UComponentUtils;
+import com.godofthings.beef.utils.mining.MiningDispatcher;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+
+public class MiningStatusGui {
+    private static final int BG_MAIN = 0xB0202020;
+    private static final int BG_SHADOW = 0x40000000;
+    private static final int BORDER_LIGHT = 0x40FFFFFF;
+
+    private static final int COLOR_ENHANCED = 0xFF4DD0E1;
+    private static final int COLOR_NORMAL = 0xFF66BB6A;
+    private static final int COLOR_OFF = 0xFFEF5350;
+    private static final int COLOR_FORCE_ON = 0xFFFF7043;
+    private static final int COLOR_MUTED = 0xFF9E9E9E;
+
+    public static void render(GuiGraphics g, DeltaTracker delta) {
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer player = mc.player;
+        if (player == null || mc.screen != null) return;
+        if (!KeyBindings.TRIGGER_CHAIN_MINING_KEY.get().isDown()) return;
+
+        ItemStack stack = player.getMainHandItem();
+        boolean isEndlessBeaf = stack.getItem() instanceof EndlessBeafItem;
+        boolean enhancedChainMining = UComponentUtils.isEnhancedChainMiningEnabled(stack);
+        boolean forceMiningEnabled = UComponentUtils.isForceMiningEnabled(stack);
+
+        String statusKey;
+        int statusColor;
+
+        if (isEndlessBeaf) {
+            // 主手手持 EndlessBeafItem 时，根据 ChainMiningComponent 显示状态
+            if (enhancedChainMining) {
+                statusKey = "gui.godofthings.status.enhanced";
+                statusColor = COLOR_ENHANCED;
+            } else {
+                statusKey = "gui.godofthings.status.normal";
+                statusColor = COLOR_NORMAL;
+            }
+        } else {
+            // 未手持 EndlessBeafItem 时，显示未激活
+            statusKey = "gui.godofthings.status.inactive";
+            statusColor = COLOR_OFF;
+        }
+
+        Component statusValue = Component.translatable(statusKey);
+        Component statusLine = Component.translatable(
+                "gui.godofthings.ultimine_status",
+                statusValue
+        );
+
+        Component forceLabel = Component.translatable("gui.godofthings.force_mining_label");
+        Component forceValue = Component.translatable(
+                forceMiningEnabled ? "gui.godofthings.force.enabled" : "gui.godofthings.force.disabled"
+        );
+
+        PlayerMiningData data = MiningDispatcher.getPlayerData(player);
+        int count = data != null ? data.getCachedBlocks().size() : 0;
+
+        Component countText = Component.translatable(
+                "gui.godofthings.mining_count",
+                count
+        );
+
+        int forceColor = forceMiningEnabled ? COLOR_FORCE_ON : COLOR_MUTED;
+
+        /* ========= 尺寸计算 ========= */
+        int padding = 6;
+        int lineSpacing = 4;
+        int lineHeight = mc.font.lineHeight;
+
+        int width = Math.max(
+                mc.font.width(statusLine),
+                Math.max(
+                        mc.font.width(forceLabel) + mc.font.width(forceValue),
+                        mc.font.width(countText)
+                )
+        ) + padding * 2 + 6;
+
+        int height = padding * 2 + lineHeight * 3 + lineSpacing * 2 + 1;
+
+        int x = 0;
+        int y = 0;
+
+        /* ========= 背景 ========= */
+        g.fill(x + 2, y + 2, x + width + 2, y + height + 2, BG_SHADOW);
+        g.fill(x, y, x + width, y + height, BG_MAIN);
+
+        // 左侧状态强调条
+        g.fill(x, y, x + 3, y + height, statusColor);
+
+        /* ========= 文本 ========= */
+        int textX = x + padding + 3;
+        int textY = y + padding;
+
+        // 第一行：状态
+        g.drawString(mc.font, statusLine, textX, textY, statusColor, true);
+
+        // 分割线
+        int separatorY = textY + lineHeight + lineSpacing;
+        g.fill(
+                x + 3,
+                separatorY,
+                x + width,
+                separatorY + 1,
+                BORDER_LIGHT
+        );
+
+        // 第二行：强制挖掘
+        int line2Y = separatorY + 1 + lineSpacing;
+        g.drawString(mc.font, forceLabel,
+                     textX,
+                     line2Y,
+                     0xFFFFFFFF,
+                     true
+        );
+
+        g.drawString(mc.font, forceValue,
+                     textX + mc.font.width(forceLabel),
+                     line2Y,
+                     forceColor,
+                     true
+        );
+
+        // 第三行：挖掘数量
+        int line3Y = line2Y + lineHeight + lineSpacing;
+        g.drawString(mc.font, countText,
+                     textX,
+                     line3Y,
+                     0xFFFFFFFF,
+                     true
+        );
+    }
+}
