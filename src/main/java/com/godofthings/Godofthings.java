@@ -986,18 +986,9 @@ public class Godofthings
         com.godofthings.beef.init.ModPOIs.POI_TYPES.register(modEventBus);
         com.godofthings.beef.world.dimension.UselessDimensions.init(modEventBus);
         modEventBus.addListener(com.godofthings.beef.init.ModNetwork::registerPayloadHandlers);
-        // beef 子系统配置（如今只剩无用维度地板黑白名单这一块；上游 ConfigManager 的其余
-        // 机器 / 配方转换 / 礼物包 / 植物盆等段都已按「零调用方」删除）
-        // 上游文件名是 useless_mod-{common,client,server}.toml；这里加 beef 前缀，
-        // 避免与上面已有的 godofthings-client.toml 撞名。
-        // common / client 两个文件现在是空的（仍照常生成），server 里只剩 floor_block_blacklist /
-        // floor_block_whitelist 两项。
-        modContainer.registerConfig(ModConfig.Type.COMMON,
-                com.godofthings.beef.core.config.ConfigManager.COMMON_SPEC, "godofthings-beef-common.toml");
-        modContainer.registerConfig(ModConfig.Type.CLIENT,
-                com.godofthings.beef.core.config.ConfigManager.CLIENT_SPEC, "godofthings-beef-client.toml");
-        modContainer.registerConfig(ModConfig.Type.SERVER,
-                com.godofthings.beef.core.config.ConfigManager.SERVER_SPEC, "godofthings-beef-server.toml");
+        // beef 子系统配置已整体取消注册（v7.14.4）：COMMON/CLIENT/SERVER 三个 builder
+        // 在多轮死代码清理后均已零 define，生成的三个 toml 是空文件（server 仅剩的 floor
+        // 黑白名单两项也无调用方）。旧 config/godofthings-beef-*.toml 可手动删除。
 
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
 

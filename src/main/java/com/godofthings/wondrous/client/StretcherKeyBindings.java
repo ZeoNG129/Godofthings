@@ -27,19 +27,19 @@ public final class StretcherKeyBindings
     public static final KeyMapping WONDROUS_STAFF_MODE = new KeyMapping(
             "key.godofthings.wondrous_staff_mode",
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_X,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY);
     /** 时停。 */
     public static final KeyMapping WONDROUS_STAFF_TIME_STOP = new KeyMapping(
             "key.godofthings.wondrous_staff_time_stop",
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_P,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY);
     /** 远程收回紬紬（复用本模组玩偶的既有远程收回载荷）。 */
     public static final KeyMapping TWO_I_REMOTE_RECLAIM = new KeyMapping(
             "key.godofthings.two_i_remote_reclaim",
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_B,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY);
 
     private StretcherKeyBindings()

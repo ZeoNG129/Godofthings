@@ -2466,3 +2466,27 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   （staff_tabs 七页签 / entity_acceleration / reclaimer / window 四窗口提示 /
   staff_apotheosis stat×4+tier×5 / help×15）实体键均已覆盖。
 - **自查**：`check-lang.ps1` checks: OK（2188 键）；`runGameTestServer` 45 条全过。
+## 7.14.3 → 7.14.4
+
+- **权杖按键全部默认不绑定**（用户要求落实本模组惯例）：造化杖 13 键（PageUp/PageDown/V/G/
+  KP9/R/Tab/H/J/K/L/短距传送 Shift+右键）+ 荒辰附属 3 键（X/P/B）共 16 处改 GLFW_KEY_UNKNOWN；
+  连点与独立传送本来就是 UNKNOWN。所有键到「按键控制 → 众神之物：权杖」里自行绑定。
+- **删除无效配置文件**：beef 的 COMMON / CLIENT / SERVER 三个 builder 在历史清理后均已零
+  define（server 仅剩的无用维度地板黑白名单两项也无调用方），取消三处 registerConfig，
+  不再生成 godofthings-beef-{common,client,server}.toml；config 目录里的旧文件可手动删除。
+- **修召唤/战利品刷新"仍显示 false"**：两处是不同层面的东西——
+  ①配置文件 `godofthings-wondrous-server.toml` 的 summoning/loot_refresh 默认值从
+  7.12.0 起就是 true（用户旧文件没这两键会在下次启动自动补写为 true）；
+  ②X 界面里显示"召唤：关"是**每根杖的组件开关**——树叶掉落的杖照抄上游强制写 false，
+  已改 [本地改动] 默认 true 与配置语义一致。
+- **配置中文化**：
+  - 补 wondrous 14 个配置条目的 translation 键（godofthings.wondrous.configuration.*），
+    ModList 配置界面不再显示英文键名；
+  - 自然罗盘 12 条 / 探险者指南针 13 条 / 神之皮带 11 条英文 comment 全部翻成中文（改源码
+    desc/comment，新 toml 生效；旧 toml 删除后重新生成即为中文）；
+  - AMC 服务端 2 条保留中英对照（符合"中文对照翻译"要求）；`# Default:` / `# Range:` /
+    `# Allowed Values:` 是 NeoForge 自动生成的格式行，无法翻译。
+- **历史残留文件说明**（当前代码已不生成，可手动删）：`godofthings-server.toml`（筑界杖旧
+  server 配置）与 `godofthings-staff-common.toml`。
+- **自查**：`check-lang.ps1` checks: OK（2200 键）；`gradlew build` 成功并自动部署；
+  `runGameTestServer` 45 条全过。

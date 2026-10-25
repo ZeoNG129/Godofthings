@@ -80,13 +80,13 @@ public class ConfigData
         {
             builder.push("general");
             whitelist = builder
-                    .comment("List of items to force-allow placing in the belt. Takes precedence over blacklist.")
+                    .comment("强制允许放进皮带的物品列表（优先于黑名单）。")
                     .defineList("whitelist", Lists.newArrayList(), o -> o instanceof String);
             blacklist = builder
-                    .comment("List of items to disallow from placing in the belt. (whitelist takes precedence)")
+                    .comment("不允许放进皮带的物品列表（白名单优先）。")
                     .defineList("blacklist", Lists.newArrayList(), o -> o instanceof String);
             allowAllNonStackableItems = builder
-                    .comment("When set to false, stackable items will no longer be allowed by default.")
+                    .comment("设为 false 后，可堆叠物品默认不再允许放入。")
                     .define("allowAllNonStackableItems", true);
             builder.pop();
         }
@@ -103,28 +103,28 @@ public class ConfigData
 
         ClientConfig(ModConfigSpec.Builder builder)
         {
-            builder.comment("Options for customizing the display of tools on the player")
+            builder.comment("玩家身上皮带与工具的显示自定义选项")
                     .push("display");
             showBeltOnPlayers = builder
-                    .comment("If set to FALSE, the belts and tools will NOT draw on players.")
+                    .comment("设为 FALSE 时，玩家身上不渲染皮带与工具。")
                     .define("showBeltOnPlayers", true);
             beltItemScale = builder
-                    .comment("Changes the scale of items on the belt.")
+                    .comment("调整皮带上物品的显示缩放。")
                     .defineInRange("beltItemScale", 0.5, 0.1, 2.0);
             builder.pop();
-            builder.comment("Options for customizing the radial menu")
+            builder.comment("轮盘菜单自定义选项")
                     .push("menu");
             releaseToSwap = builder
-                    .comment("If set to TRUE, releasing the menu key will activate the swap. Requires a click otherwise (default).")
+                    .comment("设为 TRUE 时，松开菜单键即执行交换；否则需要点击（默认）。")
                     .define("releaseToSwap", false);
             clipMouseToCircle = builder
-                    .comment("If set to TRUE, the radial menu will try to prevent the mouse from leaving the outer circle.")
+                    .comment("设为 TRUE 时，轮盘菜单会尽量阻止鼠标移出外圈。")
                     .define("clipMouseToCircle", false);
             allowClickOutsideBounds = builder
-                    .comment("If set to TRUE, the radial menu will allow clicking outside the outer circle to activate the items.")
+                    .comment("设为 TRUE 时，允许点击外圈之外激活对应物品。")
                     .define("allowClickOutsideBounds", false);
             displayEmptySlots = builder
-                    .comment("If set to TRUE, the radial menu will always display all the slots, even when empty.")
+                    .comment("设为 TRUE 时，轮盘菜单始终显示全部槽位（包括空槽）。")
                     .define("displayEmptySlots", false);
             builder.pop();
         }

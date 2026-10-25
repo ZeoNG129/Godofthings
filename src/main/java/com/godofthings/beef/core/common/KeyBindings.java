@@ -31,7 +31,7 @@ public class KeyBindings {
             SWITCH_SILK_TOUCH,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_PAGE_DOWN,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     // 时运（Fortune）
@@ -40,7 +40,7 @@ public class KeyBindings {
             SWITCH_FORTUNE,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_PAGE_UP,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     // 连锁模式切换（普通 ↔ 增强）
@@ -49,7 +49,7 @@ public class KeyBindings {
             TOGGLE_CHAIN_MODE,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_V,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     // 模式轮盘
@@ -58,7 +58,7 @@ public class KeyBindings {
             SWITCH_MODE_WHEEL,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_G,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     // 强制挖掘功能
@@ -67,7 +67,7 @@ public class KeyBindings {
             SWITCH_FORCE_MINING,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_KP_9,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     // 触发强制挖掘
@@ -76,7 +76,7 @@ public class KeyBindings {
             TRIGGER_FORCE_MINING,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_R,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     // Tab键触发连锁挖掘
@@ -85,7 +85,7 @@ public class KeyBindings {
             TRIGGER_CHAIN_MINING,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_TAB,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     // 耕地/草径模式切换（右键泥土时的优先行为）
@@ -94,7 +94,7 @@ public class KeyBindings {
             SWITCH_FARMLAND_MODE,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_H,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     // 顺手收菜开关
@@ -103,7 +103,7 @@ public class KeyBindings {
             TOGGLE_CROP_HARVEST,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_J,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     // 剪刀功能开关
@@ -112,7 +112,7 @@ public class KeyBindings {
             TOGGLE_SHEARS,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_K,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     // 打火石功能开关
@@ -121,7 +121,7 @@ public class KeyBindings {
             TOGGLE_FLINT_AND_STEEL,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_L,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
     /**
@@ -158,9 +158,8 @@ public class KeyBindings {
     public static final Lazy<KeyMapping> SHORT_TELEPORT_KEY = Lazy.of(() -> new KeyMapping(
             SHORT_TELEPORT,
             ALWAYS_INACTIVE,
-            KeyModifier.SHIFT,
-            InputConstants.Type.MOUSE,
-            GLFW.GLFW_MOUSE_BUTTON_RIGHT,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_UNKNOWN,
             CATEGORY
     ));
 

@@ -49,28 +49,28 @@ public class ConfigHandler
             String desc;
             builder.push("General");
 
-            desc = "Allows a player to teleport to a located structure when in creative mode, opped, or in cheat mode.";
+            desc = "允许玩家传送到已定位的结构（创造模式 / OP / 作弊模式可用）。";
             allowTeleport = builder.comment(desc).define("allowTeleport", true);
 
-            desc = "Allows players to view the precise coordinates and distance of a located structure on the HUD, rather than relying on the direction the compass is pointing.";
+            desc = "在 HUD 上显示已定位结构的精确坐标与距离，而不是只依赖罗盘指向。";
             displayCoordinates = builder.comment(desc).define("displayCoordinates", true);
 
-            desc = "The maximum radius that will be searched for a structure. Raising this value will increase search accuracy but will potentially make the process more resource intensive.";
+            desc = "搜索结构的最大半径。提高该值会提升搜索精度，但可能显著增加资源开销。";
             maxRadius = builder.comment(desc).defineInRange("maxRadius", 10000, 0, 1000000);
 
-            desc = "A list of structures that the compass will not display in the GUI and will not be able to search for. Wildcard character * can be used to match any number of characters, and ? can be used to match one character. Ex: [\"minecraft:stronghold\", \"minecraft:endcity\", \"minecraft:*village*\"]";
+            desc = "罗盘不显示也无法搜索的结构列表（资源位置）。通配符 * 匹配任意字符，? 匹配单个字符。例：[\"minecraft:stronghold\", \"minecraft:endcity\", \"minecraft:*village*\"]";
             structureBlacklist = builder.comment(desc).define("structureBlacklist", new ArrayList<>());
 
-            desc = "The maximum number of samples to be taken when searching for a structure.";
+            desc = "搜索结构时的最大采样数。";
             maxSamples = builder.comment(desc).defineInRange("maxSamples", 100000, 0, 100000000);
 
-            desc = "If this option is enabled, then the compass will clear the cache of previously found structures when the structure couldn't found.";
+            desc = "开启后，找不到目标结构时会清空已找到结构的缓存。";
             cleanCache = builder.comment(desc).define("cleanCache", false);
 
-            desc = "If this option is enabled, then the compass will search alex cave";
+            desc = "开启后罗盘会搜索 Alex 的洞穴模组。";
             couldFoundAlexCaves = builder.comment(desc).define("couldFoundAlexCaves", true);
 
-            desc = "Load config.json (custom model data per structure, see config/godofthings/config.json)";
+            desc = "加载 config.json（每结构的自定义模型数据，见 config/godofthings/config.json）";
             customResource = builder.comment(desc).define("customResource", false);
 
             builder.pop();
@@ -91,19 +91,19 @@ public class ConfigHandler
             String desc;
             builder.push("Client");
 
-            desc = "Displays Explorer's Compass information on the HUD even while chat is open.";
+            desc = "聊天栏打开时仍在 HUD 显示探险者指南针信息。";
             displayWithChatOpen = builder.comment(desc).define("displayWithChatOpen", true);
 
-            desc = "Attempts to translate structure names before fixing the unlocalized names. Translations may not be available for all structures.";
+            desc = "修正非本地化名称前先尝试翻译结构名。并非所有结构都有译文。";
             translateStructureNames = builder.comment(desc).define("translateStructureNames", true);
 
-            desc = "The line offset for information rendered on the HUD.";
+            desc = "HUD 信息渲染的行偏移量。";
             overlayLineOffset = builder.comment(desc).defineInRange("overlayLineOffset", 1, 0, 50);
 
-            desc = "The side for information rendered on the HUD. Ex: LEFT, RIGHT";
+            desc = "HUD 信息渲染在屏幕哪一侧。例：LEFT / RIGHT";
             overlaySide = builder.comment(desc).defineEnum("overlaySide", OverlaySide.LEFT);
 
-            desc = "If this option is enabled, then show the structures that have been searched in the past.";
+            desc = "开启后显示过去搜索过的结构。";
             showHaveFound = builder.comment(desc).define("showHaveFound", true);
 
             builder.pop();

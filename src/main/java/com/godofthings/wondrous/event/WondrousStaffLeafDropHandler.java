@@ -200,8 +200,8 @@ public final class WondrousStaffLeafDropHandler {
         });
         staff.set(StaffComponents.WONDROUS_STAFF_MODE.get(), 0);
         staff.set(StaffComponents.WONDROUS_STAFF_PERMANENT.get(), false);
-        staff.set(StaffComponents.WONDROUS_STAFF_SUMMON_ENABLED.get(), false);
-        staff.set(StaffComponents.WONDROUS_STAFF_LOOT_REFRESH.get(), false);
+        staff.set(StaffComponents.WONDROUS_STAFF_SUMMON_ENABLED.get(), true); // [本地改动] 上游强制 false；按需求树叶杖同样默认开召唤
+        staff.set(StaffComponents.WONDROUS_STAFF_LOOT_REFRESH.get(), true); // [本地改动] 上游强制 false；树叶杖同样默认开战利品刷新
         return staff;
     }
 

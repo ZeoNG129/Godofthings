@@ -2184,5 +2184,19 @@
     "tooltip.godofthings.beef_kill_aura_mode":  "Kill Aura",
     "tooltip.godofthings.beef_entity_time_acceleration_mode":  "Entity Acceleration",
     "tooltip.godofthings.beef_protect_toggle_mode":  "Protection List Mode",
-    "gui.godofthings.staff_tabs.history":  "Range History"
+    "gui.godofthings.staff_tabs.history":  "Range History",
+    "godofthings.wondrous.configuration.server.staff_acceleration":  "Time Acceleration",
+    "godofthings.wondrous.configuration.acceleration.idle_throttle":  "Idle Throttle",
+    "godofthings.wondrous.configuration.acceleration.entity_disable_ai":  "Entity Acceleration: Disable AI",
+    "godofthings.wondrous.configuration.summoning.enable":  "Summoning",
+    "godofthings.wondrous.configuration.loot_refresh.enable":  "Loot Refresh",
+    "godofthings.wondrous.configuration.server.time_stop":  "Time Stop",
+    "godofthings.wondrous.configuration.server.range_acceleration":  "Range Acceleration",
+    "godofthings.wondrous.configuration.server.remote_reclaimer":  "Operator Reclaimer",
+    "godofthings.wondrous.configuration.staff_leaf_drop.enable":  "Leaf Drop: Staff",
+    "godofthings.wondrous.configuration.staff_leaf_drop.probability":  "Leaf Drop: Staff Chance",
+    "godofthings.wondrous.configuration.doll_leaf_drop.enable":  "Leaf Drop: Zhuzhu",
+    "godofthings.wondrous.configuration.doll_leaf_drop.probability":  "Leaf Drop: Zhuzhu Chance",
+    "godofthings.wondrous.configuration.server.apotheosis_compat":  "Apotheosis Compat",
+    "godofthings.wondrous.configuration.client.highlight_see_through":  "Highlight See-Through"
 }
