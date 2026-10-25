@@ -2172,5 +2172,16 @@
     "gui.godofthings.mode_config.mining":  "挖掘",
     "gui.godofthings.mode_config.combat":  "战斗",
     "gui.godofthings.mode_config.vanilla":  "原版",
-    "gui.godofthings.mode_config.auxiliary":  "辅助"
+    "gui.godofthings.mode_config.auxiliary":  "辅助",
+    "gui.godofthings.beef_protect.add_entity":  "已保护该生物：%s",
+    "gui.godofthings.beef_protect.add_type":  "已保护生物种类：%s",
+    "gui.godofthings.beef_protect.remove_entity":  "已取消保护该生物：%s",
+    "gui.godofthings.beef_protect.remove_type":  "已取消保护生物种类：%s",
+    "tooltip.godofthings.beef_wireless_logistics_mode":  "无线物流模式",
+    "tooltip.godofthings.exdeorum_compressed_hammer_mode":  "压缩锤",
+    "tooltip.godofthings.exdeorum_crook_mode":  "钩子",
+    "tooltip.godofthings.exdeorum_hammer_mode":  "锤子",
+    "tooltip.godofthings.beef_kill_aura_mode":  "杀戮光环",
+    "tooltip.godofthings.beef_entity_time_acceleration_mode":  "生物加速",
+    "tooltip.godofthings.beef_protect_toggle_mode":  "保护名单模式"
 }

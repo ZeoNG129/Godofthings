@@ -517,7 +517,7 @@ public final class BeefToolModuleRegistry {
 
         if (page == null) {
             if (layout.pages().size() >= BeefToolLayout.MAX_PAGES) return null;
-            page = new BeefToolLayout.Page("Page " + (layout.pages().size() + 1));
+            page = new BeefToolLayout.Page("页面 " + (layout.pages().size() + 1));
             layout.pages().add(page);
         }
 

@@ -2172,5 +2172,16 @@
     "gui.godofthings.mode_config.mining":  "Mining",
     "gui.godofthings.mode_config.combat":  "Combat",
     "gui.godofthings.mode_config.vanilla":  "Vanilla",
-    "gui.godofthings.mode_config.auxiliary":  "Auxiliary"
+    "gui.godofthings.mode_config.auxiliary":  "Auxiliary",
+    "gui.godofthings.beef_protect.add_entity":  "Protected creature: %s",
+    "gui.godofthings.beef_protect.add_type":  "Protected creature type: %s",
+    "gui.godofthings.beef_protect.remove_entity":  "Unprotected creature: %s",
+    "gui.godofthings.beef_protect.remove_type":  "Unprotected creature type: %s",
+    "tooltip.godofthings.beef_wireless_logistics_mode":  "Wireless Logistics Mode",
+    "tooltip.godofthings.exdeorum_compressed_hammer_mode":  "Compressed Hammer",
+    "tooltip.godofthings.exdeorum_crook_mode":  "Crook",
+    "tooltip.godofthings.exdeorum_hammer_mode":  "Hammer",
+    "tooltip.godofthings.beef_kill_aura_mode":  "Kill Aura",
+    "tooltip.godofthings.beef_entity_time_acceleration_mode":  "Entity Acceleration",
+    "tooltip.godofthings.beef_protect_toggle_mode":  "Protection List Mode"
 }

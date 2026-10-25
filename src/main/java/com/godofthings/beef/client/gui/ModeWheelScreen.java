@@ -719,7 +719,7 @@ public class ModeWheelScreen extends Screen {
             return;
         }
         commitNameFields();
-        layout.pages().add(new BeefToolLayout.Page("Page " + (layout.pages().size() + 1)));
+        layout.pages().add(new BeefToolLayout.Page("页面 " + (layout.pages().size() + 1)));
         layout.setSelectedPage(layout.pages().size() - 1);
         scrollOffset = 0;
         sendLayout();

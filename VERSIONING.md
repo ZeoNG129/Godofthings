@@ -2443,3 +2443,16 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   保护名单判定（自己受保护、未加名单的猪不受、空队伍不炸）/ 时停对独立传送的门控。
   49 条（45 基线 + 4 探针）全过；删探针后 45 基线复跑全过。
 - **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功并自动部署。
+## 7.14.1 → 7.14.2
+
+- **修配置界面（权杖配置 / 模式轮盘）大范围英文**：复活代码里还残留 41 处
+  `tooltip.useless_mod.*` 等旧命名空间键名（ModeTypeEnum 69 处 + ProtectEntityPacket 4 处），
+  代码里查的是 `useless_mod.` 键而语言文件里只有 `godofthings.` 键 → 界面直接显示原始键名。
+  全部迁移到 `godofthings.` 前缀，并补 11 个缺失键（杀戮光环 / 生物计时加速 / 保护名单开关 /
+  无线物流 / Ex Deorum 三模式 / beef_protect 增删提示 4 条）。
+- **分组标题与页面名默认值中文化**（[本地改动]）：GroupKind 默认名 Tools / Mining / Combat /
+  Auxiliary → 工具 / 挖掘 / 战斗 / 辅助；新页面默认名 Page N → 页面 N。注意这些是布局
+  持久化数据：改名只影响新建布局，旧存档的英文分组名请在「编辑布局」里手动改
+  （上游设计如此，名字按原文匹配拖拽分组）。
+- **自查**：`check-lang.ps1` checks: OK（2185 键）；`gradlew build` 成功并自动部署；
+  `runGameTestServer` 45 条全过。

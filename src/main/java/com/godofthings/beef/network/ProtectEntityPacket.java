@@ -113,10 +113,10 @@ public record ProtectEntityPacket(int entityId, boolean byType) implements Custo
 
             // 5) 反馈：动作栏消息 + 提示音（沿用 StaffLinkBinding 的紫水晶 chime/break 范式）
             String messageKey = byType
-                    ? (added ? "gui.useless_mod.beef_protect.add_type"
-                             : "gui.useless_mod.beef_protect.remove_type")
-                    : (added ? "gui.useless_mod.beef_protect.add_entity"
-                             : "gui.useless_mod.beef_protect.remove_entity");
+                    ? (added ? "gui.godofthings.beef_protect.add_type"
+                             : "gui.godofthings.beef_protect.remove_type")
+                    : (added ? "gui.godofthings.beef_protect.add_entity"
+                             : "gui.godofthings.beef_protect.remove_entity");
             Component name = byType ? living.getType().getDescription() : living.getDisplayName();
             player.displayClientMessage(Component.translatable(messageKey, name), true);
             level.playSound(null, player.blockPosition(),
