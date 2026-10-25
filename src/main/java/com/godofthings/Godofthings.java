@@ -664,13 +664,64 @@ public class Godofthings
             ITEMS.registerItem("infinity_biginteger_cell",
                     props -> new com.godofthings.infinitecell.big.InfinityCellItem());
 
-    // ---- 无耗能无线通用终端 + 磁卡（v7.15.0 移植自 ae2wtlib；终端复用 ae2wtlib 终端注册表）----
-    public static final DeferredItem<com.godofthings.ae.wt.ItemWUTFree> WIRELESS_UNIVERSAL_TERMINAL_FREE =
+    // ---- 无耗能无线通用终端 + 磁卡（v7.15.1 完全独立移植自 ae2wtlib：零上游运行期依赖）----
+    public static final DeferredItem<com.godofthings.wt.core.WtUniversalTerminalItem> WIRELESS_UNIVERSAL_TERMINAL_FREE =
             ITEMS.registerItem("wireless_universal_terminal_free",
-                    props -> new com.godofthings.ae.wt.ItemWUTFree());
+                    props -> new com.godofthings.wt.core.WtUniversalTerminalItem());
+    public static final DeferredItem<com.godofthings.wt.core.WtEncodingItem> WIRELESS_PATTERN_ENCODING_TERMINAL =
+            ITEMS.registerItem("wireless_pattern_encoding_terminal",
+                    props -> new com.godofthings.wt.core.WtEncodingItem());
+    public static final DeferredItem<com.godofthings.wt.core.WtAccessItem> WIRELESS_PATTERN_ACCESS_TERMINAL =
+            ITEMS.registerItem("wireless_pattern_access_terminal",
+                    props -> new com.godofthings.wt.core.WtAccessItem());
     public static final DeferredItem<Item> MAGNET_CARD =
             ITEMS.registerItem("magnet_card",
                     props -> appeng.api.upgrades.Upgrades.createUpgradeCardItem(props.stacksTo(1)));
+
+    // ---- 无线终端的组件注册（照抄 ae2wtlib；has_*_terminal 三键 + 磁卡模式键）----
+    public static final DeferredHolder<net.minecraft.core.component.DataComponentType<?>, net.minecraft.core.component.DataComponentType<com.mojang.datafixers.util.Unit>> WT_HAS_CRAFTING =
+            DATA_COMPONENTS.register("wt_has_crafting_terminal", () -> DataComponentType
+                    .<com.mojang.datafixers.util.Unit>builder()
+                    .persistent(com.mojang.serialization.Codec.EMPTY.codec())
+                    .networkSynchronized(net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs
+                            .enumCodec(com.mojang.datafixers.util.Unit.class))
+                    .build());
+    public static final DeferredHolder<net.minecraft.core.component.DataComponentType<?>, net.minecraft.core.component.DataComponentType<com.mojang.datafixers.util.Unit>> WT_HAS_PATTERN_ENCODING =
+            DATA_COMPONENTS.register("wt_has_pattern_encoding_terminal", () -> DataComponentType
+                    .<com.mojang.datafixers.util.Unit>builder()
+                    .persistent(com.mojang.serialization.Codec.EMPTY.codec())
+                    .networkSynchronized(net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs
+                            .enumCodec(com.mojang.datafixers.util.Unit.class))
+                    .build());
+    public static final DeferredHolder<net.minecraft.core.component.DataComponentType<?>, net.minecraft.core.component.DataComponentType<com.mojang.datafixers.util.Unit>> WT_HAS_PATTERN_ACCESS =
+            DATA_COMPONENTS.register("wt_has_pattern_access_terminal", () -> DataComponentType
+                    .<com.mojang.datafixers.util.Unit>builder()
+                    .persistent(com.mojang.serialization.Codec.EMPTY.codec())
+                    .networkSynchronized(net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs
+                            .enumCodec(com.mojang.datafixers.util.Unit.class))
+                    .build());
+    public static final DeferredHolder<net.minecraft.core.component.DataComponentType<?>, net.minecraft.core.component.DataComponentType<com.godofthings.wt.core.WtMagnetMode>> WT_MAGNET_SETTINGS =
+            DATA_COMPONENTS.register("wt_magnet_settings", () -> DataComponentType
+                    .<com.godofthings.wt.core.WtMagnetMode>builder()
+                    .persistent(com.mojang.serialization.Codec.BYTE
+                            .comapFlatMap(b -> com.mojang.serialization.DataResult
+                                    .success(com.godofthings.wt.core.WtMagnetMode.fromByte(b)),
+                                    com.godofthings.wt.core.WtMagnetMode::getId))
+                    .networkSynchronized(net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs
+                            .enumCodec(com.godofthings.wt.core.WtMagnetMode.class))
+                    .build());
+    public static final DeferredHolder<net.minecraft.core.component.DataComponentType<?>, net.minecraft.core.component.DataComponentType<String>> WT_CURRENT_TERMINAL =
+            DATA_COMPONENTS.register("wt_current_terminal", () -> DataComponentType.<String>builder()
+                    .persistent(com.mojang.serialization.Codec.STRING)
+                    .networkSynchronized(net.minecraft.network.codec.ByteBufCodecs.STRING_UTF8)
+                    .build());
+
+    /** 终端装载组件键查询表（WtTerminalDefinition.WtComponentKey 用）。 */
+    public static final java.util.Map<String, net.minecraft.core.Holder<net.minecraft.core.component.DataComponentType<?>>> WT_HAS_TERMINALS =
+            java.util.Map.of(
+                    "crafting", WT_HAS_CRAFTING,
+                    "pattern_encoding", WT_HAS_PATTERN_ENCODING,
+                    "pattern_access", WT_HAS_PATTERN_ACCESS);
 
     // ---- 神之合成 ----
     public static final DeferredBlock<GodCraftBlock> GOD_CRAFT = BLOCKS.registerBlock("god_craft",
@@ -817,13 +868,13 @@ public class Godofthings
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> GOD_UNBREAKABLE_SERIALIZER =
             RECIPE_SERIALIZERS.register("god_unbreakable", GodUnbreakableRecipe.Serializer::new);
 
-    // ---- 无耗能通用终端配方序列化器（v7.15.0，照抄 ae2wtlib combine/upgrade 的 JSON 参数格式）----
+    // ---- 无耗能通用终端配方序列化器（v7.15.1 独立实现，JSON 参数格式与 ae2wtlib combine/upgrade 一致）----
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> WUTFREE_COMBINE_SERIALIZER =
             RECIPE_SERIALIZERS.register("wutfree_combine",
-                    com.godofthings.ae.wt.recipe.WutfreeCombineSerializer::new);
+                    com.godofthings.wt.recipe.WtWutCombineSerializer::new);
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> WUTFREE_UPGRADE_SERIALIZER =
             RECIPE_SERIALIZERS.register("wutfree_upgrade",
-                    com.godofthings.ae.wt.recipe.WutfreeUpgradeSerializer::new);
+                    com.godofthings.wt.recipe.WtWutUpgradeSerializer::new);
 
     // ---- 创造标签 ----
     /**
@@ -928,6 +979,8 @@ public class Godofthings
                         output.accept(INFINITY_BIGINTEGER_CELL.get());
                         // ---- 无耗能无线通用终端 + 磁卡（v7.15.0 移植自 ae2wtlib）----
                         output.accept(WIRELESS_UNIVERSAL_TERMINAL_FREE.get());
+                        output.accept(WIRELESS_PATTERN_ENCODING_TERMINAL.get());
+                        output.accept(WIRELESS_PATTERN_ACCESS_TERMINAL.get());
                         output.accept(MAGNET_CARD.get());
                         // ---- 高级内存卡（移植自 Advanced Memory Card：AE2 内存卡增强版）----
                         output.accept(com.godofthings.advancedmemorycard.item.AmcItems.ADVANCED_MEMORY_CARD.get());
@@ -977,6 +1030,13 @@ public class Godofthings
         modContainer.registerConfig(ModConfig.Type.CLIENT,
                 com.godofthings.compass.explorers.config.ConfigHandler.CLIENT_SPEC,
                 "godofthings-explorers-compass-client.toml");
+        // 无线通用终端（v7.15.1 独立移植自 ae2wtlib）：磁卡范围（服务端）+ 终端选择面板显示方式（客户端）
+        modContainer.registerConfig(ModConfig.Type.COMMON, com.godofthings.wt.WtConfig.COMMON_SPEC,
+                "godofthings-wt-common.toml");
+        modContainer.registerConfig(ModConfig.Type.CLIENT, com.godofthings.wt.WtConfig.CLIENT_SPEC,
+                "godofthings-wt-client.toml");
+        // 无线通用终端的网络包（自建六个：循环切换 / 选中终端 / 终端设置 / 中键选取 / 组件同步 / 补货同步）
+        modEventBus.addListener(com.godofthings.wt.network.WtNetwork::register);
 
         modEventBus.addListener(this::commonSetup);
 
@@ -1008,6 +1068,9 @@ public class Godofthings
         // beef 子系统配置已整体取消注册（v7.14.4）：COMMON/CLIENT/SERVER 三个 builder
         // 在多轮死代码清理后均已零 define，生成的三个 toml 是空文件（server 仅剩的 floor
         // 黑白名单两项也无调用方）。旧 config/godofthings-beef-*.toml 可手动删除。
+
+        // 无线通用终端（v7.15.1 完全独立移植自 ae2wtlib）：菜单注册 + 磁力/补货/入网事件钩子
+        com.godofthings.wt.WtSetup.init(modEventBus);
 
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
 
@@ -1121,14 +1184,20 @@ public class Godofthings
             appeng.api.upgrades.Upgrades.add(card, AEItems.COLOR_APPLICATOR.get(), 1, wtGroup);
             com.godofthings.aalink.ConnectorCardTerminalCompat.registerAe2wtlibUpgrades(card);
         });
-        // 无耗能通用终端 + 磁卡（v7.15.0）：WUT 可绑定 + 磁卡装本地 WUT + 注册进 ae2wtlib 全终端
-        // （ae2wtlib v7.15.0 起为编译期依赖，UpgradeHelper 可直接调用；上游对磁卡判定认本地卡
-        // 由 MagnetHandlerCardMixin 放行）
+        // 无耗能通用终端 + 磁卡（v7.15.1 完全独立移植）：注册三台终端定义 + 升级卡 + 可绑定
         event.enqueueWork(() -> {
+            com.godofthings.wt.WtRegistration.registerTerminals();
             appeng.api.features.GridLinkables.register(WIRELESS_UNIVERSAL_TERMINAL_FREE.get(),
                     appeng.items.tools.powered.WirelessTerminalItem.LINKABLE_HANDLER);
+            // 磁卡装本地通用终端（每台终端定义 2 个升级槽，磁卡每台 1 张）
             appeng.api.upgrades.Upgrades.add(MAGNET_CARD.get(), WIRELESS_UNIVERSAL_TERMINAL_FREE.get(), 1);
-            de.mari_023.ae2wtlib.api.registration.UpgradeHelper.addUpgradeToAllTerminals(MAGNET_CARD.get(), 1);
+            // 磁卡也装两台独立终端（照抄 Upgrades.add(MAGNET_CARD, WIRELESS_CRAFTING_TERMINAL, 1) 的上游语义）
+            appeng.api.upgrades.Upgrades.add(MAGNET_CARD.get(), AEItems.WIRELESS_CRAFTING_TERMINAL.get(), 1);
+            // 两台独立终端也注册成 AE2 可绑定物（照抄 AE2 自家终端的处理）
+            appeng.api.features.GridLinkables.register(WIRELESS_PATTERN_ENCODING_TERMINAL.get(),
+                    appeng.items.tools.powered.WirelessTerminalItem.LINKABLE_HANDLER);
+            appeng.api.features.GridLinkables.register(WIRELESS_PATTERN_ACCESS_TERMINAL.get(),
+                    appeng.items.tools.powered.WirelessTerminalItem.LINKABLE_HANDLER);
         });
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上

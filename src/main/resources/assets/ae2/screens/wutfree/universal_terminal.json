@@ -1,0 +1,17 @@
+{
+  "$schema": "schema.json",
+  "widgets": {
+    "scrollingUpgrades": {
+      "right": 2,
+      "top": 0
+    },
+    "upgradeScrollbar": {
+      "right": -17,
+      "top": 6
+    },
+    "upgrades": {
+      "left": -9999,
+      "top": -9999
+    }
+  }
+}

@@ -25,6 +25,21 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
    （版本号缺省读 `gradle.properties`；本机 PowerShell 默认禁止运行脚本，故加 `-ExecutionPolicy Bypass`）
 
 ## 版本历史
+
+## 7.15.0 → 7.15.1
+
+**无耗能无线终端改为完全独立实现（撤销 7.15.0 对 ae2wtlib 的硬依赖，用户不装 ae2wtlib）**：
+
+- **撤销硬依赖**：删除 7.15.0 的 mixin 方案（WutLibUniversalTerminalMixin / MagnetHandlerCardMixin / 整个 com.godofthings.ae 包与 godofthings.ae.mixins.json），
+eoforge.mods.toml 移除 ae2wtlib 依赖声明，uild.gradle / etch-libs.ps1 移除两个 ae2wtlib jar（清单回到 9 个），编译与运行期零 ae2wtlib 引用。
+- **自建无线终端框架**（新包 com.godofthings.wt，照抄 ae2wtlib 1.21.1 源码逐行移植、[本地改动] 标注）：终端定义注册表（crafting 复用 AE2 原版无线合成终端物品，pattern_encoding / pattern_access 为本模组新物品）、自建组件键（godofthings 命名空间）、菜单 / 宿主 / 屏幕全套、热键动作（godofthings_ 前缀防同装冲突）。
+- **无耗能五连**：WtPoweredItem 基类（hasPower/usePower 恒 true、充电速率 0、电量恒满、extractAEPower 恒满足），三台终端全部免电。
+- **磁卡**：磁力拾取 / 直接入网 / 补货 / 中键选取方块全移植；磁卡升级注册进本地通用终端与 AE2 无线合成终端。
+- **新增两件物品**：无耗能无线样板编码终端 / 无耗能无线样板管理终端（模型贴图取自上游素材，物品名与手册条目已补）。
+- **通用终端配方**：combine/upgrade 序列化器改为独立实现（JSON 参数格式与上游一致），配方食材重定向到本模组物品。
+- **配置**：wutfree-common.toml（磁卡范围）+ wutfree-client.toml（选择面板常显开关）。
+- 未移植：量子桥卡（本模组无量子网络需求，[本地改动] 恒断开）。
+
 - 1.0.0 → 1.3.0：神之剑新增可切换功能（斩首 / 捕捉 / 抢劫，J 键打开面板，可单独或同时生效）。
 - 1.3.0 → 1.4.0：神之剑新增吸星 / 吸魂功能；修复神之工具连锁挖掘 Tab 键状态残留导致默认连锁且关不掉的问题。
 - 1.4.0 → 1.5.0：新增请神物品（右键生物赋予无限血量、保留受击反馈）。

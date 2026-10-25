@@ -10,7 +10,7 @@
 - **版本号更替规范（x.x.x）**：修复/优化 → 末位 +1（到 10 自动进位，1.3.9 → 1.4.0）；新增小物品 → 第二位 +1（末位归零）；系统性新增 → 首位 +1（→ 2.0.0）。详见 VERSIONING.md。
 
 ## 测试 / CI
-- **回归测试（共 45 条）**（10 个测试类）：`gradlew runGameTestServer`，共用 `data/godofthings/structure/note_data.nbt` 那个 1×1×1 空结构（**总数由 check-lang.ps1 与源码自动比对，改动测试后文档数字不同步会直接红**）：
+- **回归测试（共 51 条）**（11 个测试类）：`gradlew runGameTestServer`，共用 `data/godofthings/structure/note_data.nbt` 那个 1×1×1 空结构（**总数由 check-lang.ps1 与源码自动比对，改动测试后文档数字不同步会直接红**）：
   · `NoteDataGameTest`（10 条）：便签整册 NBT / 封包往返、多本与旧存档迁移、拖拽排序、自动更名、兜底 clamp、子任务结构与升降级重排、传送点 NBT；
   · `DropLootRollerGameTest`（4 条）：掉落机按原版战利品表产出、刷怪蛋入口、非生物实体返回空、装备过滤；
   · `SpawnEggHelperGameTest`（5 条）：刷怪蛋识别（原版 / 模组 ENTITY_DATA 蛋 / 坏数据拒绝）、复制保真、掉落机端到端；
@@ -21,10 +21,11 @@
   · `GodSlaughterGameTest`（1 条）：砍杀机保护名单（盔甲架 / 村民 / 流浪商人 / 已驯服宠物（含马驴等 AbstractHorse）/ 起过名字的生物不杀，普通动物照杀）。
   · `GodBlackBoxGameTest`（2 条）：黑盒不在身上时菜单必须失效（且别的槽位冒出黑盒不许让旧菜单复活）；黑盒不能放进自己的过滤槽（槽位校验 / 数字键交换 / Shift 快捷移动）。
   · `GodBackpackGameTest`（8 条）：神之背包内容与设置组件的编解码往返、整理时记忆格 / 忽略整理格原地不动、记忆格优先接收同类物品、全选记忆 / 全选忽略的智能切换、未装 Curios 时饰品栏查找安全降级、多个背包各自独立（槽位空了不许退化成第一个背包）、不许背包套背包（数字键交换 / Shift 快捷移动 / 槽位 mayPlace）。
-  · **跑之前运行期必须有 AE2**（本模组有 9 个方块实体直接 implements AE2 接口：矿机 / 资源三机 / 掉落机 / 怪蛋机 / 砍杀 / 合成台 / 吸收 / 熔炉（v5.15.5）/ 去皮机（v5.15.9））：`prepareGameTestMods` 任务会自动把 `libs/ae2-*.jar`、`libs/ae2wtlib-*.jar`（v7.15.0 硬依赖）与 `guideme-*.jar` 拷进 `run-gametest/mods/`；本机 `fetch-libs.ps1 -IncludeTestMods` 会把 guideme 一起拉下来。
+  · `GodWutFreeGameTest`（6 条）：无耗能无线通用终端（v7.15.1 完全独立实现）——三台终端定义注册表（crafting 复用 AE2 物品）、无耗能五连（耗电恒成功 / 有电恒 true / 电量恒满 / 充电速率 0 / 抽能恒返回）、磁卡模式存储往返（无卡 NO_CARD / 装卡读写）、upgrade 与 combine 配方产物组件、已装终端循环切换（含环形绕回）。
+  · **跑之前运行期必须有 AE2**（本模组有 9 个方块实体直接 implements AE2 接口：矿机 / 资源三机 / 掉落机 / 怪蛋机 / 砍杀 / 合成台 / 吸收 / 熔炉（v5.15.5）/ 去皮机（v5.15.9））：`prepareGameTestMods` 任务会自动把 `libs/ae2-*.jar` 与 `guideme-*.jar` 拷进 `run-gametest/mods/`；本机 `fetch-libs.ps1 -IncludeTestMods` 会把 guideme 一起拉下来。
 - **静态校验**：`./check-lang.ps1`，一次查全部 —— zh/en 键集双向一致、无空值、代码里所有 `translatable("字面量")` 都有键、运行时拼接前缀能解析、**注册的方块/物品/实体 ↔ blockstate / item 模型 / 语言键 全覆盖**、**每个物品/方块都有手册条目**（`manual.godofthings.<id>`，系统条目另验标题+正文）、反向的孤儿 blockstate、**仓库内 .ps1 必须纯 ASCII**、**文档计数与源码一致**（回归测试条数 / AE2 并网方块实体数 / 成就数，AGENTS 与 README 里的数字落后于代码会直接红，v5.15.11 加入）、**仓库根无解包污染目录**（assets / data / META-INF / dev / .cache 等，大小写敏感比较——防 v5.15.6 那种解包事故复发）。CI 跑的就是它。
 - **CI**：`.github/workflows/build.yml`（fetch-libs -IncludeTestMods → check-lang → `gradlew build` → `gradlew runGameTestServer` → 上传 jar）。
-- **已知运行期硬依赖（不是"没装就跳过"）**：`GodMiner` / `GodResource` / `GodDrop` / `GodSpawnEgg` / `GodCraft` / `GodSlaughter` / `GodAbsorber` 这几个方块实体**类声明上直接 `implements` 了 AE2 的 `IGridConnectedBlockEntity`**，所以运行期必须有 AE2，否则模组在**加载阶段**就 `NoClassDefFoundError` 崩掉（`neoforge.mods.toml` 里已如实把 AE2 声明为 required，缺依赖时会给出明确提示而不是崩溃堆栈）。要真做成可选，得把 AE2 那段抽到单独的类里（用接口桥接），现在没做。**v7.15.0 起 `ae2wtlib`（19.2.17+）也是同类硬依赖**：无耗能无线通用终端直接继承它 api 模块的 `ItemWUT`，libs/ 里有 ae2wtlib 主 jar + 从 jarjar 嵌套包解出的 api jar 两个编译依赖，fetch-libs.ps1 清单共 11 个。
+- **已知运行期硬依赖（不是"没装就跳过"）**：`GodMiner` / `GodResource` / `GodDrop` / `GodSpawnEgg` / `GodCraft` / `GodSlaughter` / `GodAbsorber` 这几个方块实体**类声明上直接 `implements` 了 AE2 的 `IGridConnectedBlockEntity`**，所以运行期必须有 AE2，否则模组在**加载阶段**就 `NoClassDefFoundError` 崩掉（`neoforge.mods.toml` 里已如实把 AE2 声明为 required，缺依赖时会给出明确提示而不是崩溃堆栈）。要真做成可选，得把 AE2 那段抽到单独的类里（用接口桥接），现在没做。**ae2wtlib 不是依赖**（v7.15.0 曾短暂硬依赖，v7.15.1 起无耗能无线终端已改为完全独立实现，零 ae2wtlib 引用），fetch-libs.ps1 清单共 9 个。
 
 ## 构建 → 自动部署（重要约定）
 - **`gradlew build` 成功后自动同步 jar 到两个本机测试目录**（build.gradle 的 `deployJars` 任务，build 依赖它，编译失败不会部署）：
