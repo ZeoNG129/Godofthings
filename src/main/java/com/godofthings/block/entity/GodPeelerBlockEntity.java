@@ -9,7 +9,6 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.godofthings.Godofthings;
-import com.godofthings.ae2.AeGridNode;
 import com.godofthings.godgrid.GodGridHost;
 import com.godofthings.godgrid.GodGridLayout;
 import com.godofthings.godgrid.GodGridLayoutSpec;

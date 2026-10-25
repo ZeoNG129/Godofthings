@@ -25,7 +25,7 @@ import java.util.List;
 @PrefixGameTestTemplate(false)
 public class DropLootRollerGameTest
 {
-    private static final String TEMPLATE = "note_data";
+    private static final String TEMPLATE = "gametest/note_data";
 
     /** 鸡：原版必掉「生鸡肉」，羽毛是 0~2 随机（可能为 0，所以只断言鸡肉必在） */
     @GameTest(template = TEMPLATE)

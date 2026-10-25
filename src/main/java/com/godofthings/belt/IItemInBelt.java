@@ -1,4 +1,4 @@
-package com.godofthings.belt.belt;
+package com.godofthings.belt;
 
 import com.godofthings.Godofthings;
 import com.godofthings.belt.BeltRegistration;

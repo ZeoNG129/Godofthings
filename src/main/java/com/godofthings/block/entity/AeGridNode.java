@@ -1,4 +1,4 @@
-package com.godofthings.ae2;
+package com.godofthings.block.entity;
 
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.GridHelper;

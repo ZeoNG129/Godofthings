@@ -3,7 +3,7 @@ package com.godofthings.belt.common;
 import com.godofthings.belt.BeltFinder;
 import com.godofthings.Godofthings;
 import com.godofthings.belt.BeltRegistration;
-import com.godofthings.belt.belt.ToolBeltItem;
+import com.godofthings.belt.ToolBeltItem;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;

@@ -1,7 +1,6 @@
 package com.godofthings.belt;
 
 import com.godofthings.Godofthings;
-import com.godofthings.belt.belt.ToolBeltItem;
 import com.godofthings.belt.network.BeltContentsChange;
 import com.godofthings.belt.network.ContainerSlotsHack;
 import com.godofthings.belt.network.OpenBeltSlotInventory;

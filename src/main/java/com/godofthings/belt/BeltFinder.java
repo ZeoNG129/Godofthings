@@ -1,6 +1,5 @@
 package com.godofthings.belt;
 
-import com.godofthings.belt.belt.ToolBeltItem;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;

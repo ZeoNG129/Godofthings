@@ -1,6 +1,5 @@
 package com.godofthings.belt;
 
-import com.godofthings.belt.belt.ToolBeltItem;
 import com.godofthings.belt.network.BeltContentsChange;
 import com.godofthings.belt.slot.BeltAttachment;
 import net.minecraft.world.entity.LivingEntity;

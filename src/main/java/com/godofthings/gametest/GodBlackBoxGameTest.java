@@ -22,7 +22,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public class GodBlackBoxGameTest
 {
-    private static final String TEMPLATE = "note_data";
+    private static final String TEMPLATE = "gametest/note_data";
 
     /** 黑盒不在身上时菜单必须失效；别的槽位冒出黑盒也不许「顶上」（防止张冠李戴） */
     @GameTest(template = TEMPLATE)

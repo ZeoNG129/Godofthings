@@ -31,7 +31,7 @@ import java.util.List;
 @PrefixGameTestTemplate(false)
 public class SpawnEggHelperGameTest
 {
-    private static final String TEMPLATE = "note_data";
+    private static final String TEMPLATE = "gametest/note_data";
 
     /** 造一个「模组刷怪蛋」：随便一个物品 + 按原版约定写 ENTITY_DATA（实体 id 在 "id" 字段） */
     private static ItemStack fakeModdedEgg(EntityType<?> type)

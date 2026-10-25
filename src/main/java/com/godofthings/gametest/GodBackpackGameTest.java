@@ -46,14 +46,14 @@ import java.util.UUID;
  * <p>覆盖四条最怕静默出错的数据层行为：120 格内容的编解码往返（NBT + 封包）、设置组件的编解码往返
  * （NBT + 封包 + 同步包 / 动作包）、整理时「记忆格 / 忽略整理格原地不动」、以及「存入时记忆格优先」。</p>
  *
- * <p>模板沿用 {@code data/godofthings/structure/note_data.nbt}（1×1×1 空气），
+ * <p>模板沿用 {@code data/godofthings/structure/gametest/note_data.nbt}（1×1×1 空气），
  * 所以 {@code @PrefixGameTestTemplate(false)} 让四条共用它。</p>
  */
 @GameTestHolder(Godofthings.MODID)
 @PrefixGameTestTemplate(false)
 public class GodBackpackGameTest
 {
-    private static final String TEMPLATE = "note_data";
+    private static final String TEMPLATE = "gametest/note_data";
 
     /** 造一个「有代表性」的背包：普通堆叠、自定义名字、附魔（要 registry 的组件）、空格混在一起 */
     private static GodBackpackContents sampleContents(ServerLevel level)

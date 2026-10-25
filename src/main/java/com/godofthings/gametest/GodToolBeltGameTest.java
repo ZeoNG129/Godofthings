@@ -2,7 +2,7 @@ package com.godofthings.gametest;
 
 import com.godofthings.Godofthings;
 import com.godofthings.belt.ConfigData;
-import com.godofthings.belt.belt.ToolBeltItem;
+import com.godofthings.belt.ToolBeltItem;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
@@ -23,7 +23,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public class GodToolBeltGameTest
 {
-    private static final String TEMPLATE = "note_data";
+    private static final String TEMPLATE = "gametest/note_data";
 
     @GameTest(template = TEMPLATE)
     public static void beltIsFullLevelAndWhitelistsGodTools(GameTestHelper helper)

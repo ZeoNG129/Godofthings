@@ -1,6 +1,6 @@
 package com.godofthings.belt.common;
 
-import com.godofthings.belt.belt.ToolBeltItem;
+import com.godofthings.belt.ToolBeltItem;
 import com.godofthings.belt.slot.BeltSlotMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;

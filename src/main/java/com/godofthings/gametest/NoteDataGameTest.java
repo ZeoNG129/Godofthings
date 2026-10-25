@@ -21,14 +21,14 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  * <p>覆盖的是最怕出「静默 bug」、又完全不需要看画面的那部分：存档 NBT 往返、网络封包往返、
  * 多本便签与旧存档迁移、拖拽排序、自动更名的日期逻辑、以及服务端兜底 clamp。</p>
  *
- * <p>模板用 {@code data/godofthings/structure/note_data.nbt}（1×1×1 空气，只提供一块跑测试的地），
+ * <p>模板用 {@code data/godofthings/structure/gametest/note_data.nbt}（1×1×1 空气，只提供一块跑测试的地），
  * 所以 {@code @PrefixGameTestTemplate(false)} 让所有方法共用它、而不是各要一个结构文件。</p>
  */
 @GameTestHolder(Godofthings.MODID)
 @PrefixGameTestTemplate(false)
 public class NoteDataGameTest
 {
-    private static final String TEMPLATE = "note_data";
+    private static final String TEMPLATE = "gametest/note_data";
 
     /** 造一册有代表性的便签：两本、多条任务（含子任务）、勾选、名字、自动更名开关、悬浮窗设置 */
     private static NoteShelf sample()

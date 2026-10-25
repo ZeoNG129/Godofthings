@@ -23,7 +23,7 @@ import java.util.UUID;
 @PrefixGameTestTemplate(false)
 public class GodResonanceGameTest
 {
-    private static final String TEMPLATE = "note_data";
+    private static final String TEMPLATE = "gametest/note_data";
 
     @GameTest(template = TEMPLATE)
     public static void offlineOrNullOwnerNeverResonates(GameTestHelper helper)

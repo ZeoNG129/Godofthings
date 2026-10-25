@@ -3,7 +3,6 @@ package com.godofthings.belt;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.godofthings.Godofthings;
-import com.godofthings.belt.belt.ToolBeltItem;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
