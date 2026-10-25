@@ -2456,3 +2456,13 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
   （上游设计如此，名字按原文匹配拖拽分组）。
 - **自查**：`check-lang.ps1` checks: OK（2185 键）；`gradlew build` 成功并自动部署；
   `runGameTestServer` 45 条全过。
+## 7.14.2 → 7.14.3
+
+- **修加速配置界面侧边栏页签显示原始键名**：放置历史页签的键
+  `gui.godofthings.staff_tabs.history` 在 7.12.0 语言键合并时被排除规则误删，
+  界面显示 `gui.godofthings.st...`。补回（范围历史 / Range History）。
+- **动态键全量清查**（wondrous 七个拼接前缀逐尾键核对）：补
+  `range.entity_timer_on / _off`（实体计时器开关提示）；其余前缀
+  （staff_tabs 七页签 / entity_acceleration / reclaimer / window 四窗口提示 /
+  staff_apotheosis stat×4+tier×5 / help×15）实体键均已覆盖。
+- **自查**：`check-lang.ps1` checks: OK（2188 键）；`runGameTestServer` 45 条全过。
