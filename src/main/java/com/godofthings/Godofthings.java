@@ -664,16 +664,11 @@ public class Godofthings
             ITEMS.registerItem("infinity_biginteger_cell",
                     props -> new com.godofthings.infinitecell.big.InfinityCellItem());
 
-    // ---- 无耗能无线通用终端 + 磁卡（v7.15.1 完全独立移植自 ae2wtlib：零上游运行期依赖）----
+    // ---- 无耗能无线通用终端 + 磁卡（v7.15.3：只保留通用终端一台物品，改名「通用终端」；
+    // 样板编码 / 样板管理 / 合成三台终端全部由它承载，零 ae2wtlib 依赖）----
     public static final DeferredItem<com.godofthings.wt.core.WtUniversalTerminalItem> WIRELESS_UNIVERSAL_TERMINAL_FREE =
             ITEMS.registerItem("wireless_universal_terminal_free",
                     props -> new com.godofthings.wt.core.WtUniversalTerminalItem());
-    public static final DeferredItem<com.godofthings.wt.core.WtEncodingItem> WIRELESS_PATTERN_ENCODING_TERMINAL =
-            ITEMS.registerItem("wireless_pattern_encoding_terminal",
-                    props -> new com.godofthings.wt.core.WtEncodingItem());
-    public static final DeferredItem<com.godofthings.wt.core.WtAccessItem> WIRELESS_PATTERN_ACCESS_TERMINAL =
-            ITEMS.registerItem("wireless_pattern_access_terminal",
-                    props -> new com.godofthings.wt.core.WtAccessItem());
     public static final DeferredItem<Item> MAGNET_CARD =
             ITEMS.registerItem("magnet_card",
                     props -> appeng.api.upgrades.Upgrades.createUpgradeCardItem(props.stacksTo(1)));
@@ -982,8 +977,6 @@ public class Godofthings
                         output.accept(INFINITY_BIGINTEGER_CELL.get());
                         // ---- 无耗能无线通用终端 + 磁卡（v7.15.0 移植自 ae2wtlib）----
                         output.accept(WIRELESS_UNIVERSAL_TERMINAL_FREE.get());
-                        output.accept(WIRELESS_PATTERN_ENCODING_TERMINAL.get());
-                        output.accept(WIRELESS_PATTERN_ACCESS_TERMINAL.get());
                         output.accept(MAGNET_CARD.get());
                         // ---- 高级内存卡（移植自 Advanced Memory Card：AE2 内存卡增强版）----
                         output.accept(com.godofthings.advancedmemorycard.item.AmcItems.ADVANCED_MEMORY_CARD.get());
@@ -1194,13 +1187,8 @@ public class Godofthings
                     appeng.items.tools.powered.WirelessTerminalItem.LINKABLE_HANDLER);
             // 磁卡装本地通用终端（每台终端定义 2 个升级槽，磁卡每台 1 张）
             appeng.api.upgrades.Upgrades.add(MAGNET_CARD.get(), WIRELESS_UNIVERSAL_TERMINAL_FREE.get(), 1);
-            // 磁卡也装两台独立终端（照抄 Upgrades.add(MAGNET_CARD, WIRELESS_CRAFTING_TERMINAL, 1) 的上游语义）
+            // 磁卡也装 AE2 无线合成终端（上游 Upgrades.add(MAGNET_CARD, WIRELESS_CRAFTING_TERMINAL, 1) 语义）
             appeng.api.upgrades.Upgrades.add(MAGNET_CARD.get(), AEItems.WIRELESS_CRAFTING_TERMINAL.get(), 1);
-            // 两台独立终端也注册成 AE2 可绑定物（照抄 AE2 自家终端的处理）
-            appeng.api.features.GridLinkables.register(WIRELESS_PATTERN_ENCODING_TERMINAL.get(),
-                    appeng.items.tools.powered.WirelessTerminalItem.LINKABLE_HANDLER);
-            appeng.api.features.GridLinkables.register(WIRELESS_PATTERN_ACCESS_TERMINAL.get(),
-                    appeng.items.tools.powered.WirelessTerminalItem.LINKABLE_HANDLER);
         });
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上

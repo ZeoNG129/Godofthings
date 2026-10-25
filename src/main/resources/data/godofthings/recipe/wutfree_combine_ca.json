@@ -4,7 +4,7 @@
     "item": "ae2:wireless_crafting_terminal"
   },
   "terminalB": {
-    "item": "godofthings:wireless_pattern_access_terminal"
+    "item": "ae2:pattern_access_terminal"
   },
   "terminalAName": "crafting",
   "terminalBName": "pattern_access"

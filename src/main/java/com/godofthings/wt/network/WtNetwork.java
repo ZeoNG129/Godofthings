@@ -20,6 +20,7 @@ import com.godofthings.Godofthings;
 import com.godofthings.wt.WtEvents;
 import com.godofthings.wt.core.WtComponents;
 import com.godofthings.wt.core.WtCraftingTerminalHandler;
+import com.godofthings.wt.core.WtMagnetHandler;
 import com.godofthings.wt.core.WtMagnetMode;
 import com.godofthings.wt.core.WtTerminalDefinition;
 import com.godofthings.wt.core.WtUniversalTerminalItem;
@@ -132,6 +133,72 @@ public final class WtNetwork
     public static void sendSelectTerminal(String terminalName)
     {
         net.neoforged.neoforge.network.PacketDistributor.sendToServer(new SelectTerminal(terminalName));
+    }
+
+    // ---- C2S: 循环切换磁卡模式（照抄 MagnetHotkeyAction：关→背包→ME→只入网→关）----
+    public record CycleMagnetMode() implements CustomPacketPayload
+    {
+        public static final Type<CycleMagnetMode> ID = new Type<>(Godofthings.godofthingsId("wt_cycle_magnet_mode"));
+        public static final CycleMagnetMode INSTANCE = new CycleMagnetMode();
+        public static final StreamCodec<RegistryFriendlyByteBuf, CycleMagnetMode> STREAM_CODEC = StreamCodec.unit(
+                INSTANCE);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return ID;
+        }
+
+        public void handle(Player player)
+        {
+            if (!(player instanceof ServerPlayer serverPlayer))
+            {
+                return;
+            }
+            var terminal = WtCraftingTerminalHandler.get(serverPlayer).getCraftingTerminal();
+            if (terminal.isEmpty())
+            {
+                return;
+            }
+            var mode = WtMagnetHandler.getMagnetMode(terminal);
+            var next = switch (mode)
+            {
+                case OFF ->
+                {
+                    serverPlayer.displayClientMessage(Component.translatable(
+                            "gui.godofthings.magnetcard.hotkey",
+                            Component.translatable("gui.godofthings.magnetcard.desc.inv")
+                                    .withStyle(net.minecraft.ChatFormatting.GREEN)), true);
+                    yield WtMagnetMode.PICKUP_INVENTORY;
+                }
+                case PICKUP_INVENTORY ->
+                {
+                    serverPlayer.displayClientMessage(Component.translatable(
+                            "gui.godofthings.magnetcard.hotkey",
+                            Component.translatable("gui.godofthings.magnetcard.desc.me")
+                                    .withStyle(net.minecraft.ChatFormatting.GREEN)), true);
+                    yield WtMagnetMode.PICKUP_ME;
+                }
+                case PICKUP_ME ->
+                {
+                    serverPlayer.displayClientMessage(Component.translatable(
+                            "gui.godofthings.magnetcard.hotkey",
+                            Component.translatable("gui.godofthings.magnetcard.desc.me_no_magnet")
+                                    .withStyle(net.minecraft.ChatFormatting.GREEN)), true);
+                    yield WtMagnetMode.PICKUP_ME_NO_MAGNET;
+                }
+                case PICKUP_ME_NO_MAGNET ->
+                {
+                    serverPlayer.displayClientMessage(Component.translatable(
+                            "gui.godofthings.magnetcard.hotkey",
+                            Component.translatable("gui.godofthings.magnetcard.desc.off")
+                                    .withStyle(net.minecraft.ChatFormatting.RED)), true);
+                    yield WtMagnetMode.OFF;
+                }
+                default -> mode;
+            };
+            WtMagnetHandler.saveMagnetMode(terminal, next);
+        }
     }
 
     // ---- C2S: 终端设置（照抄 TerminalSettingsPacket）----
@@ -318,6 +385,8 @@ public final class WtNetwork
     {
         var registrar = event.registrar(Godofthings.MODID);
         registrar.playToServer(CycleTerminal.ID, CycleTerminal.STREAM_CODEC,
+                (packet, context) -> context.enqueueWork(() -> packet.handle(context.player())));
+        registrar.playToServer(CycleMagnetMode.ID, CycleMagnetMode.STREAM_CODEC,
                 (packet, context) -> context.enqueueWork(() -> packet.handle(context.player())));
         registrar.playToServer(SelectTerminal.ID, SelectTerminal.STREAM_CODEC,
                 (packet, context) -> context.enqueueWork(() -> packet.handle(context.player())));

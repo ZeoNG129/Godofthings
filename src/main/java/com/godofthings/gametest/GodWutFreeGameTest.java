@@ -26,18 +26,16 @@ public class GodWutFreeGameTest
     @GameTest(template = TEMPLATE)
     public static void terminalRegistryLoaded(GameTestHelper helper)
     {
-        // 三台终端定义已注册：crafting（复用 AE2 物品）+ pattern_encoding / pattern_access
+        // 三台终端定义已注册：crafting / pattern_encoding / pattern_access（全部由通用终端一台物品承载）
         helper.assertTrue(WtTerminalDefinition.wirelessTerminalList().size() == 3,
                 "终端定义注册表应有 3 台终端");
-        helper.assertTrue(WtRegistration.CRAFTING().item() == appeng.core.definitions.AEItems
-                        .WIRELESS_CRAFTING_TERMINAL.get(),
-                "crafting 终端应复用 AE2 原版无线合成终端物品");
-        helper.assertTrue(WtRegistration.PATTERN_ENCODING().item() == Godofthings
-                        .WIRELESS_PATTERN_ENCODING_TERMINAL.get(),
-                "pattern_encoding 终端应为本模组物品");
-        helper.assertTrue(WtRegistration.PATTERN_ACCESS().item() == Godofthings
-                        .WIRELESS_PATTERN_ACCESS_TERMINAL.get(),
-                "pattern_access 终端应为本模组物品");
+        var wut = Godofthings.WIRELESS_UNIVERSAL_TERMINAL_FREE.get();
+        helper.assertTrue(WtRegistration.CRAFTING().item() == wut,
+                "crafting 终端定义的 item 应为通用终端");
+        helper.assertTrue(WtRegistration.PATTERN_ENCODING().item() == wut,
+                "pattern_encoding 终端定义的 item 应为通用终端");
+        helper.assertTrue(WtRegistration.PATTERN_ACCESS().item() == wut,
+                "pattern_access 终端定义的 item 应为通用终端");
         helper.succeed();
     }
 
@@ -79,11 +77,11 @@ public class GodWutFreeGameTest
     @GameTest(template = TEMPLATE)
     public static void upgradeRecipeProducesWutWithTerminal(GameTestHelper helper)
     {
-        // upgrade 配方：本模组样板编码终端 + 通用终端 → 带样板编码终端的通用终端
+        // upgrade 配方：AE2 ME样板编码终端（部件） + 通用终端 → 带样板编码终端的通用终端
         var level = helper.getLevel();
         var recipeManager = level.getRecipeManager();
         var input = net.minecraft.world.item.crafting.CraftingInput.of(1, 2, java.util.List.of(
-                new ItemStack(Godofthings.WIRELESS_PATTERN_ENCODING_TERMINAL.get()),
+                new ItemStack(appeng.core.definitions.AEParts.PATTERN_ENCODING_TERMINAL.get()),
                 new ItemStack(Godofthings.WIRELESS_UNIVERSAL_TERMINAL_FREE.get())));
         var holder = recipeManagerRecipes(recipeManager, WtWutUpgrade.SERIALIZER);
         boolean matched = false;
@@ -106,11 +104,12 @@ public class GodWutFreeGameTest
     @GameTest(template = TEMPLATE)
     public static void combineRecipeProducesWutWithBothTerminals(GameTestHelper helper)
     {
+        // combine 配方：AE2 样板管理终端 + 样板编码终端（部件） → 带两台终端的通用终端
         var level = helper.getLevel();
         var recipeManager = level.getRecipeManager();
         var input = net.minecraft.world.item.crafting.CraftingInput.of(1, 2, java.util.List.of(
-                new ItemStack(Godofthings.WIRELESS_PATTERN_ACCESS_TERMINAL.get()),
-                new ItemStack(Godofthings.WIRELESS_PATTERN_ENCODING_TERMINAL.get())));
+                new ItemStack(appeng.core.definitions.AEParts.PATTERN_ACCESS_TERMINAL.get()),
+                new ItemStack(appeng.core.definitions.AEParts.PATTERN_ENCODING_TERMINAL.get())));
         var holder = recipeManagerRecipes(recipeManager, WtWutCombine.SERIALIZER);
         boolean matched = false;
         for (var recipe : holder)

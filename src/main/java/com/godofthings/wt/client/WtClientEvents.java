@@ -33,6 +33,13 @@ public final class WtClientEvents
             GLFW.GLFW_KEY_UNKNOWN,
             "key.categories.godofthings.ae");
 
+    /** 循环切换磁卡模式（照抄上游 MagnetHotkeyAction：关 → 磁吸进背包 → 入网+磁吸 → 只入网）。 */
+    public static final KeyMapping CYCLE_MAGNET_MODE = new KeyMapping(
+            "key.godofthings.cycle_magnet_mode",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_UNKNOWN,
+            "key.categories.godofthings.ae");
+
     public static void clientTick()
     {
         var minecraft = net.minecraft.client.Minecraft.getInstance();
@@ -42,6 +49,10 @@ public final class WtClientEvents
         while (CYCLE_UNIVERSAL_TERMINAL.consumeClick())
         {
             PacketDistributor.sendToServer(new WtNetwork.CycleTerminal(false));
+        }
+        while (CYCLE_MAGNET_MODE.consumeClick())
+        {
+            PacketDistributor.sendToServer(new WtNetwork.CycleMagnetMode());
         }
     }
 

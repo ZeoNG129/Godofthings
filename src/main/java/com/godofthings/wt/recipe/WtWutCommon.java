@@ -56,24 +56,33 @@ public abstract class WtWutCommon implements CraftingRecipe
     {
         if (!(wut.getItem() instanceof WtUniversalTerminalItem itemWUT))
             return ItemStack.EMPTY;
-        if (!(toMerge.getItem() instanceof WtTerminalItem itemWT))
-            return ItemStack.EMPTY;
-
-        wut.set(terminal.componentType().type(), Unit.INSTANCE);
-
-        // merge upgrades, this also updates max energy
-        Iterator<ItemStack> iterator = itemWT.getUpgrades(toMerge).iterator();
-        IUpgradeInventory wutUpgrades = itemWUT.getUpgrades(wut);
-        while (iterator.hasNext())
+        // [本地改动] 本模组只保留通用终端一台物品，合成食材是 AE2 的部件/无线终端。
+        // 部件终端物品（PartItem）不是 IUpgradeableItem，升级与电量合并只对支持的食材做。
+        if (toMerge.getItem() instanceof appeng.api.upgrades.IUpgradeableItem itemWT)
         {
-            wutUpgrades.addItems(iterator.next());
+            wut.set(terminal.componentType().type(), Unit.INSTANCE);
+
+            // merge upgrades
+            Iterator<ItemStack> iterator = itemWT.getUpgrades(toMerge).iterator();
+            IUpgradeInventory wutUpgrades = itemWUT.getUpgrades(wut);
+            while (iterator.hasNext())
+            {
+                wutUpgrades.addItems(iterator.next());
+            }
+
+            // update max power
+            itemWUT.onUpgradesChanged(wut, itemWUT.getUpgrades(wut));
+
+            // merge power（食材若是 AE2 原版终端，电流按 AEBasePoweredItem 读）
+            if (toMerge.getItem() instanceof appeng.items.tools.powered.powersink.AEBasePoweredItem powered)
+            {
+                itemWUT.injectAEPower(wut, powered.getAECurrentPower(toMerge), Actionable.MODULATE);
+            }
         }
-
-        // update max power
-        itemWUT.onUpgradesChanged(wut, itemWUT.getUpgrades(wut));
-
-        // merge power
-        itemWUT.injectAEPower(wut, itemWT.getAECurrentPower(toMerge), Actionable.MODULATE);
+        else
+        {
+            wut.set(terminal.componentType().type(), Unit.INSTANCE);
+        }
 
         // merge nbt
         var componentsPatch = toMerge.getComponentsPatch();

@@ -48,6 +48,16 @@ eoforge.mods.toml 移除 ae2wtlib 依赖声明，uild.gradle / etch-libs.ps1 �
 - 修复：`RECIPE_SERIALIZERS.register` 改为登记配方类的静态单例（与上游 `Registry.register(..., Upgrade.serializer)` 语义一致）。
 - 新增 1 条防回归探针 `GodWutFreeGameTest.serializersAreRegisteredSingletons`（回归测试共 52 条）。
 
+## 7.15.2 → 7.15.3
+
+**通用终端收敛为单物品 + 修打开终端崩溃 + 补磁卡快捷键（用户实测四项反馈）**：
+
+- **修崩溃**（打开终端后存盘 / 同步报 `Unregistered component`）：WtComponents 静态构造的组件键此前从未注册进数据组件注册表，WtSetup 的 RegisterEvent 现在补上（跳过与 Godofthings.DATA_COMPONENTS 重复的 wt_current_terminal）。
+- **只保留通用终端一台物品**：删除「无耗能无线样板编码终端 / 无耗能无线样板管理终端」两件独立物品（模型 / 贴图 / 语言键 / 手册条目一并清理），三台终端（合成 / 样板编码 / 样板管理）全部由通用终端承载；物品改名「通用终端」。
+- **修合成不匹配**：配方食材改用 AE2 原版物品（无线合成终端 / ME样板编码终端 / ME样板管理终端部件），mergeTerminal 对非升级类食材跳过升级与电量合并（部件终端不是 IUpgradeableItem）。
+- **键位**：分类「众神之物：AE」补中文翻译；新增「切换磁卡模式」快捷键（照抄上游 MagnetHotkeyAction 四态循环：关 → 磁吸进背包 → 入网并磁吸 → 只入网），两键默认均不绑定。
+- GameTest 更新食材后仍 52 条全绿。
+
 - 1.0.0 → 1.3.0：神之剑新增可切换功能（斩首 / 捕捉 / 抢劫，J 键打开面板，可单独或同时生效）。
 - 1.3.0 → 1.4.0：神之剑新增吸星 / 吸魂功能；修复神之工具连锁挖掘 Tab 键状态残留导致默认连锁且关不掉的问题。
 - 1.4.0 → 1.5.0：新增请神物品（右键生物赋予无限血量、保留受击反馈）。

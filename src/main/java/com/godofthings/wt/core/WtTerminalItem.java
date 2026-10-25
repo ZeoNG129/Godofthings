@@ -53,6 +53,8 @@ public abstract class WtTerminalItem extends WtPoweredItem
 
     protected boolean checkPreconditions(ItemStack item)
     {
+        // 只保留通用终端一台物品：任何 WtTerminalItem 的 use 都放行通用终端（独立终端物品
+        // 已删，merging 判断也在配方包里对 AE2 食材放宽）
         return !item.isEmpty()
                 && (item.getItem() == this || item.getItem() instanceof WtUniversalTerminalItem);
     }

@@ -35,6 +35,21 @@ public final class WtSetup
                 Registry.register(BuiltInRegistries.MENU, WtMagnetMenu.ID, WtMagnetMenu.TYPE);
                 Registry.register(BuiltInRegistries.MENU, WtTrashMenu.ID, WtTrashMenu.TYPE);
             }
+            // WtComponents 静态构造的组件键在此入表（v7.15.3 修：漏注册导致终端物品
+            // 带上未注册组件后存盘 / 同步直接崩 "Unregistered component"）。
+            // 注意：wt_current_terminal / wt_magnet_settings 已由 Godofthings.DATA_COMPONENTS
+            // 注册，跳过 BUILT 里的同 id 键防止重复注册崩溃。
+            if (e.getRegistryKey().equals(net.minecraft.core.registries.Registries.DATA_COMPONENT_TYPE))
+            {
+                com.godofthings.wt.core.WtComponents.BUILT.forEach((id, type) ->
+                {
+                    if (BuiltInRegistries.DATA_COMPONENT_TYPE.containsKey(id))
+                    {
+                        return;
+                    }
+                    Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, id, type);
+                });
+            }
         });
 
         // 磁力 / 补货 / ME 直接入网（NeoForge 总线）

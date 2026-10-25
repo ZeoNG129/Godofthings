@@ -167,8 +167,9 @@ public class ClientModEvents
         event.register(com.godofthings.wondrous.client.StretcherKeyBindings.WONDROUS_STAFF_MODE);
         event.register(com.godofthings.wondrous.client.StretcherKeyBindings.WONDROUS_STAFF_TIME_STOP);
         event.register(com.godofthings.wondrous.client.StretcherKeyBindings.TWO_I_REMOTE_RECLAIM);
-        // 无耗能通用终端（v7.15.1）：循环切换键，新分类「众神之物：AE」
+        // 无耗能通用终端（v7.15.3）：循环切换键 + 磁卡模式切换键，分类「众神之物：AE」
         event.register(com.godofthings.wt.client.WtClientEvents.CYCLE_UNIVERSAL_TERMINAL);
+        event.register(com.godofthings.wt.client.WtClientEvents.CYCLE_MAGNET_MODE);
     }
 
     /** 荒辰移晷之杖：杖加速标记 / 时间流逝时钟 / 树叶奖励三个实体的渲染器（照抄上游 ClientSetup）。 */

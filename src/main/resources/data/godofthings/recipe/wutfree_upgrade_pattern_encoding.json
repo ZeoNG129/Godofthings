@@ -1,7 +1,7 @@
 {
   "type": "godofthings:wutfree_upgrade",
   "terminal": {
-    "item": "godofthings:wireless_pattern_encoding_terminal"
+    "item": "ae2:pattern_encoding_terminal"
   },
   "terminalName": "pattern_encoding"
 }
