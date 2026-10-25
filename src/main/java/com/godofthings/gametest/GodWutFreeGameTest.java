@@ -1,6 +1,7 @@
 package com.godofthings.gametest;
 
 import com.godofthings.Godofthings;
+import com.godofthings.wt.core.WtExtraTerminals;
 import com.godofthings.wt.core.WtMagnetMode;
 import com.godofthings.wt.core.WtTerminalDefinition;
 import com.godofthings.wt.core.WtUniversalTerminalItem;
@@ -123,10 +124,57 @@ public class GodWutFreeGameTest
                         "产物应带 pattern_encoding 终端组件");
                 helper.assertTrue(result.get(WtRegistration.PATTERN_ACCESS().componentType().type()) != null,
                         "产物应带 pattern_access 终端组件");
+                // [本地改动] v7.15.6 防回归：标准食材分支产物不许混入未参与的终端组件
+                // （7.15.5 事故：extras 分支误用被构造函数污染的 outputStack）
+                helper.assertTrue(result.get(WtRegistration.CRAFTING().componentType().type()) == null,
+                        "产物不许带 crafting 终端组件（outputStack 污染防回归）");
+                helper.assertTrue(WtExtraTerminals.list(result).isEmpty(),
+                        "产物不许带附属终端（outputStack 污染防回归）");
                 matched = true;
             }
         }
         helper.assertTrue(matched, "combine 配方应能匹配");
+        helper.succeed();
+    }
+
+    /**
+     * [本地改动] v7.15.6 回归测试：WUT + AE2 无线合成终端的合成必须走标准分支（装
+     * crafting 内建组件），不许被当附属合并——7.15.5 事故：isMergeable 放行了标准
+     * 食材 + extras 分支复用被污染的 outputStack，用户合成后带出三台终端且无法切换。
+     */
+    @GameTest(template = TEMPLATE)
+    public static void combineWithCraftingTerminalInstallsBuiltIn(GameTestHelper helper)
+    {
+        var level = helper.getLevel();
+        var recipeManager = level.getRecipeManager();
+        var input = net.minecraft.world.item.crafting.CraftingInput.of(1, 2, java.util.List.of(
+                new ItemStack(appeng.core.definitions.AEItems.WIRELESS_CRAFTING_TERMINAL.get()),
+                new ItemStack(Godofthings.WIRELESS_UNIVERSAL_TERMINAL_FREE.get())));
+        helper.assertTrue(!WtExtraTerminals.isMergeable(
+                        new ItemStack(appeng.core.definitions.AEItems.WIRELESS_CRAFTING_TERMINAL.get())),
+                "AE2 无线合成终端是标准食材，不许判定为可附属合并");
+        helper.assertTrue(!WtExtraTerminals.isMergeable(
+                        new ItemStack(appeng.core.definitions.AEParts.PATTERN_ENCODING_TERMINAL.get())),
+                "样板编码终端部件不许判定为可附属合并");
+        var holder = recipeManagerRecipes(recipeManager, WtWutUpgrade.SERIALIZER);
+        boolean matched = false;
+        for (var recipe : holder)
+        {
+            if (recipe.value() instanceof WtWutUpgrade upgrade && upgrade.matches(input, level))
+            {
+                var result = upgrade.assemble(input, level.registryAccess());
+                helper.assertTrue(result.getItem() instanceof WtUniversalTerminalItem,
+                        "合成产物应是本模组通用终端");
+                helper.assertTrue(result.get(WtRegistration.CRAFTING().componentType().type()) != null,
+                        "产物应带 crafting 内建组件");
+                helper.assertTrue(result.get(WtRegistration.PATTERN_ENCODING().componentType().type()) == null,
+                        "产物不许带未参与的 pattern_encoding 组件");
+                helper.assertTrue(WtExtraTerminals.list(result).isEmpty(),
+                        "产物不许把食材当附属终端带上");
+                matched = true;
+            }
+        }
+        helper.assertTrue(matched, "upgrade 配方应能匹配");
         helper.succeed();
     }
 

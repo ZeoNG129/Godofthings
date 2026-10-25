@@ -42,8 +42,14 @@ public abstract class WtMenuHost extends WirelessTerminalMenuHost<WtTerminalItem
             BiConsumer<Player, ISubMenu> returnToMainMenu)
     {
         super(item, player, locator, returnToMainMenu);
-        this.storage = new SupplierStorage(new StackDependentSupplier<>(
-                this::getItemStack, this::getStorageFromStack));
+        // [本地改动] v7.15.6：照抄 AE2 原生 WirelessTerminalMenuHost 的 storage 链路——直接
+        // getLinkedGrid(stack)（绑定目标就是无线访问点，本身已含范围判定）。上一版抄 wtlib
+        // 走 updateConnectedAccessPoint() + getActionableNode()（取最近访问点），有两个致命差异：
+        // ① 菜单构造瞬间 updateConnectedAccessPoint 还没跑过，getActionableNode 恒 null →
+        //    求值结果是 NullInventory；② StackDependentSupplier 按「栈实例引用」缓存，
+        //    无耗能终端组件变化不复制品栈，实例不变 → 永不重估 → 终端永久空白。
+        // AE2 原生 getLinkedGrid 不依赖宿主字段时序，且每次 get 都会重估，两条全解。
+        this.storage = new SupplierStorage(this::getStorageFromStack);
         viewCellInventory = new SupplierInternalInventory<>(
                 new StackDependentSupplier<>(this::getItemStack,
                         stack -> createInv(player, stack, WtComponents.VIEW_CELL_INVENTORY, 5)));
@@ -52,6 +58,19 @@ public abstract class WtMenuHost extends WirelessTerminalMenuHost<WtTerminalItem
 
         // [本地改动] 上游在这里按当前终端改 closeHotkey；本模组沿用 AE2 默认。
         closeHotkey = super.getCloseHotkey();
+    }
+
+    private MEStorage getStorageFromStack()
+    {
+        // [本地改动] v7.15.6：照抄 AE2 原生 getStorageFromStack——直接按绑定目标取网络
+        // （getLinkedGrid 本身已按绑定访问点解析，不依赖宿主访问点缓存的时序）。
+        var stack = getItemStack();
+        IGrid targetGrid = getItem().getLinkedGrid(stack, getPlayer().level(), null);
+        if (targetGrid != null)
+        {
+            return targetGrid.getStorageService().getInventory();
+        }
+        return appeng.me.storage.NullInventory.of();
     }
 
     public String getCloseHotkey()
@@ -63,22 +82,6 @@ public abstract class WtMenuHost extends WirelessTerminalMenuHost<WtTerminalItem
     public MEStorage getInventory()
     {
         return this.storage;
-    }
-
-    private MEStorage getStorageFromStack(ItemStack stack)
-    {
-        updateConnectedAccessPoint();
-        IGridNode node = getActionableNode();
-        if (node == null)
-        {
-            return appeng.me.storage.NullInventory.of();
-        }
-        IGrid targetGrid = node.getGrid();
-        if (targetGrid != null)
-        {
-            return targetGrid.getStorageService().getInventory();
-        }
-        return appeng.me.storage.NullInventory.of();
     }
 
     @Override

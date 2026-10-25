@@ -103,7 +103,11 @@ public class WtWutCombine extends WtWutCommon
         {
             if (WtExtraTerminals.isMergeable(stack))
             {
-                return mergeExtraTerminal(outputStack.copy(), stack.copy());
+                // [本地改动] v7.15.6：以玩家投入的通用终端为基底——原版抄上游的
+                // outputStack.copy() 在配方构造时被 set 过内建终端组件，附属合并
+                // 会把这些组件连同食材一起带上（7.15.5「合成出三台终端」事故）。
+                return mergeExtraTerminal(
+                        WtWutInputHelper.getInputStack(inv, WtWutInputHelper.WUT).copy(), stack.copy());
             }
         }
         return ItemStack.EMPTY;

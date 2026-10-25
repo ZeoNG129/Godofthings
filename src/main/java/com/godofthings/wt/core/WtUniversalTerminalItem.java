@@ -94,7 +94,11 @@ public class WtUniversalTerminalItem extends WtTerminalItem
         // [本地改动] 无耗能：上游在这里调整能量倍率，本模组不需要（电量恒满）。
     }
 
-    /** 通用终端已装终端数 ×2 = 升级槽容量（照抄 ItemWUT.countInstalledTerminals）。 */
+    /**
+     * 通用终端已装终端数 ×2 = 升级槽容量（照抄 ItemWUT.countInstalledTerminals，
+     * [本地改动] v7.15.6：附属终端也计入——合并进来的终端同样需要磁卡/能量卡槽位，
+     * 否则合并后升级槽容量不够，磁卡「消失」）。
+     */
     public int countInstalledTerminals(ItemStack stack)
     {
         int terminals = 0;
@@ -105,8 +109,9 @@ public class WtUniversalTerminalItem extends WtTerminalItem
                 terminals++;
             }
         }
-        return terminals;
+        return terminals + WtExtraTerminals.count(stack);
     }
+
 
     @Override
     public IConfigManager getConfigManager(Supplier<ItemStack> target)

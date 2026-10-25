@@ -53,6 +53,19 @@ public interface WtUniversalTerminalCapable
                 return true;
             }
         }
+        // [本地改动] v7.15.6：屏幕打开时本模组热键的 KeyMapping.click 不会被
+        // KeyboardHandler 累计（点击计数只在无屏幕接管时发生），必须在这里手动
+        // 匹配并发包——否则快捷键循环切换 / 切磁卡模式在终端界面里没有反应。
+        if (WtClientEvents.CYCLE_UNIVERSAL_TERMINAL.matches(keyCode, scanCode))
+        {
+            PacketDistributor.sendToServer(new WtNetwork.CycleTerminal(isHandlingRightClick()));
+            return true;
+        }
+        if (WtClientEvents.CYCLE_MAGNET_MODE.matches(keyCode, scanCode))
+        {
+            PacketDistributor.sendToServer(new WtNetwork.CycleMagnetMode());
+            return true;
+        }
         return false;
     }
 

@@ -305,6 +305,22 @@ public record WtTerminalDefinition(String terminalName, ContainerOpener containe
             var copy = extra.copyWithCount(1);
             copy.set(appeng.api.ids.AEComponents.STORED_ENERGY, copy
                     .getOrDefault(appeng.api.ids.AEComponents.ENERGY_CAPACITY, 0.0) + 1.0);
+            // [本地改动] v7.15.6：副本升级槽预置通用终端升级槽里的卡（上限内）——用户在
+            // 通用终端上装的磁卡/连接器卡随之在附属终端菜单里显示生效；磁卡设置也带上
+            // （磁卡系统读的是 WUT 上的 WT_MAGNET_SETTINGS，打开菜单本身不改它）。
+            var wutUpgrades = ((WtUniversalTerminalItem) stack.getItem()).getUpgrades(stack);
+            var copyUpgrades = ((appeng.api.upgrades.IUpgradeableItem) terminal).getUpgrades(copy);
+            for (int i = 0; i < wutUpgrades.size(); i++)
+            {
+                var card = wutUpgrades.getStackInSlot(i);
+                if (!card.isEmpty())
+                {
+                    copyUpgrades.addItems(card.copyWithCount(1));
+                }
+            }
+            var magnetMode = stack.getOrDefault(com.godofthings.Godofthings.WT_MAGNET_SETTINGS,
+                    WtMagnetMode.OFF);
+            copy.set(com.godofthings.Godofthings.WT_MAGNET_SETTINGS, magnetMode);
             return appeng.menu.MenuOpener.open(terminal.getMenuType(), player,
                     appeng.menu.locator.MenuLocators.forStack(copy), returningFromSubmenu);
         }

@@ -7,6 +7,7 @@ import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;
 
 /**
@@ -47,5 +48,12 @@ public class GodJeiPlugin implements IModPlugin
         registration.addRecipeCatalyst(Godofthings.GOD_FURNACE_ITEM.get(), RecipeTypes.SMELTING);
         registration.addRecipeCatalyst(Godofthings.GOD_FURNACE_ITEM.get(), RecipeTypes.BLASTING);
         registration.addRecipeCatalyst(Godofthings.GOD_FURNACE_ITEM.get(), RecipeTypes.SMOKING);
+        // [本地改动] v7.15.6：无耗能通用终端作为合成催化剂（照抄 ae2wtlib 的 JEIPlugin：
+        // 注册一台带合成终端组件的 WUT，JEI 里点它可看合成配方——配方传输处理器由
+        // AE2 自己的 JEI 集成按菜单类继承关系覆盖本模组的终端菜单，无需重复注册）
+        var wut = new ItemStack(Godofthings.WIRELESS_UNIVERSAL_TERMINAL_FREE.get());
+        wut.set(com.godofthings.wt.WtRegistration.CRAFTING().componentType().type(),
+                com.mojang.datafixers.util.Unit.INSTANCE);
+        registration.addRecipeCatalyst(wut, RecipeTypes.CRAFTING);
     }
 }

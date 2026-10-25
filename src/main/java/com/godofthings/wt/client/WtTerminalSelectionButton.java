@@ -4,18 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraft.client.renderer.Rect2i;
 
 import appeng.client.gui.style.BackgroundGenerator;
 
+import com.godofthings.wt.core.WtExtraTerminals;
 import com.godofthings.wt.core.WtMenuHost;
 import com.godofthings.wt.core.WtTerminalDefinition;
 import com.godofthings.wt.network.WtNetwork;
 
 /**
  * 终端切换选择按钮（照抄 ae2wtlib 的 {@code TerminalSelectionButton} 全文，[本地改动]
- * 选中动作发本模组的 {@code WtNetwork.SelectTerminal} 包；图标走本模组 {@link WtIcon}）。
+ * 选中动作发本模组的 {@code WtNetwork.SelectTerminal} 包；图标走本模组 {@link WtIcon}；
+ * v7.15.6：附属终端也进选择面板，点击发 {@code WtNetwork.SelectExtra}）。
  */
 final class WtTerminalSelectionButton extends WtIconButton
 {
@@ -32,6 +37,8 @@ final class WtTerminalSelectionButton extends WtIconButton
 
     private final WtMenuHost host;
     private final List<WtTerminalDefinition> terminals;
+    /** [本地改动] v7.15.6：已合并的附属终端（面板里排在内建终端之后）。 */
+    private final List<ItemStack> extras;
     private final Runnable storeState;
     private boolean menuOpen;
     private List<Component> tooltip = List.of();
@@ -45,6 +52,7 @@ final class WtTerminalSelectionButton extends WtIconButton
         this.host = host;
         this.storeState = storeState;
         this.terminals = installedTerminals(host);
+        this.extras = WtExtraTerminals.list(host.getItemStack());
     }
 
     private static WtIcon ae2ToolbarBackground()
@@ -104,7 +112,7 @@ final class WtTerminalSelectionButton extends WtIconButton
     @Override
     public void onPress()
     {
-        if (!alwaysVisible() && !terminals.isEmpty())
+        if (!alwaysVisible() && entryCount() > 0)
             menuOpen = !menuOpen;
     }
 
@@ -114,13 +122,22 @@ final class WtTerminalSelectionButton extends WtIconButton
         boolean alwaysVisible = alwaysVisible();
         if ((menuOpen || alwaysVisible) && button == 0)
         {
-            WtTerminalDefinition terminal = terminalAt(mouseX, mouseY);
-            if (terminal != null)
+            int entry = entryAt(mouseX, mouseY);
+            if (entry >= 0)
             {
                 if (!alwaysVisible)
                     menuOpen = false;
                 storeState.run();
-                WtNetwork.sendSelectTerminal(terminal.terminalName());
+                if (entry < terminals.size())
+                {
+                    WtNetwork.sendSelectTerminal(terminals.get(entry).terminalName());
+                }
+                else
+                {
+                    // [本地改动] v7.15.6：附属终端按 EXTRA_TERMINALS 下标选择
+                    PacketDistributor.sendToServer(
+                            new WtNetwork.SelectExtra(entry - terminals.size()));
+                }
                 return true;
             }
         }
@@ -182,7 +199,13 @@ final class WtTerminalSelectionButton extends WtIconButton
 
     private boolean alwaysVisible()
     {
-        return com.godofthings.wt.WtConfig.alwaysShowTerminalSelector() && !terminals.isEmpty();
+        return com.godofthings.wt.WtConfig.alwaysShowTerminalSelector() && entryCount() > 0;
+    }
+
+    /** 面板总条目数 = 内建终端 + 附属终端。 */
+    private int entryCount()
+    {
+        return terminals.size() + extras.size();
     }
 
     private List<Component> currentTooltip()
@@ -201,6 +224,7 @@ final class WtTerminalSelectionButton extends WtIconButton
         int width = panelWidth();
         int height = panelHeight();
         WtTerminalDefinition currentTerminal = WtTerminalDefinition.ofOrNull(host.getItemStack());
+        int extraCurrent = WtExtraTerminals.current(host.getItemStack());
 
         BackgroundGenerator.draw(width, height, guiGraphics, panelX, panelY);
 
@@ -210,32 +234,64 @@ final class WtTerminalSelectionButton extends WtIconButton
             int x = buttonX(i);
             int y = buttonY(i);
             boolean selected = terminal.equals(currentTerminal);
-            boolean hovered = mouseX >= x && mouseY >= y && mouseX < x + BUTTON_WIDTH
-                    && mouseY < y + BUTTON_HEIGHT;
-            int yOffset = hovered ? 1 : 0;
-            WtIcon background = hovered ? ae2ToolbarBackgroundHovered()
-                    : selected ? ae2ToolbarBackgroundFocused() : ae2ToolbarBackground();
-
-            background.getBlitter().dest(x, y + yOffset, background.width(), background.height()).zOffset(2)
-                    .blit(guiGraphics);
-            iconOf(terminal).getBlitter().dest(x + ICON_OFFSET, y + ICON_OFFSET + yOffset).zOffset(3)
-                    .blit(guiGraphics);
-
-            if (hovered)
-                tooltip = List.of(terminal.formattedName());
+            renderEntry(guiGraphics, mouseX, mouseY, x, y, selected,
+                    List.of(terminal.formattedName()), iconOf(terminal), null);
+        }
+        // [本地改动] v7.15.6：附属终端条目——直接渲染终端物品本身（附属模组各有贴图），
+        // tooltip 用它的显示名
+        for (int j = 0; j < extras.size(); j++)
+        {
+            ItemStack extra = extras.get(j);
+            int i = terminals.size() + j;
+            int x = buttonX(i);
+            int y = buttonY(i);
+            boolean selected = extraCurrent == j
+                    && currentTerminal == null;
+            Component name = WtExtraTerminals.displayName(extra);
+            renderEntry(guiGraphics, mouseX, mouseY, x, y, selected,
+                    List.of(name instanceof MutableComponent m ? m : name.copy()),
+                    null, extra);
         }
     }
 
-    private WtTerminalDefinition terminalAt(double mouseX, double mouseY)
+    /** 渲染单个面板条目（icon 与 itemStack 二选一）。 */
+    private void renderEntry(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, int y,
+            boolean selected, List<Component> entryTooltip, WtIcon icon, ItemStack itemStack)
     {
-        for (int i = 0; i < terminals.size(); i++)
+        boolean hovered = mouseX >= x && mouseY >= y && mouseX < x + BUTTON_WIDTH
+                && mouseY < y + BUTTON_HEIGHT;
+        int yOffset = hovered ? 1 : 0;
+        WtIcon background = hovered ? ae2ToolbarBackgroundHovered()
+                : selected ? ae2ToolbarBackgroundFocused() : ae2ToolbarBackground();
+
+        background.getBlitter().dest(x, y + yOffset, background.width(), background.height()).zOffset(2)
+                .blit(guiGraphics);
+        if (icon != null)
+        {
+            icon.getBlitter().dest(x + ICON_OFFSET, y + ICON_OFFSET + yOffset).zOffset(3)
+                    .blit(guiGraphics);
+        }
+        else if (itemStack != null)
+        {
+            guiGraphics.renderItem(itemStack, x + ICON_OFFSET, y + ICON_OFFSET + yOffset, 0);
+        }
+
+        if (hovered)
+            tooltip = entryTooltip;
+    }
+
+    /** 命中的面板条目（0..内建数+附属数-1），无命中返回 -1。 */
+    private int entryAt(double mouseX, double mouseY)
+    {
+        int count = entryCount();
+        for (int i = 0; i < count; i++)
         {
             int x = buttonX(i);
             int y = buttonY(i);
             if (mouseX >= x && mouseY >= y && mouseX < x + BUTTON_WIDTH && mouseY < y + BUTTON_HEIGHT)
-                return terminals.get(i);
+                return i;
         }
-        return null;
+        return -1;
     }
 
     private int panelX()
@@ -277,17 +333,17 @@ final class WtTerminalSelectionButton extends WtIconButton
 
     private int columns()
     {
-        return Math.max(1, (terminals.size() + rows() - 1) / rows());
+        return Math.max(1, (entryCount() + rows() - 1) / rows());
     }
 
     private int rows()
     {
-        return Math.max(1, Math.min(MAX_ROWS, terminals.size()));
+        return Math.max(1, Math.min(MAX_ROWS, entryCount()));
     }
 
     private int lastColumnYOffset(int index)
     {
-        int entries = terminals.size() % rows();
+        int entries = entryCount() % rows();
         if (entries == 0 || index / rows() != columns() - 1)
             return 0;
         return (rows() - entries) * (BUTTON_HEIGHT + GAP) / 2;

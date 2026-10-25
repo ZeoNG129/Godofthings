@@ -7545,3 +7545,13 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
 - 第三方许可声明补全：`THIRD_PARTY_NOTICES.md` 重写为权威清单，覆盖 16 个移植上游（原有 5 个保留并修订；新增 Nature's / Explorer's Compass、Advanced Memory Card、ae2wtlib、useless_stretcher、Zifeng Skill Tree、Omni Upgrades、Measurements、ExtendedAE+、Mekanism Card、ConstructionSticks、ME-Placement-Tool），`mod_license` 表述统一为 MIT（旧文"All Rights Reserved"系过时表述），`LICENSES/` 与 jar 内 `META-INF/LICENSE-*` 补齐（含一直缺失的 ToolBelt jar 内声明）；`aalink` 包查明为作者自有项目 AALink 并入，单列为自有代码；标注三处硬约束（GPL-3.0 传染 / ARR 未授权 / 许可待验证）；各 vendored 包新增 `package-info.java` 标注来源与许可。另：修复 v7.15.0 期间 `libs-1.21.1` release 缺失 ae2wtlib 两个 jar 导致 CI 红的问题（已补传作存档；v7.15.1 起清单已不再需要它们）。
 - 文档同步：README 版本徽章更新为当前版本并纳入 `check-lang.ps1` 校验；README「目录结构」改为粗粒度描述；AGENTS.md 同步（部署方式、JDK 说明、main 分支归档、libs 依赖数、测试结构路径）；`VERSIONING.md` 拆分——规范留在本文件位置，逐版本历史移入 `CHANGELOG.md`。
 - 去重根目录 `logo.png`（与 `src/main/resources/logo.png` 字节级重复；原件由 git 历史与 jar 内资源双重保护）。
+
+## 7.15.5 → 7.15.6（修用户实测 7 项 Bug）
+
+- **修「通过无线访问点链接后显示已链接但终端空白」（bug 1，连带 bug 6/7 的样板编码终端按钮 / JEI 失效）：WtMenuHost 的存储供应商此前抄 wtlib 走 `updateConnectedAccessPoint()` + `getActionableNode()`，菜单构造瞬间访问点缓存尚未建立，首次求值得 NullInventory；而 AE2 的 `StackDependentSupplier` 按「栈实例引用」缓存、无耗能终端组件变化不复制品栈，结果永不重估。已照 AE2 原生 `getStorageFromStack`（javap 对照确认）改为直接 `getLinkedGrid(stack)`——绑定目标即访问点、本身含范围判定，且每次取用都重估。
+- **修「通用终端 + 无线合成终端合成结果带出三台终端且无法切回合成终端」（bug 4）：`WtExtraTerminals.isMergeable` 排除三台内建终端的标准食材（它们必须经标准 upgrade / combine 配方装进内建组件）；附属合并分支改以玩家投入的通用终端为基底——原实现复用的 `outputStack` 在配方构造时被预置了内建组件。新增回归测试 `combineWithCraftingTerminalInstallsBuiltIn`。
+- **修「本模组无线连接器卡放不进通用终端」（bug 2，连带本模组链路的 bug 1）：连接器卡此前只注册给 AE2 原版终端与（可选装时的）ae2wtlib 终端，已补注册给通用终端；升级槽容量按「已装终端（含附属）×2」计算。
+- **修「终端内切换按钮无法切到附属终端」（bug 3）：终端选择面板列出已合并的附属终端（直接渲染物品本体），点击发新增的 `SelectExtra` C2S 包按列表下标选中。
+- **修「合并附属终端后磁卡消失」与「快捷键切换无反应」（bug 5）：打开附属终端的临时副本预置通用终端升级槽里的卡（磁卡随之显示并生效）并带上磁卡模式设置；终端界面内响应本模组两个快捷键（屏幕打开时 `KeyMapping.click` 不累计，需在 `keyPressed` 手动匹配）；手持循环切换至附属终端时显示其名字。
+- **JEI**：无耗能通用终端（带合成终端组件）注册为合成配方催化剂（照抄上游 wtlib JEIPlugin）。
+- GameTest 54 条全绿。

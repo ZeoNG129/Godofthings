@@ -1188,7 +1188,11 @@ public class Godofthings
             // 磁卡装本地通用终端（每台终端定义 2 个升级槽，磁卡每台 1 张）
             appeng.api.upgrades.Upgrades.add(MAGNET_CARD.get(), WIRELESS_UNIVERSAL_TERMINAL_FREE.get(), 1);
             // 磁卡也装 AE2 无线合成终端（上游 Upgrades.add(MAGNET_CARD, WIRELESS_CRAFTING_TERMINAL, 1) 语义）
-            appeng.api.upgrades.Upgrades.add(MAGNET_CARD.get(), AEItems.WIRELESS_CRAFTING_TERMINAL.get(), 1);
+            // [本地改动] v7.15.6：无线连接器卡也装通用终端——此前只注册给了 AE2 原版终端
+            // 和（可选装时的）ae2wtlib 终端，通用终端的升级槽里放不进这张卡（用户实测）。
+            appeng.api.upgrades.Upgrades.add(
+                    com.godofthings.aalink.AaLinkRegistry.WIRELESS_LINK_TOOL.get(),
+                    WIRELESS_UNIVERSAL_TERMINAL_FREE.get(), 1);
         });
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
         // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上

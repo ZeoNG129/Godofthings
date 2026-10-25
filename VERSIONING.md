@@ -71,8 +71,19 @@ eoforge.mods.toml 移除 ae2wtlib 依赖声明，uild.gradle / etch-libs.ps1 �
 **修渲染终端崩溃 + 支持合并任意 AE2 附属无线终端（用户实测两项反馈）**：
 
 - **修崩溃**（打开终端界面 Rendering screen NPE）：WtConfig 的 `build()` 误写在 `define()` 之前，配置项不在 spec 里；已调整为先 define 后 build，并补注释说明顺序约束。
-- **附属终端合并**（对齐原版 wtlib 的开放生态）：新增 `wt_extra_terminals` 组件——任何 AE2 `WirelessTerminalItem` 子类的终端（含附属模组的）都能与通用终端合成，作为「额外终端」存入列表并参与循环切换；打开时走该终端物品自己的 AE2 原生菜单（临时副本预充满电，不回写存档）；upgrade / combine 配 `matches` 增加通用合并分支；tooltip 列出已合并附属终端。
 - GameTest 53 条全绿。
+
+## 7.15.5 → 7.15.6
+
+**修用户实测 7 项 Bug（终端链接 / 合成 / 切换 / 磁卡 / JEI）**：
+
+- **修「显示已链接但终端空白」**（javap 对照 AE2 原生确认）：WtMenuHost 的存储供应商上一版抄 wtlib 走 `updateConnectedAccessPoint()` + `getActionableNode()`——菜单构造瞬间访问点缓存还没建立，求值结果是 NullInventory，而 `StackDependentSupplier` 按「栈实例引用」缓存、无耗能终端组件变化不复制品栈 → 永不重估。已照 AE2 原生 `getStorageFromStack` 改为直接 `getLinkedGrid(stack)`（绑定目标即访问点，本身含范围判定，每次 get 重估）。样板编码终端按钮 / JEI 失效（bug 6/7）即此缺陷下游。
+- **修「与其他终端合成出三台终端且切不回合成终端」**（bug 4）：`isMergeable` 排除三台内建终端的标准食材（AE2 无线合成终端 / 样板编码、样板管理终端部件）——它们必须走标准配方装内建组件；附属合并分支改以玩家投入的通用终端为基底（原来复用的 `outputStack` 在配方构造时被预置了内建组件，产物因此混入未参与的终端）。新增回归测试 `combineWithCraftingTerminalInstallsBuiltIn`。
+- **修「无线连接器卡放不进通用终端」**（bug 2，连带 bug 1 的本模组链路）：连接器卡此前只注册给了 AE2 原版终端，已补注册给通用终端；升级槽容量按「已装终端（含附属）×2」计算。
+- **修「切换按钮无法切换到附属终端」**（bug 3）：终端选择面板列出已合并的附属终端（直接渲染终端物品本体），点击发新增的 `SelectExtra` 包按列表下标选中。
+- **修「合并附属终端后磁卡消失 / 快捷键无反应」**（bug 5）：打开附属终端的副本预置通用终端升级槽里的卡（磁卡显示且生效）并带上磁卡模式设置；终端界面内新增响应本模组两个快捷键（屏幕打开时 `KeyMapping.click` 不累计，需在 `keyPressed` 里手动匹配）；手持循环切换切到附属终端时显示其名字。
+- **JEI**：通用终端（带合成终端组件）注册为合成配方催化剂（照抄上游 wtlib JEIPlugin）。
+- GameTest 54 条全绿。
 
 - 1.0.0 → 1.3.0：神之剑新增可切换功能（斩首 / 捕捉 / 抢劫，J 键打开面板，可单独或同时生效）。
 - 1.3.0 → 1.4.0：神之剑新增吸星 / 吸魂功能；修复神之工具连锁挖掘 Tab 键状态残留导致默认连锁且关不掉的问题。

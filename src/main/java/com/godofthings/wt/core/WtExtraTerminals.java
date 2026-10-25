@@ -23,9 +23,20 @@ public final class WtExtraTerminals
     /** 该物品是否可作为附属终端合并（任何 AE2 无线终端，排除本模组的通用终端自身）。 */
     public static boolean isMergeable(ItemStack stack)
     {
-        return !stack.isEmpty()
-                && stack.getItem() instanceof WirelessTerminalItem
-                && !(stack.getItem() instanceof WtUniversalTerminalItem);
+        if (stack.isEmpty() || !(stack.getItem() instanceof WirelessTerminalItem)
+                || stack.getItem() instanceof WtUniversalTerminalItem)
+        {
+            return false;
+        }
+        // [本地改动] v7.15.6：三台内建终端的标准合成食材（AE2 无线合成终端 / 样板编码、
+        // 样板管理终端）不许走附属合并——它们必须经标准 upgrade/combine 配方装进内建
+        // 组件；否则 combine 配方会抢先按「附属合并」处理，产物带上配方构造时预置的
+        // 其他终端组件、食材沦为附属（7.15.5 的「合成出三台终端且切不回合成终端」事故）。
+        // 样板两类是部件物品本来就不是无线终端，这里显式排除防回归。
+        var item = stack.getItem();
+        return item != com.godofthings.wt.WtRegistration.craftingIngredient()
+                && item != com.godofthings.wt.WtRegistration.patternEncodingIngredient()
+                && item != com.godofthings.wt.WtRegistration.patternAccessIngredient();
     }
 
     /** 合并一台附属终端（同物品只留一台，耐久/电量取新来的）。返回 null 表示拒绝。 */

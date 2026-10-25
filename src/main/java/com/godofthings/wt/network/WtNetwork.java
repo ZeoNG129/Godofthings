@@ -21,6 +21,7 @@ import com.godofthings.wt.WtEvents;
 import com.godofthings.wt.core.WtComponents;
 import com.godofthings.wt.core.WtCraftingTerminalHandler;
 import com.godofthings.wt.core.WtMagnetHandler;
+import com.godofthings.wt.core.WtExtraTerminals;
 import com.godofthings.wt.core.WtMagnetMode;
 import com.godofthings.wt.core.WtTerminalDefinition;
 import com.godofthings.wt.core.WtUniversalTerminalItem;
@@ -79,11 +80,23 @@ public final class WtNetwork
                 }
                 item = locator.locateItem(player);
                 WtTerminalDefinition.cycle(player, locator, item, reverse());
+                // [本地改动] v7.15.6：附属终端也会被循环选中——内建选择为空且游标指向
+                // 附属终端时，显示该附属终端的名字（原逻辑只查内建定义，附属切换无提示）。
                 var current = WtTerminalDefinition.ofOrNull(item);
                 if (current != null)
                 {
                     player.displayClientMessage(Component.translatable("gui.godofthings.wut.current_terminal",
                             Component.translatable(current.translationKey())), true);
+                }
+                else
+                {
+                    var extras = WtExtraTerminals.list(item);
+                    int cursor = WtExtraTerminals.current(item);
+                    if (!extras.isEmpty() && cursor >= 0 && cursor < extras.size())
+                    {
+                        player.displayClientMessage(Component.translatable("gui.godofthings.wut.current_terminal",
+                                WtExtraTerminals.displayName(extras.get(cursor))), true);
+                    }
                 }
                 return;
             }
@@ -133,6 +146,49 @@ public final class WtNetwork
     public static void sendSelectTerminal(String terminalName)
     {
         net.neoforged.neoforge.network.PacketDistributor.sendToServer(new SelectTerminal(terminalName));
+    }
+
+    // ---- C2S: 选中指定附属终端（[本地改动] v7.15.6：内建终端走 SelectTerminal，
+    // 附属终端按 EXTRA_TERMINALS 列表下标选择——选择按钮对附属终端的落点）----
+    public record SelectExtra(int index) implements CustomPacketPayload
+    {
+        public static final Type<SelectExtra> ID = new Type<>(Godofthings.godofthingsId("wt_select_extra"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, SelectExtra> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, SelectExtra::index, SelectExtra::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type()
+        {
+            return ID;
+        }
+
+        public void handle(Player player)
+        {
+            var containerMenu = player.containerMenu;
+            if (!(containerMenu instanceof appeng.menu.AEBaseMenu aeMenu)
+                    || !(aeMenu.getLocator() instanceof ItemMenuHostLocator locator))
+            {
+                return;
+            }
+            ItemStack item = locator.locateItem(player);
+            if (!(item.getItem() instanceof WtUniversalTerminalItem))
+            {
+                return;
+            }
+            var extras = WtExtraTerminals.list(item);
+            if (index() < 0 || index() >= extras.size())
+            {
+                return;
+            }
+            // 清掉内建选择、游标指向附属终端（open 靠游标走附属分支）
+            item.remove(com.godofthings.Godofthings.WT_CURRENT_TERMINAL);
+            WtExtraTerminals.setCurrent(item, index());
+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer)
+            {
+                com.godofthings.wt.network.WtNetwork.updateClientTerminal(serverPlayer, locator, item);
+            }
+            WtTerminalDefinition.open(player, locator, true);
+        }
     }
 
     // ---- C2S: 循环切换磁卡模式（照抄 MagnetHotkeyAction：关→背包→ME→只入网→关）----
@@ -389,6 +445,8 @@ public final class WtNetwork
         registrar.playToServer(CycleMagnetMode.ID, CycleMagnetMode.STREAM_CODEC,
                 (packet, context) -> context.enqueueWork(() -> packet.handle(context.player())));
         registrar.playToServer(SelectTerminal.ID, SelectTerminal.STREAM_CODEC,
+                (packet, context) -> context.enqueueWork(() -> packet.handle(context.player())));
+        registrar.playToServer(SelectExtra.ID, SelectExtra.STREAM_CODEC,
                 (packet, context) -> context.enqueueWork(() -> packet.handle(context.player())));
         registrar.playToServer(TerminalSettings.ID, TerminalSettings.STREAM_CODEC,
                 (packet, context) -> context.enqueueWork(() -> packet.handle(context.player())));
