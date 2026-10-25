@@ -15,7 +15,7 @@ import java.util.UUID;
 
 /** World-scoped, per-player state for the staff's three unobtrusive first-use hints. */
 public final class StaffTutorialData extends SavedData {
-    private static final String NAME = "useless_stretcher_staff_tutorial";
+    private static final String NAME = "godofthings_wondrous_staff_tutorial";
     public static final int HINT_FIRST_HELD = 1;
     public static final int HINT_ACCELERATION = 1 << 1;
     public static final int HINT_GEAR_CHANGE = 1 << 2;

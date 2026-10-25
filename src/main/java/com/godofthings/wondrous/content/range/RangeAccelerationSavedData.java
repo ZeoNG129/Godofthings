@@ -48,7 +48,7 @@ public final class RangeAccelerationSavedData extends net.minecraft.world.level.
     public static final int MAX_MARKED_POSITIONS = MAX_SIZE * MAX_SIZE * MAX_SIZE;
     public static final int MAX_ACTIVE_FIELDS_PER_OWNER = 64;
     public static final int MAX_HISTORY_PER_OWNER = 512;
-    private static final String FILE_ID = "useless_stretcher_range_acceleration";
+    private static final String FILE_ID = "godofthings_wondrous_range_acceleration";
     private static final int MAX_EXECUTIONS_PER_TARGET = WondrousStaffAccelerationEntity.MAX_MULTIPLIER;
     private static final long MAX_PENDING_TICKS = 1_000_000L;
     private static final long PLACEMENT_COOLDOWN_TICKS = 5L;

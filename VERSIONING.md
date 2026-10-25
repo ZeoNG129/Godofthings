@@ -2362,3 +2362,15 @@ God of Things 模组版本号采用 `x.y.z` 三段式，由 `gradle.properties` 
 - **自查**：`check-lang.ps1` checks: OK（1816 键，物品 110 / 实体 4 / 成就 33 / 前缀 25）；
   `gradlew build` 成功并自动部署；`runGameTestServer` 临时探针 5 条（组件编解码往返 /
   模式归一化 / 召唤白名单 / 时停语义 / 配置默认值）+ 45 条基线全过，探针已删后复跑 45 条全过。
+## 7.12.0 → 7.12.1
+
+- **修与上游 useless_stretcher 同装的 SavedData 撞名崩溃**（`ClassCastException: StaffLeafDropData`，
+  服务端 tick 循环闪退）：杖用到的三个世界存档数据名还带着上游 `useless_stretcher_` 前缀
+  （staff_leaf_drops / range_acceleration / staff_tutorial），与整合包里装着的上游 mod 1.6.2
+  在同一个全局命名槽里抢名——上游先注册，我们的代码把上游实例 cast 回自己的类就炸。
+  全部改为 `godofthings_wondrous_` 前缀（此前 apotheosis_tables / permanent_history
+  两个已是该前缀，本次补齐全部五个）。
+- **冲突面全面排查结论**：SavedData 名是唯一跨 mod 全局共享的命名槽；数据组件 / 网络载荷 /
+  注册表 / 进度 / 实体 NBT 标签（`useless_stretcher_2i_prank_owner` 属实体私有 NBT，不跨模组）
+  都自带命名空间或实体隔离，与上游同装安全。
+- **自查**：`check-lang.ps1` checks: OK；`gradlew build` 成功并自动部署；`runGameTestServer` 45 条全过。

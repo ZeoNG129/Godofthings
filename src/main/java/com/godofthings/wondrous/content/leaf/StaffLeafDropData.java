@@ -13,7 +13,7 @@ import java.util.UUID;
 
 /** Per-world rolls and claims for the independent one-time leaf rewards. */
 public final class StaffLeafDropData extends SavedData {
-    private static final String NAME = "useless_stretcher_staff_leaf_drops";
+    private static final String NAME = "godofthings_wondrous_staff_leaf_drops";
     private final Set<UUID> staffRolled = new HashSet<>();
     private final Set<UUID> staffClaimed = new HashSet<>();
     private final Set<UUID> dollRolled = new HashSet<>();
