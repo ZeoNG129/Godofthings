@@ -134,6 +134,36 @@ public abstract class ElevatorBlockBase extends HorizontalDirectionalBlock imple
                 .orElse(ItemInteractionResult.FAIL);
     }
 
+    /**
+     * 空手右键：打开设置界面（潜行时空手右键 = 取消伪装）。
+     *
+     * <p><b>[本地改动] 本方法在上游里没有</b>：上游把「空手」也走 {@code useItemOn}，靠
+     * {@code Block.byItem(air)} 返回空气、伪装失败而落到开菜单。而本项目 21.1.249 的分发是
+     * <b>空手走 {@code useWithoutItem}、手持物品才走 {@code useItemOn}</b>，所以必须单独实现，
+     * 否则会出现「右键打不开界面」（v7.18.1 实机反馈的就是这个）。</p>
+     */
+    @Override
+    protected net.minecraft.world.InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos,
+                                                                   Player player, BlockHitResult hit)
+    {
+        if (worldIn.isClientSide)
+        {
+            return net.minecraft.world.InteractionResult.SUCCESS;
+        }
+        return getElevatorTile(worldIn, pos)
+                .map(tile ->
+                {
+                    // 潜行 + 已伪装 = 取消伪装
+                    if (player.isCrouching() && tile.getHeldState() != null)
+                    {
+                        tile.setCamoAndUpdate(null);
+                        return net.minecraft.world.InteractionResult.SUCCESS;
+                    }
+                    openMenu(player, tile, pos);
+                    return net.minecraft.world.InteractionResult.CONSUME;
+                })
+                .orElse(net.minecraft.world.InteractionResult.PASS);
+    }
     public static boolean isValidSpawn(BlockState state, BlockGetter world, BlockPos pos, EntityType<?> entityType)
     {
         if (!ElevatorConfig.mobSpawn())
@@ -279,5 +309,17 @@ public abstract class ElevatorBlockBase extends HorizontalDirectionalBlock imple
     protected Optional<BlockState> getHeldState(BlockGetter world, BlockPos pos)
     {
         return getElevatorTile(world, pos).map(ElevatorBlockEntity::getHeldState);
+    }
+
+    /**
+     * 本体不画（交给 {@code ElevatorRenderer} 画）：这样伪装方块能完整覆盖，避免本体与伪装互相穿插。
+     *
+     * <p>[本地改动] 上游用 BakedModel 包装器在模型层替换，本版本没有 ModelDataProvider，
+     * 改用方块实体渲染器后必须把本体渲染形状设为 INVISIBLE。</p>
+     */
+    @Override
+    public net.minecraft.world.level.block.RenderShape getRenderShape(BlockState state)
+    {
+        return net.minecraft.world.level.block.RenderShape.INVISIBLE;
     }
 }

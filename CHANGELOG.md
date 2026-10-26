@@ -7688,3 +7688,23 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
   - **运行期探测实测**：`blocks=16 items=16 beValidBlock=true`、方块实体构造正常、
     伪装判定 `validStone=true validAir=false validSelf=false validChest=false` —— 与上游规则一致。
 - **资源**：84 个文件（blockstate 16 / 方块模型 16 / 物品模型 16 / 贴图 17 / 箭头模型 1 / GUI 贴图 1 / 战利品表 16 / 音效 1）+ 32 个配方 + 29 条语言键 + 16 条手册条目。
+
+## 7.18.0 → 7.18.1（修电梯：右键打不开界面 + 伪装无效 —— 客户端层整个漏移植）
+
+- **现象**：7.18.0 的电梯能放、能传送，但**手持方块右键不会伪装**、**空手右键打不开界面**。
+- **根因（我的移植缺失，不是版本问题）**：7.18.0 只搬了服务端与资源，**客户端层整个漏掉了**：
+  1. 没有 `RegisterMenuScreensEvent` 注册 → 菜单打开了但没有对应界面 → 表现为「右键没反应」；
+  2. 没有伪装渲染 → 方块永远显示原色，服务端其实已经存了伪装状态；
+  3. 上游的「空手右键开界面」依赖 `useItemOn` 里 `Block.byItem(air)` 自然失败后兜底，而本项目
+     21.1.249 的分发是**空手走 `useWithoutItem`、手持物品才走 `useItemOn`**，所以空手根本进不到那段逻辑。
+- **修复**
+  - 新增 `ElevatorScreen`（设置界面：有方向 / 隐藏箭头 / 取消伪装 / 四向朝向按钮，200×100，用原版贴图）。
+  - 新增 `ElevatorClientRegistry`：注册菜单界面 + 方块实体渲染器。
+  - 新增 `ElevatorRenderer`：**用 BlockEntityRenderer 画伪装方块与朝向箭头**。
+    [本地改动] 上游用 BakedModel 包装器 + `BlockEntity#getModelData()`，本版本没有 `ModelDataProvider` 接口，
+    且 `getQuads` 拿不到坐标反查方块实体；BER 能直接读 `ElevatorBlockEntity#getHeldState()`，不依赖高版本 API。
+    配套把电梯方块 `getRenderShape` 设为 `INVISIBLE`，避免本体与伪装满绘。
+  - 新增 `useWithoutItem`：空手右键开界面、潜行+空手右键取消伪装（原版行为）。
+  - `containerTick` 用「状态变了就重建控件」同步勾选状态（本版 Checkbox 只有 `selected()` 无 setter）。
+- GameTest 45 条全绿；check-lang 全绿。
+- **关于升级 NeoForge**：这次故障与 NeoForge 版本无关，是漏移植；已在 21.1.249 上补齐并验证，暂不需要升级。
