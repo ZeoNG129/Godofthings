@@ -7591,3 +7591,23 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
 - **修复**：把 `AeCraftingServiceMixin` 的两个 `@Redirect` 改为 `require = 0`——冲突时静默让路而不是崩游戏（与项目里 `GuiHeartsCompressMixin` 的既有做法一致），并在注释里写明原因。
 - **重要：装本模组请卸载原版 `zifeng_ae2_skills` 与 `zifeng_s_custom_skill_tree`**。神之AE 的功能已内置在本模组里，重复安装只会导致注入互相抢占（`zifeng_s_custom_skill_tree` 还与本模组的 `GuiHeartsCompressMixin` 争同一个 `@Redirect`）。
 - GameTest 45 条全绿；check-lang 全绿。
+
+## 7.16.1 → 7.16.2（修 7.16.1 进图后合成 CPU 报 AbstractMethodError 崩服）
+
+- **崩溃现象**：装上 7.16.1 后能进游戏，但一有 ME 合成 CPU 工作，服务端在 `Ticking grid on end of server tick` 处崩溃：
+  ```
+  java.lang.AbstractMethodError: Receiver class appeng.crafting.execution.CraftingCpuLogic
+    does not define or inherit an implementation of the resolved method
+    'abstract java.lang.Object god$getJob()' of interface com.godofthings.mixin.CpuLogicAccess
+  ```
+  日志里的直接原因：
+  ```
+  Mixin apply for mod godofthings failed ... CpuLogicAccess
+    InvalidAccessorException: No candidates were found matching job:Ljava/lang/Object;
+    in CraftingCpuLogic for @Accessor::god$getJob()Ljava/lang/Object;
+  ```
+- **根因**：本工程没有 Mixin 注解处理器、**不生成 refmap**（jar 内无 `*.refmap.json`）。在没有 refmap 的情况下，`@Accessor` 按「返回类型 + 字段名」**精确匹配**字段签名；上游 `zifeng_ae2speed_skills` 写 `Object god$getJob()` 之所以能跑，是因为它有 refmap 做类型擦除匹配。照抄 `Object` 在本地匹配不到 `private ExecutingCraftingJob job`，访问器没生成方法体 → 调用即 `AbstractMethodError`。
+- **修复**：`CpuLogicAccess.god$getJob()` 返回类型改为真实类型 `ExecutingCraftingJob`；`JobAccess.god$getTasks()` 的泛型值改成通配符 `Map<IPatternDetails, ?>`（AE2 的 `TaskProgress` 是包私有内部类，外部写不出精确类型，通配符让擦除签名与字段一致）。两处都加了 `[本地改动]` 注释说明原因。
+- **验证方式也补了**：上一版只确认「类被 mixin 过」，不够——`AbstractMethodError` 是真正调用时才抛。这次临时写了 GameTest **真实构造一台 CraftingCPUCluster 并调用两个访问器**，实测 `job=null clusterBack=true` 通过后才发布。
+- GameTest 45 条全绿；check-lang 全绿。
+- **仍需提醒**：请卸载原版 `zifeng_ae2_skills` 与 `zifeng_s_custom_skill_tree`（功能已内置，重复安装只会互相抢占 Mixin 注入）。
