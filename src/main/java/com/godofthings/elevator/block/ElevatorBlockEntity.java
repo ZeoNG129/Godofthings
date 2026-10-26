@@ -2,6 +2,7 @@ package com.godofthings.elevator.block;
 
 import com.godofthings.elevator.ElevatorBlockBase;
 import com.godofthings.elevator.ElevatorRegistry;
+import com.godofthings.elevator.client.ElevatorBakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -23,6 +24,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * 电梯方块实体：保存「伪装成哪个方块」。
@@ -30,10 +32,16 @@ import net.minecraft.world.level.block.state.BlockState;
  * <p>移植自 ElevatorMod 的 {@code com.vsngarcia.level.ElevatorBlockEntityBase}
  * 与 {@code com.vsngarcia.neoforge.tile.ElevatorBlockEntity}（MIT），<b>逐行对照编写</b>。</p>
  *
- * <p>[本地改动] {@code markUpdated()} 里比上游少了「辅助光源管理器」与「模型数据刷新」两步——
- * 本版本 NeoForge 没有 {@code getAuxLightManager}，也没有 {@code ModelDataProvider}；
- * 伪装的渲染改由 {@code ElevatorBakedModel} 直接读本实体完成（见客户端渲染类）。
- * 方块更新 + 光引擎重算仍然保留，保证外观与亮度遮挡即刻生效。</p>
+ * <p>[本地改动] {@code markUpdated()} 里比上游少了「辅助光源管理器」一步（伪装方块的发光同步），
+ * 因为 {@code ElevatorBlock} 侧没有移植 {@code getLightEmission(state, level, pos)} /
+ * {@code hasDynamicLightEmission}（本版本无这些重载）。</p>
+ *
+ * <h2>外观是怎么画出来的（v7.18.3 起）</h2>
+ * 不再用方块实体渲染器。伪装状态通过 {@link #getModelData()} 送进 baked model
+ * （{@link ElevatorBakedModel#HELD_STATE}），由 {@link ElevatorBakedModel#getQuads} 直接把伪装方块的
+ * quad 拷进电梯的静态区块几何。—— 与上游完全一致。
+ * <br>因此每次状态变化都必须调 {@link #setChanged()} 与 {@code requestModelDataUpdate()}，
+ * 否则区块不会重烘焙，外观就不跟着变。
  */
 public class ElevatorBlockEntity extends BlockEntity implements MenuProvider
 {
@@ -43,6 +51,20 @@ public class ElevatorBlockEntity extends BlockEntity implements MenuProvider
     public ElevatorBlockEntity(BlockPos pos, BlockState state)
     {
         super(ElevatorRegistry.ELEVATOR_BLOCK_ENTITY.get(), pos, state);
+    }
+
+    /**
+     * 把伪装状态交给 baked model。
+     *
+     * <p>移植自上游 {@code com.vsngarcia.neoforge.tile.ElevatorBlockEntity#getModelData()}。
+     * 这是伪装外观能画出来的唯一数据通道 —— 渲染侧只读这份 ModelData，不读方块实体。</p>
+     */
+    @Override
+    public ModelData getModelData()
+    {
+        return ModelData.builder()
+                .with(ElevatorBakedModel.HELD_STATE, heldState)
+                .build();
     }
 
     @Override
@@ -115,6 +137,12 @@ public class ElevatorBlockEntity extends BlockEntity implements MenuProvider
         markUpdated();
     }
 
+    /**
+     * 刷新方块外观。
+     *
+     * <p>移植自上游 {@code setChanged()}：除了通知客户端方块实体数据，还要 {@code requestModelDataUpdate()}
+     * 让区块重新烘焙模型数据 —— 少了这一步，伪装状态改了但外观不跟着变。</p>
+     */
     private void markUpdated()
     {
         setChanged();
@@ -123,6 +151,11 @@ public class ElevatorBlockEntity extends BlockEntity implements MenuProvider
             return;
         }
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_ALL);
+        if (level.isClientSide)
+        {
+            requestModelDataUpdate();
+            return;
+        }
         level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
         getBlockState().updateNeighbourShapes(level, worldPosition, 2);
         level.getLightEngine().checkBlock(worldPosition);

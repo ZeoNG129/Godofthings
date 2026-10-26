@@ -7730,3 +7730,27 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
   `elevator renderShape=INVISIBLE`、`stone renderShape=MODEL`、`chest renderShape=ENTITYBLOCK_ANIMATED`，
   伪装判定 `validStone=true validGlass=true validChest=false validAir=false` —— 渲染路径与伪装规则均符合预期。
   GameTest 46 条（45 条回归 + 1 条临时探针）全绿；`check-lang` 全绿。
+## 7.18.2 → 7.18.3（电梯在世界里透明 —— 根因是渲染路径选错了，改回上游的 BakedModel 包装）
+
+- **现象**：7.18.1 / 7.18.2 的电梯放进世界后**看不见**（未伪装时也透明），而右键、传送、伪装判定都正常。
+- **7.18.2 走错的方向**：以为是 `renderSingleBlock` 图层的锅，改成五参重载。那个问题确实存在（六参传 `null` 会退回
+  `Sheets.cutoutBlockSheet()`），但**不是主因** —— 改完仍然透明。
+- **真根因（我的移植方案整体选错）**：v7.18.1 用**方块实体渲染器（BER）** 画电梯，配套把方块
+  `getRenderShape` 设成 `INVISIBLE`。`INVISIBLE` 的语义是「方块模型交给方块实体渲染器」，而 BER 只在
+  **实体渲染阶段**（每帧、按方块实体可见范围）执行；静态区块几何阶段什么都不画。电梯因此长期不可见。
+- **上游是怎么做的（读源码后照抄）**：上游**根本不重写 `getRenderShape`**（保持默认 `MODEL`），也不用 BER。
+  它把电梯的 baked model 包一层，靠 NeoForge 的 `ModelData` 把伪装状态传进来，在 `getQuads` 里直接返回
+  伪装方块自己的 quad —— 全部走静态区块几何，稳定且零每帧开销。
+- **修复（本次全量重做，逐行对照上游 `ElevatorBakedModel` / `ClientRegistry` / `ColorCamoElevator`）**
+  - 新增 `ElevatorBakedModel extends BakedModelWrapper`：`getQuads` 画箭头（`cutoutMipped` 层 + `BlockModelRotation`
+    按 FACING 旋转）、画伪装方块（有伪装就不再画本体）、无伪装走本体模型；`getRenderTypes` 把伪装方块的图层与
+    `cutoutMipped()` 求并集；`getParticleIcon` 跟随伪装方块。
+  - 新增 `ColorCamoElevator`：把染色请求转发给伪装方块自己的 `BlockColor`（否则伪装成草方块/树叶会发灰）。
+  - `ElevatorClientRegistry` 改为上游那四个事件：`RegisterMenuScreensEvent` / `RegisterColorHandlersEvent.Block` /
+    `ModelEvent.RegisterAdditional`（箭头模型）/ `ModelEvent.ModifyBakingResult`（包装 16 色电梯模型）。
+  - `ElevatorBlockEntity` 补 `getModelData()` 送出 `HELD_STATE`；`markUpdated()` 在客户端补 `requestModelDataUpdate()`
+    触发区块重烘焙（少了它伪装状态改了外观也不变）。
+  - **删除** `ElevatorRenderer`（BER 方案整体废弃），**删除** `ElevatorBlockBase#getRenderShape` 重写（回到默认 `MODEL`）。
+- **[本地改动] 与上游的差异**：`markUpdated()` 未移植「辅助光源管理器」那步（本版本 `ElevatorBlock` 没有
+  `getLightEmission(state,level,pos)` / `hasDynamicLightEmission`），伪装方块的发光不会同步到电梯上；其余逐行一致。
+- GameTest 45 条全绿；`check-lang` 全绿。

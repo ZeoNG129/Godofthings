@@ -311,15 +311,4 @@ public abstract class ElevatorBlockBase extends HorizontalDirectionalBlock imple
         return getElevatorTile(world, pos).map(ElevatorBlockEntity::getHeldState);
     }
 
-    /**
-     * 本体不画（交给 {@code ElevatorRenderer} 画）：这样伪装方块能完整覆盖，避免本体与伪装互相穿插。
-     *
-     * <p>[本地改动] 上游用 BakedModel 包装器在模型层替换，本版本没有 ModelDataProvider，
-     * 改用方块实体渲染器后必须把本体渲染形状设为 INVISIBLE。</p>
-     */
-    @Override
-    public net.minecraft.world.level.block.RenderShape getRenderShape(BlockState state)
-    {
-        return net.minecraft.world.level.block.RenderShape.INVISIBLE;
-    }
 }
