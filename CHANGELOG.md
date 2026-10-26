@@ -7555,3 +7555,11 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
 - **修「合并附属终端后磁卡消失」与「快捷键切换无反应」（bug 5）：打开附属终端的临时副本预置通用终端升级槽里的卡（磁卡随之显示并生效）并带上磁卡模式设置；终端界面内响应本模组两个快捷键（屏幕打开时 `KeyMapping.click` 不累计，需在 `keyPressed` 手动匹配）；手持循环切换至附属终端时显示其名字。
 - **JEI**：无耗能通用终端（带合成终端组件）注册为合成配方催化剂（照抄上游 wtlib JEIPlugin）。
 - GameTest 54 条全绿。
+
+## 7.15.6 → 7.15.7（撤销无耗能无线通用终端移植）
+
+- **删除整个 7.15.x 移植**：`wt` 包 53 个类（终端物品 / 菜单宿主 / 界面 / 网络包 / WUT 配方 / 磁卡）、通用终端与磁卡两件物品、配套 7 个屏幕 JSON + 4 张贴图 + 2 个物品模型 + 8 个配方、2 个键位、32 条语言键与对应手册条目、`GodWutFreeGameTest` 9 条回归测试、AE2WTLib 的 MIT 许可声明与 credits 署名。判定为移植失败，整体回退。
+- **不受影响**：无线连接器卡（aalink 包，作者自有项目并入）、无限元件、建筑棒、荒辰移晷之杖、ME 放置工具等其他全部功能保持原样；AE2 原版终端的连接器卡升级注册仍在。
+- **修复删除引入的加载期崩溃**：`beef.core.component.UComponents` 的 `DeferredRegister` 一直是独立实例、从未被注册，此前靠已删除的 `WtSetup` 在 `RegisterEvent` 里手动补注册才没暴露；删除后主类构造期直接抛 `Trying to access unbound value ... godofthings:enchant_mode` 让模组加载失败。已在 `Godofthings` 构造函数中按原有注释意图调用 `UComponents.init(modEventBus)`，并早于物品注册。
+- GameTest 45 条全绿（原 54 条减去随移植删除的 9 条）；check-lang 全绿；AGENTS / README 的测试条数、物品数、版本徽章同步更新。
+- 旧存档提示：曾放置的「无耗能无线通用终端」与「磁卡」会变成空气，其余物品数据不受影响。
