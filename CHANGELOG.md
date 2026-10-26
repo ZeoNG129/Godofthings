@@ -7709,3 +7709,24 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
 - GameTest 45 条全绿；check-lang 全绿。
 - **顺带修正放置位置**：7.18.0 误把电梯加进了「众神之物」（机器栏），已移到用户要求的 **「众神之物：方块」** 最后（{@code BuildingRegistry.GOD_BUILDING_TAB}）。
 - **关于升级 NeoForge**：这次故障与 NeoForge 版本无关，是漏移植；已在 21.1.249 上补齐并验证，暂不需要升级。
+
+## 7.18.1 → 7.18.2（修电梯在世界里完全透明）
+
+- **现象**：7.18.1 的电梯放到世界里是**透明的**（放进哪个维度都一样），但右键功能、传送、伪装判定都正常 —— 说明逻辑在跑、只是没画出来。
+- **根因（7.18.1 引入的渲染 bug）**：`ElevatorRenderer` 用**六参** `BlockRenderDispatcher.renderSingleBlock(state, pose, buffers, light, overlay, ModelData, RenderType)` 画主体，最后一个参数传了 `null`。
+  查 21.1.249 的源码（`BlockRenderDispatcher#renderSingleBlock`）：
+  ```java
+  p_110915_.getBuffer(renderType != null ? renderType : RenderTypeHelper.getEntityRenderType(rt, false))
+  ```
+  传 `null` 时会退回 `RenderTypeHelper.getEntityRenderType(rt, false)`，而它**恒返回 `Sheets.cutoutBlockSheet()`** ——
+  这个图层是「抠图」规则：**alpha 只要不是 255 就整像素丢弃**。电梯贴图并不是全不透明，于是整块被抠成透明。
+  （箭头当时用 `RenderType.cutoutMipped()` 反而看得见，就是这个差别。）
+- **修复**
+  - 主体改用**五参** `renderSingleBlock(state, pose, buffers, light, overlay)`，它会遍历模型自己的 `RenderType` 集
+    （`RenderType.solid()`）并用对应图层画 —— 石头、泥土这类实心方块走的就是这条路，不会掉。
+  - 箭头模型补注册到 `ModelEvent.RegisterAdditional`（`godofthings:arrow`），否则 `getModel(standalone(...))`
+    拿到的是缺失模型、箭头永远画不出来。
+- **实测验证**（临时 GameTest 探针，跑完已删）：
+  `elevator renderShape=INVISIBLE`、`stone renderShape=MODEL`、`chest renderShape=ENTITYBLOCK_ANIMATED`，
+  伪装判定 `validStone=true validGlass=true validChest=false validAir=false` —— 渲染路径与伪装规则均符合预期。
+  GameTest 46 条（45 条回归 + 1 条临时探针）全绿；`check-lang` 全绿。
