@@ -16,7 +16,8 @@
     "CraftingTimeAccess",
     "AeInstantCpuMixin",
     "AeCraftingServiceMixin",
-    "PatternProviderPushMixin"
+    "PatternProviderPushMixin",
+    "AssemblerTickMixin"
   ],
   "client": [
     "GuiHeartsCompressMixin",

@@ -73,20 +73,31 @@ public final class AeSkillHandler
         AeSkillEffects.remove(event.getEntity().getUUID());
     }
 
-    // ---- 每 tick 驱动（神明之力） ----
+    // ---- 每 tick 驱动 ----
 
+    /**
+     * tick 开始：重置共享时间预算。
+     *
+     * <p><b>必须在 {@code Pre} 且优先级 HIGHEST</b>——AE2 的合成 tick 跑在 tick 末尾
+     * （{@code TickHandler.onServerTickEnd}），预算必须在那之前归零；放到 {@code Post} 会在
+     * 合成已经跑完之后才重置，等于瞬时合成拿不到本 tick 的共享额度，只能吃 1ms 的默认切片，
+     * 表现为「比原版慢、偶尔还要等」。</p>
+     */
+    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.HIGHEST)
+    public static void onServerTickPre(ServerTickEvent.Pre event)
+    {
+        TickBudget.markTickStart();
+    }
+
+    /** tick 末尾：同步技能表 + 驱动神明之力。 */
     @SubscribeEvent
-    public static void onServerTick(ServerTickEvent.Post event)
+    public static void onServerTickPost(ServerTickEvent.Post event)
     {
         MinecraftServer server = event.getServer();
-        TickBudget.markTickStart();
-        // 巡检：每 SYNC_INTERVAL tick 把在线玩家的技能表刷进效果层
-        if (server.getTickCount() % SYNC_INTERVAL == 0)
+        // 每 tick 同步（与原版一致）：技能一改，当 tick 就生效，不会出现「刚开技能机器还是旧速度」。
+        for (ServerPlayer player : server.getPlayerList().getPlayers())
         {
-            for (ServerPlayer player : server.getPlayerList().getPlayers())
-            {
-                syncPlayer(player);
-            }
+            syncPlayer(player);
         }
         // 神明之力：给活跃产线上的机器发放额外 tick
         DivineGrace.tick(server);

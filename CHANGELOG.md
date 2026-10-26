@@ -7611,3 +7611,13 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
 - **验证方式也补了**：上一版只确认「类被 mixin 过」，不够——`AbstractMethodError` 是真正调用时才抛。这次临时写了 GameTest **真实构造一台 CraftingCPUCluster 并调用两个访问器**，实测 `job=null clusterBack=true` 通过后才发布。
 - GameTest 45 条全绿；check-lang 全绿。
 - **仍需提醒**：请卸载原版 `zifeng_ae2_skills` 与 `zifeng_s_custom_skill_tree`（功能已内置，重复安装只会互相抢占 Mixin 注入）。
+
+## 7.16.2 → 7.16.3（神之AE 比原版慢：补移植漏掉的装配机超频 + 修正 tick 预算重置时机）
+
+- **现象**：同样是「全部技能打开」，原版合成 1G 熔炉是秒完成，本移植版会慢一些、有时还要等。
+- **根因一：漏移植了整个 `AssemblerOverclock`**。原版除了 `MolecularAssemblerSpeedMixin`（改 AE2 原生分子装配室的进度系数）之外，还有一个 `AssemblerOverclock` + `AssemblerTickMixin`：挂在 `TickManagerService.unsafeTickingRequest` 上，对**任意实现 AE2 `ICraftingMachine` 且 `acceptsPlans()` 的装配机**额外跑 `tickingRequest`。我 7.16.0 移植时把它漏了，导致「装配超频」只对 AE2 原生装配室生效，第三方或多机并联的产线完全没加速。
+  - **已补**：新增 `AssemblerOverclock`（逐行对照）与 `AssemblerTickMixin`（`require = 2`，对应 `unsafeTickingRequest` 里受监控/不受监控两条调用路径）。判定里保留「AE2 原生分子装配室返回 false」的防双倍加速逻辑，以及「神明之力本 tick 已驱动该机器时让路」的去重逻辑。
+- **根因二：`TickBudget` 重置时机错了**。原版在 `ServerTickEvent.Pre`（优先级 HIGHEST）里 `markTickStart()`；我写成了在 `Post` 里。而 AE2 的合成 tick 跑在 tick 末尾（`TickHandler.onServerTickEnd`），在 `Post` 重置等于「合成已跑完才归零」，瞬时合成拿不到本 tick 的共享 20ms 额度，只能吃 1ms 默认切片 → 变慢、偶尔要等。
+  - **已修**：拆成 `onServerTickPre`（HIGHEST，`markTickStart`）+ `onServerTickPost`（同步技能 + 神明之力）。
+- **顺带对齐**：技能表同步从「每 20 tick 巡检」改成**每 tick 同步**（与原版的 `PlayerTickEvent.Post` 一致），避免「刚打开技能但机器还是旧速度」的延迟。
+- GameTest 45 条全绿；check-lang 全绿。
