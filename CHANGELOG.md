@@ -7653,3 +7653,17 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
 - **验证**：
   - GameTest 45 条全绿；check-lang 全绿。
   - **未装 AppFlux 的降级实测**：`appfluxLoaded=false feKey=null isCell=true invOk=true status=NOT_EMPTY idle=8.0 insertNull=0 extractNull=0` —— 说明软依赖闸门生效，元件在纯净环境不会崩。
+
+## 7.17.0 → 7.17.1（修无限 FE 元件紫黑块：补驱动器模型 + 换成原版 256M FE 元件贴图改紫）
+
+- **现象**：无限 FE 元件放进 ME 驱动器后显示紫黑格（Minecraft 的缺失贴图占位），世界里也是紫黑块。
+- **根因**：`StorageCellModels.registerModel(...)` 注册的是 `godofthings:block/drive/infinity_flux_cell`，但 7.17.0 只做了**物品模型**（`models/item/`）与物品贴图，**漏了驱动器用的方块模型和方块贴图** → 模型 id 解析不到 → 缺失贴图。
+- **修复**：
+  - 新增 `models/block/drive/infinity_flux_cell.json`（照 AppFlux `fe_256m_cell` 的驱动器模型结构，UV 取 8,8-14,10 那块）。
+  - 新增 `textures/block/drive/infinity_flux_cell.png`。
+- **贴图换成原版 256M ME 能源存储元件**（按用户要求）：以 AppFlux 的 `fe_256m_cell.png` 为底（绿主体 + 粉红图案），把粉红三档换成紫色三档，保留原有明暗层次：
+  - `255,128,191` → `168,85,247`（主紫，34 px）
+  - `250,179,199` → `216,180,254`（亮紫）
+  - `251,202,213` → `233,213,255`（高光）
+  - 驱动器贴图同样处理（粉红彩灯 4 px → 紫）。
+- GameTest 45 条全绿；check-lang 全绿（物品/方块 ↔ blockstate / 模型 / 语言键全覆盖检查通过）。
