@@ -7707,4 +7707,5 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
   - 新增 `useWithoutItem`：空手右键开界面、潜行+空手右键取消伪装（原版行为）。
   - `containerTick` 用「状态变了就重建控件」同步勾选状态（本版 Checkbox 只有 `selected()` 无 setter）。
 - GameTest 45 条全绿；check-lang 全绿。
+- **顺带修正放置位置**：7.18.0 误把电梯加进了「众神之物」（机器栏），已移到用户要求的 **「众神之物：方块」** 最后（{@code BuildingRegistry.GOD_BUILDING_TAB}）。
 - **关于升级 NeoForge**：这次故障与 NeoForge 版本无关，是漏移植；已在 21.1.249 上补齐并验证，暂不需要升级。

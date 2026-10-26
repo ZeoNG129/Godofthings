@@ -122,6 +122,9 @@ public final class BuildingRegistry
                             output.accept(BUILDING_SLAB_ITEMS.get(color).get());
                             output.accept(FRAMED_BUILDING_SLAB_ITEMS.get(color).get());
                         }
+                        // 开放式电梯（移植自 ElevatorMod，MIT）：16 色排在「众神之物：方块」最后
+                        com.godofthings.elevator.ElevatorRegistry.ELEVATOR_ITEMS
+                                .values().forEach(item -> output.accept(item.get()));
                     })
                     .build());
 

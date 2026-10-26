@@ -869,9 +869,6 @@ public class Godofthings
                         output.accept(
                                 com.godofthings.overloadedinterface.OverloadedInterfaceRegistry
                                         .OVERLOADED_INTERFACE_ITEM.get());
-                        // 开放式电梯（移植自 ElevatorMod，MIT）：16 色全部排在「众神之物：方块」最后
-                        com.godofthings.elevator.ElevatorRegistry.ELEVATOR_ITEMS
-                                .values().forEach(item -> output.accept(item.get()));
                     })
                     .build());
 
