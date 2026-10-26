@@ -41,8 +41,9 @@ public class GodArmorSkillScreen extends Screen
     /** 页索引：0 = 神之增幅（K）、1 = 神之共鸣、2 = 神之套装（O） */
     public static final int TAB_ULTIMATE = 0;
     public static final int TAB_RESONANCE = 1;
-    public static final int TAB_FEATURE = 2;
-    private static final int TAB_COUNT = 3;
+    public static final int TAB_AE = 2;
+    public static final int TAB_FEATURE = 3;
+    private static final int TAB_COUNT = 4;
 
     private static final int PANEL_MAX_W = 420;
     private static final int PANEL_MAX_H = 250;
@@ -132,6 +133,7 @@ public class GodArmorSkillScreen extends Screen
         {
             case TAB_ULTIMATE -> Component.translatable(ArmorSkillCategory.ULTIMATE.getLangKey());
             case TAB_RESONANCE -> Component.translatable(ArmorSkillCategory.MACHINE.getLangKey());
+            case TAB_AE -> Component.translatable(ArmorSkillCategory.AE.getLangKey());
             default -> Component.translatable("gui.godofthings.armor.config");
         };
     }
@@ -143,6 +145,7 @@ public class GodArmorSkillScreen extends Screen
         {
             case TAB_ULTIMATE -> ArmorSkills.of(ArmorSkillCategory.ULTIMATE);
             case TAB_RESONANCE -> ArmorSkills.of(ArmorSkillCategory.MACHINE);
+            case TAB_AE -> ArmorSkills.of(ArmorSkillCategory.AE);
             default -> java.util.List.of();
         };
     }

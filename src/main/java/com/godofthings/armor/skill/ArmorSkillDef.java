@@ -46,6 +46,8 @@ public record ArmorSkillDef(
         AUTO_SMELT,
         /** 神之共鸣：开关型，打开后机器才继承对应的那个增幅（默认关） */
         MACHINE_RESONANCE,
+        /** 神之AE 技能（v7.16.0）：效果由 AE2 侧的 mixin 钩子读取，技能表只负责开关与等级 */
+        AE_SKILL,
     }
 
     /** 语言文件键：名称 / 说明 */

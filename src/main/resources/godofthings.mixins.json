@@ -6,7 +6,17 @@
   "mixins": [
     "KeyCounterMixin",
     "PatternProviderLogicAccessor",
-    "WirelessTerminalItemConnectorMixin"
+    "WirelessTerminalItemConnectorMixin",
+    "AeCpuClusterMixin",
+    "MolecularAssemblerSpeedMixin",
+    "CraftingCpuSpeedMixin",
+    "CpuLogicAccess",
+    "CraftingJobAccess",
+    "CraftingTaskAccess",
+    "CraftingTimeAccess",
+    "AeInstantCpuMixin",
+    "AeCraftingServiceMixin",
+    "PatternProviderPushMixin"
   ],
   "client": [
     "GuiHeartsCompressMixin",

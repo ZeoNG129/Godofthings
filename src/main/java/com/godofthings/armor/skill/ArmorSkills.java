@@ -1,4 +1,6 @@
 package com.godofthings.armor.skill;
+import com.godofthings.aeskill.AeSkills;
+
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -76,6 +78,18 @@ public final class ArmorSkills
         reg(MACHINE_SPAWN_EGG, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
         reg(MACHINE_MOB_HEAD, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
         reg(MACHINE_AUTO_SMELT, ArmorSkillCategory.MACHINE, 1, ArmorSkillDef.EffectKind.MACHINE_RESONANCE);
+
+        // 神之AE（v7.16.0）：5 个开关式节点，等级上限与效果全部照上游 zifeng_ae2speed_skills
+        reg(AeSkills.ASSEMBLER_SPEED, ArmorSkillCategory.AE,
+                AeSkills.maxLevel(AeSkills.ASSEMBLER_SPEED), ArmorSkillDef.EffectKind.AE_SKILL);
+        reg(AeSkills.CPU_SPEED, ArmorSkillCategory.AE,
+                AeSkills.maxLevel(AeSkills.CPU_SPEED), ArmorSkillDef.EffectKind.AE_SKILL);
+        reg(AeSkills.ASSEMBLER_INFINITE, ArmorSkillCategory.AE,
+                AeSkills.maxLevel(AeSkills.ASSEMBLER_INFINITE), ArmorSkillDef.EffectKind.AE_SKILL);
+        reg(AeSkills.CPU_INFINITE, ArmorSkillCategory.AE,
+                AeSkills.maxLevel(AeSkills.CPU_INFINITE), ArmorSkillDef.EffectKind.AE_SKILL);
+        reg(AeSkills.DIVINE_MACHINE, ArmorSkillCategory.AE,
+                AeSkills.maxLevel(AeSkills.DIVINE_MACHINE), ArmorSkillDef.EffectKind.AE_SKILL);
     }
 
     private ArmorSkills() {}
@@ -117,9 +131,9 @@ public final class ArmorSkills
         return out;
     }
 
-    /** 该分类是否已开放（现在只有「神之增幅」一个分类） */
+    /** 该分类是否已开放（神之增幅 + 神之AE） */
     public static boolean isAvailable(ArmorSkillCategory category)
     {
-        return category == ArmorSkillCategory.ULTIMATE;
+        return category == ArmorSkillCategory.ULTIMATE || category == ArmorSkillCategory.AE;
     }
 }

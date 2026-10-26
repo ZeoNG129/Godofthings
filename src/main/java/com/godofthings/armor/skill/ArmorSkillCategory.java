@@ -16,8 +16,15 @@ public enum ArmorSkillCategory
     ULTIMATE("ultimate"),
 
     /** 神之共鸣（7 个开关，**默认关**：打开后对应的神之系列机器会继承上面同名的那个增幅） */
-    MACHINE("machine");
+    MACHINE("machine"),
 
+    /**
+     * 神之AE（v7.16.0 新开，5 个开关式节点：装配超频 / 算力超频 / 合成之神 / 算力之神 / 神明之力）。
+     *
+     * <p>移植自 zifeng_ae2speed_skills（子枫 zifeng，CC BY-NC-SA 4.0）：
+     * 这些技能直接作用于 AE2 的合成 CPU 与分子装配室，通过 {@code com.godofthings.aeskill} 包生效。</p>
+     */
+    AE("ae");
     private final String key;
 
     ArmorSkillCategory(String key)

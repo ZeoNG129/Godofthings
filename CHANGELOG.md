@@ -7563,3 +7563,17 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
 - **修复删除引入的加载期崩溃**：`beef.core.component.UComponents` 的 `DeferredRegister` 一直是独立实例、从未被注册，此前靠已删除的 `WtSetup` 在 `RegisterEvent` 里手动补注册才没暴露；删除后主类构造期直接抛 `Trying to access unbound value ... godofthings:enchant_mode` 让模组加载失败。已在 `Godofthings` 构造函数中按原有注释意图调用 `UComponents.init(modEventBus)`，并早于物品注册。
 - GameTest 45 条全绿（原 54 条减去随移植删除的 9 条）；check-lang 全绿；AGENTS / README 的测试条数、物品数、版本徽章同步更新。
 - 旧存档提示：曾放置的「无耗能无线通用终端」与「磁卡」会变成空气，其余物品数据不受影响。
+
+## 7.15.7 → 7.16.0（新增「神之AE」技能页：移植 zifeng_ae2speed_skills）
+
+- **神之套装技能树新增第 4 页「神之AE」**（界面现在是：神之增幅 / 神之共鸣 / 神之AE / 神之套装），5 个开关式技能：
+  - **装配超频**（`ae_assembler_speed`，4 级）：分子装配室合成进度倍率。改的是 AE2 `userPower` 的档位系数 `b` 而非返回值，所以**进度变快、单件总耗能不变**，不是省电挂；进度钳到 100（AE2 每 tick 最多产出 1 件，多余进度会被丢弃）。
+  - **算力超频**（`ae_cpu_speed`，4 级）：合成 CPU 并行处理单元倍率，钳制上限 4096，且只放大加成、绝不把原生性能往下压。
+  - **合成之神**（`ae_assembler_infinite`，5 级）：合成台样板在一个 tick 内批量完成。**处理样板一律留给 AE2 原生执行器**——它可声明任意产出，替它批量结算等于凭空造物。
+  - **算力之神**（`ae_cpu_infinite`，5 级）：把一台合成 CPU 拆成多个并行子 CPU（真实 `CraftingCPUCluster` 克隆，共享同一份物理存储池），并给处理样板无限并行派发（只解除操作次数上限，不越过机器/原料/电力约束）。
+  - **神明之力**（`ae_divine_machine_grace`，5 级，最高 ×1024）：AE 合成任务激活时，给整条产线上被样板供应器供货的机器额外跑原生 tick。按**网格**判活（不按推送间隔），任务结束/取消/暂停后立即清空，不会残留「上一单的机器」继续被加速。
+- **实现方式**：不依赖宿主技能树，全部自持实现。新增 `com.godofthings.aeskill` 包（效果层 / 技能表 / TickBudget / 虚拟 CPU / 瞬时合成 / 无限派发 / 神明之力 / 服务端接线）与 11 个 AE2 mixin 注入点，全部按上游逐行对照移植，仅改包名与方法前缀。
+- **安全阀**：所有批量执行共用一条每 tick 时间预算（单 tick 最多 20ms、且不超过 tick 开始后 45ms），防止超大订单卡死服务端；CPU 虚拟化走真实簇克隆、读档失败时原样保留作业 NBT。
+- **修复技能名显示错误**：`神之增幅` 页里「万魂余响鉴录仪」应为 **神之掉落**、「灵胚孳生圣卵」应为 **神之怪蛋**。
+- 许可：zifeng_ae2speed_skills 上游为 **CC BY-NC-SA 4.0**（禁商用 + 相同方式共享），本项目仅自用不对外分发。
+- GameTest 45 条全绿；check-lang 全绿。
