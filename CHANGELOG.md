@@ -7577,3 +7577,17 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
 - **修复技能名显示错误**：`神之增幅` 页里「万魂余响鉴录仪」应为 **神之掉落**、「灵胚孳生圣卵」应为 **神之怪蛋**。
 - 许可：zifeng_ae2speed_skills 上游为 **CC BY-NC-SA 4.0**（禁商用 + 相同方式共享），本项目仅自用不对外分发。
 - GameTest 45 条全绿；check-lang 全绿。
+
+## 7.16.0 → 7.16.1（修 7.16.0 加载期闪退：与上游 zifeng 模组的 @Redirect 冲突）
+
+- **崩溃现象**：装好 7.16.0 后游戏在加载阶段直接闪退（Sodium 报 "config could not be found"，那是别的模组崩了之后的连锁现象），真正原因在日志里：
+  ```
+  @Redirect conflict. Skipping godofthings.mixins.json:AeCraftingServiceMixin
+    ->@Redirect::god$fairTick ... already redirected by
+    zifeng_ae2_skills.mixins.json:ae2.AeCraftingServiceMixin from mod zifeng_ae2_skills
+  Critical injection failure: Redirector god$fairTick ... failed injection check, (0/1) succeeded.
+  ```
+- **根因**：实例里同时装着**原版** `zifeng_ae2_skills` 与 `zifeng_s_custom_skill_tree`（本模组移植的上游）。两者在同一处 AE2 调用点上做了相同的 `@Redirect`，优先级相同 → Mixin 判定冲突并跳过本模组的注入；而该注入当时写的是 `require = 1`，跳过即抛 `InjectionError` 让整个游戏崩在加载期。
+- **修复**：把 `AeCraftingServiceMixin` 的两个 `@Redirect` 改为 `require = 0`——冲突时静默让路而不是崩游戏（与项目里 `GuiHeartsCompressMixin` 的既有做法一致），并在注释里写明原因。
+- **重要：装本模组请卸载原版 `zifeng_ae2_skills` 与 `zifeng_s_custom_skill_tree`**。神之AE 的功能已内置在本模组里，重复安装只会导致注入互相抢占（`zifeng_s_custom_skill_tree` 还与本模组的 `GuiHeartsCompressMixin` 争同一个 `@Redirect`）。
+- GameTest 45 条全绿；check-lang 全绿。

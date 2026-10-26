@@ -37,7 +37,7 @@ import java.util.Set;
  * 与兼容插件本模组用不到（上游自己在 1.1.5 已改成保守退出），这里直接不移植，
  * 因此也不引入 {@code CpuAdapterRegistry}。</p>
  */
-@Mixin(value = CraftingService.class, remap = false)
+@Mixin(value = CraftingService.class)
 public abstract class AeCraftingServiceMixin
 {
     @Shadow
@@ -118,10 +118,16 @@ public abstract class AeCraftingServiceMixin
     /**
      * 每个 CPU 的原生逻辑按轮转顺序各跑一次，且都在原生变更聚合之前。
      * 这样 HashSet 里排第一的那台 CPU 不会独吞瞬时合成的时间预算。
+     *
+     * <p><b>必须 require = 0</b>：若实例里同时装着原版 {@code zifeng_ae2_skills}，
+     * 它在同一调用点也做了 @Redirect 且优先级相同，Mixin 会判定冲突并跳过本注入
+     * （日志：{@code @Redirect conflict. Skipping ...}）。写成 require = 1 时这一步会直接
+     * 抛 InjectionError 让整个游戏崩在加载阶段——冲突只是「借用别人已装的功能」，
+     * 不该是崩溃理由。跳过时代价仅是失去公平轮转，功能本身仍由对方的注入提供。</p>
      */
     @Redirect(method = "onServerEndTick", at = @At(value = "INVOKE",
             target = "Lappeng/crafting/execution/CraftingCpuLogic;tickCraftingLogic(Lappeng/api/networking/energy/IEnergyService;Lappeng/me/service/CraftingService;)V"),
-            require = 1)
+            require = 0)
     private void god$fairTick(CraftingCpuLogic ignored, IEnergyService energy, CraftingService service)
     {
         if (AeSkillEffects.getAssemblerInfiniteLevel() == 0 && AeSkillEffects.getCpuInfiniteLevel() < 5)
@@ -158,7 +164,7 @@ public abstract class AeCraftingServiceMixin
      */
     @Redirect(method = "insertIntoCpus", at = @At(value = "INVOKE",
             target = "Lappeng/crafting/execution/CraftingCpuLogic;insert(Lappeng/api/stacks/AEKey;JLappeng/api/config/Actionable;)J"),
-            require = 1)
+            require = 0)
     private long god$ownFinalOutput(CraftingCpuLogic logic, AEKey key, long amount, Actionable mode)
     {
         if (InstantCrafting.isDeliveringFinalOutput() && logic.getFinalJobOutput() != null
