@@ -7621,3 +7621,22 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
   - **已修**：拆成 `onServerTickPre`（HIGHEST，`markTickStart`）+ `onServerTickPost`（同步技能 + 神明之力）。
 - **顺带对齐**：技能表同步从「每 20 tick 巡检」改成**每 tick 同步**（与原版的 `PlayerTickEvent.Post` 一致），避免「刚打开技能但机器还是旧速度」的延迟。
 - GameTest 45 条全绿；check-lang 全绿。
+
+## 7.16.3 → 7.16.4（新加的 AssemblerTickMixin 又用了 require=2，遇冲突仍崩）
+
+- **崩溃现象**：7.16.3 加载期闪退，真正原因（Sodium 那句又是连锁假象）：
+  ```
+  @Redirect conflict. Skipping godofthings.mixins.json:AssemblerTickMixin
+    already redirected by zifeng_ae2_skills.mixins.json:ae2.AssemblerTickMixin
+  Critical injection failure: Redirector god$overclock ... (0/2) succeeded
+  ```
+- **根因**：7.16.3 新补的 `AssemblerTickMixin` 写了 `require = 2`。当原版 `zifeng_ae2_skills` 同时在时，它在同一个调用点的 `@Redirect` 抢占优先，本模组注入被跳过，于是 `require = 2` 判定失败 → 加载期崩。**同一个坑 7.16.0 已经踩过一次，这次我又犯了。**
+- **修复**：`AssemblerTickMixin` 改为 `require = 0`；顺带把 `MolecularAssemblerSpeedMixin`（`@ModifyVariable`，同样可能被抢占）也降为 `require = 0`。
+- **这次做了真实冲突演练**：把原版 `zifeng_ae2_skills` + `zifeng_s_custom_skill_tree` 放进 gametest 的 mods 目录，**真的让两个模组共存跑一遍**，结果：
+  ```
+  @Redirect conflict. Skipping ...（4 条警告）
+  All 45 required tests passed :)
+  ```
+  冲突只产生警告、不崩溃，加载正常——这正是期望行为。
+- **当前 mixin 冲突防护状态**：所有 `@Redirect` / `@ModifyVariable` 均为 `require = 0`；剩余 `require = 1` 的只有 `@Inject`（`@Inject` 可叠加、不会因冲突被跳过，因此安全）。
+- GameTest 45 条全绿；check-lang 全绿。

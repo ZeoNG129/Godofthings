@@ -50,7 +50,7 @@ public abstract class MolecularAssemblerSpeedMixin
             at = @At("HEAD"),
             argsOnly = true,
             index = 2,
-            require = 1
+            require = 0
     )
     private int god$scaleAssemblerProgress(int base)
     {
