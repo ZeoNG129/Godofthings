@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "ae2:quartz_glass"
+    },
+    "G": {
+      "item": "godofthings:god_recipe"
+    },
+    "X": {
+      "item": "ae2:cell_component_256k"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "pattern": [
+    "CGC",
+    "GXG",
+    "CRC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "godofthings:infinity_flux_cell"
+  }
+}

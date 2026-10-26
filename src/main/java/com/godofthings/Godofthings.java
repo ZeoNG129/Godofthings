@@ -664,6 +664,13 @@ public class Godofthings
             ITEMS.registerItem("infinity_biginteger_cell",
                     props -> new com.godofthings.infinitecell.big.InfinityCellItem());
 
+    // ---- 无限 FE 存储元件（软依赖 AppFlux：装了才有，没装不注册）----
+    // 容量取 9.2E（Long.MAX_VALUE），与上面几个无限元件同档。不用普通 FE 容器是因为
+    // NeoForge 的 IEnergyStorage 是 int，装不下 9.2E；AppFlux 的 FE 元件同样走 AE2 存储元件机制。
+    public static final DeferredItem<com.godofthings.fluxcell.InfinityFluxCellItem> INFINITY_FLUX_CELL =
+            ITEMS.registerItem("infinity_flux_cell",
+                    props -> new com.godofthings.fluxcell.InfinityFluxCellItem());
+
     // ---- 神之合成 ----
     public static final DeferredBlock<GodCraftBlock> GOD_CRAFT = BLOCKS.registerBlock("god_craft",
             GodCraftBlock::new,
@@ -910,6 +917,11 @@ public class Godofthings
                         // ---- ME 无限元件 ----
                         output.accept(UNIVERSAL_CELL.get());
                         output.accept(INFINITY_BIGINTEGER_CELL.get());
+        // 无限 FE 元件：只在装了 AppFlux 时出现（软依赖）
+        if (com.godofthings.fluxcell.FluxBridge.isAvailable())
+        {
+            output.accept(INFINITY_FLUX_CELL.get());
+        }
                         // ---- 高级内存卡（移植自 Advanced Memory Card：AE2 内存卡增强版）----
                         output.accept(com.godofthings.advancedmemorycard.item.AmcItems.ADVANCED_MEMORY_CARD.get());
                         // ---- 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件 ----
@@ -1079,6 +1091,11 @@ public class Godofthings
             StorageCells.addCellHandler(UniversalCellInventory.HANDLER);
             StorageCellModels.registerModel(INFINITY_BIGINTEGER_CELL.get(), godofthingsId("block/drive/infinity_biginteger_cell"));
             StorageCellModels.registerModel(UNIVERSAL_CELL.get(), godofthingsId("block/drive/universal_cell"));
+        if (com.godofthings.fluxcell.FluxBridge.isAvailable())
+        {
+            StorageCells.addCellHandler(com.godofthings.fluxcell.InfinityFluxCellHandler.INSTANCE);
+            StorageCellModels.registerModel(INFINITY_FLUX_CELL.get(), godofthingsId("block/drive/infinity_flux_cell"));
+        }
         });
         // 神之建筑：让 AE2 认「这个物品能绑到无线访问点」（绑上后材料可以从 ME 网络里取）
         event.enqueueWork(com.godofthings.construction.ConstructionAeLink::register);

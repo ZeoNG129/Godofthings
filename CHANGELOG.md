@@ -7640,3 +7640,16 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
   冲突只产生警告、不崩溃，加载正常——这正是期望行为。
 - **当前 mixin 冲突防护状态**：所有 `@Redirect` / `@ModifyVariable` 均为 `require = 0`；剩余 `require = 1` 的只有 `@Inject`（`@Inject` 可叠加、不会因冲突被跳过，因此安全）。
 - GameTest 45 条全绿；check-lang 全绿。
+
+## 7.16.4 → 7.17.0（新增无限 FE 存储元件「无尽全能」，软依赖 AppFlux）
+
+- **新物品**：`godofthings:infinity_flux_cell`（无尽全能）—— 无限 FE 存储元件，容量与吞吐都无上限，向 AE2 报告 **9.2E**（9,223,372,036,854,775,807），与原初万象圣晶、吞噬万籁的永寂同档。
+- **为什么不用普通 FE 容器**：NeoForge 的 `IEnergyStorage` 全是 `int`（上限约 21 亿 FE），装不下 9.2E。AppFlux 的 FE 元件同样走 AE2 的 `StorageCell` 机制（用 long 记账），只在「物品 FE 能力」那一层做 int 转换；本元件照此设计（读 `IFluxCell` / `FluxCellInventory` 源码确认）。
+- **软依赖实现**：`libs/` 里没有 appflux 的 jar，且 `EnergyType` 是内部枚举、`FluxKey` 是内部类，直接 import 会在未装时类加载崩掉。新增 `FluxBridge` 用反射取 `FluxKey.of(EnergyType.FE)`，并用 `ModList.isLoaded("appflux")` + `Class.forName` 双重闸门。
+  - 装了 AppFlux：元件出现在创造栏 / 手册，可正常存 FE。
+  - 没装：元件不注册、不进创造栏，`insert`/`extract` 安全返回 0，绝不抛异常。
+- **辅助类**：`InfinityFluxCellInventory`（幻影存储：放入的 FE 不占物品数据、取出按需供应、不写 NBT）、`InfinityFluxCellItem`（闲置 8 AE/t、1 个升级槽）、`InfinityFluxCellHandler`（AE2 `ICellHandler` 扩展点）。
+- **资源**：物品模型、贴图、合成配方（石英玻璃 ×4 + 万物原石 ×4 + 256k 存储组件 + 红石块）、中英文语言键 7 个 + 手册条目。
+- **验证**：
+  - GameTest 45 条全绿；check-lang 全绿。
+  - **未装 AppFlux 的降级实测**：`appfluxLoaded=false feKey=null isCell=true invOk=true status=NOT_EMPTY idle=8.0 insertNull=0 extractNull=0` —— 说明软依赖闸门生效，元件在纯净环境不会崩。
