@@ -1,7 +1,0 @@
-{
-  "type": "godofthings:wutfree_upgrade",
-  "terminal": {
-    "item": "ae2:pattern_access_terminal"
-  },
-  "terminalName": "pattern_access"
-}

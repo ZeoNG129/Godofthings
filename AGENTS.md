@@ -10,7 +10,7 @@
 - **版本号更替规范（x.x.x）**：修复/优化 → 末位 +1（到 10 自动进位，1.3.9 → 1.4.0）；新增小物品 → 第二位 +1（末位归零）；系统性新增 → 首位 +1（→ 2.0.0）。详见 VERSIONING.md。
 
 ## 测试 / CI
-- **回归测试（共 54 条）**（11 个测试类）：`gradlew runGameTestServer`，共用 `data/godofthings/structure/gametest/note_data.nbt` 那个 1×1×1 空结构（**总数由 check-lang.ps1 与源码自动比对，改动测试后文档数字不同步会直接红**）：
+- **回归测试（共 45 条）**（10 个测试类）：`gradlew runGameTestServer`，共用 `data/godofthings/structure/gametest/note_data.nbt` 那个 1×1×1 空结构（**总数由 check-lang.ps1 与源码自动比对，改动测试后文档数字不同步会直接红**）：
   · `NoteDataGameTest`（10 条）：便签整册 NBT / 封包往返、多本与旧存档迁移、拖拽排序、自动更名、兜底 clamp、子任务结构与升降级重排、传送点 NBT；
   · `DropLootRollerGameTest`（4 条）：掉落机按原版战利品表产出、刷怪蛋入口、非生物实体返回空、装备过滤；
   · `SpawnEggHelperGameTest`（5 条）：刷怪蛋识别（原版 / 模组 ENTITY_DATA 蛋 / 坏数据拒绝）、复制保真、掉落机端到端；

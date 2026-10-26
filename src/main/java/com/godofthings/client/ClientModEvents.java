@@ -108,20 +108,6 @@ public class ClientModEvents
         event.register(com.godofthings.mept.MeptMenus.CABLE_TOOL_MENU.get(),
                 com.godofthings.mept.client.MeptCableToolScreen::new);
 
-        // 无耗能无线终端（v7.15.1 独立移植）：五块屏幕按 AE2 InitScreens 风格注册（带屏幕 JSON 路径）
-        appeng.init.client.InitScreens.register(event, com.godofthings.wt.terminals.WtCraftingMenu.TYPE,
-                com.godofthings.wt.client.WtCraftingScreen::new, "/screens/wutfree/wireless_crafting_terminal.json");
-        appeng.init.client.InitScreens.register(event, com.godofthings.wt.terminals.WtEncodingMenu.TYPE,
-                com.godofthings.wt.client.WtEncodingScreen::new,
-                "/screens/wutfree/wireless_pattern_encoding_terminal.json");
-        appeng.init.client.InitScreens.register(event, com.godofthings.wt.terminals.WtAccessMenu.TYPE,
-                com.godofthings.wt.client.WtAccessScreen::new,
-                "/screens/wutfree/wireless_pattern_access_terminal.json");
-        appeng.init.client.InitScreens.register(event, com.godofthings.wt.terminals.WtMagnetMenu.TYPE,
-                com.godofthings.wt.client.WtMagnetScreen::new, "/screens/wutfree/magnet.json");
-        appeng.init.client.InitScreens.register(event, com.godofthings.wt.terminals.WtTrashMenu.TYPE,
-                com.godofthings.wt.client.WtTrashScreen::new, "/screens/wutfree/trash.json");
-
     }
 
     @SubscribeEvent
@@ -167,9 +153,6 @@ public class ClientModEvents
         event.register(com.godofthings.wondrous.client.StretcherKeyBindings.WONDROUS_STAFF_MODE);
         event.register(com.godofthings.wondrous.client.StretcherKeyBindings.WONDROUS_STAFF_TIME_STOP);
         event.register(com.godofthings.wondrous.client.StretcherKeyBindings.TWO_I_REMOTE_RECLAIM);
-        // 无耗能通用终端（v7.15.3）：循环切换键 + 磁卡模式切换键，分类「众神之物：AE」
-        event.register(com.godofthings.wt.client.WtClientEvents.CYCLE_UNIVERSAL_TERMINAL);
-        event.register(com.godofthings.wt.client.WtClientEvents.CYCLE_MAGNET_MODE);
     }
 
     /** 荒辰移晷之杖：杖加速标记 / 时间流逝时钟 / 树叶奖励三个实体的渲染器（照抄上游 ClientSetup）。 */
