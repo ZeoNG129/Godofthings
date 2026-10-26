@@ -1,0 +1,6 @@
+{
+    "parent": "block/cube_all",
+    "textures": {
+        "all": "godofthings:block/elevator_black"
+    }
+}

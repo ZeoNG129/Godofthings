@@ -7667,3 +7667,24 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
   - `251,202,213` → `233,213,255`（高光）
   - 驱动器贴图同样处理（粉红彩灯 4 px → 紫）。
 - GameTest 45 条全绿；check-lang 全绿（物品/方块 ↔ blockstate / 模型 / 语言键全覆盖检查通过）。
+
+## 7.17.1 → 7.18.0（移植开放式电梯 ElevatorMod：16 色 + 伪装 + 传送）
+
+- **新内容**：完整移植 [ElevatorMod](https://github.com/VsnGamer/ElevatorMod)（作者 VsnGamer / 原 OpenBlocks 团队，**MIT**）。16 种颜色的电梯方块，全部排在创造栏「众神之物：方块」**最后**。
+- **核心玩法（与原版一致）**
+  - 站在电梯上按**跳跃**上行、按**潜行**下行；默认搜索半径 384 格（`godofthings-elevator.toml` 可调，范围 3~4064）。
+  - **伪装**：手持任意方块右键电梯即可伪装成它的外观；潜行右键取消伪装；空手右键打开设置界面（有方向 / 隐藏箭头 / 取消伪装 / 四向朝向按钮）。
+  - 伪装后方块的**碰撞箱、轮廓、亮度遮挡**随之改变（如伪装成台阶就能踩上半格）。
+  - 服务端强校验：必须仍站在起始电梯上（距离平方 ≤ 6）、两端同 XZ、不同 Y、目标上方不窒息、可选同色。
+- **配方保持原样（未改）**：8 个同色羊毛 + 1 个末影珍珠；改色为「任意电梯 + 对应染料」无序合成 —— 全部是原版材料，未接本模组任何材料。
+- **命名空间**：全部挂 `godofthings:` 下（`godofthings:elevator_white` 等），与上游 modid 无冲突。
+- **[本地改动] 因 API 代差未移植的部分**（上游面向的 NeoForge 比本项目 21.1.249 新）：
+  `getFriction(state,level,pos,entity)`、`getSoundType(state,level,pos,entity)`、`getLightEmission(state,level,pos)`、
+  `hasDynamicLightEmission`、`getAppearance`、`hidesNeighborFace`、`supportsExternalFaceHiding`、
+  `shouldCheckWeakPower`、`canConnectRedstone`、`collisionExtendsVertically`。
+  影响：伪装后**摩擦/音效/发光/红石直连/相邻面剔除**这几个次要属性不跟随伪装方块；核心体验（外观、碰撞、传送、设置界面）完整。
+- **验证**
+  - GameTest 45 条全绿；check-lang 全绿（110 方块 / 111 物品 / 16 个 blockstate 与模型、语言键、手册条目全覆盖）。
+  - **运行期探测实测**：`blocks=16 items=16 beValidBlock=true`、方块实体构造正常、
+    伪装判定 `validStone=true validAir=false validSelf=false validChest=false` —— 与上游规则一致。
+- **资源**：84 个文件（blockstate 16 / 方块模型 16 / 物品模型 16 / 贴图 17 / 箭头模型 1 / GUI 贴图 1 / 战利品表 16 / 音效 1）+ 32 个配方 + 29 条语言键 + 16 条手册条目。

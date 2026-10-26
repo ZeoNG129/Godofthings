@@ -869,6 +869,9 @@ public class Godofthings
                         output.accept(
                                 com.godofthings.overloadedinterface.OverloadedInterfaceRegistry
                                         .OVERLOADED_INTERFACE_ITEM.get());
+                        // 开放式电梯（移植自 ElevatorMod，MIT）：16 色全部排在「众神之物：方块」最后
+                        com.godofthings.elevator.ElevatorRegistry.ELEVATOR_ITEMS
+                                .values().forEach(item -> output.accept(item.get()));
                     })
                     .build());
 
@@ -946,6 +949,12 @@ public class Godofthings
         CREATIVE_MODE_TABS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
         MENUS.register(modEventBus);
+        // ===== 开放式电梯（移植自 ElevatorMod，MIT）：16 色方块 + 方块实体 + 菜单 + 音效 =====
+        com.godofthings.elevator.ElevatorRegistry.BLOCKS.register(modEventBus);
+        com.godofthings.elevator.ElevatorRegistry.ITEMS.register(modEventBus);
+        com.godofthings.elevator.ElevatorRegistry.BLOCK_ENTITIES.register(modEventBus);
+        com.godofthings.elevator.ElevatorRegistry.CONTAINERS.register(modEventBus);
+        com.godofthings.elevator.ElevatorRegistry.SOUNDS.register(modEventBus);
         RECIPE_SERIALIZERS.register(modEventBus);
         DATA_COMPONENTS.register(modEventBus);
         ATTACHMENT_TYPES.register(modEventBus);
@@ -955,6 +964,9 @@ public class Godofthings
         // 神之机器参数配置（矿机/资源机/掉落机，godofthings-machines.toml）
         // 显式指定文件名，避免依赖默认命名规则（默认 godofthings-server.toml）。
         modContainer.registerConfig(ModConfig.Type.SERVER, MachinesConfig.SPEC, "godofthings-machines.toml");
+        // 开放式电梯配置（同色传送 / 范围 / 经验消耗等，godofthings-elevator.toml）
+        modContainer.registerConfig(ModConfig.Type.SERVER,
+                com.godofthings.elevator.ElevatorConfig.SPEC, "godofthings-elevator.toml");
         // 客户端配置：记住配置界面上次停留的标签页（见 ClientConfig）
         modContainer.registerConfig(ModConfig.Type.CLIENT, com.godofthings.config.ClientConfig.SPEC, "godofthings-client.toml");
         // 自然罗盘的配置（移植自 Natures Compass）：搜索参数是服务端权威值，HUD 显示是纯客户端项

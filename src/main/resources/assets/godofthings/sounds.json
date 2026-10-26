@@ -6,5 +6,15 @@
       "godofthings:two_i_pat_2",
       "godofthings:two_i_pat_3"
     ]
+  },
+  "elevator_teleport": {
+    "category": "block",
+    "sounds": ["godofthings:elevator_teleport"],
+    "subtitle": "subtitles.godofthings.elevator_teleport"
+  },
+  "elevator_camouflage": {
+    "category": "block",
+    "sounds": ["mob/endermen/portal", "mob/endermen/portal2"],
+    "subtitle": "subtitles.godofthings.elevator_camouflage"
   }
 }
