@@ -28,6 +28,10 @@ import net.minecraft.world.entity.player.Inventory;
  * </ul>
  * <p>现在：面板 224×248，元素分行分列；符文按钮缩到 r=13，并且改用<b>逐行扫描填圆</b>
  * （{@link #fillCircle}）而不是 {@code fill} 矩形，圆就是圆。</p>
+ *
+ * <p><b>v7.19.0 补上「开始 / 停止」按钮</b>：服务端 {@code GodMinerMenu#clickMenuButton} 的
+ * {@code buttonId == 0} 分支一直都在（翻转 {@code running}），但界面从来没画过这个按钮，
+ * 玩家只能看到机器永远不动。按钮位置按要求取「范围读数下方、两组范围调节之间、精准采集按钮上方」。</p>
  */
 public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
 {
@@ -62,6 +66,22 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
     private static final int RUNE_R = 13;
     private static final int RUNE_Y = 126;
     private static final int[] RUNE_X = { 56, 112, 168 };
+
+    /**
+     * 开始 / 停止 按钮（v7.19.0 新增）。
+     *
+     * <p>位置按要求取「范围读数下方、左右两组范围调节之间、精准采集按钮上方」：
+     * 横向与中央读数面板 {@link #RANGE_PANEL_X} 左对齐、同宽 88。</p>
+     *
+     * <p>纵向：范围按钮左列占到 {@code 60 + 2*18 + 16 = 112}，符文按钮上沿（中心 126、半径 13）是 113；
+     * 中间只有 1px 富余，塞不下 88×20 的块。因此按<b>「中间列夹在左右两组之间」</b>的本意，
+     * 让按钮落在左右按钮的纵向跨度 {@code 60..112} 之内 —— 该区间中央列是空的（读数面板到 48 结束），
+     * 取 {@code y=68..88}，左右留 6px 呼吸、与两组范围按钮视觉齐平。</p>
+     */
+    private static final int START_BTN_X = 68;
+    private static final int START_BTN_Y = 68;
+    private static final int START_BTN_W = 88;
+    private static final int START_BTN_H = 20;
 
     /** 右侧 AE 核心（点它切换 AE 接入） */
     private static final int AE_CORE_X = 204;
@@ -118,6 +138,20 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
                     by + (RANGE_BTN_H - 8) / 2, hover ? 0xFFFFFFE0 : 0xFFD9C58A, false);
         }
 
+        // ---- 开始 / 停止 按钮（范围读数下方、夹在左右两组范围调节之间） ----
+        boolean running = be.isRunning();
+        int sbx = x + START_BTN_X;
+        int sby = y + START_BTN_Y;
+        boolean startHover = mouseX >= sbx && mouseX < sbx + START_BTN_W
+                && mouseY >= sby && mouseY < sby + START_BTN_H;
+        drawStartButton(gui, sbx, sby, running, startHover);
+        Component startLabel = Component.translatable(running
+                ? "gui.godofthings.miner.stop" : "gui.godofthings.miner.start");
+        gui.drawString(this.font, startLabel,
+                sbx + (START_BTN_W - this.font.width(startLabel)) / 2,
+                sby + (START_BTN_H - 8) / 2,
+                startHover ? 0xFFFFFFE0 : (running ? 0xFFFF9A6A : 0xFF9EF6FF), false);
+
         // ---- 3 个符文按钮 ----
         boolean fortune = be.getFortuneLevel() == 3;
         boolean silk = be.isSilkTouch();
@@ -151,6 +185,25 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         if (hover)
         {
             gui.fill(bx + 2, by + 2, bx + w - 2, by + 3, 0xFF7A8AA8);
+        }
+    }
+
+    /**
+     * 开始 / 停止 按钮外观：运行中为暖橙（提示「点它会停」），停止时为冷青（提示「点它会开始」）。
+     *
+     * <p>用几何绘制而非贴图，与旁边 {@link #drawGoldButton} / {@link #drawRuneRing} 风格一致。</p>
+     */
+    private void drawStartButton(GuiGraphics gui, int bx, int by, boolean running, boolean hover)
+    {
+        int outer = hover ? 0xFF8FA6C8 : 0xFFC8983E;
+        int inner = running
+                ? (hover ? 0xFF7A2A10 : 0xFF5E1F0C)
+                : (hover ? 0xFF10406A : 0xFF0C2A46);
+        gui.fill(bx, by, bx + START_BTN_W, by + START_BTN_H, outer);
+        gui.fill(bx + 1, by + 1, bx + START_BTN_W - 1, by + START_BTN_H - 1, inner);
+        if (hover)
+        {
+            gui.fill(bx + 1, by + 1, bx + START_BTN_W - 1, by + 2, 0xFF7A8AA8);
         }
     }
 
@@ -231,6 +284,15 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         int relY = (int) mouseY - this.topPos;
         GodMinerBlockEntity be = this.menu.getBlockEntity();
 
+        // 开始 / 停止
+        if (relX >= START_BTN_X && relX < START_BTN_X + START_BTN_W
+                && relY >= START_BTN_Y && relY < START_BTN_Y + START_BTN_H)
+        {
+            be.setRunning(!be.isRunning()); // 乐观更新，服务端权威值随 DataSlot 收敛
+            sendButton(0);
+            return true;
+        }
+
         // AE 核心
         if (isInCircle(relX, relY, AE_CORE_X, AE_CORE_Y, AE_CORE_R))
         {
@@ -304,6 +366,12 @@ public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
         {
             gui.renderTooltip(this.font,
                     Component.translatable("tooltip.godofthings.miner_accelerator"), mouseX, mouseY);
+        }
+        else if (relX >= START_BTN_X && relX < START_BTN_X + START_BTN_W
+                && relY >= START_BTN_Y && relY < START_BTN_Y + START_BTN_H)
+        {
+            gui.renderTooltip(this.font, Component.translatable(this.menu.getBlockEntity().isRunning()
+                    ? "gui.godofthings.miner.stop.tooltip" : "gui.godofthings.miner.start.tooltip"), mouseX, mouseY);
         }
         else if (isInCircle(relX, relY, AE_CORE_X, AE_CORE_Y, AE_CORE_R))
         {

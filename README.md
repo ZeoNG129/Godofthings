@@ -16,7 +16,7 @@
 ![MC](https://img.shields.io/badge/Minecraft-1.21.1-50586d?logo=minecraft&logoColor=white)
 ![NeoForge](https://img.shields.io/badge/NeoForge-21.1.249-F16436)
 ![Java](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)
-![Version](https://img.shields.io/badge/Release-v7.18.3-7c3aed)
+![Version](https://img.shields.io/badge/Release-v7.19.0-7c3aed)
 ![Tests](https://img.shields.io/badge/回归测试-45%20Passed-success)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.txt)
 

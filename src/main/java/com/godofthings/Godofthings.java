@@ -830,7 +830,9 @@ public class Godofthings
                     .title(Component.translatable("itemGroup.godofthings.god_of_things_tab"))
                     .displayItems((parameters, output) ->
                     {
-                        // ---- 工作机器 ----
+                        // ---- 工作机器：按「外形风格统一」重排（v7.19.0）----
+                        // ① 七台同为「网格机器」结构（同一套面板 / 输出槽 / 面配置），先排成连续一组，
+                        //    顺序按基础加工链：烧 → 挖 → 矿物 → 作物 → 复制 → 去皮 → 掉落 → 刷蛋
                         output.accept(GOD_FURNACE_ITEM.get());
                         output.accept(GOD_MINER_ITEM.get());
                         output.accept(GOD_ORE_MACHINE_ITEM.get());
@@ -839,13 +841,14 @@ public class Godofthings
                         output.accept(GOD_PEELER_ITEM.get());
                         output.accept(GOD_DROP_ITEM.get());
                         output.accept(GOD_SPAWN_EGG_ITEM.get());
-                        output.accept(GOD_ENCHANT_ITEM.get());
-                        output.accept(GOD_CRAFT_ITEM.get());
+                        // ② 其余五台功能机：读（余响）→ 取（吸收 / 吞噬）→ 附魔仿制（摹刻 / 附魔）
                         output.accept(GOD_TRANSMITTER_ITEM.get());
-                        output.accept(GOD_SLAUGHTER_ITEM.get());
                         output.accept(GOD_ABSORBER_ITEM.get());
                         output.accept(GOD_DEVOURER_ITEM.get());
-                        // ---- 无限样板供应器（方块 + part 两种形态 ×4 档）----
+                        output.accept(GOD_CRAFT_ITEM.get());
+                        output.accept(GOD_ENCHANT_ITEM.get());
+                        output.accept(GOD_SLAUGHTER_ITEM.get());
+                        // ③ 无限样板供应器：方块形态四档 → part 形态四档（同一系列的两种外形各自成组）
                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1_ITEM.get());
                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_ITEM.get());
                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_ITEM.get());
@@ -854,18 +857,15 @@ public class Godofthings
                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_PART_ITEM.get());
                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_PART_ITEM.get());
                         output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_PART_ITEM.get());
-                        // ---- 创造 / 特殊方块 ----
+                        // ④ 特殊方块：三维度传送方块连排 → 创造 / 终局方块 → AE 无线与接口
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
                         output.accept(VOID_TELEPORTER_ITEM.get());
                         output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
                         output.accept(SPACE_TIME_ETERNITY_ITEM.get());
                         output.accept(CREATURE_ANNIHILATION_ITEM.get());
-                        // 无用维度传送方块（奇数 / 偶数 / 三维度）
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
-                        // 无线连接器（移植自 AALink：把任意位置的 AE 设备无线并入中枢网络）
                         output.accept(com.godofthings.aalink.AaLinkRegistry.WIRELESS_CONNECTOR_ITEM.get());
-                        // 过载接口（移植自 AE2LT：36 槽 + 无线 + 导出导入 + 弹出）
                         output.accept(
                                 com.godofthings.overloadedinterface.OverloadedInterfaceRegistry
                                         .OVERLOADED_INTERFACE_ITEM.get());
@@ -894,45 +894,56 @@ public class Godofthings
                         output.accept(GOD_MEASURE.get());
                         output.accept(GOD_BLACK_BOX.get());
                         output.accept(GOD_BINDER.get());
+                        // ---- 神之套装（四件套连排，外形完全统一）----
+                        output.accept(GOD_HELMET.get());
+                        output.accept(GOD_CHESTPLATE.get());
+                        output.accept(GOD_LEGGINGS.get());
+                        output.accept(GOD_BOOTS.get());
+                        // ---- 建筑棒两件（同为长条工具，一普通一天空）----
                         output.accept(GOD_CONSTRUCTION.get());
                         output.accept(HEAVENLY_CONSTRUCTION.get());
-                        // 自然罗盘（移植自 Natures Compass，群系搜索 / 指路 / 传送）
+                        // ---- 罗盘两件（圆形仪表盘外形）----
                         output.accept(NATURES_COMPASS.get());
-                        // 探险者指南针（移植自 Explorer's Compass，结构搜索 / 指路 / 传送）
                         output.accept(EXPLORERS_COMPASS.get());
-                        // 无线连接工具（移植自 AALink）
+                        // ---- 手持神之工具：杖 / 连接 / 变身 / 测量 / 黑盒 / 装订 ----
+                        output.accept(com.godofthings.wondrous.init.WondrousItems.WONDROUS_STAFF.get());
                         output.accept(com.godofthings.aalink.AaLinkRegistry.WIRELESS_LINK_TOOL.get());
-                        // ---- 卡片 / 石板类 ----
+                        output.accept(GOD_INVITE.get());
+                        output.accept(GOD_CHANGE.get());
+                        output.accept(GOD_MEASURE.get());
+                        output.accept(GOD_BLACK_BOX.get());
+                        output.accept(GOD_BINDER.get());
+                        // ---- 卡片 / 石板类：同为薄片，放一起 ----
                         output.accept(GOD_RECIPE.get());
                         output.accept(GOD_CONFIG.get());
-                        // ---- 书页类 ----
+                        output.accept(com.godofthings.advancedmemorycard.item.AmcItems.ADVANCED_MEMORY_CARD.get());
+                        // ---- 书页类：外观同为「书」，连排 ----
                         output.accept(GOD_MANUAL.get());
                         output.accept(GOD_NOTE.get());
-                        // ---- 随身容器 ----
+                        // ---- 随身容器：同为「包 / 带」，连排 ----
                         output.accept(GOD_BACKPACK_ITEM.get());
                         output.accept(GOD_BELT.get());
-                        // ---- 升级件 ----
+                        // ---- 升级件：同为小方块升级模块，连排 ----
                         output.accept(GOD_ACCELERATOR.get());
                         output.accept(GOD_UNBREAKABLE.get());
-                        // ---- ME 无限元件 ----
+                        // ---- ME 元件：全为「元件」外形，连排 ----
                         output.accept(UNIVERSAL_CELL.get());
                         output.accept(INFINITY_BIGINTEGER_CELL.get());
-        // 无限 FE 元件：只在装了 AppFlux 时出现（软依赖）
-        if (com.godofthings.fluxcell.FluxBridge.isAvailable())
-        {
-            output.accept(INFINITY_FLUX_CELL.get());
-        }
-                        // ---- 高级内存卡（移植自 Advanced Memory Card：AE2 内存卡增强版）----
-                        output.accept(com.godofthings.advancedmemorycard.item.AmcItems.ADVANCED_MEMORY_CARD.get());
-                        // ---- 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件 ----
+                        // 无限 FE 元件：只在装了 AppFlux 时出现（软依赖）
+                        if (com.godofthings.fluxcell.FluxBridge.isAvailable())
+                        {
+                            output.accept(INFINITY_FLUX_CELL.get());
+                        }
+                        // ---- 摆设与卡片类（大件 / 异形，集中放末尾前）----
+                        // 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件
                         // 这一个物品同时是摆件的物品形态（TwoIDollItem extends BlockItem）
                         output.accept(com.godofthings.doll.init.DollRegistry.TWO_I_DOLL_ITEM.get());
-                        // ---- 超级融合卡（移植自 Mekanism-Card，软依赖：只在装了通用机械时出现）----
+                        // 超级融合卡（移植自 Mekanism-Card，软依赖：只在装了通用机械时出现）
                         if (com.godofthings.superfusion.SuperFusionRegistry.isEnabled())
                         {
                             output.accept(com.godofthings.superfusion.SuperFusionRegistry.itemOrNull());
                         }
-                        // ---- ME 放置工具三件套（移植自 ME-Placement-Tool，不耗能源版；光谱钥匙功能已内置进线缆工具）----
+                        // ---- ME 放置工具三件套：同一系列外形，连排放最后 ----
                         output.accept(com.godofthings.mept.MeptItems.ME_PLACEMENT_TOOL.get());
                         output.accept(com.godofthings.mept.MeptItems.MULTIBLOCK_PLACEMENT_TOOL.get());
                         output.accept(com.godofthings.mept.MeptItems.ME_CABLE_PLACEMENT_TOOL.get());

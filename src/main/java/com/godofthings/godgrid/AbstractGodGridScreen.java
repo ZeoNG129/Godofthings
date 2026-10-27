@@ -72,7 +72,8 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
                     GodGridLayout.COLOR_ACCEL_BORDER);
         }
 
-        // 页签：面配置（左侧）、AE / 排序（右侧）。位置固定在面板外边框上。
+        // 页签：面配置（左侧）、AE（右侧）。位置固定在面板外边框上。
+        // [v7.19.0] 按用户要求删除「排序」页签及其功能（原第 3 个页签 y+57）。
         int tabLeftX = x - 26;
         int tabRightX = x + this.imageWidth + 4;
         if (this.menu.host.gridSupportsFaceConfig())
@@ -83,9 +84,6 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
         drawTab(gui, tabRightX, y + 33, Component.literal("AE"),
                 isHovered(mouseX, mouseY, tabRightX, y + 33),
                 this.menu.isAeEnabled() ? 0xFF2F8F3F : 0xFF3A4048);
-        drawTab(gui, tabRightX, y + 57,
-                Component.translatable(GodGridSorting.modeLabelKey(this.menu.sortMode())),
-                isHovered(mouseX, mouseY, tabRightX, y + 57), 0xFF2F5F8F);
     }
 
     /** 按 spec 的槽位尺寸画一格（外框 + 内底） */
@@ -217,11 +215,6 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
             sendButton(AbstractGodGridMenu.BTN_AE_TOGGLE);
             return true;
         }
-        if (isHovered(mx, my, tabRightX, y + 57))
-        {
-            sendButton(AbstractGodGridMenu.BTN_SORT);
-            return true;
-        }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -254,11 +247,6 @@ public abstract class AbstractGodGridScreen<T extends AbstractGodGridMenu> exten
         {
             gui.renderTooltip(this.font, Component.translatable(this.menu.isAeEnabled()
                     ? "gui.godofthings.grid.ae.on" : "gui.godofthings.grid.ae.off"), mouseX, mouseY);
-        }
-        else if (isHovered(mouseX, mouseY, tabRightX, y + 57))
-        {
-            gui.renderTooltip(this.font, Component.translatable("gui.godofthings.grid.sort.tooltip",
-                    Component.translatable(GodGridSorting.modeLabelKey(this.menu.sortMode()))), mouseX, mouseY);
         }
         else if (this.layout.hasAccel && this.hoveredSlot != null && !this.hoveredSlot.hasItem()
                 && mouseX >= x + this.layout.accelX && mouseX < x + this.layout.accelX + this.layout.slot

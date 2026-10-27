@@ -19,7 +19,8 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 public class DimensionSetup
 {
     // 神之虚空重生点（脚下放置传送方块，便于重生后传送回主世界）
-    private static final BlockPos VOID_SPAWN = new BlockPos(8, 70, 8);
+    // [v7.19.0] 按用户要求起始 Y 轴从 70 下调到 64（贴近常规地面高度，进去不用再往上爬）
+    private static final BlockPos VOID_SPAWN = new BlockPos(8, 64, 8);
 
     @SubscribeEvent
     public static void onServerLevelLoad(LevelEvent.Load event)

@@ -24,10 +24,9 @@ import net.neoforged.neoforge.items.SlotItemHandler;
  */
 public abstract class AbstractGodGridMenu extends AbstractContainerMenu
 {
-    /** 服务端按钮 id（沿用熔炉既有的 6 / 10，排序新增 12） */
+    /** 服务端按钮 id（沿用熔炉既有的 6 / 10） */
     public static final int BTN_FACE_CONFIG = 6;
     public static final int BTN_AE_TOGGLE = 10;
-    public static final int BTN_SORT = 12;
 
     /**
      * 本机的界面几何（v5.30.0：每台机器一套，见 {@link GodGridLayouts}）。
@@ -44,7 +43,6 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
     protected final GodGridHost host;
     private final ContainerLevelAccess access;
     private int cachedAe;
-    private int cachedSortMode;
 
     /** 网格槽是否是自管 long 槽（六台神之机器均为 true；true 才会走数量同步与差额结算的点击逻辑） */
     private final boolean longSlots;
@@ -61,7 +59,6 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         this.host = (GodGridHost) be;
         this.access = ContainerLevelAccess.create(be.getLevel(), be.getBlockPos());
         this.cachedAe = host.gridAeEnabled() ? 1 : 0;
-        this.cachedSortMode = host.gridSortMode();
 
         // v5.30.0：按本机自己的 UI 原画取布局（每台面板尺寸/槽位排布都不同）
         this.layout = GodGridLayouts.of(host.gridLayoutId());
@@ -161,20 +158,6 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
                 cachedAe = value;
             }
         });
-        addDataSlot(new DataSlot()
-        {
-            @Override
-            public int get()
-            {
-                return host.gridSortMode();
-            }
-
-            @Override
-            public void set(int value)
-            {
-                cachedSortMode = value;
-            }
-        });
 
         // 自管 long 槽的数量同步：每个机器槽两个 DataSlot（低 16 位 / 高 15 位），客户端按
         // (high << 16) | low 重组为 long，int 上限 2,147,483,647（31 位）正好无损覆盖。
@@ -236,12 +219,6 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         return cachedAe == 1;
     }
 
-    /** 当前排序模式（0=名称 1=模组 2=数量） */
-    public int sortMode()
-    {
-        return cachedSortMode;
-    }
-
     /** 某个机器槽的真实存量（客户端已同步的精确值；-1 = 不显示） */
     public long gridAmount(int machineSlot)
     {
@@ -279,12 +256,6 @@ public abstract class AbstractGodGridMenu extends AbstractContainerMenu
         if (buttonId == BTN_AE_TOGGLE)
         {
             host.gridToggleAe();
-            broadcastChanges();
-            return true;
-        }
-        if (buttonId == BTN_SORT)
-        {
-            cachedSortMode = host.gridSortOutputs();
             broadcastChanges();
             return true;
         }
