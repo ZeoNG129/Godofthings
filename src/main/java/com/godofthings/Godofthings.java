@@ -879,18 +879,6 @@ public class Godofthings
                     .title(Component.translatable("itemGroup.godofthings.god_of_things_items_tab"))
                     .displayItems((parameters, output) ->
                     {
-                        // ---- 神之套装（四件套放一起）----
-                        output.accept(GOD_HELMET.get());
-                        output.accept(GOD_CHESTPLATE.get());
-                        output.accept(GOD_LEGGINGS.get());
-                        output.accept(GOD_BOOTS.get());
-                        // ---- 手持神之工具（外形相近，按用途排）----
-                        output.accept(com.godofthings.wondrous.init.WondrousItems.WONDROUS_STAFF.get());
-                        output.accept(GOD_INVITE.get());
-                        output.accept(GOD_CHANGE.get());
-                        output.accept(GOD_MEASURE.get());
-                        output.accept(GOD_BLACK_BOX.get());
-                        output.accept(GOD_BINDER.get());
                         // ---- 神之套装（四件套连排，外形完全统一）----
                         output.accept(GOD_HELMET.get());
                         output.accept(GOD_CHESTPLATE.get());
