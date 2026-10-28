@@ -20,7 +20,7 @@ public class TranslateHelper {
     public static class Keys {
         // 物品相关
         public static final String ITEM_PREFIX = "item." + BASE_KEY + ".";
-        public static final String ITEM_ADVANCED_MEMORY_CARD = ITEM_PREFIX + "advanced_memory_card";
+        public static final String ITEM_ADVANCED_MEMORY_CARD = ITEM_PREFIX + "ae_card";
 
         // 物品组相关
         public static final String ITEM_GROUP_PREFIX = "itemGroup." + BASE_KEY + ".";
@@ -34,7 +34,7 @@ public class TranslateHelper {
 
         // 复制模式相关
         public static final String COPY_MODE_PREFIX =
-                GUI_PREFIX + "advanced_memory_card.player.copy.";
+                GUI_PREFIX + "ae_card.player.copy.";
         public static final String COPY_MODE_SHOW = COPY_MODE_PREFIX + "show";
         public static final String COPY_MODE_FIRST_POS_MARKED =
                 COPY_MODE_PREFIX + "first_pos_marked";
@@ -45,25 +45,25 @@ public class TranslateHelper {
         public static final String COPY_MODE_ALREADY_MARKED = COPY_MODE_PREFIX + "already_marked";
         public static final String COPY_MODE_FAILED = COPY_MODE_PREFIX + "failed";
 
-        public static final String COPY_MODE_SCREEN_PREFIX = SCREEN_PREFIX + "advanced_memory_card.player.copy.";
+        public static final String COPY_MODE_SCREEN_PREFIX = SCREEN_PREFIX + "ae_card.player.copy.";
         public static final String COPY_MODE_SCREEN_START_POS = COPY_MODE_SCREEN_PREFIX + "start_pos";
         public static final String COPY_MODE_SCREEN_END_POS = COPY_MODE_SCREEN_PREFIX + "end_pos";
         public static final String COPY_MODE_SCREEN_CLEAR_TOOLTIP = COPY_MODE_SCREEN_PREFIX + "clear_tooltip";
 
-        public static final String CONFIG_MODE_SCREEN_PREFIX = SCREEN_PREFIX + "advanced_memory_card.player.config.";
+        public static final String CONFIG_MODE_SCREEN_PREFIX = SCREEN_PREFIX + "ae_card.player.config.";
         public static final String CONFIG_MODE_SCREEN_TITLE = CONFIG_MODE_SCREEN_PREFIX + "title";
         public static final String CONFIG_MODE_SCREEN_SEARCH_PLACEHOLDER = CONFIG_MODE_SCREEN_PREFIX + "search_placeholder";
         public static final String CONFIG_MODE_SCREEN_INFO = CONFIG_MODE_SCREEN_PREFIX + "info";
 
         // P2P 树控件相关
-        public static final String P2P_TREE_PREFIX = GUI_PREFIX + "advanced_memory_card.p2p_tree.";
+        public static final String P2P_TREE_PREFIX = GUI_PREFIX + "ae_card.p2p_tree.";
         public static final String P2P_TREE_EMPTY = P2P_TREE_PREFIX + "empty";
         public static final String P2P_TREE_UNKNOWN_P2P = P2P_TREE_PREFIX + "unknown_p2p";
         public static final String P2P_TREE_SEARCH_RESULTS = P2P_TREE_PREFIX + "search_results";
         public static final String P2P_TREE_SEARCH_RESULT_COUNT = P2P_TREE_PREFIX + "search_result_count";
 
         // 详情面板控件相关
-        public static final String DETAIL_PANEL_PREFIX = GUI_PREFIX + "advanced_memory_card.detail_panel.";
+        public static final String DETAIL_PANEL_PREFIX = GUI_PREFIX + "ae_card.detail_panel.";
         public static final String DETAIL_PANEL_PLACEHOLDER = DETAIL_PANEL_PREFIX + "placeholder";
         public static final String DETAIL_PANEL_NAME_LABEL = DETAIL_PANEL_PREFIX + "name";
         public static final String DETAIL_PANEL_FREQUENCY_LABEL = DETAIL_PANEL_PREFIX + "frequency";
@@ -81,7 +81,7 @@ public class TranslateHelper {
         public static final String DETAIL_PANEL_INPUT_NAME_LABEL = DETAIL_PANEL_PREFIX + "input_name";
 
         // 按钮标签
-        public static final String BUTTON_PREFIX = GUI_PREFIX + "advanced_memory_card.button.";
+        public static final String BUTTON_PREFIX = GUI_PREFIX + "ae_card.button.";
         public static final String BUTTON_RENAME = BUTTON_PREFIX + "rename";
         public static final String BUTTON_SELECT = BUTTON_PREFIX + "select";
         public static final String BUTTON_HIGHLIGHT = BUTTON_PREFIX + "highlight";
@@ -94,7 +94,7 @@ public class TranslateHelper {
         public static final String BUTTON_ASSIGN_FREQ = BUTTON_PREFIX + "assign_freq";
 
         // 状态文本
-        public static final String STATUS_PREFIX = GUI_PREFIX + "advanced_memory_card.status.";
+        public static final String STATUS_PREFIX = GUI_PREFIX + "ae_card.status.";
         public static final String STATUS_NOT_ACTIVE = STATUS_PREFIX + "not_active";
         public static final String STATUS_NOT_CONNECTED = STATUS_PREFIX + "not_connected";
         public static final String STATUS_CONNECTED = STATUS_PREFIX + "connected";
@@ -103,7 +103,7 @@ public class TranslateHelper {
         public static final String STATUS_CURRENT_SELECTED = STATUS_PREFIX + "current_selected";
 
         // 聊天消息（高亮/传送相关）
-        public static final String CHAT_PREFIX = GUI_PREFIX + "advanced_memory_card.chat.";
+        public static final String CHAT_PREFIX = GUI_PREFIX + "ae_card.chat.";
         public static final String CHAT_LOCATION_INFO = CHAT_PREFIX + "location_info";
         public static final String CHAT_CLICK_TO_TELEPORT = CHAT_PREFIX + "click_to_teleport";
         public static final String CHAT_TELEPORT_HOVER = CHAT_PREFIX + "teleport_hover";
@@ -111,11 +111,11 @@ public class TranslateHelper {
         public static final String CHAT_TELEPORT_BUTTON = CHAT_PREFIX + "teleport_button";
 
         // 配置模式相关
-        public static final String CONFIG_MODE_PREFIX = GUI_PREFIX + "advanced_memory_card.player.config.";
+        public static final String CONFIG_MODE_PREFIX = GUI_PREFIX + "ae_card.player.config.";
         public static final String CONFIG_MODE_SHOW = CONFIG_MODE_PREFIX + "show";
 
         // 工具提示相关
-        public static final String TOOLTIP_PREFIX = GUI_PREFIX + "advanced_memory_card.tooltip.";
+        public static final String TOOLTIP_PREFIX = GUI_PREFIX + "ae_card.tooltip.";
         public static final String TOOLTIP_COPY_INFO = TOOLTIP_PREFIX + "copy.info";
         public static final String TOOLTIP_COPY_FIRST_POS = TOOLTIP_PREFIX + "copy.first_pos";
         public static final String TOOLTIP_COPY_SECOND_POS = TOOLTIP_PREFIX + "copy.second_pos";

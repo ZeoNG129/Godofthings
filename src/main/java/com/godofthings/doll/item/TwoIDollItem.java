@@ -30,7 +30,7 @@ public final class TwoIDollItem extends BlockItem {
 
     @Override
     public String getDescriptionId() {
-        return "item.godofthings.two_i_doll";
+        return "item.godofthings.mugi";
     }
 
     @Override
@@ -149,16 +149,16 @@ public final class TwoIDollItem extends BlockItem {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip,
                                 TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.godofthings.two_i_doll.flavor")
+        tooltip.add(Component.translatable("tooltip.godofthings.mugi.flavor")
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
-        tooltip.add(Component.translatable("tooltip.godofthings.two_i_doll.use")
+        tooltip.add(Component.translatable("tooltip.godofthings.mugi.use")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.two_i_doll.headwear")
+        tooltip.add(Component.translatable("tooltip.godofthings.mugi.headwear")
                 .withStyle(ChatFormatting.GRAY));
         if (net.neoforged.fml.ModList.get().isLoaded("curios"))
-            tooltip.add(Component.translatable("tooltip.godofthings.two_i_doll.curios")
+            tooltip.add(Component.translatable("tooltip.godofthings.mugi.curios")
                     .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.two_i_doll.remote")
+        tooltip.add(Component.translatable("tooltip.godofthings.mugi.remote")
                 .withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, context, tooltip, flag);
     }

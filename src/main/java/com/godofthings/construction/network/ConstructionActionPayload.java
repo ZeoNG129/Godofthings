@@ -131,8 +131,8 @@ public record ConstructionActionPayload(int action, int value) implements Custom
     {
         int restored = ConstructionUndo.undo(player);
         player.displayClientMessage(restored > 0
-                ? Component.translatable("message.godofthings.god_construction.undone", restored)
-                : Component.translatable("message.godofthings.god_construction.undo_empty"), true);
+                ? Component.translatable("message.godofthings.construction_min.undone", restored)
+                : Component.translatable("message.godofthings.construction_min.undo_empty"), true);
     }
 
 }

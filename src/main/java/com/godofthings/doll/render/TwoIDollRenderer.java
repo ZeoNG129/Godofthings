@@ -24,7 +24,7 @@ public final class TwoIDollRenderer extends MobRenderer<TwoIDollEntity, TwoIDoll
     public static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath("godofthings", "textures/entity/two_i.png");
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(
-            ResourceLocation.fromNamespaceAndPath("godofthings", "two_i_doll"), "main");
+            ResourceLocation.fromNamespaceAndPath("godofthings", "mugi"), "main");
     public static final float RENDER_SCALE = 0.62F;
     public static final float FEET_Y = 24.0F;
 

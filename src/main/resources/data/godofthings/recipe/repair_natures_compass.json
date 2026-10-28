@@ -3,13 +3,13 @@
   "group": "tools",
   "ingredients": [
     {
-      "item": "godofthings:natures_compass"
+      "item": "godofthings:natures"
     },
     {
       "item": "minecraft:compass"
     }
   ],
   "result": {
-    "id": "godofthings:natures_compass"
+    "id": "godofthings:natures"
   }
 }

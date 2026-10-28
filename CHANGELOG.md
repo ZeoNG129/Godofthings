@@ -7829,3 +7829,37 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
 - **已知遗留（本次未处理，非本次引入）**：`assets/ae2/screens/godofthings_overloaded_interface.json` 引用的
   `guis/ex_interface.png` 在仓库与 git 历史中都不存在，过载接口界面背景会显示缺失贴图。
 - 方块 / 物品总数不变（110 / 111）；GameTest 45 条全绿；`check-lang` 全绿（2267 键）。
+## 7.19.0 → 7.20.0（众神之物：物品全量改名换 id + 顺序重排；吞噬机改名神之黑洞）
+
+### 1. 「众神之物：物品」32 项全部改名换 id
+- 装备：众神之头 `helmet`、众神之甲 `armor`、众神之腿 `leggings`、众神之鞋 `feet`（原 `god_helmet` / `god_chestplate` / `god_leggings` / `god_boots`）。
+- 建筑与测量：众神建筑·Min `construction_min`、众神建筑·Max `construction_max`、众神卷尺 `measure`（原 `god_construction` / `heavenly_construction` / `god_measure`）。
+- 功能类：众神连接 `connect`、众神永生 `immortality`、众神更改 `change`、众神背包 `backpack`、众神腰带 `belt`、
+  众神配置 `config`、众神黑洞 `black_hole_min`、众神便签 `note`、众神不毁 `unbreakable`、众神手册 `manual`、
+  众神加速 `accelerator`、众神起源 `recipe`。
+- 元件类：众神元件 `universal_cell`（id 不变，只改名）、众神无限 `infinity_cell`（原 `infinity_biginteger_cell`）、
+  众神FE `infinity_flux_cell`（id 不变，只改名）。
+- 集成类：众神群系 `natures`、众神结构 `explorers`、众神无线 `wireless_tool`、众神AE `ae_card`、
+  众神MEK `mek_card`、众神工具 `tool`。
+- 放置类：众神放置 `place_1`、众神放置·多方块 `place_2`、众神放置·线缆 `place_3`。
+- 紬紬 `mugi`（原 `two_i_doll`）。
+- **注意**：用户给的第 27 项写作 `godofthings:infinity_cell`，与第 26 项（众神无限）重复；已按语义把它定为
+  `infinity_flux_cell`（原来的无尽神能 / AppFlux 无限 FE 元件），否则两个物品会撞同一个 id。
+
+### 2. 吞噬机改名
+- `godofthings:devourer`（原「神之虚空」）→ **`godofthings:black_hole`（神之黑洞）**。
+  改名后「神之虚空」只剩幽冥虚无界碑一个，此前的重名问题自然消解。
+
+### 3. 「众神之物：物品」顺序按用户指定重排
+装备 4 → 建筑 Min/Max → 卷尺 → 连接 → 永生 → 更改 → 背包 → 腰带 → 配置 → 黑洞 → 便签 → 不毁 → 手册 → 加速 →
+起源 → 元件 → 无限 → FE → 群系 → 结构 → 无线 → AE → MEK → 工具 → 放置 → 放置·线缆 → 放置·多方块 → 紬紬。
+
+### 4. 顺带修的、以及需要知道的
+- **修**：上一版（7.19.0）重排时「众神之物：物品」留下了 12 项重复（套装四件 + 权杖 + 邀请函 / 变身 / 测量 / 黑盒 / 装订各出现两次），已删除。
+- **已删一张孤立贴图**：`textures/block/drive/infinity_cell.png` 原本存在但无任何模型引用，
+  而 `infinity_biginteger_cell.png` 改名为 `infinity_cell.png` 后正好要用这个名字，故删除孤立件后由后者占据该名（原文件已备份到会话临时目录）。
+- **`check-lang.ps1` 的前缀白名单**同步从 `gui.godofthings.god_change.*` 改成 `gui.godofthings.change.*`。
+- **老存档**：用旧 id 放置 / 持有的方块与物品会消失（改 id 的必然代价，未做数据迁移）。
+- 已知遗留（非本次引入）：`assets/ae2/screens/godofthings_overloaded_interface.json` 引用的 `guis/ex_interface.png` 在仓库与 git 历史中都不存在。
+
+方块 / 物品总数不变（110 / 111）；GameTest 45 条全绿；`check-lang` 全绿（2267 键）；模型 / 贴图 / blockstate 引用零断链。

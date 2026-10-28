@@ -44,14 +44,14 @@ public class GodInviteItem extends Item
             // 再次右键：取消请神，恢复可被杀死的正常状态
             target.getPersistentData().remove(MARKER_KEY);
             target.setHealth(target.getMaxHealth());
-            player.displayClientMessage(Component.translatable("message.godofthings.god_invite.remove", target.getDisplayName()), true);
+            player.displayClientMessage(Component.translatable("message.godofthings.immortality.remove", target.getDisplayName()), true);
         }
         else
         {
             // 请神：打上标记并立即回满血
             target.getPersistentData().putBoolean(MARKER_KEY, true);
             target.setHealth(target.getMaxHealth());
-            player.displayClientMessage(Component.translatable("message.godofthings.god_invite.apply", target.getDisplayName()), true);
+            player.displayClientMessage(Component.translatable("message.godofthings.immortality.apply", target.getDisplayName()), true);
         }
         return InteractionResult.SUCCESS;
     }

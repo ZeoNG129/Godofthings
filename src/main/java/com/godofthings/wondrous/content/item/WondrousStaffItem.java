@@ -55,7 +55,7 @@ public class WondrousStaffItem extends com.godofthings.beef.content.items.Endles
     @Override
     @OnlyIn(Dist.CLIENT)
     public Component getName(ItemStack stack) {
-        return Component.translatable("item.godofthings.wondrous_staff");
+        return Component.translatable("item.godofthings.tool");
     }
 
     /** Exposes the upstream tool and shears abilities while acceleration interactions stay explicit. */
@@ -124,28 +124,28 @@ public class WondrousStaffItem extends com.godofthings.beef.content.items.Endles
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
                                 TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.flavor")
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.flavor")
                 .withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.hint_ae")
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.hint_ae")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.hint_animal")
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.hint_animal")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.hint_time")
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.hint_time")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.hint_speed")
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.hint_speed")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.hint_player")
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.hint_player")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.hint_time_stop")
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.hint_time_stop")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.hint_mode",
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.hint_mode",
                         StretcherKeyBindings.WONDROUS_STAFF_MODE.getTranslatedKeyMessage())
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.hint_range")
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.hint_range")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.hint_summon")
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.hint_summon")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.godofthings.wondrous_staff.hint_loot_refresh")
+        tooltip.add(Component.translatable("tooltip.godofthings.tool.hint_loot_refresh")
                 .withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, context, tooltip, flag);
     }

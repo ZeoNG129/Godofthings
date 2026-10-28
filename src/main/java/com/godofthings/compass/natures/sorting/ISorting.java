@@ -23,6 +23,6 @@ public interface ISorting<T> extends Comparator<Biome>
     /** 下一种排序方式（环形） */
     ISorting<?> next();
 
-    /** 排序方式的名字（语言键 {@code godofthings.natures_compass.*}） */
+    /** 排序方式的名字（语言键 {@code godofthings.natures.*}） */
     String getLocalizedName();
 }

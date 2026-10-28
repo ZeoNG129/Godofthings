@@ -34,8 +34,8 @@ $prefixAllow = @(
     'gui.godofthings.dimension_config.mode.',
     'gui.godofthings.dimension_config.preview.role.',
     'gui.godofthings.backpack.sort.',
-    'gui.godofthings.god_change.time_',
-    'gui.godofthings.god_change.weather_',
+    'gui.godofthings.change.time_',
+    'gui.godofthings.change.weather_',
     # Doll (ported from useless_stretcher): runtime-concatenated prefixes.
     #   gui.godofthings.two_i.status.action.<id> / status.environment.<id> / relationship.<tier>
     #   msg.godofthings.two_i.gift.<mood>

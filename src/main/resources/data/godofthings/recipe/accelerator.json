@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XRX",
+    " G "
+  ],
+  "key": {
+    "X": { "item": "godofthings:recipe" },
+    "R": { "item": "minecraft:redstone" },
+    "G": { "item": "minecraft:gold_ingot" }
+  },
+  "result": {
+    "id": "godofthings:accelerator",
+    "count": 1
+  }
+}

@@ -29,8 +29,8 @@ import java.util.List;
  * 神之建筑 / 天神建筑：建筑棒模组的「下界合金棒」精简移植（上游 ConstructionSticks，作者 Mrbysco，MIT License；
  * AE 部分参照 Applied Construction Sticks，作者 benbenlaw）。
  *
- * <p>本类服务<b>同族两个物品</b>：神之建筑（{@code godofthings:god_construction}，品阶
- * {@link ConstructionTier#GOD}）与天神建筑（{@code godofthings:heavenly_construction}，品阶
+ * <p>本类服务<b>同族两个物品</b>：神之建筑（{@code godofthings:construction_min}，品阶
+ * {@link ConstructionTier#GOD}）与天神建筑（{@code godofthings:construction_max}，品阶
  * {@link ConstructionTier#HEAVENLY}）。两者能力完全一样，只有四个上限不同 —— 上限<b>不再是类上的常量</b>，
  * 而是按物品的品阶（{@link #getTier(ItemStack)}）取值，见 {@link ConstructionTier}。
  * 「是不是本族物品」一律用 {@link #isWand(ItemStack)} 判断，不要写成
@@ -295,9 +295,9 @@ public class GodConstructionItem extends Item
     {
         return switch (mode)
         {
-            case MODE_DESTROY -> Component.translatable("message.godofthings.god_construction.mode_destroy");
-            case MODE_REPLACE -> Component.translatable("message.godofthings.god_construction.mode_replace");
-            default -> Component.translatable("message.godofthings.god_construction.mode_build");
+            case MODE_DESTROY -> Component.translatable("message.godofthings.construction_min.mode_destroy");
+            case MODE_REPLACE -> Component.translatable("message.godofthings.construction_min.mode_replace");
+            default -> Component.translatable("message.godofthings.construction_min.mode_build");
         };
     }
 

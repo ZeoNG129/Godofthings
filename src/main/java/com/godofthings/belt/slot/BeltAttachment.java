@@ -53,7 +53,7 @@ public class BeltAttachment implements INBTSerializable<CompoundTag>
     ////////////////////////////////////////////////////////////
     // Capability support code
     //
-    // [本地改动] 附件类型（god_belt）的 DeferredRegister 并入 Godofthings.ATTACHMENT_TYPES，
+    // [本地改动] 附件类型（belt）的 DeferredRegister 并入 Godofthings.ATTACHMENT_TYPES，
     // 这里只保留事件接线（存档 / 掉落 / 死亡复制 / 每 tick 处理）。
 
     public static void registerEvents()

@@ -1275,7 +1275,7 @@ public final class TwoIDollEntity extends PathfinderMob {
 
     @Override
     public Component getName() {
-        return Component.translatable("entity.godofthings.two_i_doll");
+        return Component.translatable("entity.godofthings.mugi");
     }
 
     private static final class ItemStackFactory {

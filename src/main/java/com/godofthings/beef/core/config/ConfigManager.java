@@ -838,7 +838,7 @@ public class ConfigManager {
         items.add("ae2:crafting_terminal,1");
 
         if (ModList.get().isLoaded("extendedae_plus")) {
-            items.add("extendedae_plus:infinity_biginteger_cell,1");
+            items.add("extendedae_plus:infinity_cell,1");
         } else {
             items.add("ae2:item_storage_cell_256k,8");
         }
@@ -1177,8 +1177,8 @@ public class ConfigManager {
     }
 
     private static void replaceLegacyAE2GiftStorageCells(List<String> entries) {
-        String replacement = "extendedae_plus:infinity_biginteger_cell,1";
-        if (containsAE2GiftItem(entries, "extendedae_plus:infinity_biginteger_cell")) {
+        String replacement = "extendedae_plus:infinity_cell,1";
+        if (containsAE2GiftItem(entries, "extendedae_plus:infinity_cell")) {
             return;
         }
 

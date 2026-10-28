@@ -41,7 +41,7 @@ public class InfinityCellItem extends Item implements ICellWorkbenchItem
     public void appendHoverText(ItemStack stack, TooltipContext context,
             List<Component> tooltip, TooltipFlag tooltipFlag)
     {
-        // 题词 / 基础介绍 / Shift 明细统一由 GodTooltipHandler 注入（键名按注册名 infinity_biginteger_cell），
+        // 题词 / 基础介绍 / Shift 明细统一由 GodTooltipHandler 注入（键名按注册名 infinity_cell），
         // 这里只负责「带数据的实例」才有的动态摘要（UUID / 类型数 / 总量）。
         // 只在 ItemStack 自身带 UUID 时才显示摘要，避免触发持久化或加载逻辑
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);

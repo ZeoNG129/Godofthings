@@ -39,6 +39,6 @@ public class DimensionSorting implements ISorting
     @Override
     public String getLocalizedName()
     {
-        return I18n.get("godofthings.explorers_compass.dimension");
+        return I18n.get("godofthings.explorers.dimension");
     }
 }

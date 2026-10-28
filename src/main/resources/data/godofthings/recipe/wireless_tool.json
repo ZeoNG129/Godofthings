@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WEW",
+    "ECE",
+    "WPW"
+  ],
+  "key": {
+    "W": { "item": "ae2:wireless_receiver" },
+    "E": { "item": "minecraft:ender_pearl" },
+    "C": { "item": "ae2:advanced_card" },
+    "P": { "item": "ae2:engineering_processor" }
+  },
+  "result": {
+    "count": 1,
+    "id": "godofthings:wireless_tool"
+  }
+}

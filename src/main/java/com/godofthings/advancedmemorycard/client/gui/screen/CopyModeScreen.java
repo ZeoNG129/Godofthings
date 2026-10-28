@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 
 /**
- * 采用ae2界面，样式文件定义于ae2/guis/advanced_memory_card.json
+ * 采用ae2界面，样式文件定义于ae2/guis/ae_card.json
  *
  */
 

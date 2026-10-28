@@ -16,7 +16,7 @@ import java.util.List;
  * 的配方改成「神之配方 + 若干材料」时，只需动 datapack 里的 recipe json，不用改代码。</p>
  *
  * <p>获取：有序合成 —— 铁锭 / 铜锭 / 金锭 / 钻石 / 下界合金锭 / 绿宝石 / 红石 /
- * 青金石 / 煤炭 各一个摆满 3×3（见 {@code data/godofthings/recipe/god_recipe.json}）。</p>
+ * 青金石 / 煤炭 各一个摆满 3×3（见 {@code data/godofthings/recipe/recipe.json}）。</p>
  */
 public class GodRecipeItem extends Item
 {

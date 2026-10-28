@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:recipe" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:string" },
+    { "item": "minecraft:string" },
+    { "item": "minecraft:string" },
+    { "item": "minecraft:iron_ingot" }
+  ],
+  "result": {
+    "id": "godofthings:belt",
+    "count": 1
+  }
+}

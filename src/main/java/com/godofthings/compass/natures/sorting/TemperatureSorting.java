@@ -32,6 +32,6 @@ public class TemperatureSorting implements ISorting<Float>
     @Override
     public String getLocalizedName()
     {
-        return I18n.get("godofthings.natures_compass.temperature");
+        return I18n.get("godofthings.natures.temperature");
     }
 }

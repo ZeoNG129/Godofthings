@@ -32,7 +32,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 
 public class ToolBeltLayer<T extends LivingEntity, M extends HumanoidModel<T>> extends RenderLayer<T, M>
 {
-    private static final ResourceLocation TEXTURE_BELT = BeltRegistration.location("textures/entity/god_belt.png");
+    private static final ResourceLocation TEXTURE_BELT = BeltRegistration.location("textures/entity/belt.png");
     private static final ResourceLocation TEXTURE_BELT_DYED = BeltRegistration.location("textures/entity/god_belt_dyed.png");
 
     // [本地改动] 上游给 ItemDisplayContext 注册了两个自定义枚举值（TOOLBELT_LEFTSIDE / RIGHTSIDE，靠

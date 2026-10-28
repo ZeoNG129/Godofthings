@@ -42,7 +42,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class NaturesCompassItem extends Item
 {
     /** 物品注册名（注册时用，见 {@link Godofthings#NATURES_COMPASS}） */
-    public static final String NAME = "natures_compass";
+    public static final String NAME = "natures";
 
     /** 当前正在跑的搜索（一个物品实例同时只跑一个；换目标会先 stop 旧的） */
     private BiomeSearchWorker worker;

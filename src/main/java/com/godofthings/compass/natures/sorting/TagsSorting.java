@@ -38,6 +38,6 @@ public class TagsSorting implements ISorting<String>
     @Override
     public String getLocalizedName()
     {
-        return I18n.get("godofthings.natures_compass.tags");
+        return I18n.get("godofthings.natures.tags");
     }
 }

@@ -104,7 +104,7 @@ public class GodConfigItem extends Item
                 machine.getFaceModesSnapshot(), machine.isAeEnabled(), machine.acceleratorCount());
         stack.set(Godofthings.GOD_CONFIG_DATA.get(), data);
         player.displayClientMessage(
-                Component.translatable("message.godofthings.god_config.saved", state.getBlock().getName()), true);
+                Component.translatable("message.godofthings.config.saved", state.getBlock().getName()), true);
     }
 
     /** 粘贴：先校验机器类型，再写回六面模式 / AE 开关，最后补神之加速 */
@@ -115,7 +115,7 @@ public class GodConfigItem extends Item
         if (data == null || !data.hasData())
         {
             player.displayClientMessage(
-                    Component.translatable("message.godofthings.god_config.no_data"), true);
+                    Component.translatable("message.godofthings.config.no_data"), true);
             return;
         }
         BlockState state = level.getBlockState(pos);
@@ -123,7 +123,7 @@ public class GodConfigItem extends Item
         if (!currentId.equals(data.blockId()))
         {
             player.displayClientMessage(
-                    Component.translatable("message.godofthings.god_config.wrong_machine"), true);
+                    Component.translatable("message.godofthings.config.wrong_machine"), true);
             return;
         }
 
@@ -163,12 +163,12 @@ public class GodConfigItem extends Item
         if (need > 0 && added < need)
         {
             player.displayClientMessage(Component.translatable(
-                    "message.godofthings.god_config.accel_short", need, added), true);
+                    "message.godofthings.config.accel_short", need, added), true);
         }
         else
         {
             player.displayClientMessage(
-                    Component.translatable("message.godofthings.god_config.applied", state.getBlock().getName()), true);
+                    Component.translatable("message.godofthings.config.applied", state.getBlock().getName()), true);
         }
     }
 

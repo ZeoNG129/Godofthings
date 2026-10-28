@@ -26,7 +26,7 @@ public final class StaffEntityFilters
         ResourceLocation id = BuiltInRegistries.ENTITY_TYPE.getKey(type);
         if (id == null) return false;
         // 本模组的紬紬玩偶（不可被加速 / 不可被吞）
-        if ("godofthings".equals(id.getNamespace()) && id.getPath().startsWith("two_i_doll")) return true;
+        if ("godofthings".equals(id.getNamespace()) && id.getPath().startsWith("mugi")) return true;
         // 随杖移植的范围锚点
         if (entity instanceof com.godofthings.wondrous.content.entity.TimeFlowEntity) return true;
         // 随杖移植的加速标记 / 叶奖励实体

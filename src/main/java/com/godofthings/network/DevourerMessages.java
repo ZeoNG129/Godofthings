@@ -56,7 +56,7 @@ public class DevourerMessages
                 {
                     serverPlayer.openMenu(new SimpleMenuProvider(
                             (id, inv, player) -> new GodDevourerMenu(id, inv),
-                            Component.translatable("gui.godofthings.devourer.title")));
+                            Component.translatable("gui.godofthings.black_hole.title")));
                 }
             });
         }

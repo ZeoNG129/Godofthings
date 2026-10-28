@@ -105,7 +105,7 @@ public final class ConstructionActions
         if (clickedState.isAir() || new ItemStack(clickedState.getBlock().asItem()).isEmpty())
         {
             player.displayClientMessage(
-                    Component.translatable("message.godofthings.god_construction.no_block"), true);
+                    Component.translatable("message.godofthings.construction_min.no_block"), true);
             return;
         }
 
@@ -422,7 +422,7 @@ public final class ConstructionActions
         {
             // 副手不是方块（空手也算）：提示一下，别让玩家以为物品坏了
             player.displayClientMessage(
-                    Component.translatable("message.godofthings.god_construction.need_offhand"), true);
+                    Component.translatable("message.godofthings.construction_min.need_offhand"), true);
             return;
         }
 

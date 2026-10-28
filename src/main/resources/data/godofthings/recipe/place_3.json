@@ -1,0 +1,30 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "key": {
+        "D": {
+            "tag": "ae2:smart_dense_cable"
+        },
+        "R": {
+            "item": "ae2:color_applicator"
+        },
+        "W": {
+            "item": "ae2:wireless_terminal"
+        },
+        "N": {
+            "item": "ae2:dense_energy_cell"
+        },
+        "S": {
+            "item": "minecraft:stick"
+        }
+    },
+    "pattern": [
+        " DR",
+        " WN",
+        "S  "
+    ],
+    "result": {
+        "count": 1,
+        "id": "godofthings:place_3"
+    }
+}

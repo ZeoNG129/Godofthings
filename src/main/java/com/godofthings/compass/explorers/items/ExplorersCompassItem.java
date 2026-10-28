@@ -48,7 +48,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class ExplorersCompassItem extends Item
 {
     /** 物品注册名（注册时用，见 {@link Godofthings#EXPLORERS_COMPASS}） */
-    public static final String NAME = "explorers_compass";
+    public static final String NAME = "explorers";
 
     /** 当前正在跑的搜索（一个物品实例同时只跑一个；换目标会先 stop 旧的） */
     private final SearchWorkerManager workerManager;

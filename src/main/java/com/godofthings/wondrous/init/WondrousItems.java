@@ -21,7 +21,7 @@ public final class WondrousItems
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Godofthings.MODID);
 
     public static final DeferredItem<WondrousStaffItem> WONDROUS_STAFF =
-            ITEMS.register("wondrous_staff", WondrousStaffItem::new);
+            ITEMS.register("tool", WondrousStaffItem::new);
 
     private WondrousItems()
     {

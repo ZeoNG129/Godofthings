@@ -68,7 +68,7 @@ public class GodDevourerBlockEntity extends BlockEntity implements MenuProvider
     @Override
     public Component getDisplayName()
     {
-        return Component.translatable("block.godofthings.devourer");
+        return Component.translatable("block.godofthings.black_hole");
     }
 
     @Nullable

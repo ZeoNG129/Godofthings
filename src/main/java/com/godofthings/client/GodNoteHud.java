@@ -40,7 +40,7 @@ public final class GodNoteHud
     private GodNoteHud() {}
 
     private static final ResourceLocation LAYER_ID =
-            ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "god_note");
+            ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "note");
 
     // ---- 版面常量（均为「未缩放」像素） ----
     private static final int PAD = 5;

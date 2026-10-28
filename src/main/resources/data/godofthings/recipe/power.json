@@ -7,7 +7,7 @@
     "XXX"
   ],
   "key": {
-    "X": { "item": "godofthings:god_recipe" },
+    "X": { "item": "godofthings:recipe" },
     "N": { "item": "minecraft:nether_star" }
   },
   "result": {

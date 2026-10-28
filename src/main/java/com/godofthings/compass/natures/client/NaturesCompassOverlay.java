@@ -49,29 +49,29 @@ public class NaturesCompassOverlay implements LayeredDraw.Layer
         CompassState state = compass.getState(stack);
         if (state == CompassState.SEARCHING)
         {
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.status"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.status"), 5, 5,
                     0xFFFFFF, 0);
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.searching"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.searching"), 5, 5,
                     0xAAAAAA, 1);
 
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.biome"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.biome"), 5, 5,
                     0xFFFFFF, 3);
             RenderUtils.drawConfiguredStringOnHUD(guiGraphics,
                     BiomeDisplay.getBiomeName(MC.level, compass.getBiomeKey(stack)), 5, 5, 0xAAAAAA, 4);
 
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.radius"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.radius"), 5, 5,
                     0xFFFFFF, 6);
             RenderUtils.drawConfiguredStringOnHUD(guiGraphics, String.valueOf(compass.getSearchRadius(stack)), 5, 5,
                     0xAAAAAA, 7);
         }
         else if (state == CompassState.FOUND)
         {
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.status"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.status"), 5, 5,
                     0xFFFFFF, 0);
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.found"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.found"), 5, 5,
                     0xAAAAAA, 1);
 
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.biome"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.biome"), 5, 5,
                     0xFFFFFF, 3);
             RenderUtils.drawConfiguredStringOnHUD(guiGraphics,
                     BiomeDisplay.getBiomeName(MC.level, compass.getBiomeKey(stack)), 5, 5, 0xAAAAAA, 4);
@@ -79,34 +79,34 @@ public class NaturesCompassOverlay implements LayeredDraw.Layer
             if (compass.shouldDisplayCoordinates(stack))
             {
                 RenderUtils.drawConfiguredStringOnHUD(guiGraphics,
-                        I18n.get("godofthings.natures_compass.coordinates"), 5, 5, 0xFFFFFF, 6);
+                        I18n.get("godofthings.natures.coordinates"), 5, 5, 0xFFFFFF, 6);
                 RenderUtils.drawConfiguredStringOnHUD(guiGraphics,
                         compass.getFoundBiomeX(stack) + ", " + compass.getFoundBiomeZ(stack), 5, 5, 0xAAAAAA, 7);
 
                 RenderUtils.drawConfiguredStringOnHUD(guiGraphics,
-                        I18n.get("godofthings.natures_compass.distance"), 5, 5, 0xFFFFFF, 9);
+                        I18n.get("godofthings.natures.distance"), 5, 5, 0xFFFFFF, 9);
                 RenderUtils.drawConfiguredStringOnHUD(guiGraphics,
                         String.valueOf(compass.getDistanceToBiome(player, stack)), 5, 5, 0xAAAAAA, 10);
             }
         }
         else if (state == CompassState.NOT_FOUND)
         {
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.status"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.status"), 5, 5,
                     0xFFFFFF, 0);
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.notFound"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.notFound"), 5, 5,
                     0xAAAAAA, 1);
 
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.biome"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.biome"), 5, 5,
                     0xFFFFFF, 3);
             RenderUtils.drawConfiguredStringOnHUD(guiGraphics,
                     BiomeDisplay.getBiomeName(MC.level, compass.getBiomeKey(stack)), 5, 5, 0xAAAAAA, 4);
 
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.radius"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.radius"), 5, 5,
                     0xFFFFFF, 6);
             RenderUtils.drawConfiguredStringOnHUD(guiGraphics, String.valueOf(compass.getSearchRadius(stack)), 5, 5,
                     0xAAAAAA, 7);
 
-            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures_compass.samples"), 5, 5,
+            RenderUtils.drawConfiguredStringOnHUD(guiGraphics, I18n.get("godofthings.natures.samples"), 5, 5,
                     0xFFFFFF, 9);
             RenderUtils.drawConfiguredStringOnHUD(guiGraphics, String.valueOf(compass.getSamples(stack)), 5, 5,
                     0xAAAAAA, 10);

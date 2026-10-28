@@ -44,7 +44,7 @@ public final class BiomeDisplay
      * 群系的「标签 / 类别」（从 {@code is_*} 系列标签反推，如 {@code is_forest} → 森林）。
      *
      * <p>{@code is_overworld} 一律忽略：部分主世界群系有、部分没有，显示出来只会干扰。
-     * 没找到任何类别时返回「无」（{@code godofthings.natures_compass.none}）。</p>
+     * 没找到任何类别时返回「无」（{@code godofthings.natures.none}）。</p>
      */
     public static String getBiomeTags(Level level, Biome biome)
     {
@@ -93,7 +93,7 @@ public final class BiomeDisplay
         }
         if (biomeCategories.isEmpty())
         {
-            biomeCategories.add(I18n.get("godofthings.natures_compass.none"));
+            biomeCategories.add(I18n.get("godofthings.natures.none"));
         }
         return String.join(", ", biomeCategories);
     }

@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 超级融合卡（移植自 Mekanism-Card 的 {@code super_fusion_card}）。
+ * 超级融合卡（移植自 Mekanism-Card 的 {@code mek_card}）。
  * <p>
  * 一张卡把上游四个物品的能力合在一起，用「融合模式」切换：
  * <ul>

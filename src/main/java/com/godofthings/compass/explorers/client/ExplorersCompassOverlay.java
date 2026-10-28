@@ -76,25 +76,25 @@ public class ExplorersCompassOverlay implements LayeredDraw.Layer
             Player player, CompassState state)
     {
         // 公共状态信息
-        renderLinePair(guiGraphics, "godofthings.explorers_compass.status", I18n.get(getStatusKey(state)), 0);
-        renderLinePair(guiGraphics, "godofthings.explorers_compass.structure",
+        renderLinePair(guiGraphics, "godofthings.explorers.status", I18n.get(getStatusKey(state)), 0);
+        renderLinePair(guiGraphics, "godofthings.explorers.structure",
                 StructureDisplay.getPrettyStructureName(compass.getStructureKey(stack)), 3);
 
         // 状态特定信息
         switch (state)
         {
             case SEARCHING, NOT_FOUND ->
-                    renderLinePair(guiGraphics, "godofthings.explorers_compass.radius",
+                    renderLinePair(guiGraphics, "godofthings.explorers.radius",
                             String.valueOf(compass.getSearchRadius(stack)), 6);
             case FOUND ->
             {
                 if (compass.shouldDisplayCoordinates(stack))
                 {
                     String coords = compass.getFoundStructureX(stack) + ", " + compass.getFoundStructureZ(stack);
-                    renderLinePair(guiGraphics, "godofthings.explorers_compass.coordinates", coords, 6);
+                    renderLinePair(guiGraphics, "godofthings.explorers.coordinates", coords, 6);
                     int distance = StructureUtils.getHorizontalDistanceToLocation(player,
                             compass.getFoundStructureX(stack), compass.getFoundStructureZ(stack));
-                    renderLinePair(guiGraphics, "godofthings.explorers_compass.distance",
+                    renderLinePair(guiGraphics, "godofthings.explorers.distance",
                             String.valueOf(distance), 9);
                 }
             }
@@ -113,7 +113,7 @@ public class ExplorersCompassOverlay implements LayeredDraw.Layer
             return;
         }
 
-        renderLine(guiGraphics, I18n.get("godofthings.explorers_compass.have_searched"), HISTORY_X, 0, TITLE_COLOR);
+        renderLine(guiGraphics, I18n.get("godofthings.explorers.have_searched"), HISTORY_X, 0, TITLE_COLOR);
         renderSearchRecord(guiGraphics, compass, stack, 1, 1);
 
         if (searchedTimes >= 2)
@@ -133,7 +133,7 @@ public class ExplorersCompassOverlay implements LayeredDraw.Layer
 
         renderLine(guiGraphics, StructureDisplay.getPrettyStructureName(structureKey), HISTORY_X, lineOffset,
                 CONTENT_COLOR);
-        String result = found ? (xCoord + ", " + zCoord) : I18n.get("godofthings.explorers_compass.notFound");
+        String result = found ? (xCoord + ", " + zCoord) : I18n.get("godofthings.explorers.notFound");
         renderLine(guiGraphics, result, HISTORY_X, lineOffset + 1, CONTENT_COLOR);
     }
 
@@ -152,10 +152,10 @@ public class ExplorersCompassOverlay implements LayeredDraw.Layer
     {
         return switch (state)
         {
-            case SEARCHING -> "godofthings.explorers_compass.searching";
-            case FOUND -> "godofthings.explorers_compass.found";
-            case NOT_FOUND -> "godofthings.explorers_compass.notFound";
-            default -> "godofthings.explorers_compass.inactive";
+            case SEARCHING -> "godofthings.explorers.searching";
+            case FOUND -> "godofthings.explorers.found";
+            case NOT_FOUND -> "godofthings.explorers.notFound";
+            default -> "godofthings.explorers.inactive";
         };
     }
 }

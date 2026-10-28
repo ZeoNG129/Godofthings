@@ -13,7 +13,7 @@ import net.neoforged.neoforge.server.permission.PermissionAPI;
 /**
  * 「这个玩家能不能传送过去」的判定（移植自 Natures Compass 3.4.0，作者 ChaosTheDude，CC BY-NC-SA 4.0）。
  *
- * <p>三种任一即可：单人存档开了作弊 / 是 OP / 有权限节点 {@code godofthings.natures_compass.teleport}。</p>
+ * <p>三种任一即可：单人存档开了作弊 / 是 OP / 有权限节点 {@code godofthings.natures.teleport}。</p>
  */
 public final class PlayerUtils
 {

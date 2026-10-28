@@ -134,7 +134,7 @@ public final class NaturesCompassClient
     public static void registerOverlay(RegisterGuiLayersEvent event)
     {
         event.registerAbove(VanillaGuiLayers.BOSS_OVERLAY,
-                ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "natures_compass"),
+                ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "natures"),
                 new NaturesCompassOverlay());
     }
 }

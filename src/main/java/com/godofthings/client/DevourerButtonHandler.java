@@ -26,10 +26,10 @@ public class DevourerButtonHandler
             int x = inv.getGuiLeft();
             int y = inv.getGuiTop() + 166;
             Button button = Button.builder(
-                            Component.translatable("gui.godofthings.devourer.button"),
+                            Component.translatable("gui.godofthings.black_hole.button"),
                             b -> DevourerMessages.sendOpen())
                     .bounds(x, y, 20, 20)
-                    .tooltip(Tooltip.create(Component.translatable("block.godofthings.devourer")))
+                    .tooltip(Tooltip.create(Component.translatable("block.godofthings.black_hole")))
                     .build();
             event.addListener(button);
         }

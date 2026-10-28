@@ -3,8 +3,8 @@ package com.godofthings.construction;
 /**
  * 建筑棒的品阶：四个上限按品阶取值。
  *
- * <p>{@link #GOD} 是神之建筑（{@code godofthings:god_construction}），数值与改造前完全一致；
- * {@link #HEAVENLY} 是天神建筑（{@code godofthings:heavenly_construction}），四个上限全部取
+ * <p>{@link #GOD} 是神之建筑（{@code godofthings:construction_min}），数值与改造前完全一致；
+ * {@link #HEAVENLY} 是天神建筑（{@code godofthings:construction_max}），四个上限全部取
  * {@code Integer.MAX_VALUE}。</p>
  *
  * <p><b>为什么 int 上限就等于「实际无限」：</b>本模组自己的 BFS 从来没有「先圈一片再执行」的中间集合，

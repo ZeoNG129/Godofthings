@@ -44,7 +44,7 @@ public class GodConstructionScreen extends Screen
 
     public GodConstructionScreen()
     {
-        super(Component.translatable("screen.godofthings.god_construction.title"));
+        super(Component.translatable("screen.godofthings.construction_min.title"));
     }
 
     /** 客户端打开界面的唯一入口（从物品的 use() 里调） */
@@ -63,31 +63,31 @@ public class GodConstructionScreen extends Screen
         int colW = 61;
 
         this.buildButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("button.godofthings.god_construction.build"),
+                        Component.translatable("button.godofthings.construction_min.build"),
                         b -> changeMode(GodConstructionItem.MODE_BUILD))
                 .bounds(left, cy + 34, colW, BTN_H).build());
         this.destroyButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("button.godofthings.god_construction.destroy"),
+                        Component.translatable("button.godofthings.construction_min.destroy"),
                         b -> changeMode(GodConstructionItem.MODE_DESTROY))
                 .bounds(left + colW + GAP, cy + 34, colW, BTN_H).build());
         this.replaceButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("button.godofthings.god_construction.replace"),
+                        Component.translatable("button.godofthings.construction_min.replace"),
                         b -> changeMode(GodConstructionItem.MODE_REPLACE))
                 .bounds(left + (colW + GAP) * 2, cy + 34, colW, BTN_H).build());
 
         // 两个开关按钮（文字后面拼 on / off）
         this.previewButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("button.godofthings.god_construction.preview"),
+                        Component.translatable("button.godofthings.construction_min.preview"),
                         b -> togglePreview())
                 .bounds(left, cy + 62, 94, BTN_H).build());
         this.similarButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("button.godofthings.god_construction.similar"),
+                        Component.translatable("button.godofthings.construction_min.similar"),
                         b -> toggleSimilar())
                 .bounds(left + 98, cy + 62, 94, BTN_H).build());
 
         // 撤销（按钮上不显示剩余次数，按一次撤一步）
         this.undoButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("button.godofthings.god_construction.undo"),
+                        Component.translatable("button.godofthings.construction_min.undo"),
                         b -> undo())
                 .bounds(left, cy + 90, 192, BTN_H).build());
 
@@ -162,17 +162,17 @@ public class GodConstructionScreen extends Screen
     {
         ItemStack wand = wandStack();
         this.buildButton.setMessage(modeLabel(wand, GodConstructionItem.MODE_BUILD,
-                Component.translatable("button.godofthings.god_construction.build")));
+                Component.translatable("button.godofthings.construction_min.build")));
         this.destroyButton.setMessage(modeLabel(wand, GodConstructionItem.MODE_DESTROY,
-                Component.translatable("button.godofthings.god_construction.destroy")));
+                Component.translatable("button.godofthings.construction_min.destroy")));
         this.replaceButton.setMessage(modeLabel(wand, GodConstructionItem.MODE_REPLACE,
-                Component.translatable("button.godofthings.god_construction.replace")));
+                Component.translatable("button.godofthings.construction_min.replace")));
 
         this.previewButton.setMessage(toggleLabel(
-                Component.translatable("button.godofthings.god_construction.preview"),
+                Component.translatable("button.godofthings.construction_min.preview"),
                 !wand.isEmpty() && GodConstructionItem.isPreviewEnabled(wand)));
         this.similarButton.setMessage(toggleLabel(
-                Component.translatable("button.godofthings.god_construction.similar"),
+                Component.translatable("button.godofthings.construction_min.similar"),
                 !wand.isEmpty() && GodConstructionItem.isSimilarEnabled(wand)));
     }
 
@@ -192,8 +192,8 @@ public class GodConstructionScreen extends Screen
     private static Component toggleLabel(Component label, boolean on)
     {
         Component state = on
-                ? Component.translatable("option.godofthings.god_construction.on")
-                : Component.translatable("option.godofthings.god_construction.off");
+                ? Component.translatable("option.godofthings.construction_min.on")
+                : Component.translatable("option.godofthings.construction_min.off");
         return label.copy().append(" ").append(state);
     }
 

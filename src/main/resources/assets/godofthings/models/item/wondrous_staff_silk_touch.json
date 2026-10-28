@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "godofthings:item/wondrous_staff"
+    "layer0": "godofthings:item/tool"
   }
 }

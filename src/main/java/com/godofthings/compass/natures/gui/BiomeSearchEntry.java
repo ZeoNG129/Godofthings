@@ -85,7 +85,7 @@ public class BiomeSearchEntry extends ObjectSelectionList.Entry<BiomeSearchEntry
                 || parentScreen.getSortingCategory() instanceof TagsSorting
                 || parentScreen.getSortingCategory() instanceof DimensionSorting)
         {
-            title = I18n.get("godofthings.natures_compass.dimension");
+            title = I18n.get("godofthings.natures.dimension");
             if (biomeId != null)
             {
                 value = BiomeDisplay.dimensionKeysToString(
@@ -113,7 +113,7 @@ public class BiomeSearchEntry extends ObjectSelectionList.Entry<BiomeSearchEntry
             maxTextWidth = width - itemHeight - 5;
         }
 
-        String tagsLine = I18n.get("godofthings.natures_compass.tags") + ": " + tags;
+        String tagsLine = I18n.get("godofthings.natures.tags") + ": " + tags;
         if (mc.font.width(tagsLine) > maxTextWidth)
         {
             tagsLine = mc.font.plainSubstrByWidth(tagsLine + "...", maxTextWidth) + "...";
@@ -128,7 +128,7 @@ public class BiomeSearchEntry extends ObjectSelectionList.Entry<BiomeSearchEntry
         guiGraphics.drawString(mc.font, Component.literal(tagsLine), left + 5,
                 top + (height / 2) + ((mc.font.lineHeight + 2) * 0), infoColor);
         guiGraphics.drawString(mc.font,
-                Component.translatable("godofthings.natures_compass.source")
+                Component.translatable("godofthings.natures.source")
                         .append(Component.literal(": " + BiomeDisplay.getBiomeSource(parentScreen.level, biome))),
                 left + 5, top + (height / 2) + ((mc.font.lineHeight + 2)), infoColor);
     }

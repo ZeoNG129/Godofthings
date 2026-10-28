@@ -33,7 +33,7 @@ public final class SuperFusionRegistry
         }
         initialized = true;
         superFusionItem = com.godofthings.Godofthings.ITEMS.registerItem(
-                "super_fusion_card", props -> new SuperFusionItem());
+                "mek_card", props -> new SuperFusionItem());
         // AE2 无线访问点绑定：注册成 GridLinkable 后，把卡放进 ME 无线访问点 Shift+右键即可绑定，
         // 之后装升级/装安装器的材料可以直接从 ME 网络里扣（照抄上游 UltimateInstallerLinkableHandler）。
         // 必须等 RegisterEvent（物品已入表）才能调 superFusionItem.get()，构造阶段取会 NPE，

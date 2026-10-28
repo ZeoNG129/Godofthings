@@ -47,10 +47,10 @@ public final class AaLinkRegistry
     /**
      * 无线连接器（卡）：v7.11.0 起替换原「无线连接工具」（AALink 版），
      * 照抄 AE2LT 过载频率卡的功能与贴图，绑定对象改为无线连接器。
-     * 注册名保留 wireless_link_tool（旧存档物品不丢）。
+     * 注册名保留 wireless_tool（旧存档物品不丢）。
      */
     public static final DeferredItem<ConnectorCardItem> WIRELESS_LINK_TOOL =
-            ITEMS.registerItem("wireless_link_tool",
+            ITEMS.registerItem("wireless_tool",
                     props -> new ConnectorCardItem(props.stacksTo(1)));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AaLinkConnectorBlockEntity>>

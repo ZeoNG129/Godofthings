@@ -134,7 +134,7 @@ public final class ExplorersCompassClient
     public static void registerOverlay(RegisterGuiLayersEvent event)
     {
         event.registerAbove(VanillaGuiLayers.BOSS_OVERLAY,
-                ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "explorers_compass"),
+                ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "explorers"),
                 new ExplorersCompassOverlay());
     }
 }

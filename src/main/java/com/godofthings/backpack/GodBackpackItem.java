@@ -71,7 +71,7 @@ public class GodBackpackItem extends Item
     {
         player.openMenu(new SimpleMenuProvider(
                         (id, inventory, owner) -> new GodBackpackMenu(id, inventory, slot),
-                        Component.translatable("container.godofthings.god_backpack")),
+                        Component.translatable("container.godofthings.backpack")),
                 buf -> buf.writeVarInt(slot));
     }
 

@@ -36,7 +36,7 @@ public class GodChangeItem extends Item
                 @Override
                 public Component getDisplayName()
                 {
-                    return Component.translatable("container.godofthings.god_change");
+                    return Component.translatable("container.godofthings.change");
                 }
 
                 @Nullable

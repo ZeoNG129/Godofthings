@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XXX",
+    "X X"
+  ],
+  "key": {
+    "X": { "item": "godofthings:recipe" }
+  },
+  "result": {
+    "id": "godofthings:helmet",
+    "count": 1
+  }
+}

@@ -65,7 +65,7 @@ public class NaturesCompassScreen extends Screen
     public NaturesCompassScreen(Level level, Player player, ItemStack stack, NaturesCompassItem natureCompass,
             List<ResourceLocation> allowedBiomes)
     {
-        super(Component.translatable("godofthings.natures_compass.selectBiome"));
+        super(Component.translatable("godofthings.natures.selectBiome"));
         this.level = level;
         this.player = player;
         this.stack = stack;
@@ -133,7 +133,7 @@ public class NaturesCompassScreen extends Screen
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
-        guiGraphics.drawCenteredString(font, I18n.get("godofthings.natures_compass.selectBiome"), 65, 15, 0xffffff);
+        guiGraphics.drawCenteredString(font, I18n.get("godofthings.natures.selectBiome"), 65, 15, 0xffffff);
     }
 
     @Override
@@ -242,7 +242,7 @@ public class NaturesCompassScreen extends Screen
         clearWidgets();
 
         searchForBiomeButton = addRenderableWidget(new TransparentButton(10, 40, 110, 20,
-                Component.translatable("godofthings.natures_compass.search"), onPress ->
+                Component.translatable("godofthings.natures.search"), onPress ->
                 {
                     if (selectionList.hasSelection())
                     {
@@ -252,16 +252,16 @@ public class NaturesCompassScreen extends Screen
         searchForBiomeButton.active = false;
 
         searchForNextButton = addRenderableWidget(new TransparentButton(10, 65, 110, 20,
-                Component.translatable("godofthings.natures_compass.searchForNext"), onPress -> searchForNextBiome()));
+                Component.translatable("godofthings.natures.searchForNext"), onPress -> searchForNextBiome()));
         searchForNextButton.visible = NaturesCompassData.maxNextSearches > 0;
         searchForNextButton.active = false;
 
         sortByButton = addRenderableWidget(new TransparentButton(10, 100, 110, 20,
-                Component.literal(I18n.get("godofthings.natures_compass.sortBy") + ": "
+                Component.literal(I18n.get("godofthings.natures.sortBy") + ": "
                         + sortingCategory.getLocalizedName()), onPress ->
                 {
                     sortingCategory = sortingCategory.next();
-                    sortByButton.setMessage(Component.literal(I18n.get("godofthings.natures_compass.sortBy") + ": "
+                    sortByButton.setMessage(Component.literal(I18n.get("godofthings.natures.sortBy") + ": "
                             + sortingCategory.getLocalizedName()));
                     selectionList.refreshList(true);
                 }));
@@ -271,7 +271,7 @@ public class NaturesCompassScreen extends Screen
         }
 
         teleportButton = addRenderableWidget(new TransparentButton(width - 120, 10, 110, 20,
-                Component.translatable("godofthings.natures_compass.teleport"), onPress -> teleport()));
+                Component.translatable("godofthings.natures.teleport"), onPress -> teleport()));
         teleportButton.visible = NaturesCompassData.canTeleport;
         teleportButton.active = false;
 
@@ -279,7 +279,7 @@ public class NaturesCompassScreen extends Screen
                 CommonComponents.GUI_CANCEL, onPress -> minecraft.setScreen(null)));
 
         searchTextField = addRenderableWidget(new TransparentTextField(font, 130, 10, 140, 20,
-                Component.translatable("godofthings.natures_compass.search")));
+                Component.translatable("godofthings.natures.search")));
 
         selectionList = new BiomeSearchList(this, minecraft, player, foundBiomeKey, 130, 40, width - 140,
                 height - 50, 50);

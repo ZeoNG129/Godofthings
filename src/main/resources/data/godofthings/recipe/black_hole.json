@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XLX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:recipe" },
+    "L": { "item": "minecraft:lava_bucket" }
+  },
+  "result": {
+    "id": "godofthings:black_hole",
+    "count": 1
+  }
+}

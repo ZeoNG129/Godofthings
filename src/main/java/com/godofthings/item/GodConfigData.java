@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 「神之配置」存在物品数据组件里的那份配置（{@code godofthings:god_config}）。
+ * 「神之配置」存在物品数据组件里的那份配置（{@code godofthings:config}）。
  *
  * <p>字段：方块注册名（{@code blockId}，粘贴时校验机器类型）、六面 I/O 模式
  * （{@code faceModes}，长度恒为 6，取值 0..3 = 无 / 输入 / 输出 / 输入和输出）、

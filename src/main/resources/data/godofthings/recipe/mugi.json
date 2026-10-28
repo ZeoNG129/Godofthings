@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WWW",
+    "WGW",
+    "XGX"
+  ],
+  "key": {
+    "W": { "item": "minecraft:white_wool" },
+    "G": { "item": "minecraft:gold_ingot" },
+    "X": { "item": "godofthings:recipe" }
+  },
+  "result": {
+    "id": "godofthings:mugi",
+    "count": 1
+  }
+}

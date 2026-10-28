@@ -55,7 +55,7 @@ public class GodBackpackMenu extends AbstractContainerMenu
     public static final int BTN_TOGGLE_IGNORE_NBT = 5;
     public static final int BTN_TOGGLE_KEEP_SEARCH = 6;
 
-    // ---- 槽位坐标（与 textures/gui/god_backpack.png 以及客户端的 GodBackpackScreen 对齐）----
+    // ---- 槽位坐标（与 textures/gui/backpack.png 以及客户端的 GodBackpackScreen 对齐）----
     private static final int GRID_X = 8;
     private static final int GRID_Y = 37;
     private static final int PLAYER_INV_Y = 159;

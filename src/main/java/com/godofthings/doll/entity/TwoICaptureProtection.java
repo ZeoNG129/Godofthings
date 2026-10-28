@@ -9,7 +9,7 @@ public final class TwoICaptureProtection {
 
     public static boolean containsDoll(CompoundTag tag) {
         if (tag == null) return false;
-        if ("godofthings:two_i_doll".equals(tag.getString("id"))) return true;
+        if ("godofthings:mugi".equals(tag.getString("id"))) return true;
         for (Tag passenger : tag.getList("Passengers", Tag.TAG_COMPOUND)) {
             if (containsDoll((CompoundTag) passenger)) return true;
         }

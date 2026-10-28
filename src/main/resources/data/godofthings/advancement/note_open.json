@@ -1,7 +1,7 @@
 {
   "display": {
     "icon": {
-      "item": "godofthings:god_note"
+      "item": "godofthings:note"
     },
     "title": {
       "translate": "advancements.godofthings.note_open.title"
@@ -14,7 +14,7 @@
     "announce_to_chat": true,
     "hidden": false
   },
-  "parent": "godofthings:god_note",
+  "parent": "godofthings:note",
   "requirements": [
     [
       "main"

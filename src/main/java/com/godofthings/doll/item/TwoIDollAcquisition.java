@@ -24,7 +24,7 @@ public final class TwoIDollAcquisition {
         Component message = Component.translatable(
                 "msg.godofthings.two_i.acquired_broadcast",
                 Component.literal(player.getGameProfile().getName()),
-                Component.translatable("item.godofthings.two_i_doll"), owner);
+                Component.translatable("item.godofthings.mugi"), owner);
         server.getPlayerList().broadcastSystemMessage(message, false);
     }
 

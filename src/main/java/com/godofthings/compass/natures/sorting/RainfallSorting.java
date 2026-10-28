@@ -32,6 +32,6 @@ public class RainfallSorting implements ISorting<Float>
     @Override
     public String getLocalizedName()
     {
-        return I18n.get("godofthings.natures_compass.rainfall");
+        return I18n.get("godofthings.natures.rainfall");
     }
 }

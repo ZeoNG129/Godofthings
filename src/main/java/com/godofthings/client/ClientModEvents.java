@@ -167,7 +167,7 @@ public class ClientModEvents
                 com.godofthings.wondrous.client.render.TimeFlowRenderer::new);
     }
 
-    /** 神之皮带：染色皮带用带谓词的模型覆盖（与 models/item/god_belt.json 里的 has_custom_color 对应）。 */
+    /** 神之皮带：染色皮带用带谓词的模型覆盖（与 models/item/belt.json 里的 has_custom_color 对应）。 */
     @SubscribeEvent
     public static void onClientSetupWork(FMLClientSetupEvent event)
     {

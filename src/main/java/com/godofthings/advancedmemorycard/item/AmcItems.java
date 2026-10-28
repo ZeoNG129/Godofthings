@@ -20,7 +20,7 @@ public final class AmcItems {
             DeferredRegister.createItems(Godofthings.MODID);
 
     public static final DeferredItem<AdvancedMemoryCardItem> ADVANCED_MEMORY_CARD =
-            ITEMS.registerItem("advanced_memory_card",
+            ITEMS.registerItem("ae_card",
                     AdvancedMemoryCardItem::new);
 
     private AmcItems() {

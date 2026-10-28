@@ -213,7 +213,7 @@ public class Godofthings
     // 一台机器的配置模板：方块注册名 + 六面 I/O 模式 + AE 并网开关 + 加速槽里的神之加速数量
     // （只记数量不记物品，粘贴时从玩家物品栏里扣真正的神之加速，见 GodConfigItem）。
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<GodConfigData>> GOD_CONFIG_DATA =
-            DATA_COMPONENTS.register("god_config", () -> DataComponentType.<GodConfigData>builder()
+            DATA_COMPONENTS.register("config", () -> DataComponentType.<GodConfigData>builder()
                     .persistent(GodConfigData.CODEC)
                     .networkSynchronized(GodConfigData.STREAM_CODEC)
                     .build());
@@ -442,22 +442,22 @@ public class Godofthings
 
     // ---- 神装 ----
     // 1.21.1 ArmorItem 不再自动设置耐久，需显式 .durability(...)（下界合金系数 37）
-    public static final DeferredItem<GodArmorItem> GOD_HELMET = ITEMS.registerItem("god_helmet",
+    public static final DeferredItem<GodArmorItem> GOD_HELMET = ITEMS.registerItem("helmet",
             props -> new GodArmorItem(ArmorItem.Type.HELMET, props));
-    public static final DeferredItem<GodArmorItem> GOD_CHESTPLATE = ITEMS.registerItem("god_chestplate",
+    public static final DeferredItem<GodArmorItem> GOD_CHESTPLATE = ITEMS.registerItem("armor",
             props -> new GodArmorItem(ArmorItem.Type.CHESTPLATE, props));
-    public static final DeferredItem<GodArmorItem> GOD_LEGGINGS = ITEMS.registerItem("god_leggings",
+    public static final DeferredItem<GodArmorItem> GOD_LEGGINGS = ITEMS.registerItem("leggings",
             props -> new GodArmorItem(ArmorItem.Type.LEGGINGS, props));
-    public static final DeferredItem<GodArmorItem> GOD_BOOTS = ITEMS.registerItem("god_boots",
+    public static final DeferredItem<GodArmorItem> GOD_BOOTS = ITEMS.registerItem("feet",
             props -> new GodArmorItem(ArmorItem.Type.BOOTS, props));
 
     // ---- 神之不毁 ----
     public static final DeferredItem<GodUnbreakableItem> GOD_UNBREAKABLE =
-            ITEMS.registerItem("god_unbreakable", GodUnbreakableItem::new);
+            ITEMS.registerItem("unbreakable", GodUnbreakableItem::new);
 
     // ---- 神之加速（放入神之系列机器加速槽，提升并行数量）----
     public static final DeferredItem<GodAcceleratorItem> GOD_ACCELERATOR =
-            ITEMS.registerItem("god_accelerator", GodAcceleratorItem::new);
+            ITEMS.registerItem("accelerator", GodAcceleratorItem::new);
 
     // ---- 神之剑（代码层面秒杀）----
 
@@ -465,13 +465,13 @@ public class Godofthings
 
     // ---- 请神（对生物右键使用，使其无限血量）----
     public static final DeferredItem<GodInviteItem> GOD_INVITE =
-            ITEMS.registerItem("god_invite", GodInviteItem::new);
+            ITEMS.registerItem("immortality", GodInviteItem::new);
 
     // ---- 神之黑盒（拾取过滤/无限储存）----
     public static final DeferredItem<GodBlackBoxItem> GOD_BLACK_BOX =
-            ITEMS.registerItem("god_black_box", GodBlackBoxItem::new);
+            ITEMS.registerItem("black_hole_min", GodBlackBoxItem::new);
     public static final DeferredItem<GodBinderItem> GOD_BINDER =
-            ITEMS.registerItem("god_binder", GodBinderItem::new);
+            ITEMS.registerItem("connect", GodBinderItem::new);
 
     /**
      * 神之建筑：建筑棒「下界合金棒」的精简移植（无耐久，永久生效）。
@@ -480,7 +480,7 @@ public class Godofthings
      * 上限按品阶取值：本物品是 {@link ConstructionTier#GOD}（1024 / 81 / 1024 / 天使 2）。
      */
     public static final DeferredItem<GodConstructionItem> GOD_CONSTRUCTION =
-            ITEMS.registerItem("god_construction",
+            ITEMS.registerItem("construction_min",
                     props -> new GodConstructionItem(props.stacksTo(1).fireResistant(), ConstructionTier.GOD));
 
     /**
@@ -489,26 +489,26 @@ public class Godofthings
      * 超大操作由跨 tick 作业分摊（见 construction 包的 ConstructionJob），不会卡服务端。
      */
     public static final DeferredItem<GodConstructionItem> HEAVENLY_CONSTRUCTION =
-            ITEMS.registerItem("heavenly_construction",
+            ITEMS.registerItem("construction_max",
                     props -> new GodConstructionItem(props.stacksTo(1).fireResistant(), ConstructionTier.HEAVENLY));
 
     /** 神之配置：潜行右键机器保存六面 I/O / AE 开关 / 加速数量，普通右键同类机器一键粘贴（见 GodConfigItem） */
     public static final DeferredItem<GodConfigItem> GOD_CONFIG =
-            ITEMS.registerItem("god_config", props -> new GodConfigItem(props.stacksTo(1)));
+            ITEMS.registerItem("config", props -> new GodConfigItem(props.stacksTo(1)));
     /** 神之便签：记事本物品（内容按玩家存在存档里，见 GodNoteData） */
     public static final DeferredItem<GodNoteItem> GOD_NOTE =
-            ITEMS.registerItem("god_note", props -> new GodNoteItem(props.stacksTo(1)));
+            ITEMS.registerItem("note", props -> new GodNoteItem(props.stacksTo(1)));
     /** 神之配方：一切神之造物的合成底料（铁 / 铜 / 金 / 钻石 / 下界合金 / 绿宝石 / 红石 / 青金石 / 煤炭 各一，有序合成） */
     public static final DeferredItem<GodRecipeItem> GOD_RECIPE =
-            ITEMS.registerItem("god_recipe", props -> new GodRecipeItem(props));
+            ITEMS.registerItem("recipe", props -> new GodRecipeItem(props));
 
     /** 神之手册：游戏内查「这东西是干嘛的」（条目从注册表生成，见 manual 包） */
     public static final DeferredItem<com.godofthings.item.GodManualItem> GOD_MANUAL =
-            ITEMS.registerItem("god_manual", props -> new com.godofthings.item.GodManualItem(props.stacksTo(1)));
+            ITEMS.registerItem("manual", props -> new com.godofthings.item.GodManualItem(props.stacksTo(1)));
 
     /** 神之背包：120 格随身仓库（右键打开；内容与设置存在物品数据组件里，见 backpack 包） */
     public static final DeferredItem<GodBackpackItem> GOD_BACKPACK_ITEM =
-            ITEMS.registerItem("god_backpack", props -> new GodBackpackItem(props.stacksTo(1)));
+            ITEMS.registerItem("backpack", props -> new GodBackpackItem(props.stacksTo(1)));
 
     /**
      * 自然罗盘（移植自 Natures Compass 3.4.0，作者 ChaosTheDude，CC BY-NC-SA 4.0）：
@@ -516,7 +516,7 @@ public class Godofthings
      * 数据组件 / 网络包 / 客户端注册 / 配置见 {@code compass.natures} 包。
      */
     public static final DeferredItem<com.godofthings.compass.natures.items.NaturesCompassItem> NATURES_COMPASS =
-            ITEMS.registerItem("natures_compass",
+            ITEMS.registerItem("natures",
                     props -> new com.godofthings.compass.natures.items.NaturesCompassItem(props));
 
     /**
@@ -526,22 +526,22 @@ public class Godofthings
      * <p>已按用户要求删掉上游「搜到后自动在小地图模组里建路径点」那段联动。</p>
      */
     public static final DeferredItem<com.godofthings.compass.explorers.items.ExplorersCompassItem> EXPLORERS_COMPASS =
-            ITEMS.registerItem("explorers_compass",
+            ITEMS.registerItem("explorers",
                     com.godofthings.compass.explorers.items.ExplorersCompassItem::new);
 
     /** 神之皮带：9 格工具腰带（右键打开界面，R 键轮盘切换；移植自 ToolBelt 2.2.10，BSD-3-Clause） */
     public static final DeferredItem<ToolBeltItem> GOD_BELT =
-            ITEMS.registerItem("god_belt", props -> new ToolBeltItem(props.stacksTo(1)));
+            ITEMS.registerItem("belt", props -> new ToolBeltItem(props.stacksTo(1)));
 
     /** 神之皮带内容界面（皮带里的 9 个槽 + 玩家背包） */
     public static final DeferredHolder<MenuType<?>, MenuType<BeltContainer>> GOD_BELT_MENU =
-            MENUS.register("god_belt", () -> IMenuTypeExtension.create(BeltContainer::new));
+            MENUS.register("belt", () -> IMenuTypeExtension.create(BeltContainer::new));
     /** 神之皮带槽位界面（装备皮带 + 2×2 合成 + 背包，V 键打开） */
     public static final DeferredHolder<MenuType<?>, MenuType<BeltSlotMenu>> GOD_BELT_SLOT_MENU =
             MENUS.register("god_belt_slot", () -> new MenuType<>(BeltSlotMenu::new, FeatureFlags.DEFAULT_FLAGS));
     /** 神之皮带槽（玩家附件：存档 / 死亡掉落 / 死亡复制都在 BeltAttachment 的事件里） */
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<BeltAttachment>> GOD_BELT_ATTACHMENT =
-            ATTACHMENT_TYPES.register("god_belt", () -> AttachmentType.serializable(BeltAttachment::new).build());
+            ATTACHMENT_TYPES.register("belt", () -> AttachmentType.serializable(BeltAttachment::new).build());
 
     // ---- 神之工具 ----
     // GT 扳手模式子类（通过模式轮盘切换，不直接出现在创造标签）
@@ -637,11 +637,11 @@ public class Godofthings
 
     // ---- 神之更改 ----
     public static final DeferredItem<GodChangeItem> GOD_CHANGE =
-            ITEMS.registerItem("god_change", props -> new GodChangeItem(props.stacksTo(1)));
+            ITEMS.registerItem("change", props -> new GodChangeItem(props.stacksTo(1)));
 
     // ---- 神之测量（卷尺：两定点画线框显三轴尺寸，纯客户端；自 Measurements 移植）----
     public static final DeferredItem<GodMeasureItem> GOD_MEASURE =
-            ITEMS.registerItem("god_measure", GodMeasureItem::new);
+            ITEMS.registerItem("measure", GodMeasureItem::new);
 
     // ---- 「万物元件」（v5.25.0：合并原 4 个单资源无限元件 + 新增福禄伊克斯色玻璃线缆，共 5 种）----
     // 自 ExtendedAE（LGPL-3.0）的无限元件移植思路：固定资源无限存取、不写 NBT、幻影存储。
@@ -661,7 +661,7 @@ public class Godofthings
     // 与上面 4 个固定资源的无限元件不同，这个是**通用**的：任意物品 / 流体都能存，
     // 真实数据放在世界存档 world/data/infinity_biginteger_cells.dat 里（见 InfinityStorageManager）。
     public static final DeferredItem<com.godofthings.infinitecell.big.InfinityCellItem> INFINITY_BIGINTEGER_CELL =
-            ITEMS.registerItem("infinity_biginteger_cell",
+            ITEMS.registerItem("infinity_cell",
                     props -> new com.godofthings.infinitecell.big.InfinityCellItem());
 
     // ---- 无限 FE 存储元件（软依赖 AppFlux：装了才有，没装不注册）----
@@ -722,7 +722,7 @@ public class Godofthings
 
     // ---- 神之吞噬（销毁物品/液体的大箱子，六面输入）----
     public static final DeferredBlock<GodDevourerBlock> GOD_DEVOURER =
-            BLOCKS.registerBlock("devourer", GodDevourerBlock::new,
+            BLOCKS.registerBlock("black_hole", GodDevourerBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_BLACK)
                             .strength(3.0F, 6.0F)
@@ -730,10 +730,10 @@ public class Godofthings
     public static final DeferredItem<BlockItem> GOD_DEVOURER_ITEM =
             ITEMS.registerSimpleBlockItem(GOD_DEVOURER, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodDevourerBlockEntity>> GOD_DEVOURER_BE =
-            BLOCK_ENTITIES.register("devourer",
+            BLOCK_ENTITIES.register("black_hole",
                     () -> BlockEntityType.Builder.of(GodDevourerBlockEntity::new, GOD_DEVOURER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodDevourerMenu>> GOD_DEVOURER_MENU =
-            MENUS.register("devourer", () -> IMenuTypeExtension.create(GodDevourerMenu::new));
+            MENUS.register("black_hole", () -> IMenuTypeExtension.create(GodDevourerMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodDevourerMenu>> PORTABLE_DEVOURER_MENU =
             MENUS.register("portable_devourer", () -> IMenuTypeExtension.create(
                     (id, inv, buf) -> new GodDevourerMenu(id, inv)));
@@ -741,7 +741,7 @@ public class Godofthings
     public static final DeferredHolder<MenuType<?>, MenuType<WaypointMenu>> WAYPOINT_MENU =
             MENUS.register("waypoint", () -> IMenuTypeExtension.create(WaypointMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodBlackBoxMenu>> GOD_BLACK_BOX_MENU =
-            MENUS.register("god_black_box", () -> IMenuTypeExtension.create(GodBlackBoxMenu::new));
+            MENUS.register("black_hole_min", () -> IMenuTypeExtension.create(GodBlackBoxMenu::new));
 
     // ---- 方块实体 ----
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodFurnaceBlockEntity>> GOD_FURNACE_BE =
@@ -806,15 +806,15 @@ public class Godofthings
     public static final DeferredHolder<MenuType<?>, MenuType<GodEnchantMenu>> GOD_ENCHANT_MENU =
             MENUS.register("enchant", () -> IMenuTypeExtension.create(GodEnchantMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodChangeMenu>> GOD_CHANGE_MENU =
-            MENUS.register("god_change", () -> IMenuTypeExtension.create(GodChangeMenu::new));
+            MENUS.register("change", () -> IMenuTypeExtension.create(GodChangeMenu::new));
     /** 神之背包界面：额外数据是「背包在哪个物品栏槽位」（主手 = 快捷栏下标，副手 = -1） */
     public static final DeferredHolder<MenuType<?>, MenuType<GodBackpackMenu>> GOD_BACKPACK_MENU =
-            MENUS.register("god_backpack", () -> IMenuTypeExtension.create(
+            MENUS.register("backpack", () -> IMenuTypeExtension.create(
                     (id, inv, buf) -> new GodBackpackMenu(id, inv, buf.readVarInt())));
 
     // ---- 神之不毁配方序列化器（使用 DeferredHolder 常规注册）----
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> GOD_UNBREAKABLE_SERIALIZER =
-            RECIPE_SERIALIZERS.register("god_unbreakable", GodUnbreakableRecipe.Serializer::new);
+            RECIPE_SERIALIZERS.register("unbreakable", GodUnbreakableRecipe.Serializer::new);
 
     // ---- 创造标签 ----
     /**
@@ -879,39 +879,32 @@ public class Godofthings
                     .title(Component.translatable("itemGroup.godofthings.god_of_things_items_tab"))
                     .displayItems((parameters, output) ->
                     {
-                        // ---- 神之套装（四件套连排，外形完全统一）----
+                        // ---- 顺序按用户指定（v7.20.0 重排）----
+                        // 1-4 装备
                         output.accept(GOD_HELMET.get());
                         output.accept(GOD_CHESTPLATE.get());
                         output.accept(GOD_LEGGINGS.get());
                         output.accept(GOD_BOOTS.get());
-                        // ---- 建筑棒两件（同为长条工具，一普通一天空）----
+                        // 5-6 建筑棒（Min / Max）
                         output.accept(GOD_CONSTRUCTION.get());
                         output.accept(HEAVENLY_CONSTRUCTION.get());
-                        // ---- 罗盘两件（圆形仪表盘外形）----
-                        output.accept(NATURES_COMPASS.get());
-                        output.accept(EXPLORERS_COMPASS.get());
-                        // ---- 手持神之工具：杖 / 连接 / 变身 / 测量 / 黑盒 / 装订 ----
-                        output.accept(com.godofthings.wondrous.init.WondrousItems.WONDROUS_STAFF.get());
-                        output.accept(com.godofthings.aalink.AaLinkRegistry.WIRELESS_LINK_TOOL.get());
+                        // 7-10 卷尺 / 连接 / 永生 / 更改
+                        output.accept(GOD_MEASURE.get());
+                        output.accept(GOD_BINDER.get());
                         output.accept(GOD_INVITE.get());
                         output.accept(GOD_CHANGE.get());
-                        output.accept(GOD_MEASURE.get());
-                        output.accept(GOD_BLACK_BOX.get());
-                        output.accept(GOD_BINDER.get());
-                        // ---- 卡片 / 石板类：同为薄片，放一起 ----
-                        output.accept(GOD_RECIPE.get());
-                        output.accept(GOD_CONFIG.get());
-                        output.accept(com.godofthings.advancedmemorycard.item.AmcItems.ADVANCED_MEMORY_CARD.get());
-                        // ---- 书页类：外观同为「书」，连排 ----
-                        output.accept(GOD_MANUAL.get());
-                        output.accept(GOD_NOTE.get());
-                        // ---- 随身容器：同为「包 / 带」，连排 ----
+                        // 11-12 随身容器
                         output.accept(GOD_BACKPACK_ITEM.get());
                         output.accept(GOD_BELT.get());
-                        // ---- 升级件：同为小方块升级模块，连排 ----
-                        output.accept(GOD_ACCELERATOR.get());
+                        // 13-18 配置 / 黑洞 / 便签 / 不毁 / 手册 / 加速
+                        output.accept(GOD_CONFIG.get());
+                        output.accept(GOD_BLACK_BOX.get());
+                        output.accept(GOD_NOTE.get());
                         output.accept(GOD_UNBREAKABLE.get());
-                        // ---- ME 元件：全为「元件」外形，连排 ----
+                        output.accept(GOD_MANUAL.get());
+                        output.accept(GOD_ACCELERATOR.get());
+                        // 19-22 起源 / 元件 / 无限 / FE
+                        output.accept(GOD_RECIPE.get());
                         output.accept(UNIVERSAL_CELL.get());
                         output.accept(INFINITY_BIGINTEGER_CELL.get());
                         // 无限 FE 元件：只在装了 AppFlux 时出现（软依赖）
@@ -919,19 +912,23 @@ public class Godofthings
                         {
                             output.accept(INFINITY_FLUX_CELL.get());
                         }
-                        // ---- 摆设与卡片类（大件 / 异形，集中放末尾前）----
-                        // 紬紬玩偶（移植自 useless_stretcher 的 2i 玩偶）+ 摆件
-                        // 这一个物品同时是摆件的物品形态（TwoIDollItem extends BlockItem）
-                        output.accept(com.godofthings.doll.init.DollRegistry.TWO_I_DOLL_ITEM.get());
-                        // 超级融合卡（移植自 Mekanism-Card，软依赖：只在装了通用机械时出现）
+                        // 23-27 群系 / 结构 / 无线 / AE / MEK
+                        output.accept(NATURES_COMPASS.get());
+                        output.accept(EXPLORERS_COMPASS.get());
+                        output.accept(com.godofthings.aalink.AaLinkRegistry.WIRELESS_LINK_TOOL.get());
+                        output.accept(com.godofthings.advancedmemorycard.item.AmcItems.ADVANCED_MEMORY_CARD.get());
+                        // 超级融合卡：只在装了通用机械时出现（软依赖）
                         if (com.godofthings.superfusion.SuperFusionRegistry.isEnabled())
                         {
                             output.accept(com.godofthings.superfusion.SuperFusionRegistry.itemOrNull());
                         }
-                        // ---- ME 放置工具三件套：同一系列外形，连排放最后 ----
+                        // 28-31 工具 / 放置三件（放置 → 线缆 → 多方块）
+                        output.accept(com.godofthings.wondrous.init.WondrousItems.WONDROUS_STAFF.get());
                         output.accept(com.godofthings.mept.MeptItems.ME_PLACEMENT_TOOL.get());
-                        output.accept(com.godofthings.mept.MeptItems.MULTIBLOCK_PLACEMENT_TOOL.get());
                         output.accept(com.godofthings.mept.MeptItems.ME_CABLE_PLACEMENT_TOOL.get());
+                        output.accept(com.godofthings.mept.MeptItems.MULTIBLOCK_PLACEMENT_TOOL.get());
+                        // 32 紬紬
+                        output.accept(com.godofthings.doll.init.DollRegistry.TWO_I_DOLL_ITEM.get());
                     })
                     .build());
 
@@ -1094,7 +1091,7 @@ public class Godofthings
             com.godofthings.infinityprovider.InfProviderCapabilities.bindAll();
             StorageCells.addCellHandler(com.godofthings.infinitecell.big.InfinityCellHandler.INSTANCE);
             StorageCells.addCellHandler(UniversalCellInventory.HANDLER);
-            StorageCellModels.registerModel(INFINITY_BIGINTEGER_CELL.get(), godofthingsId("block/drive/infinity_biginteger_cell"));
+            StorageCellModels.registerModel(INFINITY_BIGINTEGER_CELL.get(), godofthingsId("block/drive/infinity_cell"));
             StorageCellModels.registerModel(UNIVERSAL_CELL.get(), godofthingsId("block/drive/universal_cell"));
         if (com.godofthings.fluxcell.FluxBridge.isAvailable())
         {
@@ -1122,7 +1119,7 @@ public class Godofthings
             com.godofthings.aalink.ConnectorCardTerminalCompat.registerAe2wtlibUpgrades(card);
         });
         AdAstraCompat.init(); // Ad Astra 未安装时自动跳过
-        // 自然罗盘：注册传送权限节点 godofthings.natures_compass.teleport（无权限插件的服务器上
+        // 自然罗盘：注册传送权限节点 godofthings.natures.teleport（无权限插件的服务器上
         // 默认解析为 false，也就是「只有 OP / 单人开作弊能传送」）
         NeoForge.EVENT_BUS.addListener(com.godofthings.compass.natures.NaturesCompassData::registerPermissionNodes);
         // 探险者指南针：读「结构 → 自定义模型数据」映射表（config/godofthings/config.json，

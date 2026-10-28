@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XXX",
+    "XWX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:recipe" },
+    "W": { "item": "godofthings:construction_min" }
+  },
+  "result": {
+    "id": "godofthings:construction_max",
+    "count": 1
+  }
+}

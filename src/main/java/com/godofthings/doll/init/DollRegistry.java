@@ -45,18 +45,18 @@ public final class DollRegistry
 
     /** 玩偶实体：0.44 × 0.96，追踪 10 格，2 tick 同步一次（走路动画靠它） */
     public static final DeferredHolder<EntityType<?>, EntityType<TwoIDollEntity>> TWO_I_DOLL_ENTITY =
-            ENTITIES.register("two_i_doll", () -> EntityType.Builder
+            ENTITIES.register("mugi", () -> EntityType.Builder
                     .<TwoIDollEntity>of(TwoIDollEntity::new, MobCategory.MISC)
                     .sized(0.44F, 0.96F)
                     .clientTrackingRange(10)
                     .updateInterval(2)
                     .fireImmune()
                     .noSummon()
-                    .build("two_i_doll"));
+                    .build("mugi"));
 
     /** 玩偶物品（可放出 / 可收回 / 可放饰品栏；源码原名 TWO_I_DOLL，这里保留原名作别名） */
     public static final DeferredHolder<Item, TwoIDollItem> TWO_I_DOLL_ITEM =
-            ITEMS.register("two_i_doll", TwoIDollItem::new);
+            ITEMS.register("mugi", TwoIDollItem::new);
 
     /** 源码命名别名（TwoIDollItem / 源码各处都用 TWO_I_DOLL 这个名字引用） */
     public static final DeferredHolder<Item, TwoIDollItem> TWO_I_DOLL = TWO_I_DOLL_ITEM;
@@ -74,7 +74,7 @@ public final class DollRegistry
     // 原版就是这么设计的：TwoIDollItem extends BlockItem 并直接 super(TWO_I_DOLL_DISPLAY)，
     // 所以「玩偶物品」本身就是摆件的物品形态，放下时放置摆件、拿起时变回玩偶。
     // 如果这里再注册一个普通 BlockItem 抢同一个方块，两个 BlockItem 会争抢方块的 item
-    // 映射，导致 two_i_doll 在创造模式物品栏里注册异常（表现为"游戏里找不到玩偶"）。
+    // 映射，导致 mugi 在创造模式物品栏里注册异常（表现为"游戏里找不到玩偶"）。
 
     /** 摆件方块实体 */
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TwoIDollDisplayBlockEntity>> TWO_I_DOLL_DISPLAY_BE =

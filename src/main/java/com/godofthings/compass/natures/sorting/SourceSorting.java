@@ -41,6 +41,6 @@ public class SourceSorting implements ISorting<String>
     @Override
     public String getLocalizedName()
     {
-        return I18n.get("godofthings.natures_compass.source");
+        return I18n.get("godofthings.natures.source");
     }
 }

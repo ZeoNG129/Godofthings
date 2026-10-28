@@ -35,6 +35,6 @@ public class GroupSorting implements ISorting
     @Override
     public String getLocalizedName()
     {
-        return I18n.get("godofthings.explorers_compass.group");
+        return I18n.get("godofthings.explorers.group");
     }
 }

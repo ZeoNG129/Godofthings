@@ -37,7 +37,7 @@ public final class NaturesCompassData
 
     /** 传送权限节点（OP / 单人开作弊 / 权限插件三者任一即可，见 PlayerUtils） */
     public static final PermissionNode<Boolean> TELEPORT_PERMISSION = new PermissionNode<>(
-            Godofthings.MODID, "natures_compass.teleport", PermissionTypes.BOOLEAN, (player, playerUUID, context) -> false);
+            Godofthings.MODID, "natures.teleport", PermissionTypes.BOOLEAN, (player, playerUUID, context) -> false);
 
     // ---- 数据组件 ----
     // 真正的注册写在 Godofthings 自己的静态初始化里（原因见那里的注释：DeferredRegister 不能被

@@ -34,6 +34,6 @@ public class NameSorting implements ISorting
     @Override
     public String getLocalizedName()
     {
-        return I18n.get("godofthings.explorers_compass.name");
+        return I18n.get("godofthings.explorers.name");
     }
 }

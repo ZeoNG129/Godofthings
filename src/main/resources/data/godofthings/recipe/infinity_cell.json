@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "ae2:quartz_glass"
+    },
+    "X": {
+      "item": "ae2:cell_component_256k"
+    },
+    "G": {
+      "item": "godofthings:recipe"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "I": {
+      "item": "minecraft:netherite_ingot"
+    }
+  },
+  "pattern": [
+    "CGC",
+    "GXG",
+    "INI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "godofthings:infinity_cell"
+  }
+}

@@ -18,7 +18,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class GodChangeScreen extends AbstractContainerScreen<GodChangeMenu>
 {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/god_change.png");
+            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/change.png");
 
     private static final int IMG_W = 176;
     private static final int IMG_H = 120;
@@ -54,23 +54,23 @@ public class GodChangeScreen extends AbstractContainerScreen<GodChangeMenu>
         gui.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
         // 两个区块标题
-        gui.drawString(this.font, Component.translatable("gui.godofthings.god_change.time_section"),
+        gui.drawString(this.font, Component.translatable("gui.godofthings.change.time_section"),
                 x + 8, y + 20, 0xFFE0B030);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.god_change.weather_section"),
+        gui.drawString(this.font, Component.translatable("gui.godofthings.change.weather_section"),
                 x + 8, y + 68, 0xFFE0B030);
 
         // 时间按钮（早上/中午/晚上）
         for (int i = 0; i < 3; i++)
         {
             drawButton(gui, x, y, BTN_X[i], TIME_SECTION_Y + BTN_Y, BTN_W, BTN_H,
-                    Component.translatable("gui.godofthings.god_change.time_" + i),
+                    Component.translatable("gui.godofthings.change.time_" + i),
                     0xFF3F7F3F);
         }
         // 天气按钮（晴朗/下雨/雷暴）
         for (int i = 0; i < 3; i++)
         {
             drawButton(gui, x, y, BTN_X[i], WEATHER_SECTION_Y + BTN_Y, BTN_W, BTN_H,
-                    Component.translatable("gui.godofthings.god_change.weather_" + i),
+                    Component.translatable("gui.godofthings.change.weather_" + i),
                     0xFF3F5F8F);
         }
     }

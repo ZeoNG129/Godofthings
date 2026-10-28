@@ -59,7 +59,7 @@ public class ExplorersCompassScreen extends Screen
     public ExplorersCompassScreen(Level level, Player player, ItemStack stack, ExplorersCompassItem explorersCompass,
             List<ResourceLocation> allowedStructureKeys)
     {
-        super(Component.translatable("godofthings.explorers_compass.selectStructure"));
+        super(Component.translatable("godofthings.explorers.selectStructure"));
         this.level = level;
         this.player = player;
         this.stack = stack;
@@ -197,7 +197,7 @@ public class ExplorersCompassScreen extends Screen
     {
         clearWidgets();
         searchButton = addRenderableWidget(new TransparentButton(10, 40, 110, 20,
-                Component.translatable("godofthings.explorers_compass.search"), onPress ->
+                Component.translatable("godofthings.explorers.search"), onPress ->
                 {
                     if (selectionList.hasSelection())
                     {
@@ -205,13 +205,13 @@ public class ExplorersCompassScreen extends Screen
                     }
                 }));
         cleanMapButton = addRenderableWidget(new TransparentButton(10, 115, 110, 20,
-                Component.translatable("godofthings.explorers_compass.cleanMap"), onPress ->
+                Component.translatable("godofthings.explorers.cleanMap"), onPress ->
                 {
                     PacketDistributor.sendToServer(new CleanFoundPacket());
                     minecraft.setScreen(null);
                 }));
         searchGroupButton = addRenderableWidget(new TransparentButton(10, 65, 110, 20,
-                Component.translatable("godofthings.explorers_compass.searchForGroup"), onPress ->
+                Component.translatable("godofthings.explorers.searchForGroup"), onPress ->
                 {
                     if (selectionList.hasSelection())
                     {
@@ -228,7 +228,7 @@ public class ExplorersCompassScreen extends Screen
         cancelButton = addRenderableWidget(new TransparentButton(10, height - 30, 110, 20,
                 CommonComponents.GUI_CANCEL, onPress -> minecraft.setScreen(null)));
         teleportButton = addRenderableWidget(new TransparentButton(width - 120, 10, 110, 20,
-                Component.translatable("godofthings.explorers_compass.teleport"), onPress -> teleport()));
+                Component.translatable("godofthings.explorers.teleport"), onPress -> teleport()));
 
         searchButton.active = false;
         searchGroupButton.active = false;
@@ -236,7 +236,7 @@ public class ExplorersCompassScreen extends Screen
         teleportButton.visible = ExplorersCompassData.canTeleport;
 
         searchTextField = addRenderableWidget(new TransparentTextField(font, width / 2 - 82, 10, 140, 20,
-                Component.translatable("godofthings.explorers_compass.search")));
+                Component.translatable("godofthings.explorers.search")));
 
         if (selectionList == null)
         {
@@ -248,7 +248,7 @@ public class ExplorersCompassScreen extends Screen
     /** 「排序方式: 名称」按钮文字 */
     private Component sortByLabel()
     {
-        return Component.translatable("godofthings.explorers_compass.sortBy")
+        return Component.translatable("godofthings.explorers.sortBy")
                 .append(Component.literal(": " + sortingCategory.getLocalizedName()));
     }
 }

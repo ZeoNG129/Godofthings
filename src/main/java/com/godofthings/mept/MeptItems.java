@@ -17,15 +17,15 @@ public final class MeptItems
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Godofthings.MODID);
 
     public static final DeferredItem<ItemMEPlacementTool> ME_PLACEMENT_TOOL =
-            ITEMS.registerItem("me_placement_tool",
+            ITEMS.registerItem("place_1",
                     props -> new ItemMEPlacementTool(props.stacksTo(1)));
 
     public static final DeferredItem<ItemMultiblockPlacementTool> MULTIBLOCK_PLACEMENT_TOOL =
-            ITEMS.registerItem("multiblock_placement_tool",
+            ITEMS.registerItem("place_2",
                     props -> new ItemMultiblockPlacementTool(props.stacksTo(1)));
 
     public static final DeferredItem<ItemMECablePlacementTool> ME_CABLE_PLACEMENT_TOOL =
-            ITEMS.registerItem("me_cable_placement_tool",
+            ITEMS.registerItem("place_3",
                     props -> new ItemMECablePlacementTool(props.stacksTo(1)));
 
     private MeptItems()

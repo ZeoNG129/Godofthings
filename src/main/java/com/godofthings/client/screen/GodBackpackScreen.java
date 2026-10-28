@@ -35,9 +35,9 @@ import java.util.List;
 public class GodBackpackScreen extends AbstractContainerScreen<GodBackpackMenu>
 {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/god_backpack.png");
+            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/backpack.png");
 
-    // ---- 布局（与 textures/gui/god_backpack.png 一致）----
+    // ---- 布局（与 textures/gui/backpack.png 一致）----
     private static final int COLS = 9;
     private static final int VISIBLE_ROWS = 6;
     private static final int GRID_X = 8;

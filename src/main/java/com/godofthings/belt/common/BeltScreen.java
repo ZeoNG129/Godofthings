@@ -14,7 +14,7 @@ public class BeltScreen extends AbstractContainerScreen<BeltContainer>
     /**
      * The ResourceLocation containing the chest GUI texture.
      */
-    private static final ResourceLocation GUI_TEXTURE = BeltRegistration.location("textures/gui/god_belt.png");
+    private static final ResourceLocation GUI_TEXTURE = BeltRegistration.location("textures/gui/belt.png");
 
     public BeltScreen(BeltContainer container, Inventory playerInventory, Component title)
     {

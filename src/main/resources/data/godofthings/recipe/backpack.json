@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "godofthings:recipe" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:leather" },
+    { "item": "minecraft:netherite_ingot" },
+    { "item": "minecraft:netherite_ingot" },
+    { "item": "minecraft:shulker_box" }
+  ],
+  "result": {
+    "id": "godofthings:backpack",
+    "count": 1
+  }
+}

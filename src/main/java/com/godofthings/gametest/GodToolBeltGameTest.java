@@ -31,13 +31,13 @@ public class GodToolBeltGameTest
         ItemStack belt = new ItemStack(Godofthings.GOD_BELT.get());
         if (ToolBeltItem.getSlotsCount(belt) != ToolBeltItem.MAX_SLOTS)
         {
-            helper.fail("god_belt must always be at max level (" + ToolBeltItem.MAX_SLOTS + " slots)");
+            helper.fail("belt must always be at max level (" + ToolBeltItem.MAX_SLOTS + " slots)");
             return;
         }
 
         if (!ConfigData.isItemStackAllowed(new ItemStack(Godofthings.GOD_INVITE.get())))
         {
-            helper.fail("god_invite must be allowed inside the belt (internal whitelist)");
+            helper.fail("immortality must be allowed inside the belt (internal whitelist)");
             return;
         }
 

@@ -6,7 +6,7 @@
     "XX"
   ],
   "key": {
-    "X": { "item": "godofthings:god_recipe" }
+    "X": { "item": "godofthings:recipe" }
   },
   "result": {
     "id": "godofthings:craft",
