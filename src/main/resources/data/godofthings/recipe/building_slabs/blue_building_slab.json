@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BBB"
+  ],
+  "key": {
+    "B": { "item": "godofthings:blue_building_panel" }
+  },
+  "result": {
+    "id": "godofthings:blue_building_slab",
+    "count": 6
+  }
+}

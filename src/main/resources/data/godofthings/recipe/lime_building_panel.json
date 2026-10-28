@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "DDD",
+    "DBD",
+    "DDD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:lime_dye" },
+    "B": { "item": "godofthings:dye_base" }
+  },
+  "result": {
+    "id": "godofthings:lime_building_panel",
+    "count": 8
+  }
+}

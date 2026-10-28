@@ -7786,4 +7786,20 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
   （高级内存卡并入这一组）→ 书页两件 → 随身容器两件（须弥囊 / 皮带）→ 升级件两件 → ME 元件三件 → 摆设 → ME 放置工具三件套。
 - 只改展示顺序，**没有增删任何物品**，注册表与合成不受影响。
 
-- GameTest 45 条全绿；`check-lang` 全绿（2267 键）。
+- GameTest 45 条全绿；`check-lang` 全绿（2267 键）。### 5. 重构：「众神之物：方块」建材全部去掉「众神」字样（同类重构第一步，不升版本）
+
+- **改动**：16 色 × 四家族（素板 / 框板 / 素板台阶 / 框板台阶）共 **64 个方块与物品**，
+  显示名与注册名一并去掉「众神 / pigmee」：
+  · 中文：`白色众神素板` → `白色素板`、`白色众神框板` → `白色框板`、台阶同理；
+  · 英文：`White God Plain Panel` → `White Plain Panel`（`Framed Panel` / `Panel Slab` 同规则）；
+  · 注册 id：`white_pigmee_building_panel` → `white_building_panel`、
+    `white_pigmee_framed_building_slab` → `white_framed_building_slab`（规则：`{颜色}_pigmee_X` → `{颜色}_X`）。
+- **未改**：通用款 `pigmee_building_block` / `pigmee_building_slab`（显示名本来就是「猪咪建材方块 / 台阶」，
+  不含「众神」）；贴图目录 `textures/block/pigmee_building/`；贴图 `pigmee_fumo.png`。
+- **连带改名**：512 个资源文件（blockstate / 模型 / 物品模型 / 战利品表 / 配方）、
+  457 个文件内的引用（含 `data/minecraft/tags/block/mineable/pickaxe.json`）、
+  128×2 条语言键（`block.` / `manual.`）、配方子目录 `pigmee_slabs/` → `building_slabs/`、
+  `BuildingRegistry` 的两处注册名拼装、`check-lang.ps1` 的建材 id 名单。
+- **不是破坏性迁移**：老存档里已放置的旧 id 方块会因注册表找不到而消失 —— 这是「改 id」的必然代价，
+  本次按你的要求直接改，未做数据迁移兼容。
+- 方块 / 物品总数不变（110 / 111）；GameTest 45 条全绿；`check-lang` 全绿（2267 键，双向一致）。

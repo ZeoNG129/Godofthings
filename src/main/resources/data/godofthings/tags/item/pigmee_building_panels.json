@@ -1,21 +1,21 @@
 {
   "replace": false,
   "values": [
-    "godofthings:white_pigmee_building_panel",
-    "godofthings:light_gray_pigmee_building_panel",
-    "godofthings:gray_pigmee_building_panel",
-    "godofthings:black_pigmee_building_panel",
-    "godofthings:brown_pigmee_building_panel",
-    "godofthings:red_pigmee_building_panel",
-    "godofthings:orange_pigmee_building_panel",
-    "godofthings:yellow_pigmee_building_panel",
-    "godofthings:lime_pigmee_building_panel",
-    "godofthings:green_pigmee_building_panel",
-    "godofthings:cyan_pigmee_building_panel",
-    "godofthings:light_blue_pigmee_building_panel",
-    "godofthings:blue_pigmee_building_panel",
-    "godofthings:purple_pigmee_building_panel",
-    "godofthings:magenta_pigmee_building_panel",
-    "godofthings:pink_pigmee_building_panel"
+    "godofthings:white_building_panel",
+    "godofthings:light_gray_building_panel",
+    "godofthings:gray_building_panel",
+    "godofthings:black_building_panel",
+    "godofthings:brown_building_panel",
+    "godofthings:red_building_panel",
+    "godofthings:orange_building_panel",
+    "godofthings:yellow_building_panel",
+    "godofthings:lime_building_panel",
+    "godofthings:green_building_panel",
+    "godofthings:cyan_building_panel",
+    "godofthings:light_blue_building_panel",
+    "godofthings:blue_building_panel",
+    "godofthings:purple_building_panel",
+    "godofthings:magenta_building_panel",
+    "godofthings:pink_building_panel"
   ]
 }

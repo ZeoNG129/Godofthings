@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "DDD",
+    "DPD",
+    "DDD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:orange_dye" },
+    "P": { "item": "godofthings:orange_building_panel" }
+  },
+  "result": {
+    "id": "godofthings:orange_framed_building_panel",
+    "count": 8
+  }
+}

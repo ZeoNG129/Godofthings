@@ -164,14 +164,14 @@ $buildingColors = @('white','orange','magenta','light_blue','yellow','lime','pin
 [void]$items.Add('_1024slots_pattern_provider')
 [void]$items.Add('infinity_pattern_provider')
 foreach ($c in $buildingColors) {
-    [void]$blocks.Add("${c}_pigmee_building_panel")
-    [void]$blocks.Add("${c}_pigmee_framed_building_panel")
-    [void]$blocks.Add("${c}_pigmee_building_slab")
-    [void]$blocks.Add("${c}_pigmee_framed_building_slab")
-    [void]$items.Add("${c}_pigmee_building_panel")
-    [void]$items.Add("${c}_pigmee_framed_building_panel")
-    [void]$items.Add("${c}_pigmee_building_slab")
-    [void]$items.Add("${c}_pigmee_framed_building_slab")
+    [void]$blocks.Add("${c}_building_panel")
+    [void]$blocks.Add("${c}_framed_building_panel")
+    [void]$blocks.Add("${c}_building_slab")
+    [void]$blocks.Add("${c}_framed_building_slab")
+    [void]$items.Add("${c}_building_panel")
+    [void]$items.Add("${c}_framed_building_panel")
+    [void]$items.Add("${c}_building_slab")
+    [void]$items.Add("${c}_framed_building_slab")
 }
 
 Write-Host ("java files scanned: {0}   blocks: {1}   items: {2}   entities: {3}" -f `

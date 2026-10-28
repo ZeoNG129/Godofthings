@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "godofthings:block/pigmee_building/white_pigmee_building_panel"
-  }
-}

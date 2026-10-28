@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "godofthings:block/pigmee_building/orange_framed_building_panel"
+  }
+}

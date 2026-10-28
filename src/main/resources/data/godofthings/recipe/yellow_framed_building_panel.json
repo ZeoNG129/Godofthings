@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "DDD",
+    "DPD",
+    "DDD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:yellow_dye" },
+    "P": { "item": "godofthings:yellow_building_panel" }
+  },
+  "result": {
+    "id": "godofthings:yellow_framed_building_panel",
+    "count": 8
+  }
+}

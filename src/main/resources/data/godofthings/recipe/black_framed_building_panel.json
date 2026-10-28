@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "DDD",
+    "DPD",
+    "DDD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:black_dye" },
+    "P": { "item": "godofthings:black_building_panel" }
+  },
+  "result": {
+    "id": "godofthings:black_framed_building_panel",
+    "count": 8
+  }
+}

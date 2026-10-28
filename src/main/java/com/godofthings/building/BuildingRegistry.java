@@ -22,9 +22,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 /**
  * 众神建材（移植自 AE2 Lightning Tech 的猪咪建材）：纯装饰方块 + 连接贴图（CTM）。
  *
- * <p>注册名沿用上游（{@code white_pigmee_building_panel} 等），显示名按需求把「猪咪」
- * 换成「众神」；通用款 {@code pigmee_building_block} / {@code pigmee_building_slab}
- * 的显示名保持「猪咪建材方块 / 猪咪建材台阶」。</p>
+ * <p><b>[本地改动] v7.19.0 重构</b>：16 色变种的注册名与显示名都不再带「众神 / pigmee」——
+ * 注册名取 {@code white_building_panel} 这类「颜色 + 品类」形式，显示名直接叫「白色素板」等。
+ * 通用款仍为 {@code pigmee_building_block} / {@code pigmee_building_slab}，显示名保持「猪咪建材方块 / 猪咪建材台阶」。</p>
  *
  * <p>方块共 66 个：素板 16 色 + 框板 16 色 + 素板台阶 16 色 + 框板台阶 16 色 + 建材方块 + 建材台阶，
  * 另加一个合成材料「染料基底」物品。创造页 {@code 众神之物：方块} 一并在这里注册。
@@ -65,7 +65,8 @@ public final class BuildingRegistry
     private static Map<DyeColor, DeferredBlock<PigmeeBuildingPanelBlock>> registerPanels(boolean framed) {
         var panels = new EnumMap<DyeColor, DeferredBlock<PigmeeBuildingPanelBlock>>(DyeColor.class);
         for (DyeColor color : DyeColor.values()) {
-            String name = color.getName() + (framed ? "_pigmee_framed_building_panel" : "_pigmee_building_panel");
+            // [v7.19.0 重构] 注册名不再带 pigmee（「众神」），改为「颜色_品类」
+            String name = color.getName() + (framed ? "_framed_building_panel" : "_building_panel");
             panels.put(color, Godofthings.BLOCKS.register(name,
                     () -> new PigmeeBuildingPanelBlock(color, framed)));
         }
@@ -75,7 +76,8 @@ public final class BuildingRegistry
     private static Map<DyeColor, DeferredBlock<PigmeeBuildingSlabBlock>> registerSlabs(boolean framed) {
         var slabs = new EnumMap<DyeColor, DeferredBlock<PigmeeBuildingSlabBlock>>(DyeColor.class);
         for (DyeColor color : DyeColor.values()) {
-            String name = color.getName() + (framed ? "_pigmee_framed_building_slab" : "_pigmee_building_slab");
+            // [v7.19.0 重构] 同上，注册名不再带 pigmee
+            String name = color.getName() + (framed ? "_framed_building_slab" : "_building_slab");
             slabs.put(color, Godofthings.BLOCKS.register(name,
                     () -> new PigmeeBuildingSlabBlock(color.getMapColor())));
         }
