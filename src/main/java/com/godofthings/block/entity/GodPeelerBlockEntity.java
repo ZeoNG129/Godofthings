@@ -65,7 +65,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, IGridConnectedBlockEntity, GodGridHost, ConfigurableMachine
 {
-    private static final GodGridLayoutSpec LAYOUT = GodGridLayouts.of("god_peeler");
+    private static final GodGridLayoutSpec LAYOUT = GodGridLayouts.of("debark_machine");
     public static final int INPUT_SLOT_COUNT = LAYOUT.inputCount();
     public static final int OUTPUT_SLOT_COUNT = LAYOUT.outputCount();
     public static final int OUTPUT_SLOT_START = INPUT_SLOT_COUNT;
@@ -169,7 +169,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     @Override
     public String gridLayoutId()
     {
-        return "god_peeler";
+        return "debark_machine";
     }
 
     @Override
@@ -234,7 +234,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
             @Override
             public Component getDisplayName()
             {
-                return Component.translatable("container.godofthings.god_peeler");
+                return Component.translatable("container.godofthings.debark_machine");
             }
 
             @Override
@@ -958,7 +958,7 @@ public class GodPeelerBlockEntity extends BlockEntity implements MenuProvider, I
     @Override
     public Component getDisplayName()
     {
-        return Component.translatable("block.godofthings.god_peeler");
+        return Component.translatable("block.godofthings.debark_machine");
     }
 
     @Nullable

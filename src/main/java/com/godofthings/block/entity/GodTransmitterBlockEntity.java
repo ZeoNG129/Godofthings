@@ -666,7 +666,7 @@ public class GodTransmitterBlockEntity extends BlockEntity implements MenuProvid
     @NotNull
     public Component getDisplayName()
     {
-        return Component.translatable("container.godofthings.god_transmitter");
+        return Component.translatable("container.godofthings.power_transmission");
     }
 
     @Nullable

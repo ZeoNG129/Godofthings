@@ -222,7 +222,7 @@ public final class InfProviderMenu {
 
         public static void init() {
             TYPE = MenuTypeBuilder.create(Provider1Menu::new, PatternProviderLogicHost.class)
-                    .buildUnregistered(menuId("_1slots_pattern_provider"));
+                    .buildUnregistered(menuId("_pattern_provider_1"));
         }
 
         public Provider1Menu(int id, Inventory playerInventory, PatternProviderLogicHost host) {
@@ -236,7 +236,7 @@ public final class InfProviderMenu {
 
         public static void init() {
             TYPE = MenuTypeBuilder.create(Provider32Menu::new, PatternProviderLogicHost.class)
-                    .buildUnregistered(menuId("_32slots_pattern_provider"));
+                    .buildUnregistered(menuId("pattern_provider_32"));
         }
 
         public Provider32Menu(int id, Inventory playerInventory, PatternProviderLogicHost host) {
@@ -264,7 +264,7 @@ public final class InfProviderMenu {
 
         public static void init() {
             TYPE = MenuTypeBuilder.create(Provider1024Menu::new, PatternProviderLogicHost.class)
-                    .buildUnregistered(menuId("_1024slots_pattern_provider"));
+                    .buildUnregistered(menuId("pattern_provider_1024"));
         }
 
         public Provider1024Menu(int id, Inventory playerInventory, PatternProviderLogicHost host) {
@@ -292,7 +292,7 @@ public final class InfProviderMenu {
 
         public static void init() {
             TYPE = MenuTypeBuilder.create(ProviderInfMenu::new, PatternProviderLogicHost.class)
-                    .buildUnregistered(menuId("infinity_pattern_provider"));
+                    .buildUnregistered(menuId("pattern_provider_infinity"));
         }
 
         public ProviderInfMenu(int id, Inventory playerInventory, PatternProviderLogicHost host) {

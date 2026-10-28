@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XAX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "A": { "item": "minecraft:iron_axe" }
+  },
+  "result": {
+    "id": "godofthings:debark_machine",
+    "count": 1
+  }
+}

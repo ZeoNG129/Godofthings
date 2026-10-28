@@ -1,7 +1,7 @@
 {
   "display": {
     "icon": {
-      "item": "godofthings:space_time_eternity"
+      "item": "godofthings:stopped"
     },
     "title": {
       "translate": "advancements.godofthings.space_time.title"
@@ -22,7 +22,7 @@
         "items": [
           {
             "items": [
-              "godofthings:space_time_eternity"
+              "godofthings:stopped"
             ]
           }
         ]

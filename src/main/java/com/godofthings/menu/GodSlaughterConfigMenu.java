@@ -75,7 +75,7 @@ public class GodSlaughterConfigMenu extends AbstractContainerMenu
                 @Override
                 public Component getDisplayName()
                 {
-                    return Component.translatable("container.godofthings.god_slaughter");
+                    return Component.translatable("container.godofthings.killing");
                 }
 
                 @Override

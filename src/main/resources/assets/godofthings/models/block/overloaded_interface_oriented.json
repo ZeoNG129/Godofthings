@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/cube",
   "textures": {
-    "particle": "godofthings:block/overloaded_interface",
+    "particle": "godofthings:block/interface",
     "down": "godofthings:block/overloaded_interface_top",
     "up": "godofthings:block/overloaded_interface_bottom",
     "north": "godofthings:block/overloaded_interface_side",

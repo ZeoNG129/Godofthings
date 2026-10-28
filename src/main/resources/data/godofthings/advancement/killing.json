@@ -1,0 +1,36 @@
+{
+  "display": {
+    "icon": {
+      "item": "godofthings:killing"
+    },
+    "title": {
+      "translate": "advancements.godofthings.killing.title"
+    },
+    "description": {
+      "translate": "advancements.godofthings.killing.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "has": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:killing"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 500
+  },
+  "sends_telemetry_event": false
+}

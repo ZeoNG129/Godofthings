@@ -1391,7 +1391,7 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
     @Override
     public Component getDisplayName()
     {
-        return Component.translatable("block.godofthings.god_miner");
+        return Component.translatable("block.godofthings.miner");
     }
 
     @Nullable

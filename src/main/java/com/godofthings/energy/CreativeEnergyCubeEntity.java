@@ -171,7 +171,7 @@ public class CreativeEnergyCubeEntity extends BlockEntity implements MenuProvide
     @NotNull
     public Component getDisplayName()
     {
-        return Component.translatable("container.godofthings.creative_energy_cube");
+        return Component.translatable("container.godofthings.power");
     }
 
     @Nullable

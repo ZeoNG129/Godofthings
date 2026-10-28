@@ -27,7 +27,7 @@ import java.util.List;
 public class GodEmiPlugin implements EmiPlugin
 {
     public static final EmiRecipeCategory FURNACE_CATEGORY = new EmiRecipeCategory(
-            ResourceLocation.tryBuild(Godofthings.MODID, "god_furnace"),
+            ResourceLocation.tryBuild(Godofthings.MODID, "furnace"),
             EmiStack.of(Godofthings.GOD_FURNACE_ITEM.get()));
 
     @Override

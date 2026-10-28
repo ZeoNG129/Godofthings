@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 public class GodCraftScreen extends AbstractContainerScreen<GodCraftMenu>
 {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/god_craft.png");
+            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/craft.png");
 
     // 界面加宽：176 + 左侧模板面板 46
     private static final int IMG_W = 176 + 46;
@@ -69,7 +69,7 @@ public class GodCraftScreen extends AbstractContainerScreen<GodCraftMenu>
         // 原版工作台背景（右移 SHIFT）
         gui.blit(TEXTURE, x + SHIFT, y, 0, 0, 176, this.imageHeight);
 
-        gui.drawString(this.font, Component.translatable("gui.godofthings.god_craft.template_label"), x + 8, y + 12, 0x9AA0A8);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.craft.template_label"), x + 8, y + 12, 0x9AA0A8);
 
         GodCraftBlockEntity be = this.menu.getBlockEntity();
 
@@ -109,21 +109,21 @@ public class GodCraftScreen extends AbstractContainerScreen<GodCraftMenu>
         // 锁定配方按钮
         boolean locked = be.isLocked();
         drawBtn(gui, x + BTN_X, y + BTN_Y[0], BTN_W, BTN_H,
-                Component.translatable("gui.godofthings.god_craft.lock"), locked ? 0xFF3F7F3F : 0xFF4A4A4A);
+                Component.translatable("gui.godofthings.craft.lock"), locked ? 0xFF3F7F3F : 0xFF4A4A4A);
 
         // 启动自动合成按钮
         boolean enabled = be.isEnabled();
         drawBtn(gui, x + BTN_X, y + BTN_Y[1], BTN_W, BTN_H,
-                Component.translatable(enabled ? "gui.godofthings.god_craft.start" : "gui.godofthings.god_craft.stop"),
+                Component.translatable(enabled ? "gui.godofthings.craft.start" : "gui.godofthings.craft.stop"),
                 enabled ? 0xFF3F7F3F : 0xFF7F3F3F);
 
         // 面配置按钮
         drawBtn(gui, x + BTN_X, y + BTN_Y[2], BTN_W, BTN_H,
-                Component.translatable("gui.godofthings.god_craft.face_button"), 0xFF3F5F8F);
+                Component.translatable("gui.godofthings.craft.face_button"), 0xFF3F5F8F);
 
         // 配方模板详情按钮
         drawBtn(gui, x + BTN_X, y + BTN_Y[3], BTN_W, BTN_H,
-                Component.translatable("gui.godofthings.god_craft.template_button"), 0xFF3F5F8F);
+                Component.translatable("gui.godofthings.craft.template_button"), 0xFF3F5F8F);
 
         // AE 接入开关按钮（绿色 = 开 / 灰 = 关）
         int ax = x + AE_X;
@@ -145,7 +145,7 @@ public class GodCraftScreen extends AbstractContainerScreen<GodCraftMenu>
     @Override
     protected void renderLabels(GuiGraphics gui, int mouseX, int mouseY)
     {
-        gui.drawString(this.font, Component.translatable("container.godofthings.god_craft"), 60 + SHIFT, 6, 4210752, false);
+        gui.drawString(this.font, Component.translatable("container.godofthings.craft"), 60 + SHIFT, 6, 4210752, false);
         gui.drawString(this.font, Component.translatable("gui.godofthings.inventory"), 8 + SHIFT, 74, 4210752, false);
     }
 

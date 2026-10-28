@@ -1,0 +1,35 @@
+{
+  "parent": "godofthings:root",
+  "criteria": {
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "godofthings:debark_machine"
+      }
+    },
+    "has": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:debark_machine"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "godofthings:debark_machine"
+    ]
+  },
+  "sends_telemetry_event": false
+}

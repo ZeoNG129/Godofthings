@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XTX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "T": { "item": "minecraft:enchanting_table" }
+  },
+  "result": {
+    "id": "godofthings:enchant",
+    "count": 1
+  }
+}

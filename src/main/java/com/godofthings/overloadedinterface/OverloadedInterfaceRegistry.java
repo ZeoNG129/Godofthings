@@ -34,7 +34,7 @@ public final class OverloadedInterfaceRegistry
                     Godofthings.MODID);
 
     public static final DeferredBlock<OverloadedInterfaceBlock> OVERLOADED_INTERFACE =
-            BLOCKS.register("overloaded_interface", () -> new OverloadedInterfaceBlock(
+            BLOCKS.register("interface", () -> new OverloadedInterfaceBlock(
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(3.5F, 8.0F)
@@ -42,17 +42,17 @@ public final class OverloadedInterfaceRegistry
                             .requiresCorrectToolForDrops()));
 
     public static final DeferredItem<BlockItem> OVERLOADED_INTERFACE_ITEM =
-            ITEMS.registerSimpleBlockItem("overloaded_interface", OVERLOADED_INTERFACE);
+            ITEMS.registerSimpleBlockItem("interface", OVERLOADED_INTERFACE);
 
     public static final DeferredHolder<BlockEntityType<?>,
             BlockEntityType<OverloadedInterfaceBlockEntity>> OVERLOADED_INTERFACE_BE =
-            BLOCK_ENTITIES.register("overloaded_interface",
+            BLOCK_ENTITIES.register("interface",
                     () -> BlockEntityType.Builder.of(OverloadedInterfaceBlockEntity::new,
                             OVERLOADED_INTERFACE.get()).build(null));
 
     public static final DeferredHolder<net.minecraft.world.inventory.MenuType<?>,
             net.minecraft.world.inventory.MenuType<OverloadedInterfaceMenu>> OVERLOADED_INTERFACE_MENU =
-            MENUS.register("overloaded_interface", () -> OverloadedInterfaceMenu.TYPE);
+            MENUS.register("interface", () -> OverloadedInterfaceMenu.TYPE);
 
     private OverloadedInterfaceRegistry()
     {

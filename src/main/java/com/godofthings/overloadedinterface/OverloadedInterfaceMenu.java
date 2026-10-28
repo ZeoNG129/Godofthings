@@ -37,7 +37,7 @@ public class OverloadedInterfaceMenu extends UpgradeableMenu<InterfaceLogicHost>
         OverloadedSlotSemantics.init();
         TYPE = MenuTypeBuilder
                 .create(OverloadedInterfaceMenu::new, InterfaceLogicHost.class)
-                .buildUnregistered(com.godofthings.Godofthings.godofthingsId("overloaded_interface"));
+                .buildUnregistered(com.godofthings.Godofthings.godofthingsId("interface"));
     }
 
     @GuiSync(20)

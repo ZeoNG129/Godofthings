@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XDX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "D": { "item": "minecraft:daylight_detector" }
+  },
+  "result": {
+    "id": "godofthings:stopped",
+    "count": 1
+  }
+}

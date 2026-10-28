@@ -3,7 +3,7 @@
   "category": "building",
   "key": {
     "A": {
-      "item": "godofthings:_1024slots_pattern_provider"
+      "item": "godofthings:pattern_provider_1024"
     },
     "B": {
       "item": "ae2:engineering_processor"
@@ -21,6 +21,6 @@
   ],
   "result": {
     "count": 1,
-    "id": "godofthings:infinity_pattern_provider"
+    "id": "godofthings:pattern_provider_infinity"
   }
 }

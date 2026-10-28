@@ -79,7 +79,7 @@ public class GodPeelerConfigMenu extends AbstractContainerMenu
                 @Override
                 public Component getDisplayName()
                 {
-                    return Component.translatable("container.godofthings.god_peeler");
+                    return Component.translatable("container.godofthings.debark_machine");
                 }
 
                 @Override

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XNX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "N": { "item": "minecraft:nether_star" }
+  },
+  "result": {
+    "id": "godofthings:power",
+    "count": 1
+  }
+}

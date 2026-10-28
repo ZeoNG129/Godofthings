@@ -26,7 +26,7 @@ public class GodAbsorberScreen extends AbstractContainerScreen<GodAbsorberMenu>
 
     /** 手绘底图（176×166，与本面板尺寸一致） */
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
-            com.godofthings.Godofthings.MODID, "textures/gui/god_absorber.png");
+            com.godofthings.Godofthings.MODID, "textures/gui/absorb.png");
     private static final int TEX_W = 210;
     private static final int TEX_H = 190;
 

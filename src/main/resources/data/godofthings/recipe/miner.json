@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XPX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "P": { "item": "minecraft:diamond_pickaxe" }
+  },
+  "result": {
+    "id": "godofthings:miner",
+    "count": 1
+  }
+}

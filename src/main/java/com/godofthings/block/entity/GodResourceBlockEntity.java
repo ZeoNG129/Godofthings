@@ -1039,9 +1039,9 @@ public class GodResourceBlockEntity extends BlockEntity implements MenuProvider,
         // 三台共用 BE 类型：按变体取对应方块的注册名显示（check-lang 校验该字面量）
         return switch (variant)
         {
-            case ORE -> Component.translatable("block.godofthings.god_ore_machine");
-            case CROP -> Component.translatable("block.godofthings.god_crop_machine");
-            case DUPLICATE -> Component.translatable("block.godofthings.god_duplicate_machine");
+            case ORE -> Component.translatable("block.godofthings.ore_machine");
+            case CROP -> Component.translatable("block.godofthings.crop_machine");
+            case DUPLICATE -> Component.translatable("block.godofthings.copy_machine");
         };
     }
 

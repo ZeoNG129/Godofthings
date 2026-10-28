@@ -1135,7 +1135,7 @@ public class GodCraftBlockEntity extends BlockEntity implements MenuProvider, IG
     @Override
     public Component getDisplayName()
     {
-        return Component.translatable("container.godofthings.god_craft");
+        return Component.translatable("container.godofthings.craft");
     }
 
     @Nullable

@@ -45,7 +45,7 @@ public class GodMinerItem extends DiggerItem
     @Override
     public Component getName(ItemStack stack)
     {
-        return Component.translatable("block.godofthings.god_miner");
+        return Component.translatable("block.godofthings.miner");
     }
 
     // 右键放置方块（简化的方块放置逻辑）

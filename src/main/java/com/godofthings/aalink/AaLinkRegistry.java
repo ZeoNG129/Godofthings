@@ -33,7 +33,7 @@ public final class AaLinkRegistry
                     Godofthings.MODID);
 
     public static final DeferredBlock<AaLinkConnectorBlock> WIRELESS_CONNECTOR =
-            BLOCKS.register("wireless_connector", () -> new AaLinkConnectorBlock(
+            BLOCKS.register("wireless", () -> new AaLinkConnectorBlock(
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_CYAN)
                             .strength(2.0F, 6.0F)
@@ -42,7 +42,7 @@ public final class AaLinkRegistry
                             .requiresCorrectToolForDrops()));
 
     public static final DeferredItem<BlockItem> WIRELESS_CONNECTOR_ITEM =
-            ITEMS.registerSimpleBlockItem("wireless_connector", WIRELESS_CONNECTOR);
+            ITEMS.registerSimpleBlockItem("wireless", WIRELESS_CONNECTOR);
 
     /**
      * 无线连接器（卡）：v7.11.0 起替换原「无线连接工具」（AALink 版），
@@ -54,7 +54,7 @@ public final class AaLinkRegistry
                     props -> new ConnectorCardItem(props.stacksTo(1)));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AaLinkConnectorBlockEntity>>
-            WIRELESS_CONNECTOR_BE = BLOCK_ENTITIES.register("wireless_connector",
+            WIRELESS_CONNECTOR_BE = BLOCK_ENTITIES.register("wireless",
                     () -> BlockEntityType.Builder.of(AaLinkConnectorBlockEntity::new,
                             WIRELESS_CONNECTOR.get()).build(null));
 

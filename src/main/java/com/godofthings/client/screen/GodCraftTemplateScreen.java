@@ -22,7 +22,7 @@ import net.minecraft.world.item.ItemStack;
 public class GodCraftTemplateScreen extends AbstractContainerScreen<GodCraftTemplateMenu>
 {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/god_craft.png");
+            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/craft.png");
 
     // 与主界面一致：176 工作台 + 左侧 46px 模板面板
     private static final int IMG_W = 176 + 46;
@@ -79,8 +79,8 @@ public class GodCraftTemplateScreen extends AbstractContainerScreen<GodCraftTemp
         // 原版工作台背景（右移 SHIFT）
         gui.blit(TEXTURE, x + SHIFT, y, 0, 0, 176, this.imageHeight);
 
-        gui.drawString(this.font, Component.translatable("gui.godofthings.god_craft.template_label"), x + 8, y + 12, 0x9AA0A8);
-        gui.drawString(this.font, Component.translatable("gui.godofthings.god_craft.template_hint"), x + SHIFT + 8, y + 6, 0x9AA0A8);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.craft.template_label"), x + 8, y + 12, 0x9AA0A8);
+        gui.drawString(this.font, Component.translatable("gui.godofthings.craft.template_hint"), x + SHIFT + 8, y + 6, 0x9AA0A8);
 
         GodCraftBlockEntity be = ((GodCraftTemplateMenu) this.menu).getBlockEntity();
 
@@ -119,25 +119,25 @@ public class GodCraftTemplateScreen extends AbstractContainerScreen<GodCraftTemp
             }
 
             // 产物：覆盖在结果槽上
-            gui.drawString(this.font, Component.translatable("gui.godofthings.god_craft.result_label"), x + RESULT_X, y + RESULT_Y - 11, 0x9AA0A8);
+            gui.drawString(this.font, Component.translatable("gui.godofthings.craft.result_label"), x + RESULT_X, y + RESULT_Y - 11, 0x9AA0A8);
             ItemStack result = be.getTemplateResult(this.selectedTemplate);
             if (!result.isEmpty())
             {
                 gui.renderItem(result, x + RESULT_X + 1, y + RESULT_Y + 1);
             }
             Component name = result.isEmpty()
-                    ? Component.translatable("gui.godofthings.god_craft.result_empty")
+                    ? Component.translatable("gui.godofthings.craft.result_empty")
                     : result.getHoverName();
             gui.drawString(this.font, name, x + RESULT_X, y + RESULT_Y + RESULT_SIZE + 2, 0xCCCCCC);
         }
         else if (this.selectedTemplate >= 0)
         {
-            gui.drawString(this.font, Component.translatable("gui.godofthings.god_craft.template_blank"), x + REC_X0, y + REC_Y0 + REC_SPACING, 0x9AA0A8);
+            gui.drawString(this.font, Component.translatable("gui.godofthings.craft.template_blank"), x + REC_X0, y + REC_Y0 + REC_SPACING, 0x9AA0A8);
         }
 
         boolean canLoad = this.selectedTemplate >= 0 && be.hasTemplate(this.selectedTemplate);
         this.drawBtn(gui, x + LOAD_X, y + LOAD_Y, LOAD_W, LOAD_H,
-                Component.translatable("gui.godofthings.god_craft.load"), canLoad ? 0xFF2B5F2B : 0xFF4A4A4A);
+                Component.translatable("gui.godofthings.craft.load"), canLoad ? 0xFF2B5F2B : 0xFF4A4A4A);
         this.drawBtn(gui, x + BACK_X, y + BACK_Y, BACK_W, BACK_H,
                 Component.translatable("gui.godofthings.back"), 0xFF3F5F8F);
     }

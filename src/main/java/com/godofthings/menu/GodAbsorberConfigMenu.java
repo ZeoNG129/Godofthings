@@ -59,7 +59,7 @@ public class GodAbsorberConfigMenu extends AbstractContainerMenu
         {
             sp.openMenu(new MenuProvider()
             {
-                @Override public Component getDisplayName() { return Component.translatable("container.godofthings.god_absorber"); }
+                @Override public Component getDisplayName() { return Component.translatable("container.godofthings.absorb"); }
                 @Override public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) { return new GodAbsorberMenu(id, inv, be); }
             }, buf -> buf.writeBlockPos(be.getBlockPos()));
             return true;

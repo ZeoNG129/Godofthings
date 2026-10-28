@@ -1,7 +1,7 @@
 {
   "display": {
     "icon": {
-      "item": "godofthings:teleport_block"
+      "item": "godofthings:dimension_1"
     },
     "title": {
       "translate": "advancements.godofthings.useless_dims.title"
@@ -22,7 +22,7 @@
         "items": [
           {
             "items": [
-              "godofthings:teleport_block"
+              "godofthings:dimension_1"
             ]
           }
         ]
@@ -34,7 +34,7 @@
         "items": [
           {
             "items": [
-              "godofthings:teleport_block_2"
+              "godofthings:dimension_2"
             ]
           }
         ]
@@ -46,7 +46,7 @@
         "items": [
           {
             "items": [
-              "godofthings:teleport_block_3"
+              "godofthings:dimension_3"
             ]
           }
         ]

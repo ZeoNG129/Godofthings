@@ -159,10 +159,10 @@ $buildingColors = @('white','orange','magenta','light_blue','yellow','lime','pin
 [void]$items.Add('pigmee_building_block')
 [void]$items.Add('pigmee_building_slab')
 # InfProviderRegistry uses registerSimpleBlockItem for its four block items.
-[void]$items.Add('_1slots_pattern_provider')
-[void]$items.Add('_32slots_pattern_provider')
-[void]$items.Add('_1024slots_pattern_provider')
-[void]$items.Add('infinity_pattern_provider')
+[void]$items.Add('_pattern_provider_1')
+[void]$items.Add('pattern_provider_32')
+[void]$items.Add('pattern_provider_1024')
+[void]$items.Add('pattern_provider_infinity')
 foreach ($c in $buildingColors) {
     [void]$blocks.Add("${c}_building_panel")
     [void]$blocks.Add("${c}_framed_building_panel")

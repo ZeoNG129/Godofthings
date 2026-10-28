@@ -21,7 +21,7 @@ import net.neoforged.neoforge.registries.DeferredRegister.Items;
  *
  * <p>四档供应器 = 1 / 32 / 1024 / 32723（无限）个样板槽，每档都有
  * 方块形态与线缆部件（part）形态。注册名沿用上游
- * （{@code _1slots_pattern_provider} 等，前导下划线是上游为规避 Java
+ * （{@code _pattern_provider_1} 等，前导下划线是上游为规避 Java
  * 标识符不能以数字开头的写法），仅命名空间换成 {@code godofthings}。</p>
  *
  * <p>上游的独立创造页在本模组里改为挂进「众神之物」主页（见 Godofthings 的 tab 定义）。</p>
@@ -37,23 +37,23 @@ public final class InfProviderRegistry {
 
     // ---- 方块（四档）----
     public static final DeferredBlock<InfProviderBlockEntity.Provider1Block> P1_BLOCK =
-            BLOCKS.register("_1slots_pattern_provider", InfProviderBlockEntity.Provider1Block::new);
+            BLOCKS.register("_pattern_provider_1", InfProviderBlockEntity.Provider1Block::new);
     public static final DeferredBlock<InfProviderBlockEntity.Provider32Block> P32_BLOCK =
-            BLOCKS.register("_32slots_pattern_provider", InfProviderBlockEntity.Provider32Block::new);
+            BLOCKS.register("pattern_provider_32", InfProviderBlockEntity.Provider32Block::new);
     public static final DeferredBlock<InfProviderBlockEntity.Provider1024Block> P1024_BLOCK =
-            BLOCKS.register("_1024slots_pattern_provider", InfProviderBlockEntity.Provider1024Block::new);
+            BLOCKS.register("pattern_provider_1024", InfProviderBlockEntity.Provider1024Block::new);
     public static final DeferredBlock<InfProviderBlockEntity.ProviderInfBlock> PINF_BLOCK =
-            BLOCKS.register("infinity_pattern_provider", InfProviderBlockEntity.ProviderInfBlock::new);
+            BLOCKS.register("pattern_provider_infinity", InfProviderBlockEntity.ProviderInfBlock::new);
 
     // ---- 方块物品 ----
     public static final DeferredItem<BlockItem> P1_ITEM =
-            ITEMS.registerSimpleBlockItem("_1slots_pattern_provider", P1_BLOCK);
+            ITEMS.registerSimpleBlockItem("_pattern_provider_1", P1_BLOCK);
     public static final DeferredItem<BlockItem> P32_ITEM =
-            ITEMS.registerSimpleBlockItem("_32slots_pattern_provider", P32_BLOCK);
+            ITEMS.registerSimpleBlockItem("pattern_provider_32", P32_BLOCK);
     public static final DeferredItem<BlockItem> P1024_ITEM =
-            ITEMS.registerSimpleBlockItem("_1024slots_pattern_provider", P1024_BLOCK);
+            ITEMS.registerSimpleBlockItem("pattern_provider_1024", P1024_BLOCK);
     public static final DeferredItem<BlockItem> PINF_ITEM =
-            ITEMS.registerSimpleBlockItem("infinity_pattern_provider", PINF_BLOCK);
+            ITEMS.registerSimpleBlockItem("pattern_provider_infinity", PINF_BLOCK);
 
     // ---- 部件（part）物品：挂在 AE2 线缆上的形态 ----
     public static final DeferredItem<InfProviderPart.Provider1PartItem> P1_PART_ITEM =
@@ -71,27 +71,27 @@ public final class InfProviderRegistry {
 
     // ---- 方块实体（四档）----
     public static final Supplier<BlockEntityType<InfProviderBlockEntity.Provider1>> P1_BE =
-            BLOCK_ENTITIES.register("_1slots_pattern_provider",
+            BLOCK_ENTITIES.register("_pattern_provider_1",
                     () -> BlockEntityType.Builder.of(InfProviderBlockEntity.Provider1::new, P1_BLOCK.get()).build(null));
     public static final Supplier<BlockEntityType<InfProviderBlockEntity.Provider32>> P32_BE =
-            BLOCK_ENTITIES.register("_32slots_pattern_provider",
+            BLOCK_ENTITIES.register("pattern_provider_32",
                     () -> BlockEntityType.Builder.of(InfProviderBlockEntity.Provider32::new, P32_BLOCK.get()).build(null));
     public static final Supplier<BlockEntityType<InfProviderBlockEntity.Provider1024>> P1024_BE =
-            BLOCK_ENTITIES.register("_1024slots_pattern_provider",
+            BLOCK_ENTITIES.register("pattern_provider_1024",
                     () -> BlockEntityType.Builder.of(InfProviderBlockEntity.Provider1024::new, P1024_BLOCK.get()).build(null));
     public static final Supplier<BlockEntityType<InfProviderBlockEntity.ProviderInf>> PINF_BE =
-            BLOCK_ENTITIES.register("infinity_pattern_provider",
+            BLOCK_ENTITIES.register("pattern_provider_infinity",
                     () -> BlockEntityType.Builder.of(InfProviderBlockEntity.ProviderInf::new, PINF_BLOCK.get()).build(null));
 
     // ---- 菜单（四档）----
     public static final Supplier<MenuType<InfProviderMenu.Provider1Menu>> P1_MENU =
-            MENUS.register("_1slots_pattern_provider", () -> InfProviderMenu.Provider1Menu.TYPE);
+            MENUS.register("_pattern_provider_1", () -> InfProviderMenu.Provider1Menu.TYPE);
     public static final Supplier<MenuType<InfProviderMenu.Provider32Menu>> P32_MENU =
-            MENUS.register("_32slots_pattern_provider", () -> InfProviderMenu.Provider32Menu.TYPE);
+            MENUS.register("pattern_provider_32", () -> InfProviderMenu.Provider32Menu.TYPE);
     public static final Supplier<MenuType<InfProviderMenu.Provider1024Menu>> P1024_MENU =
-            MENUS.register("_1024slots_pattern_provider", () -> InfProviderMenu.Provider1024Menu.TYPE);
+            MENUS.register("pattern_provider_1024", () -> InfProviderMenu.Provider1024Menu.TYPE);
     public static final Supplier<MenuType<InfProviderMenu.ProviderInfMenu>> PINF_MENU =
-            MENUS.register("infinity_pattern_provider", () -> InfProviderMenu.ProviderInfMenu.TYPE);
+            MENUS.register("pattern_provider_infinity", () -> InfProviderMenu.ProviderInfMenu.TYPE);
 
     static {
         // 菜单 TYPE 由 MenuTypeBuilder 构造，须在注册器条目求值前先初始化好

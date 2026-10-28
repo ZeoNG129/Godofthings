@@ -352,7 +352,7 @@ public class Godofthings
     // ---- 方块 ----
     // 注意：不能用 BlockBehaviour.Properties.copy(Blocks.FURNACE) —— 会连带原版熔炉的
     // `lit` 状态属性，而本方块未定义该属性，注册时直接崩溃。因此手动构造属性。
-    public static final DeferredBlock<GodFurnaceBlock> GOD_FURNACE = BLOCKS.registerBlock("god_furnace",
+    public static final DeferredBlock<GodFurnaceBlock> GOD_FURNACE = BLOCKS.registerBlock("furnace",
             GodFurnaceBlock::new,
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.STONE)
@@ -362,17 +362,17 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_FURNACE, new Item.Properties());
 
     // ---- 神之矿机 ----
-    public static final DeferredBlock<GodMinerBlock> GOD_MINER = BLOCKS.registerBlock("god_miner",
+    public static final DeferredBlock<GodMinerBlock> GOD_MINER = BLOCKS.registerBlock("miner",
             GodMinerBlock::new,
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .strength(5.0F, 6.0F)
                     .sound(SoundType.METAL));
     public static final DeferredItem<GodMinerItem> GOD_MINER_ITEM =
-            ITEMS.registerItem("god_miner", props -> new GodMinerItem(GOD_MINER.get(), props.stacksTo(1)));
+            ITEMS.registerItem("miner", props -> new GodMinerItem(GOD_MINER.get(), props.stacksTo(1)));
 
     // ---- 神之资源系列（v5.13.0：矿物 / 作物 / 复制三台，共用 BE 类型，输入过滤各不相同）----
-    public static final DeferredBlock<GodResourceBlock> GOD_ORE_MACHINE = BLOCKS.registerBlock("god_ore_machine",
+    public static final DeferredBlock<GodResourceBlock> GOD_ORE_MACHINE = BLOCKS.registerBlock("ore_machine",
             props -> new GodResourceBlock(com.godofthings.block.entity.GodResourceVariant.ORE, props),
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_YELLOW)
@@ -381,7 +381,7 @@ public class Godofthings
     public static final DeferredItem<BlockItem> GOD_ORE_MACHINE_ITEM =
             ITEMS.registerSimpleBlockItem(GOD_ORE_MACHINE, new Item.Properties());
 
-    public static final DeferredBlock<GodResourceBlock> GOD_CROP_MACHINE = BLOCKS.registerBlock("god_crop_machine",
+    public static final DeferredBlock<GodResourceBlock> GOD_CROP_MACHINE = BLOCKS.registerBlock("crop_machine",
             props -> new GodResourceBlock(com.godofthings.block.entity.GodResourceVariant.CROP, props),
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_GREEN)
@@ -390,7 +390,7 @@ public class Godofthings
     public static final DeferredItem<BlockItem> GOD_CROP_MACHINE_ITEM =
             ITEMS.registerSimpleBlockItem(GOD_CROP_MACHINE, new Item.Properties());
 
-    public static final DeferredBlock<GodResourceBlock> GOD_DUPLICATE_MACHINE = BLOCKS.registerBlock("god_duplicate_machine",
+    public static final DeferredBlock<GodResourceBlock> GOD_DUPLICATE_MACHINE = BLOCKS.registerBlock("copy_machine",
             props -> new GodResourceBlock(com.godofthings.block.entity.GodResourceVariant.DUPLICATE, props),
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_ORANGE)
@@ -400,7 +400,7 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_DUPLICATE_MACHINE, new Item.Properties());
 
     // ---- 神之去皮（原木进 → 对应去皮原木出，1 输入槽 + 1 输出槽）----
-    public static final DeferredBlock<GodPeelerBlock> GOD_PEELER = BLOCKS.registerBlock("god_peeler",
+    public static final DeferredBlock<GodPeelerBlock> GOD_PEELER = BLOCKS.registerBlock("debark_machine",
             GodPeelerBlock::new,
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
@@ -410,7 +410,7 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_PEELER, new Item.Properties());
 
     // ---- 神之掉落 ----
-    public static final DeferredBlock<GodDropBlock> GOD_DROP = BLOCKS.registerBlock("god_drop",
+    public static final DeferredBlock<GodDropBlock> GOD_DROP = BLOCKS.registerBlock("drop_machine",
             GodDropBlock::new,
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_PURPLE)
@@ -420,7 +420,7 @@ public class Godofthings
             ITEMS.registerSimpleBlockItem(GOD_DROP, new Item.Properties());
 
     // ---- 神之怪蛋（刷怪蛋复制机，任意模组刷怪蛋都能复制）----
-    public static final DeferredBlock<GodSpawnEggBlock> GOD_SPAWN_EGG = BLOCKS.registerBlock("god_spawn_egg",
+    public static final DeferredBlock<GodSpawnEggBlock> GOD_SPAWN_EGG = BLOCKS.registerBlock("eggs_machine",
             GodSpawnEggBlock::new,
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_PURPLE)
@@ -431,7 +431,7 @@ public class Godofthings
 
 
     // ---- 神之附魔（v5.13.0：天神附魔并入，最高 255 级）----
-    public static final DeferredBlock<GodEnchantBlock> GOD_ENCHANT = BLOCKS.registerBlock("god_enchant",
+    public static final DeferredBlock<GodEnchantBlock> GOD_ENCHANT = BLOCKS.registerBlock("enchant",
             GodEnchantBlock::new,
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_PURPLE)
@@ -547,7 +547,7 @@ public class Godofthings
     // GT 扳手模式子类（通过模式轮盘切换，不直接出现在创造标签）
 
     public static final DeferredBlock<DimensionTeleporterBlock> VOID_TELEPORTER =
-            BLOCKS.registerBlock("void_teleporter",
+            BLOCKS.registerBlock("void",
                     props -> new DimensionTeleporterBlock(VOID_DIMENSION, "message.godofthings.tp_void", props),
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.STONE)
@@ -559,7 +559,7 @@ public class Godofthings
 
     // ---- 创造能量立方（无限 FE 输出 + 物品充能）----
     public static final DeferredBlock<CreativeEnergyCubeBlock> CREATIVE_ENERGY_CUBE =
-            BLOCKS.registerBlock("creative_energy_cube", CreativeEnergyCubeBlock::new,
+            BLOCKS.registerBlock("power", CreativeEnergyCubeBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_PURPLE)
                             .pushReaction(PushReaction.DESTROY)
@@ -569,15 +569,15 @@ public class Godofthings
     public static final DeferredItem<BlockItem> CREATIVE_ENERGY_CUBE_ITEM =
             ITEMS.registerSimpleBlockItem(CREATIVE_ENERGY_CUBE, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CreativeEnergyCubeEntity>> CREATIVE_ENERGY_CUBE_BE =
-            BLOCK_ENTITIES.register("creative_energy_cube",
+            BLOCK_ENTITIES.register("power",
                     () -> BlockEntityType.Builder.of(CreativeEnergyCubeEntity::new, CREATIVE_ENERGY_CUBE.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<CreativeEnergyCubeMenu>> CREATIVE_ENERGY_CUBE_MENU =
-            MENUS.register("creative_energy_cube",
+            MENUS.register("power",
                     () -> IMenuTypeExtension.create((id, inv, buf) -> new CreativeEnergyCubeMenu(id, inv, buf.readBlockPos())));
 
     // ---- 神之传输（能量传输器：范围内玩家/机器 FE 供能）----
     public static final DeferredBlock<GodTransmitterBlock> GOD_TRANSMITTER =
-            BLOCKS.registerBlock("god_transmitter", GodTransmitterBlock::new,
+            BLOCKS.registerBlock("power_transmission", GodTransmitterBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_BLUE)
                             .pushReaction(PushReaction.DESTROY)
@@ -587,15 +587,15 @@ public class Godofthings
     public static final DeferredItem<BlockItem> GOD_TRANSMITTER_ITEM =
             ITEMS.registerSimpleBlockItem(GOD_TRANSMITTER, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodTransmitterBlockEntity>> GOD_TRANSMITTER_BE =
-            BLOCK_ENTITIES.register("god_transmitter",
+            BLOCK_ENTITIES.register("power_transmission",
                     () -> BlockEntityType.Builder.of(GodTransmitterBlockEntity::new, GOD_TRANSMITTER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodTransmitterMenu>> GOD_TRANSMITTER_MENU =
-            MENUS.register("god_transmitter",
+            MENUS.register("power_transmission",
                     () -> IMenuTypeExtension.create(GodTransmitterMenu::new));
 
     // ---- 神之砍杀 ----
     public static final DeferredBlock<GodSlaughterBlock> GOD_SLAUGHTER =
-            BLOCKS.registerBlock("god_slaughter", GodSlaughterBlock::new,
+            BLOCKS.registerBlock("killing", GodSlaughterBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_RED)
                             .pushReaction(PushReaction.DESTROY)
@@ -605,10 +605,10 @@ public class Godofthings
     public static final DeferredItem<BlockItem> GOD_SLAUGHTER_ITEM =
             ITEMS.registerSimpleBlockItem(GOD_SLAUGHTER, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodSlaughterBlockEntity>> GOD_SLAUGHTER_BE =
-            BLOCK_ENTITIES.register("god_slaughter",
+            BLOCK_ENTITIES.register("killing",
                     () -> BlockEntityType.Builder.of(GodSlaughterBlockEntity::new, GOD_SLAUGHTER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodSlaughterMenu>> GOD_SLAUGHTER_MENU =
-            MENUS.register("god_slaughter",
+            MENUS.register("killing",
                     () -> IMenuTypeExtension.create(GodSlaughterMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodSlaughterConfigMenu>> GOD_SLAUGHTER_CONFIG_MENU =
             MENUS.register("god_slaughter_config",
@@ -616,7 +616,7 @@ public class Godofthings
 
     // ---- 神之吸收 ----
     public static final DeferredBlock<GodAbsorberBlock> GOD_ABSORBER =
-            BLOCKS.registerBlock("god_absorber", GodAbsorberBlock::new,
+            BLOCKS.registerBlock("absorb", GodAbsorberBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_PURPLE)
                             .pushReaction(PushReaction.DESTROY)
@@ -626,10 +626,10 @@ public class Godofthings
     public static final DeferredItem<BlockItem> GOD_ABSORBER_ITEM =
             ITEMS.registerSimpleBlockItem(GOD_ABSORBER, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodAbsorberBlockEntity>> GOD_ABSORBER_BE =
-            BLOCK_ENTITIES.register("god_absorber",
+            BLOCK_ENTITIES.register("absorb",
                     () -> BlockEntityType.Builder.of(GodAbsorberBlockEntity::new, GOD_ABSORBER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodAbsorberMenu>> GOD_ABSORBER_MENU =
-            MENUS.register("god_absorber",
+            MENUS.register("absorb",
                     () -> IMenuTypeExtension.create(GodAbsorberMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodAbsorberConfigMenu>> GOD_ABSORBER_CONFIG_MENU =
             MENUS.register("god_absorber_config",
@@ -672,7 +672,7 @@ public class Godofthings
                     props -> new com.godofthings.fluxcell.InfinityFluxCellItem());
 
     // ---- 神之合成 ----
-    public static final DeferredBlock<GodCraftBlock> GOD_CRAFT = BLOCKS.registerBlock("god_craft",
+    public static final DeferredBlock<GodCraftBlock> GOD_CRAFT = BLOCKS.registerBlock("craft",
             GodCraftBlock::new,
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
@@ -681,10 +681,10 @@ public class Godofthings
     public static final DeferredItem<BlockItem> GOD_CRAFT_ITEM =
             ITEMS.registerSimpleBlockItem(GOD_CRAFT, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodCraftBlockEntity>> GOD_CRAFT_BE =
-            BLOCK_ENTITIES.register("god_craft",
+            BLOCK_ENTITIES.register("craft",
                     () -> BlockEntityType.Builder.of(GodCraftBlockEntity::new, GOD_CRAFT.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodCraftMenu>> GOD_CRAFT_MENU =
-            MENUS.register("god_craft", () -> IMenuTypeExtension.create(GodCraftMenu::new));
+            MENUS.register("craft", () -> IMenuTypeExtension.create(GodCraftMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodCraftConfigMenu>> GOD_CRAFT_CONFIG_MENU =
             MENUS.register("god_craft_config", () -> IMenuTypeExtension.create(GodCraftConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodCraftTemplateMenu>> GOD_CRAFT_TEMPLATE_MENU =
@@ -692,7 +692,7 @@ public class Godofthings
 
     // ---- 时空永恒（放下后世界时间与天气永久锁定当前状态）----
     public static final DeferredBlock<SpaceTimeEternityBlock> SPACE_TIME_ETERNITY =
-            BLOCKS.registerBlock("space_time_eternity", SpaceTimeEternityBlock::new,
+            BLOCKS.registerBlock("stopped", SpaceTimeEternityBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_CYAN)
                             .pushReaction(PushReaction.DESTROY)
@@ -702,12 +702,12 @@ public class Godofthings
     public static final DeferredItem<BlockItem> SPACE_TIME_ETERNITY_ITEM =
             ITEMS.registerSimpleBlockItem(SPACE_TIME_ETERNITY, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SpaceTimeEternityBlockEntity>> SPACE_TIME_ETERNITY_BE =
-            BLOCK_ENTITIES.register("space_time_eternity",
+            BLOCK_ENTITIES.register("stopped",
                     () -> BlockEntityType.Builder.of(SpaceTimeEternityBlockEntity::new, SPACE_TIME_ETERNITY.get()).build(null));
 
     // ---- 生物覆灭（放下后半径 512 格内无生物自然生成）----
     public static final DeferredBlock<CreatureAnnihilationBlock> CREATURE_ANNIHILATION =
-            BLOCKS.registerBlock("creature_annihilation", CreatureAnnihilationBlock::new,
+            BLOCKS.registerBlock("annihilation", CreatureAnnihilationBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_RED)
                             .pushReaction(PushReaction.DESTROY)
@@ -717,12 +717,12 @@ public class Godofthings
     public static final DeferredItem<BlockItem> CREATURE_ANNIHILATION_ITEM =
             ITEMS.registerSimpleBlockItem(CREATURE_ANNIHILATION, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CreatureAnnihilationBlockEntity>> CREATURE_ANNIHILATION_BE =
-            BLOCK_ENTITIES.register("creature_annihilation",
+            BLOCK_ENTITIES.register("annihilation",
                     () -> BlockEntityType.Builder.of(CreatureAnnihilationBlockEntity::new, CREATURE_ANNIHILATION.get()).build(null));
 
     // ---- 神之吞噬（销毁物品/液体的大箱子，六面输入）----
     public static final DeferredBlock<GodDevourerBlock> GOD_DEVOURER =
-            BLOCKS.registerBlock("god_devourer", GodDevourerBlock::new,
+            BLOCKS.registerBlock("devourer", GodDevourerBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_BLACK)
                             .strength(3.0F, 6.0F)
@@ -730,10 +730,10 @@ public class Godofthings
     public static final DeferredItem<BlockItem> GOD_DEVOURER_ITEM =
             ITEMS.registerSimpleBlockItem(GOD_DEVOURER, new Item.Properties());
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodDevourerBlockEntity>> GOD_DEVOURER_BE =
-            BLOCK_ENTITIES.register("god_devourer",
+            BLOCK_ENTITIES.register("devourer",
                     () -> BlockEntityType.Builder.of(GodDevourerBlockEntity::new, GOD_DEVOURER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<GodDevourerMenu>> GOD_DEVOURER_MENU =
-            MENUS.register("god_devourer", () -> IMenuTypeExtension.create(GodDevourerMenu::new));
+            MENUS.register("devourer", () -> IMenuTypeExtension.create(GodDevourerMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodDevourerMenu>> PORTABLE_DEVOURER_MENU =
             MENUS.register("portable_devourer", () -> IMenuTypeExtension.create(
                     (id, inv, buf) -> new GodDevourerMenu(id, inv)));
@@ -745,10 +745,10 @@ public class Godofthings
 
     // ---- 方块实体 ----
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodFurnaceBlockEntity>> GOD_FURNACE_BE =
-            BLOCK_ENTITIES.register("god_furnace",
+            BLOCK_ENTITIES.register("furnace",
                     () -> BlockEntityType.Builder.of(GodFurnaceBlockEntity::new, GOD_FURNACE.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodMinerBlockEntity>> GOD_MINER_BE =
-            BLOCK_ENTITIES.register("god_miner",
+            BLOCK_ENTITIES.register("miner",
                     () -> BlockEntityType.Builder.of(GodMinerBlockEntity::new, GOD_MINER.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodResourceBlockEntity>> GOD_RESOURCE_BE =
             BLOCK_ENTITIES.register("god_resource",
@@ -765,26 +765,26 @@ public class Godofthings
                             },
                             GOD_ORE_MACHINE.get(), GOD_CROP_MACHINE.get(), GOD_DUPLICATE_MACHINE.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodDropBlockEntity>> GOD_DROP_BE =
-            BLOCK_ENTITIES.register("god_drop",
+            BLOCK_ENTITIES.register("drop_machine",
                     () -> BlockEntityType.Builder.of(GodDropBlockEntity::new, GOD_DROP.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodSpawnEggBlockEntity>> GOD_SPAWN_EGG_BE =
-            BLOCK_ENTITIES.register("god_spawn_egg",
+            BLOCK_ENTITIES.register("eggs_machine",
                     () -> BlockEntityType.Builder.of(GodSpawnEggBlockEntity::new, GOD_SPAWN_EGG.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodEnchantBlockEntity>> GOD_ENCHANT_BE =
-            BLOCK_ENTITIES.register("god_enchant",
+            BLOCK_ENTITIES.register("enchant",
                     () -> BlockEntityType.Builder.of(GodEnchantBlockEntity::new,
                             GOD_ENCHANT.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GodPeelerBlockEntity>> GOD_PEELER_BE =
-            BLOCK_ENTITIES.register("god_peeler",
+            BLOCK_ENTITIES.register("debark_machine",
                     () -> BlockEntityType.Builder.of(GodPeelerBlockEntity::new, GOD_PEELER.get()).build(null));
 
     // ---- 菜单 ----
     public static final DeferredHolder<MenuType<?>, MenuType<GodFurnaceMenu>> GOD_FURNACE_MENU =
-            MENUS.register("god_furnace", () -> IMenuTypeExtension.create(GodFurnaceMenu::new));
+            MENUS.register("furnace", () -> IMenuTypeExtension.create(GodFurnaceMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodFurnaceConfigMenu>> GOD_FURNACE_CONFIG_MENU =
             MENUS.register("god_furnace_config", () -> IMenuTypeExtension.create(GodFurnaceConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodMinerMenu>> GOD_MINER_MENU =
-            MENUS.register("god_miner", () -> IMenuTypeExtension.create(GodMinerMenu::new));
+            MENUS.register("miner", () -> IMenuTypeExtension.create(GodMinerMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodMinerConfigMenu>> GOD_MINER_CONFIG_MENU =
             MENUS.register("god_miner_config", () -> IMenuTypeExtension.create(GodMinerConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodResourceMenu>> GOD_RESOURCE_MENU =
@@ -792,19 +792,19 @@ public class Godofthings
     public static final DeferredHolder<MenuType<?>, MenuType<GodResourceConfigMenu>> GOD_RESOURCE_CONFIG_MENU =
             MENUS.register("god_resource_config", () -> IMenuTypeExtension.create(GodResourceConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodPeelerMenu>> GOD_PEELER_MENU =
-            MENUS.register("god_peeler", () -> IMenuTypeExtension.create(GodPeelerMenu::new));
+            MENUS.register("debark_machine", () -> IMenuTypeExtension.create(GodPeelerMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodPeelerConfigMenu>> GOD_PEELER_CONFIG_MENU =
             MENUS.register("god_peeler_config", () -> IMenuTypeExtension.create(GodPeelerConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodDropMenu>> GOD_DROP_MENU =
-            MENUS.register("god_drop", () -> IMenuTypeExtension.create(GodDropMenu::new));
+            MENUS.register("drop_machine", () -> IMenuTypeExtension.create(GodDropMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodDropConfigMenu>> GOD_DROP_CONFIG_MENU =
             MENUS.register("god_drop_config", () -> IMenuTypeExtension.create(GodDropConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodSpawnEggMenu>> GOD_SPAWN_EGG_MENU =
-            MENUS.register("god_spawn_egg", () -> IMenuTypeExtension.create(GodSpawnEggMenu::new));
+            MENUS.register("eggs_machine", () -> IMenuTypeExtension.create(GodSpawnEggMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodSpawnEggConfigMenu>> GOD_SPAWN_EGG_CONFIG_MENU =
             MENUS.register("god_spawn_egg_config", () -> IMenuTypeExtension.create(GodSpawnEggConfigMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodEnchantMenu>> GOD_ENCHANT_MENU =
-            MENUS.register("god_enchant", () -> IMenuTypeExtension.create(GodEnchantMenu::new));
+            MENUS.register("enchant", () -> IMenuTypeExtension.create(GodEnchantMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<GodChangeMenu>> GOD_CHANGE_MENU =
             MENUS.register("god_change", () -> IMenuTypeExtension.create(GodChangeMenu::new));
     /** 神之背包界面：额外数据是「背包在哪个物品栏槽位」（主手 = 快捷栏下标，副手 = -1） */
@@ -830,9 +830,8 @@ public class Godofthings
                     .title(Component.translatable("itemGroup.godofthings.god_of_things_tab"))
                     .displayItems((parameters, output) ->
                     {
-                        // ---- 工作机器：按「外形风格统一」重排（v7.19.0）----
-                        // ① 七台同为「网格机器」结构（同一套面板 / 输出槽 / 面配置），先排成连续一组，
-                        //    顺序按基础加工链：烧 → 挖 → 矿物 → 作物 → 复制 → 去皮 → 掉落 → 刷蛋
+                        // ---- 机器与功能方块：按用户指定顺序（v7.19.0 重排）----
+                        // 熔炉 → 挖机 → 矿物 → 作物 → 复制 → 去皮 → 掉落 → 蛋蛋
                         output.accept(GOD_FURNACE_ITEM.get());
                         output.accept(GOD_MINER_ITEM.get());
                         output.accept(GOD_ORE_MACHINE_ITEM.get());
@@ -841,34 +840,32 @@ public class Godofthings
                         output.accept(GOD_PEELER_ITEM.get());
                         output.accept(GOD_DROP_ITEM.get());
                         output.accept(GOD_SPAWN_EGG_ITEM.get());
-                        // ② 其余五台功能机：读（余响）→ 取（吸收 / 吞噬）→ 附魔仿制（摹刻 / 附魔）
-                        output.accept(GOD_TRANSMITTER_ITEM.get());
-                        output.accept(GOD_ABSORBER_ITEM.get());
-                        output.accept(GOD_DEVOURER_ITEM.get());
+                        // 合成 → 吸收 → 杀戮 → 附魔
                         output.accept(GOD_CRAFT_ITEM.get());
-                        output.accept(GOD_ENCHANT_ITEM.get());
+                        output.accept(GOD_ABSORBER_ITEM.get());
                         output.accept(GOD_SLAUGHTER_ITEM.get());
-                        // ③ 无限样板供应器：方块形态四档 → part 形态四档（同一系列的两种外形各自成组）
-                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1_ITEM.get());
-                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_ITEM.get());
-                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_ITEM.get());
-                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_ITEM.get());
-                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1_PART_ITEM.get());
-                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_PART_ITEM.get());
-                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_PART_ITEM.get());
-                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_PART_ITEM.get());
-                        // ④ 特殊方块：三维度传送方块连排 → 创造 / 终局方块 → AE 无线与接口
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
-                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
-                        output.accept(VOID_TELEPORTER_ITEM.get());
+                        output.accept(GOD_ENCHANT_ITEM.get());
+                        // 能源 → 输电 → 无线 → 接口
                         output.accept(CREATIVE_ENERGY_CUBE_ITEM.get());
-                        output.accept(SPACE_TIME_ETERNITY_ITEM.get());
-                        output.accept(CREATURE_ANNIHILATION_ITEM.get());
+                        output.accept(GOD_TRANSMITTER_ITEM.get());
                         output.accept(com.godofthings.aalink.AaLinkRegistry.WIRELESS_CONNECTOR_ITEM.get());
                         output.accept(
                                 com.godofthings.overloadedinterface.OverloadedInterfaceRegistry
                                         .OVERLOADED_INTERFACE_ITEM.get());
+                        // 定晷封时 → 生灵止步 → 三个维度 → 虚空（吞噬机与虚空传送碑，同名故相邻）
+                        output.accept(SPACE_TIME_ETERNITY_ITEM.get());
+                        output.accept(CREATURE_ANNIHILATION_ITEM.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_2.get());
+                        output.accept(com.godofthings.beef.init.ModItems.TELEPORT_BLOCK_ITEM_3.get());
+                        output.accept(GOD_DEVOURER_ITEM.get());
+                        output.accept(VOID_TELEPORTER_ITEM.get());
+                        // 样板供应器：只列四个方块形态；四个线缆部件形态（*_PART_ITEM）
+                        // 按用户要求不进创造栏，但仍可通过合成获得
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1_ITEM.get());
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P32_ITEM.get());
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.P1024_ITEM.get());
+                        output.accept(com.godofthings.infinityprovider.InfProviderRegistry.PINF_ITEM.get());
                     })
                     .build());
 

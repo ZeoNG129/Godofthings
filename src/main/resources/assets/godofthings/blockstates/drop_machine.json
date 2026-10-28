@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "godofthings:block/drop_machine"
+    }
+  }
+}

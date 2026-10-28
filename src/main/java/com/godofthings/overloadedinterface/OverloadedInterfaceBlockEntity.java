@@ -613,7 +613,7 @@ public class OverloadedInterfaceBlockEntity extends InterfaceBlockEntity
         public net.minecraft.network.chat.Component getDescription()
         {
             return net.minecraft.network.chat.Component.translatable(
-                    "gui.godofthings.overloaded_interface.eject_storage");
+                    "gui.godofthings.interface.eject_storage");
         }
     }
 

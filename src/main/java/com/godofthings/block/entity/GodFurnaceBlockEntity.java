@@ -68,7 +68,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     // 熔炉原画是「上排 17 格输入 + 下排 15 格输出」，故输出由 17 缩到 15。
     // 保留 static final 是刻意的：GameTest 与其它类直接用这些常量建 handler，
     // 改成实例字段会波及测试代码（测试总数必须保持 45 条不变）。
-    private static final GodGridLayoutSpec LAYOUT = GodGridLayouts.of("god_furnace");
+    private static final GodGridLayoutSpec LAYOUT = GodGridLayouts.of("furnace");
     public static final int INPUT_SLOT_COUNT = LAYOUT.inputCount();
     public static final int OUTPUT_SLOT_COUNT = LAYOUT.outputCount();
     public static final int TOTAL_SLOTS = INPUT_SLOT_COUNT + OUTPUT_SLOT_COUNT;
@@ -173,7 +173,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     @Override
     public String gridLayoutId()
     {
-        return "god_furnace";
+        return "furnace";
     }
 
     @Override
@@ -1016,7 +1016,7 @@ public class GodFurnaceBlockEntity extends BlockEntity implements MenuProvider, 
     @Override
     public Component getDisplayName()
     {
-        return Component.translatable("container.godofthings.god_furnace");
+        return Component.translatable("container.godofthings.furnace");
     }
 
     @Nullable

@@ -146,7 +146,7 @@ public class GodCraftMenu extends AbstractContainerMenu
                 @Override
                 public Component getDisplayName()
                 {
-                    return Component.translatable("container.godofthings.god_craft");
+                    return Component.translatable("container.godofthings.craft");
                 }
 
                 @Override
@@ -169,15 +169,15 @@ public class GodCraftMenu extends AbstractContainerMenu
             int t = buttonId - 10;
             if (!be.hasTemplate(t))
             {
-                player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_none", t + 1), true);
+                player.displayClientMessage(Component.translatable("gui.godofthings.craft.template_none", t + 1), true);
             }
             else if (be.loadTemplateFromInventory(player, t))
             {
-                player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_loaded", t + 1), true);
+                player.displayClientMessage(Component.translatable("gui.godofthings.craft.template_loaded", t + 1), true);
             }
             else
             {
-                player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_missing", t + 1), true);
+                player.displayClientMessage(Component.translatable("gui.godofthings.craft.template_missing", t + 1), true);
             }
             this.broadcastChanges();
             return true;
@@ -187,11 +187,11 @@ public class GodCraftMenu extends AbstractContainerMenu
             int t = buttonId - 20;
             if (be.saveTemplate(t))
             {
-                player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_saved", t + 1), true);
+                player.displayClientMessage(Component.translatable("gui.godofthings.craft.template_saved", t + 1), true);
             }
             else
             {
-                player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_empty"), true);
+                player.displayClientMessage(Component.translatable("gui.godofthings.craft.template_empty"), true);
             }
             this.broadcastChanges();
             return true;

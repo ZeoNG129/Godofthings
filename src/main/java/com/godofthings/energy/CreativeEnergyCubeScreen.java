@@ -38,7 +38,7 @@ public class CreativeEnergyCubeScreen extends AbstractContainerScreen<CreativeEn
     {
         gui.drawString(this.font, this.title, 8, 6, 0x404040, false);
         // 方案C 极简布局：仅居中槽位 + 槽位下方一行输出信息
-        Component output = Component.translatable("gui.godofthings.creative_energy_cube.output");
+        Component output = Component.translatable("gui.godofthings.power.output");
         gui.drawString(this.font, output, (this.imageWidth - this.font.width(output)) / 2, 52, 0x1B5E20, false);
         gui.drawString(this.font, this.playerInventoryTitle, 8, this.imageHeight - 94, 0x404040, false);
     }

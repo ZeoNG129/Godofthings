@@ -60,7 +60,7 @@ public class GodEnchantBlockEntity extends BlockEntity implements MenuProvider
     @Override
     public Component getDisplayName()
     {
-        return Component.translatable("block.godofthings.god_enchant");
+        return Component.translatable("block.godofthings.enchant");
     }
 
     // ---- NBT：保存物品槽（1.20.5+ 需 HolderLookup.Provider） ----

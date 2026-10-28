@@ -34,13 +34,13 @@ public final class InfProviderClientSetup {
     public static void registerScreens(RegisterMenuScreensEvent event) {
         InitScreens.register(event, InfProviderMenu.Provider1Menu.TYPE,
                 InfProviderClientSetup::provider1Screen,
-                "/screens/_1slots_pattern_provider.json");
+                "/screens/_pattern_provider_1.json");
         InitScreens.register(event, InfProviderMenu.Provider32Menu.TYPE,
-                InfProviderScreens.S32::new, "/screens/_32slots_pattern_provider.json");
+                InfProviderScreens.S32::new, "/screens/pattern_provider_32.json");
         InitScreens.register(event, InfProviderMenu.Provider1024Menu.TYPE,
-                InfProviderScreens.S1024::new, "/screens/_1024slots_pattern_provider.json");
+                InfProviderScreens.S1024::new, "/screens/pattern_provider_1024.json");
         InitScreens.register(event, InfProviderMenu.ProviderInfMenu.TYPE,
-                InfProviderScreens.SInf::new, "/screens/infinity_pattern_provider.json");
+                InfProviderScreens.SInf::new, "/screens/pattern_provider_infinity.json");
     }
 
     /** 1 槽版增强屏幕；具名工厂避免 register 重载的 lambda 泛型推断歧义。 */

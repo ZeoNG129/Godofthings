@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XHX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "H": { "item": "minecraft:hopper" }
+  },
+  "result": {
+    "id": "godofthings:drop_machine",
+    "count": 1
+  }
+}

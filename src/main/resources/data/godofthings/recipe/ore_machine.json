@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XDX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "D": { "item": "minecraft:diamond_block" }
+  },
+  "result": {
+    "id": "godofthings:ore_machine",
+    "count": 1
+  }
+}

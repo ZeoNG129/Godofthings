@@ -17,7 +17,7 @@
   },
   "text": {
     "dialog_title": {
-      "text": { "translate": "block.godofthings.overloaded_interface" },
+      "text": { "translate": "block.godofthings.interface" },
       "position": { "left": 8, "top": 6 }
     }
   },

@@ -7802,4 +7802,30 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
   `BuildingRegistry` 的两处注册名拼装、`check-lang.ps1` 的建材 id 名单。
 - **不是破坏性迁移**：老存档里已放置的旧 id 方块会因注册表找不到而消失 —— 这是「改 id」的必然代价，
   本次按你的要求直接改，未做数据迁移兼容。
-- 方块 / 物品总数不变（110 / 111）；GameTest 45 条全绿；`check-lang` 全绿（2267 键，双向一致）。
+- 方块 / 物品总数不变（110 / 111）；GameTest 45 条全绿；`check-lang` 全绿（2267 键，双向一致）。### 6. 重构：「众神之物」标签页全量改名 + 删重复电梯配方（不升版本）
+
+- **删掉一个重复的电梯合成配方**：`elevator_redye_*.json`（16 个）引用的 `godofthings:elevators` 标签从未创建，
+  JEI 里显示成 `Empty Tag`。按用户要求整组删除，只保留 16 个「8 羊毛 + 1 末影珍珠」的有序合成。
+- **17 台机器 + 4 个样板供应器 + 3 个维度核 + 界碑 / 无线 / 过载接口共 27 个方块与物品改名换 id**：
+  · `god_furnace`→`furnace`（神之熔炉）、`god_miner`→`miner`（神之挖机）、`god_ore_machine`→`ore_machine`（神之矿物）、
+    `god_crop_machine`→`crop_machine`（神之作物）、`god_duplicate_machine`→`copy_machine`（神之复制）、
+    `god_peeler`→`debark_machine`（神之去皮）、`god_drop`→`drop_machine`（神之掉落）、`god_spawn_egg`→`eggs_machine`（神之蛋蛋）；
+  · `god_transmitter`→`power_transmission`（神之输电）、`god_absorber`→`absorb`（神之吸收）、
+    `god_enchant`→`enchant`（神之附魔）、`god_craft`→`craft`（神之合成）、`god_slaughter`→`killing`（神之杀戮）、
+    `god_devourer`→`devourer`（神之虚空）、`creative_energy_cube`→`power`（神之能源）；
+  · `space_time_eternity`→`stopped`（定晷封时）、`creature_annihilation`→`annihilation`（生灵止步）；
+  · `teleport_block`/`_2`/`_3`→`dimension_1`/`_2`/`_3`（神之维度·单/双/三）、`void_teleporter`→`void`（神之虚空）、
+    `wireless_connector`→`wireless`（神之无线）、`overloaded_interface`→`interface`（神之接口）；
+  · 样板供应器：`_1slots_pattern_provider`→`_pattern_provider_1`（样板供应器-1）、`_32slots…`→`pattern_provider_32`、
+    `_1024slots…`→`pattern_provider_1024`、`infinity_pattern_provider`→`pattern_provider_infinity`（样板供应器-∞）。
+- **四个线缆部件形态（`*_PART_ITEM`）移出创造栏**，仍可通过合成获得。
+- **「众神之物」标签页顺序**按用户指定重排：熔炉 → 挖机 → 矿物 → 作物 → 复制 → 去皮 → 掉落 → 蛋蛋 → 合成 → 吸收 →
+  杀戮 → 附魔 → 能源 → 输电 → 无线 → 接口 → 定晷封时 → 生灵止步 → 三个维度 → 虚空（吞噬机与虚空传送碑，同名故相邻）→ 样板供应器。
+- **改名实现方式**：以「id 边界正则」统一处理文件名与文件内容，因此带后缀的内部资源（`*_side` / `*_top` / `*_off` / `*_on` /
+  `*_alternate*` / `*_part` / `*_base` / `god_furnace_config` 等）保持原名，引用与文件天然一致。
+  共改名 164 + 31 个文件、改写 237 个文件内容、语言值 128×2 处。
+- **未改名**：Curios 槽位名 `wireless_connector`（`data/godofthings/curios/**` 与其对应的
+  `data/curios/tags/item/wireless_connector.json` 属于饰品栏槽位体系，与物品 id 无关）。
+- **已知遗留（本次未处理，非本次引入）**：`assets/ae2/screens/godofthings_overloaded_interface.json` 引用的
+  `guis/ex_interface.png` 在仓库与 git 历史中都不存在，过载接口界面背景会显示缺失贴图。
+- 方块 / 物品总数不变（110 / 111）；GameTest 45 条全绿；`check-lang` 全绿（2267 键）。

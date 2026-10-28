@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XSX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "S": { "item": "minecraft:diamond_sword" }
+  },
+  "result": {
+    "id": "godofthings:killing",
+    "count": 1
+  }
+}

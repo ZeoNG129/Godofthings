@@ -47,11 +47,11 @@ import java.util.Set;
  */
 public enum GodResourceVariant
 {
-    ORE("god_ore_machine"),
-    CROP("god_crop_machine"),
-    DUPLICATE("god_duplicate_machine");
+    ORE("ore_machine"),
+    CROP("crop_machine"),
+    DUPLICATE("copy_machine");
 
-    /** 注册名（god_ore_machine / god_crop_machine / god_duplicate_machine），同时用作 GUI 贴图名 */
+    /** 注册名（ore_machine / crop_machine / copy_machine），同时用作 GUI 贴图名 */
     public final String id;
 
     GodResourceVariant(String id)

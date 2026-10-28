@@ -57,45 +57,45 @@ public class OverloadedInterfaceScreen extends UpgradeableScreen<OverloadedInter
         this.pageButton = new InfToggleButton(InfToggleButton.ButtonType.WIRELESS_STRATEGY,
                 btn -> this.menu.clientNextPage());
         this.pageButton.setTooltipOn(List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.page.next")));
+                Component.translatable("gui.godofthings.interface.page.next")));
         this.pageButton.setTooltipOff(List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.page.prev")));
+                Component.translatable("gui.godofthings.interface.page.prev")));
         this.addToLeftToolbar(this.pageButton);
 
         this.modeButton = new InfToggleButton(InfToggleButton.ButtonType.MODE,
                 btn -> menu.clientCycleInterfaceMode());
         this.modeButton.setTooltipOn(List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.mode.wireless")));
+                Component.translatable("gui.godofthings.interface.mode.wireless")));
         this.modeButton.setTooltipOff(List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.mode.normal")));
+                Component.translatable("gui.godofthings.interface.mode.normal")));
         this.addToLeftToolbar(this.modeButton);
 
         this.exportButton = new InfToggleButton(InfToggleButton.ButtonType.AUTO_RETURN,
                 btn -> menu.clientCycleExportMode());
         this.exportButton.setTooltipAt(0, List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.export.off")));
+                Component.translatable("gui.godofthings.interface.export.off")));
         this.exportButton.setTooltipAt(1, List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.export.auto")));
+                Component.translatable("gui.godofthings.interface.export.auto")));
         this.exportButton.setTooltipAt(2, List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.export.auto")));
+                Component.translatable("gui.godofthings.interface.export.auto")));
         this.addToLeftToolbar(this.exportButton);
 
         this.importButton = new InfToggleButton(InfToggleButton.ButtonType.ADAPTIVE_BATCH,
                 btn -> menu.clientCycleImportMode());
         this.importButton.setTooltipAt(0, List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.import.off")));
+                Component.translatable("gui.godofthings.interface.import.off")));
         this.importButton.setTooltipAt(1, List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.import.auto")));
+                Component.translatable("gui.godofthings.interface.import.auto")));
         this.importButton.setTooltipAt(2, List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.import.eject")));
+                Component.translatable("gui.godofthings.interface.import.eject")));
         this.addToLeftToolbar(this.importButton);
 
         this.speedButton = new InfToggleButton(InfToggleButton.ButtonType.SPEED,
                 btn -> menu.clientCycleIOSpeed());
         this.speedButton.setTooltipOn(List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.speed.fast")));
+                Component.translatable("gui.godofthings.interface.speed.fast")));
         this.speedButton.setTooltipOff(List.of(
-                Component.translatable("gui.godofthings.overloaded_interface.speed.normal")));
+                Component.translatable("gui.godofthings.interface.speed.normal")));
         this.addToLeftToolbar(this.speedButton);
 
         this.configSlots = menu.getAllConfigSlots();
@@ -114,9 +114,9 @@ public class OverloadedInterfaceScreen extends UpgradeableScreen<OverloadedInter
             });
             button.setDisableBackground(true);
             button.setMessage(Component.translatable(
-                    "gui.godofthings.overloaded_interface.set_amount"));
+                    "gui.godofthings.interface.set_amount"));
             button.setTooltip(Tooltip.create(Component.translatable(
-                    "gui.godofthings.overloaded_interface.set_amount.tooltip")));
+                    "gui.godofthings.interface.set_amount.tooltip")));
             this.amountButtons.add(button);
         }
     }
@@ -190,7 +190,7 @@ public class OverloadedInterfaceScreen extends UpgradeableScreen<OverloadedInter
         if (menu.isWirelessMode())
         {
             var text = Component.translatable(
-                    "gui.godofthings.overloaded_interface.connections",
+                    "gui.godofthings.interface.connections",
                     menu.getConnectionCount());
             guiGraphics.drawString(this.font, text,
                     this.imageWidth - 8 - this.font.width(text), 6,

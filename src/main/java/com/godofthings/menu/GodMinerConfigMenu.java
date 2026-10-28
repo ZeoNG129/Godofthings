@@ -79,7 +79,7 @@ public class GodMinerConfigMenu extends AbstractContainerMenu
                 @Override
                 public Component getDisplayName()
                 {
-                    return Component.translatable("container.godofthings.god_miner");
+                    return Component.translatable("container.godofthings.miner");
                 }
 
                 @Override

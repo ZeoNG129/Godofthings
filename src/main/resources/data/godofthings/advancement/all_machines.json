@@ -1,7 +1,7 @@
 {
   "display": {
     "icon": {
-      "item": "godofthings:god_miner"
+      "item": "godofthings:miner"
     },
     "title": {
       "translate": "advancements.godofthings.all_machines.title"
@@ -22,7 +22,7 @@
         "items": [
           {
             "items": [
-              "godofthings:god_miner"
+              "godofthings:miner"
             ]
           }
         ]
@@ -34,7 +34,7 @@
         "items": [
           {
             "items": [
-              "godofthings:god_drop"
+              "godofthings:drop_machine"
             ]
           }
         ]
@@ -46,7 +46,7 @@
         "items": [
           {
             "items": [
-              "godofthings:god_enchant"
+              "godofthings:enchant"
             ]
           }
         ]
@@ -58,7 +58,7 @@
         "items": [
           {
             "items": [
-              "godofthings:god_craft"
+              "godofthings:craft"
             ]
           }
         ]
@@ -70,7 +70,7 @@
         "items": [
           {
             "items": [
-              "godofthings:god_ore_machine"
+              "godofthings:ore_machine"
             ]
           }
         ]
@@ -82,7 +82,7 @@
         "items": [
           {
             "items": [
-              "godofthings:god_crop_machine"
+              "godofthings:crop_machine"
             ]
           }
         ]
@@ -94,7 +94,7 @@
         "items": [
           {
             "items": [
-              "godofthings:god_duplicate_machine"
+              "godofthings:copy_machine"
             ]
           }
         ]

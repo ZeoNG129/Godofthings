@@ -29,7 +29,7 @@ public class DevourerButtonHandler
                             Component.translatable("gui.godofthings.devourer.button"),
                             b -> DevourerMessages.sendOpen())
                     .bounds(x, y, 20, 20)
-                    .tooltip(Tooltip.create(Component.translatable("block.godofthings.god_devourer")))
+                    .tooltip(Tooltip.create(Component.translatable("block.godofthings.devourer")))
                     .build();
             event.addListener(button);
         }

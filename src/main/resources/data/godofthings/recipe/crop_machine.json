@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XAX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "A": { "item": "minecraft:hay_block" }
+  },
+  "result": {
+    "id": "godofthings:crop_machine",
+    "count": 1
+  }
+}

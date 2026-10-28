@@ -54,7 +54,7 @@ public final class GodGridLayouts
     // ---------------- 01 炽神圣火熔炉 ----------------
     /** 上排 15 格输入 / 下排 15 格输出（原 17/15，取小者 15）；面板 335×344。 */
     private static final GodGridLayoutSpec FURNACE = GodGridLayoutSpec
-            .builder("god_furnace", 335, 344)
+            .builder("furnace", 335, 344)
             .inputs(15, 1, centerX(335, 15), 40)
             .outputs(15, 1, centerX(335, 15), 172)
             .slot(S, S, S)
@@ -67,7 +67,7 @@ public final class GodGridLayouts
     // ---------------- 03 点金圣灵秘柜 ----------------
     /** 上排 14 格 / 下排 14 格（原 14/16，取小者 14）；面板 324×330。 */
     private static final GodGridLayoutSpec ORE_MACHINE = GodGridLayoutSpec
-            .builder("god_ore_machine", 324, 330)
+            .builder("ore_machine", 324, 330)
             .inputs(14, 1, centerX(324, 14), 52)
             .outputs(14, 1, centerX(324, 14), 217)
             .slot(S, S, S)
@@ -83,7 +83,7 @@ public final class GodGridLayouts
      * 输出仍横排在下方，只是列数从 8 收到 4、行数 2 增到 3。
      */
     private static final GodGridLayoutSpec CROP_MACHINE = GodGridLayoutSpec
-            .builder("god_crop_machine", 256, 288)
+            .builder("crop_machine", 256, 288)
             .inputs(3, 4, 20, 50)
             .outputs(4, 3, centerX(256, 4), 139)
             .slot(S, 25, 19)
@@ -96,7 +96,7 @@ public final class GodGridLayouts
     // ---------------- 05 创生摹刻圣坛 ----------------
     /** 上排 14 格 / 下排 14 格（原 14/15，取小者 14）；面板 310×298。 */
     private static final GodGridLayoutSpec DUPLICATE_MACHINE = GodGridLayoutSpec
-            .builder("god_duplicate_machine", 310, 298)
+            .builder("copy_machine", 310, 298)
             .inputs(14, 1, centerX(310, 14), 60)
             .outputs(14, 1, centerX(310, 14), 186)
             .slot(S, S, S)
@@ -113,7 +113,7 @@ public final class GodGridLayouts
      * GameTest 的 9 槽独立测试依赖这个配对）。
      */
     private static final GodGridLayoutSpec PEELER = GodGridLayoutSpec
-            .builder("god_peeler", 256, 256)
+            .builder("debark_machine", 256, 256)
             .inputs(3, 3, 22, 46)
             .outputs(3, 3, 142, 46)
             .slot(S, 24, 24)
@@ -126,7 +126,7 @@ public final class GodGridLayouts
     // ---------------- 07 万魂余响鉴录仪 ----------------
     /** 上排 15 格 / 下排 15 格（本来就是 15/15）；面板 297×302。 */
     private static final GodGridLayoutSpec DROP = GodGridLayoutSpec
-            .builder("god_drop", 297, 302)
+            .builder("drop_machine", 297, 302)
             .inputs(15, 1, centerX(297, 15), 47)
             .outputs(15, 1, centerX(297, 15), 165)
             .slot(S, S, S)
@@ -139,7 +139,7 @@ public final class GodGridLayouts
     // ---------------- 08 灵胚孳生圣卵 ----------------
     /** 上排 15 格 / 下排 15 格；面板 300×270（加宽到能放下 15 格并留边距）。 */
     private static final GodGridLayoutSpec SPAWN_EGG = GodGridLayoutSpec
-            .builder("god_spawn_egg", 300, 270)
+            .builder("eggs_machine", 300, 270)
             .inputs(15, 1, centerX(300, 15), 41)
             .outputs(15, 1, centerX(300, 15), 145)
             .slot(S, S, S)
@@ -153,13 +153,13 @@ public final class GodGridLayouts
 
     static
     {
-        BY_ID.put("god_furnace", FURNACE);
-        BY_ID.put("god_ore_machine", ORE_MACHINE);
-        BY_ID.put("god_crop_machine", CROP_MACHINE);
-        BY_ID.put("god_duplicate_machine", DUPLICATE_MACHINE);
-        BY_ID.put("god_peeler", PEELER);
-        BY_ID.put("god_drop", DROP);
-        BY_ID.put("god_spawn_egg", SPAWN_EGG);
+        BY_ID.put("furnace", FURNACE);
+        BY_ID.put("ore_machine", ORE_MACHINE);
+        BY_ID.put("crop_machine", CROP_MACHINE);
+        BY_ID.put("copy_machine", DUPLICATE_MACHINE);
+        BY_ID.put("debark_machine", PEELER);
+        BY_ID.put("drop_machine", DROP);
+        BY_ID.put("eggs_machine", SPAWN_EGG);
     }
 
     /**

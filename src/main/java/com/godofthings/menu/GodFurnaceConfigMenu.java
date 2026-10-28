@@ -79,7 +79,7 @@ public class GodFurnaceConfigMenu extends AbstractContainerMenu
                 @Override
                 public Component getDisplayName()
                 {
-                    return Component.translatable("container.godofthings.god_furnace");
+                    return Component.translatable("container.godofthings.furnace");
                 }
 
                 @Override

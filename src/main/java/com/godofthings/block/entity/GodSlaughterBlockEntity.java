@@ -1024,7 +1024,7 @@ public class GodSlaughterBlockEntity extends BlockEntity implements MenuProvider
     @NotNull
     public Component getDisplayName()
     {
-        return Component.translatable("container.godofthings.god_slaughter");
+        return Component.translatable("container.godofthings.killing");
     }
 
     @Nullable

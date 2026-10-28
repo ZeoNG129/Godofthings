@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XGX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "G": { "item": "minecraft:ender_eye" }
+  },
+  "result": {
+    "id": "godofthings:power_transmission",
+    "count": 1
+  }
+}

@@ -25,7 +25,7 @@ public record GodConfigData(String blockId, int[] faceModes, boolean aeEnabled, 
     /** 加速数量上限（一组 = 64） */
     public static final int MAX_ACCELERATORS = ConfigurableMachine.MAX_ACCELERATORS;
 
-    /** 存档编解码：{@code {block:"godofthings:god_furnace", faces:[...], ae:true, accel:12}} */
+    /** 存档编解码：{@code {block:"godofthings:furnace", faces:[...], ae:true, accel:12}} */
     public static final Codec<GodConfigData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("block").forGetter(GodConfigData::blockId),
             Codec.INT.listOf().fieldOf("faces").forGetter(GodConfigData::faceList),

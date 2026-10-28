@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XWX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "W": { "item": "minecraft:wither_skeleton_skull" }
+  },
+  "result": {
+    "id": "godofthings:annihilation",
+    "count": 1
+  }
+}

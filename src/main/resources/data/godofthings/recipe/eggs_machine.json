@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XOX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "O": { "item": "minecraft:egg" }
+  },
+  "result": {
+    "id": "godofthings:eggs_machine",
+    "count": 1
+  }
+}

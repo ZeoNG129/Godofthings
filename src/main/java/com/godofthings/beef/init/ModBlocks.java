@@ -20,7 +20,7 @@ public final class ModBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(UselessMod.MODID);
 
     public static final DeferredBlock<Block> TELEPORT_BLOCK = BLOCKS.register(
-            "teleport_block",
+            "dimension_1",
             () -> new TeleportPadBlock(
                     UselessDimTeleporter::new,
                     BlockBehaviour.Properties.of()
@@ -30,7 +30,7 @@ public final class ModBlocks {
     );
 
     public static final DeferredBlock<Block> TELEPORT_BLOCK_2 = BLOCKS.register(
-            "teleport_block_2",
+            "dimension_2",
             () -> new TeleportPadBlock(
                     UselessDimTeleporter2::new,
                     BlockBehaviour.Properties.of()
@@ -40,7 +40,7 @@ public final class ModBlocks {
     );
 
     public static final DeferredBlock<Block> TELEPORT_BLOCK_3 = BLOCKS.register(
-            "teleport_block_3",
+            "dimension_3",
             () -> new TeleportPadBlock(
                     UselessDimTeleporter3::new,
                     BlockBehaviour.Properties.of()

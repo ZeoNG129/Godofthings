@@ -66,7 +66,7 @@ public class GodCraftConfigMenu extends AbstractContainerMenu
                 @Override
                 public Component getDisplayName()
                 {
-                    return Component.translatable("container.godofthings.god_craft");
+                    return Component.translatable("container.godofthings.craft");
                 }
 
                 @Override

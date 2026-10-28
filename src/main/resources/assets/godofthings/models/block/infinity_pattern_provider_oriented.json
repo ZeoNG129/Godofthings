@@ -1,7 +1,7 @@
 {
   "parent": "block/cube",
   "textures": {
-    "particle": "godofthings:block/infinity_pattern_provider",
+    "particle": "godofthings:block/pattern_provider_infinity",
     "down": "godofthings:block/infinity_pattern_provider_alternate",
     "up": "godofthings:block/infinity_pattern_provider_alternate_front",
     "north": "godofthings:block/infinity_pattern_provider_alternate_arrow",

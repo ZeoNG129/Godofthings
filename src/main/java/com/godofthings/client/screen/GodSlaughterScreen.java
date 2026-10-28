@@ -27,7 +27,7 @@ public class GodSlaughterScreen extends AbstractContainerScreen<GodSlaughterMenu
 
     /** 手绘底图（176×166，与本面板尺寸一致） */
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
-            com.godofthings.Godofthings.MODID, "textures/gui/god_slaughter.png");
+            com.godofthings.Godofthings.MODID, "textures/gui/killing.png");
     private static final int TEX_W = 210;
     private static final int TEX_H = 190;
 

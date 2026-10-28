@@ -15,7 +15,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 /**
  * 维度传送方块：右键在主世界与目标维度之间往返。
- * 移植自 useless_mod 的 teleport_block 逻辑（1.20.1）。
+ * 移植自 useless_mod 的 dimension_1 逻辑（1.20.1）。
  */
 public class DimensionTeleporterBlock extends Block
 {

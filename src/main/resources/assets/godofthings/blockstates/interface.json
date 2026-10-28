@@ -1,0 +1,33 @@
+{
+  "variants": {
+    "push_direction=all": {
+      "model": "godofthings:block/interface"
+    },
+    "push_direction=down": {
+      "model": "godofthings:block/overloaded_interface_oriented",
+      "x": 180
+    },
+    "push_direction=up": {
+      "model": "godofthings:block/overloaded_interface_oriented"
+    },
+    "push_direction=north": {
+      "model": "godofthings:block/overloaded_interface_oriented",
+      "x": 90
+    },
+    "push_direction=south": {
+      "model": "godofthings:block/overloaded_interface_oriented",
+      "x": 90,
+      "y": 180
+    },
+    "push_direction=west": {
+      "model": "godofthings:block/overloaded_interface_oriented",
+      "x": 90,
+      "y": 270
+    },
+    "push_direction=east": {
+      "model": "godofthings:block/overloaded_interface_oriented",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

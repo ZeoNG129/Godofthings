@@ -1,7 +1,7 @@
 {
   "parent": "block/cube",
   "textures": {
-    "particle": "godofthings:block/_1slots_pattern_provider",
+    "particle": "godofthings:block/_pattern_provider_1",
     "down": "godofthings:block/_1slots_pattern_provider_alternate",
     "up": "godofthings:block/_1slots_pattern_provider_alternate_front",
     "north": "godofthings:block/_1slots_pattern_provider_alternate_arrow",

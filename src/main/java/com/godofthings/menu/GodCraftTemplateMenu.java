@@ -72,9 +72,9 @@ public class GodCraftTemplateMenu extends AbstractContainerMenu {
          int slot = buttonId - BUTTON_SAVE_BASE;
          boolean ok = this.be.saveTemplate(slot);
          if (ok) {
-            player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_saved", new Object[]{slot + 1}), true);
+            player.displayClientMessage(Component.translatable("gui.godofthings.craft.template_saved", new Object[]{slot + 1}), true);
          } else {
-            player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_empty"), true);
+            player.displayClientMessage(Component.translatable("gui.godofthings.craft.template_empty"), true);
          }
 
          this.broadcastChanges();
@@ -82,11 +82,11 @@ public class GodCraftTemplateMenu extends AbstractContainerMenu {
       } else if (buttonId >= BUTTON_LOAD_BASE && buttonId < BUTTON_LOAD_BASE + GodCraftBlockEntity.TEMPLATE_COUNT) {
          int slot = buttonId - BUTTON_LOAD_BASE;
          if (!this.be.hasTemplate(slot)) {
-            player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_none", new Object[]{slot + 1}), true);
+            player.displayClientMessage(Component.translatable("gui.godofthings.craft.template_none", new Object[]{slot + 1}), true);
          } else if (this.be.loadTemplateFromInventory(player, slot)) {
-            player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_loaded", new Object[]{slot + 1}), true);
+            player.displayClientMessage(Component.translatable("gui.godofthings.craft.template_loaded", new Object[]{slot + 1}), true);
          } else {
-            player.displayClientMessage(Component.translatable("gui.godofthings.god_craft.template_missing", new Object[]{slot + 1}), true);
+            player.displayClientMessage(Component.translatable("gui.godofthings.craft.template_missing", new Object[]{slot + 1}), true);
          }
 
          this.broadcastChanges();
@@ -94,7 +94,7 @@ public class GodCraftTemplateMenu extends AbstractContainerMenu {
       } else if (buttonId == BUTTON_BACK && player instanceof ServerPlayer serverPlayer) {
          serverPlayer.openMenu(new MenuProvider() {
             public Component getDisplayName() {
-               return Component.translatable("container.godofthings.god_craft");
+               return Component.translatable("container.godofthings.craft");
             }
 
             public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player p) {

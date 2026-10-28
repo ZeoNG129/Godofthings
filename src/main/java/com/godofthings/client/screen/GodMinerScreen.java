@@ -36,7 +36,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class GodMinerScreen extends AbstractContainerScreen<GodMinerMenu>
 {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "textures/gui/god_miner.png");
+            ResourceLocation.fromNamespaceAndPath(Godofthings.MODID, "textures/gui/miner.png");
     /** 贴图实际像素尺寸（与面板一致，1:1 采样，不会拉伸） */
     private static final int TEX_W = 224;
     private static final int TEX_H = 248;

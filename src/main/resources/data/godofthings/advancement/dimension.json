@@ -1,6 +1,6 @@
 {
   "display": {
-    "icon": { "item": "godofthings:void_teleporter" },
+    "icon": { "item": "godofthings:void" },
     "title": { "translate": "advancements.godofthings.dimension.title" },
     "description": { "translate": "advancements.godofthings.dimension.description" },
     "frame": "goal",

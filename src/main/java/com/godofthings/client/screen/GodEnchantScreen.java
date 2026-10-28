@@ -20,7 +20,7 @@ import java.util.List;
 public class GodEnchantScreen extends AbstractContainerScreen<GodEnchantMenu>
 {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/god_enchant.png");
+            ResourceLocation.tryBuild(Godofthings.MODID, "textures/gui/enchant.png");
 
     private static final int LIST_X = 8;
     private static final int LIST_Y = 58;

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "XQX",
+    "XXX"
+  ],
+  "key": {
+    "X": { "item": "godofthings:god_recipe" },
+    "Q": { "item": "minecraft:quartz_block" }
+  },
+  "result": {
+    "id": "godofthings:copy_machine",
+    "count": 1
+  }
+}

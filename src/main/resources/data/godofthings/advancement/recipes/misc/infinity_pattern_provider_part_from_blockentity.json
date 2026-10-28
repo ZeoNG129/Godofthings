@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": "godofthings:infinity_pattern_provider"
+            "items": "godofthings:pattern_provider_infinity"
           }
         ]
       },

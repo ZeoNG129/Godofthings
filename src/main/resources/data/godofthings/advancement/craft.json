@@ -1,0 +1,36 @@
+{
+  "display": {
+    "icon": {
+      "item": "godofthings:craft"
+    },
+    "title": {
+      "translate": "advancements.godofthings.craft.title"
+    },
+    "description": {
+      "translate": "advancements.godofthings.craft.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "godofthings:root",
+  "criteria": {
+    "has": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "godofthings:craft"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "experience": 300
+  },
+  "sends_telemetry_event": false
+}

@@ -591,7 +591,7 @@ public class GodAbsorberBlockEntity extends BlockEntity implements MenuProvider,
     @NotNull
     public Component getDisplayName()
     {
-        return Component.translatable("container.godofthings.god_absorber");
+        return Component.translatable("container.godofthings.absorb");
     }
 
     @Nullable

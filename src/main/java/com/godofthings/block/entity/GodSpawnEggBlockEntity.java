@@ -83,7 +83,7 @@ public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider,
 
     // v5.18.0：统一 17 输入 + 17 输出网格（照 PBG 无限离心机工厂布局，见 GodGridLayout）
     /** 刷怪蛋输入槽数量（网格第一行） */
-    private static final GodGridLayoutSpec LAYOUT = GodGridLayouts.of("god_spawn_egg");
+    private static final GodGridLayoutSpec LAYOUT = GodGridLayouts.of("eggs_machine");
     public static final int INPUT_SLOT_COUNT = LAYOUT.inputCount();
     /** 复制产物输出槽数量（网格第二行） */
     public static final int OUTPUT_SLOT_COUNT = LAYOUT.outputCount();
@@ -676,7 +676,7 @@ public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider,
     @Override
     public String gridLayoutId()
     {
-        return "god_spawn_egg";
+        return "eggs_machine";
     }
 
     @Override
@@ -1008,7 +1008,7 @@ public class GodSpawnEggBlockEntity extends BlockEntity implements MenuProvider,
     @Override
     public Component getDisplayName()
     {
-        return Component.translatable("block.godofthings.god_spawn_egg");
+        return Component.translatable("block.godofthings.eggs_machine");
     }
 
     @Nullable

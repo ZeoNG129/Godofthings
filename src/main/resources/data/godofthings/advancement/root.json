@@ -1,6 +1,6 @@
 {
   "display": {
-    "icon": { "item": "godofthings:god_furnace" },
+    "icon": { "item": "godofthings:furnace" },
     "title": { "translate": "advancements.godofthings.root.title" },
     "description": { "translate": "advancements.godofthings.root.description" },
     "frame": "task",
@@ -14,7 +14,7 @@
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
-          { "items": [ "godofthings:god_furnace" ] }
+          { "items": [ "godofthings:furnace" ] }
         ]
       }
     }
