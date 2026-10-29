@@ -11,7 +11,10 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * 流体封存格：矿机挖掉水 / 岩浆之后留下的占位方块。
+ * 流体封存格：矿机挖空的每一格都会留下它（v7.20.2 起，含原本是石头 / 泥土的格子）。
+ *
+ * <p>只封「原本是液体」的格子是不够的：石头被挖成空气后同样是敞口，旁边的水 / 岩浆会从那里灌进竖井。
+ * 所以现在<b>凡是被矿机挖掉的方块，一律换成这一格</b>，竖井内不会再出现任何液体。</p>
  *
  * <h2>为什么需要它（v7.20.1）</h2>
  * 挖掉一格水之后想让旁边的水不灌回来，只靠 {@code Level#setBlock} 的 flags 是<b>做不到</b>的：

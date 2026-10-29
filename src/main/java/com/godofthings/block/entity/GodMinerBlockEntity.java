@@ -974,7 +974,9 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
             return;
         }
         List<ItemStack> drops = getDrops(state, pos);
-        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+        // [v7.20.2] 挖空的每一格都留下「流体封存」：只封液体格是不够的 ——
+        // 原本是石头、被挖成空气的格子同样敞着，旁边的水 / 岩浆会从那里灌进竖井。
+        level.setBlock(pos, Godofthings.FLUID_SEAL.get().defaultBlockState(), 3);
         // 神之共鸣（v5.15.4）：点石成金 × 财源滚滚 + 自动熔炼（主人在线 + 穿齐全套 + 对应开关开）
         ServerLevel serverLevel = (ServerLevel) level; // 矿机只在服务端 tick（getDrops 同样强转）
         double bomb = com.godofthings.handler.ArmorSkillHandler.lootBombBoost(serverLevel, owner);
