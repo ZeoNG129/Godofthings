@@ -881,7 +881,8 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
             if (level.isLoaded(p))
             {
                 BlockState state = level.getBlockState(p);
-                if (!state.isAir() && state.getBlock() != Blocks.BEDROCK)
+                if (!state.isAir() && state.getBlock() != Blocks.BEDROCK
+                        && state.getBlock() != Godofthings.FLUID_SEAL.get())
                 {
                     return true;
                 }
@@ -957,13 +958,19 @@ public class GodMinerBlockEntity extends BlockEntity implements MenuProvider, IG
         {
             return; // 保留基岩
         }
+        if (state.getBlock() == Godofthings.FLUID_SEAL.get())
+        {
+            return; // 已经封存过的液体格，跳过
+        }
         if (state.getBlock() instanceof LiquidBlock liquidBlock)
         {
             if (state.getFluidState().isSource())
             {
                 tank.fill(new FluidStack(liquidBlock.fluid, 1000), IFluidHandler.FluidAction.EXECUTE);
             }
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3); // 液体收集进储液罐，无物品掉落
+            // [v7.20.1] 用「流体封存」格占住这一格：它挡流体（blocksMotion 恒 true）却不挡人，
+            // 旁边的水 / 岩浆因此流不进来。实测只靠 setBlock 的 flags 挡不住（流体只看 blocksMotion）。
+            level.setBlock(pos, Godofthings.FLUID_SEAL.get().defaultBlockState(), 3);
             return;
         }
         List<ItemStack> drops = getDrops(state, pos);

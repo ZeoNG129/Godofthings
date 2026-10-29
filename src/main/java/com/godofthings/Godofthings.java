@@ -557,6 +557,25 @@ public class Godofthings
     public static final DeferredItem<BlockItem> VOID_TELEPORTER_ITEM =
             ITEMS.registerSimpleBlockItem(VOID_TELEPORTER, new Item.Properties());
 
+    /**
+     * 流体封存格（v7.20.1）：矿机挖掉水 / 岩浆后用它在原地占位，旁边的液体就流不进来了。
+     *
+     * <p>{@code forceSolidOn()} 让 {@code blocksMotion()} 恒为 true —— 流体据此判定「此格不可占据」；
+     * 方块自身把碰撞箱 / 轮廓都设为空、渲染设为不可见，所以玩家与生物可以直接穿过，也看不到它。
+     * 不注册物品、不进创造栏，玩家无法获取。</p>
+     */
+    public static final DeferredBlock<com.godofthings.block.FluidSealBlock> FLUID_SEAL =
+            BLOCKS.registerBlock("fluid_seal", com.godofthings.block.FluidSealBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.NONE)
+                            .forceSolidOn()
+                            .noOcclusion()
+                            .isSuffocating((state, level, pos) -> false)
+                            .isViewBlocking((state, level, pos) -> false)
+                            .instabreak()
+                            .noLootTable()
+                            .sound(SoundType.STONE));
+
     // ---- 创造能量立方（无限 FE 输出 + 物品充能）----
     public static final DeferredBlock<CreativeEnergyCubeBlock> CREATIVE_ENERGY_CUBE =
             BLOCKS.registerBlock("power", CreativeEnergyCubeBlock::new,

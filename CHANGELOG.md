@@ -7863,3 +7863,28 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
 - 已知遗留（非本次引入）：`assets/ae2/screens/godofthings_overloaded_interface.json` 引用的 `guis/ex_interface.png` 在仓库与 git 历史中都不存在。
 
 方块 / 物品总数不变（110 / 111）；GameTest 45 条全绿；`check-lang` 全绿（2267 键）；模型 / 贴图 / blockstate 引用零断链。
+## 7.20.0 → 7.20.1（神之挖机：挖掉液体后旁边的水 / 岩浆不再灌回来）
+
+- **需求**：矿机挖掉水 / 岩浆后，旁边的液体不许流进已经挖空的那一格。
+- **先做了一次测量（重要结论）**：一开始我以为把 `setBlock` 的 flags 从 3 改成 2（只发客户端、不通知邻居）就能挡住。
+  实测**三种 flags（0 / 2 / 3）结果完全一样** —— 挖掉水源后 11 tick 内都会自己被灌回来，而且直接变回水源。
+  根因在 `FlowingFluid#canHoldFluid`：
+  ```java
+  return !state.is(NETHER_PORTAL) && ... ? !state.blocksMotion() : false;
+  ```
+  也就是说「这一格能不能被流体占据」**只看 `blocksMotion()`**；空气与所有不挡移动的方块都返回 true，
+  所以流体永远能流进空气格，跟有没有收到邻居通知无关。
+- **结论**：想让挖掉的液体格保持空的，只能在那里留一个 `blocksMotion() == true` 的方块。
+- **实现**：新增隐藏方块 `godofthings:fluid_seal`（流体封存）。
+  · `Properties.forceSolidOn()` —— `legacySolid` 直接取这个开关，于是 `blocksMotion()` 恒 true，流体判定「不可占据」，
+    水与岩浆都流不进来（**实测 40 tick 后封存格原位不动、内部无任何流体**）。
+  · 碰撞箱与轮廓都返回 `Shapes.empty()` —— 玩家、生物、掉落物照常穿过，也不会出现选中框。
+  · `RenderShape.INVISIBLE` —— 完全不渲染；`propagatesSkylightDown` / `getLightBlock = 0` —— 不影响光照；
+    `isSuffocating` / `isViewBlocking` 走 Properties 谓词置 false —— 不会窒息、不挡视线。
+  · 不注册物品、不进创造栏、`noLootTable`、`instabreak` —— 玩家拿不到，误挖也没有掉落。
+- **矿机侧**：液体分支由「放空气」改为「放流体封存格」（源液体仍然收进储液罐）；
+  `mineBlock` 与 `columnHasMinableBlocks` 都会跳过封存格，避免把它当成可挖方块反复处理。
+- **文档**：README 的方块计数 110 → 111（新增封存格；物品数仍是 111，因为它没有物品形态）。
+- **验证**：临时 GameTest 探针（跑完已删）断言 `blocksMotion() == true`、碰撞箱与轮廓为空、封存格 40 tick 后仍在且无流体；
+  GameTest 45 条全绿；`check-lang` 全绿（2269 键，111 方块 / 111 物品）；模型 / 贴图 / blockstate 引用零断链。
+- **副作用须知**：所有被挖掉液体的格子都会留下这个隐形封存格（默认固体属性、无碰撞）；它不可见、可穿过、可被打掉。
