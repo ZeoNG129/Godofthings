@@ -7903,3 +7903,16 @@ unGameTestServer 45 条基线全过；另用临时探针（已删）跑 7 条 ME
   · 矿机挖过的 72 格**全部为封存格，竖井内流体格数 = 0**。
   另外 GameTest 45 条全绿、`check-lang` 全绿（2269 键 / 111 方块 / 111 物品）。
 - 影响：竖井里留存的封存格数量等于挖掉的方块数（原来只有液体格）；它们不 tick、不渲染、不碰撞，见上一版说明。
+## 7.20.2 → 7.20.3（修：挖过的区域放不了方块）
+
+- **现象**（用户实机反馈）：矿机挖过的地方没法再放方块了。
+- **根因**：7.20.1 给流体封存格写了 `canBeReplaced(...) = false`。封存格又不可见、无碰撞、没有选中框，
+  于是玩家瞄准时既看不到它、放置又会被它挡回来 —— 整片挖过的区域等于「禁止建造」。
+- **修复**：`FluidSealBlock#canBeReplaced(BlockState, BlockPlaceContext)` 改为返回 `true`，
+  玩家 / 发射器可以正常把方块放进这些格子（放进去就替换掉封存格）。
+- **不影响挡水**：流体能不能进来只看 `FlowingFluid#canHoldFluid` 里的 `blocksMotion()`（由 `forceSolidOn()` 固定为 true），
+  与「可替换」无关 —— 这点做了实测确认。
+- **验证**（临时探针，跑完已删）：①用 `BlockPlaceContext` 走真实的 `BlockItem#place` 流程，在封存格上成功放下石头
+  （`placed=minecraft:stone`）；②把封存格放进「四面都是水源 + 顶上石头」的池子里，40 tick 后它仍是封存格、
+  内部流体为空（`wetCell=godofthings:fluid_seal fluid=empty`）。
+  另外 GameTest 45 条全绿、`check-lang` 全绿。

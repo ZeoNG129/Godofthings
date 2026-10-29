@@ -73,9 +73,18 @@ public class FluidSealBlock extends Block
         return 0;
     }
 
+    /**
+     * 允许在挖过的格子里重新放方块（v7.20.3）。
+     *
+     * <p>封存格不可见、无碰撞、也没有选中框；如果同时设成「不可替换」，玩家在这片区域就<b>完全放不下方块</b>
+     * —— 放置会落到后方的方块上、再被这一格挡回来（用户实机反馈）。所以这里放开替换。</p>
+     *
+     * <p>注意：<b>挡流体不依赖这个方法</b>。流体判定用的是 {@code blocksMotion()}（见类注释），
+     * 所以放开替换不会让水 / 岩浆重新灌进来。</p>
+     */
     @Override
     public boolean canBeReplaced(BlockState state, net.minecraft.world.item.context.BlockPlaceContext context)
     {
-        return false;
+        return true;
     }
 }
